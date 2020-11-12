@@ -5,34 +5,18 @@
 
 ## Introduction
 
-This section should hold a quick intro on what this repo's about. For example:
-
-This repo holds Speckle's:
-
-- Default [Code of Conduct](.github/CODE_OF_CONDUCT.md),
-- Default [Contribution Guidelines](.github/CONTRIBUTING.md),
-- README template (you're reading it now),
-- Default [Issue Template](.github/ISSUE_TEMPLATE/ISSUE_TEMPLATE.md),
-- Default [Pull Request Template](.github/PULL_REQUEST_TEMPLATE/PR_TEMPLATE.md),
-- OSS License (Apache 2.0)
-
-Either copy paste the parts that are useful in existing repos, or use this as a base when creating a new repository.
-
-## This Readme Template
-
-Is rather straightforward. It includes several default sections and one section that requires special attention.
-
-Default sections:
-
-- Badges: has several default social badges. Feel free to add more.
-- Developing & Debugging - needs filling in!
-- Community - can be left as is.
-
-**License section**: If this is a pure OSS repo, like Core, remove everything after the first phrase. Otherwise, we need to plan ahead before releasing and make sure we're covered.
+This is the start of the Python client for Speckle 2.0. It is currently quite nebulous and may be trashed and rebuilt at any moment! It is compatible with Python 3.6+
 
 ## Developing & Debugging
 
-This doesn't make sense here, but in general, we should try to provide a small "how to" guide on local development and debugging, as it lowers the barrier to contributions.
+To get started, create a virtual environment and pip install the requirements. 
+
+on windows:
+```
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
 
 ## Contributing
 
