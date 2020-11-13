@@ -1,4 +1,5 @@
-from speckle.logging.exceptions import GraphQLException
+from logging import error
+from speckle.logging.exceptions import GraphQLException, SpeckleException
 from typing import Dict, List
 from gql.client import Client
 from gql.gql import gql
@@ -42,12 +43,18 @@ class ResourceBase(object):
         """Executes the GraphQL query"""
         try:
             response = self.client.execute(query, variable_values=params)
-        except TransportQueryError as e:
-            return GraphQLException(
-                message=f"Failed to execute the GraphQL {self.name} request. Errors: {e.errors}",
-                errors=e.errors,
-                data=e.data,
-            )
+        except Exception as e:
+            if isinstance(e, TransportQueryError):
+                return GraphQLException(
+                    message=f"Failed to execute the GraphQL {self.name} request. Errors: {e.errors}",
+                    errors=e.errors,
+                    data=e.data,
+                )
+            else:
+                return SpeckleException(
+                    message=f"Failed to execute the GraphQL {self.name} request. Inner exception: {e}",
+                    exception=e,
+                )
 
         if isinstance(return_type, str):
             response = response[return_type]
