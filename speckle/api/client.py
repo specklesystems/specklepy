@@ -1,8 +1,9 @@
+from gql.client import SyncClientSession
 from speckle.logging.exceptions import SpeckleException
 from typing import Dict
 
 from speckle.api import resources
-from speckle.api.resources import stream, server
+from speckle.api.resources import stream, server, user
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -32,14 +33,6 @@ class SpeckleClient:
 
         self._init_resources()
 
-    def _init_resources(self) -> None:
-        self.stream = stream.Resource(
-            me=self.me, basepath=self.url, client=self.httpclient
-        )
-        self.server = server.Resource(
-            me=self.me, basepath=self.url, client=self.httpclient
-        )
-
     def authenticate(self, token: str) -> None:
         """Authenticate the client using a personal access token
         The token is saved in the client object and a synchronous GraphQL entrypoint is created
@@ -61,6 +54,15 @@ class SpeckleClient:
 
     def execute_query(self, query: str) -> Dict:
         return self.httpclient.execute(query)
+
+    def _init_resources(self) -> None:
+        self.stream = stream.Resource(
+            me=self.me, basepath=self.url, client=self.httpclient
+        )
+        self.server = server.Resource(
+            me=self.me, basepath=self.url, client=self.httpclient
+        )
+        self.user = user.Resource(me=self.me, basepath=self.url, client=self.httpclient)
 
     def __getattr__(self, name):
         try:
