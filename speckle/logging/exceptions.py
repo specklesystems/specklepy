@@ -2,10 +2,11 @@ from typing import List
 
 
 class SpeckleException(Exception):
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str, exception: Exception = None) -> None:
         self.message = message
+        self.exception = exception
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"SpeckleException: {self.message}"
 
 
