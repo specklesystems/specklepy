@@ -1,8 +1,11 @@
+from re import search
 from typing import Dict, List, Optional
 from pydantic import BaseModel
 from gql import gql
 from speckle.api.resource import ResourceBase
 from speckle.logging.exceptions import GraphQLException
+from speckle.api.resources.branch import BranchCollection
+from speckle.api.resources.commit import CommitCollection
 
 NAME = "stream"
 METHODS = [
@@ -11,7 +14,7 @@ METHODS = [
     "get",
     "update",
     "delete",
-    "list_objects",
+    "search",
 ]
 
 
@@ -22,7 +25,7 @@ class StreamCollaborator(BaseModel):
     company: Optional[str]
     avatar: Optional[str]
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"Collaborator(id: {self.id}, name: {self.name}, role: {self.role})"
 
 
@@ -34,9 +37,13 @@ class Stream(BaseModel):
     createdAt: Optional[str]
     updatedAt: Optional[str]
     collaborators: List[StreamCollaborator] = []
+    branches: Optional[BranchCollection]
+    commits: Optional[CommitCollection]
 
-    def __str__(self) -> str:
-        return f"Stream(id: {self.id}, name: {self.name}, description: {self.description}, isPublic: {self.isPublic})"
+    def __repr__(self) -> str:
+        return (
+            f"Stream(id: {self.id}, name: {self.name}, description: {self.description})"
+        )
 
 
 class Resource(ResourceBase):
@@ -244,4 +251,77 @@ class Resource(ResourceBase):
 
         return self.make_request(
             query=query, params=params, return_type="streamDelete", parse_response=False
+        )
+
+    def search(
+        self,
+        search_query: str,
+        limit: int = 25,
+        branch_limit: int = 10,
+        commit_limit: int = 10,
+    ):
+        """Search for streams by name, description, or id
+
+        Arguments:
+            search_query {str} -- a string to search for
+            limit {int} -- the maximum number of results to return
+            branch_limit {int} -- the maximum number of branches to return
+            commit_limit {int} -- the maximum number of commits to return
+
+        Returns:
+            List[Stream] -- a list of Streams that match the search query
+        """
+        query = gql(
+            """
+            query StreamSearch($search_query: String!,$limit: Int!, $branch_limit:Int!, $commit_limit:Int!) {
+              streams(query: $search_query, limit: $limit) {
+                items {
+                  id
+                  name
+                  description
+                  isPublic
+                  createdAt
+                  updatedAt
+                  collaborators {
+                    id
+                    name
+                    role
+                    avatar
+                  }
+                  branches(limit: $branch_limit) {
+                    totalCount
+                    cursor
+                    items {
+                      id
+                      name
+                      description
+                      commits(limit: $commit_limit) {
+                        totalCount
+                        cursor
+                        items {
+                          id
+                          referencedObject
+                          message
+                          authorName
+                          authorId
+                          createdAt
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          """
+        )
+
+        params = {
+            "search_query": search_query,
+            "limit": limit,
+            "branch_limit": branch_limit,
+            "commit_limit": commit_limit,
+        }
+
+        return self.make_request(
+            query=query, params=params, return_type=["streams", "items"]
         )
