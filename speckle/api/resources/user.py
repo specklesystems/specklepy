@@ -3,24 +3,10 @@ from typing import List, Optional
 from gql import gql
 from pydantic.main import BaseModel
 from speckle.api.resource import ResourceBase
+from speckle.api.models import User
 
 NAME = "user"
 METHODS = ["get"]
-
-
-class User(BaseModel):
-    id: str
-    email: Optional[str]
-    name: Optional[str]
-    bio: Optional[str]
-    company: Optional[str]
-    avatar: Optional[str]
-    verified: bool
-    profiles: Optional[dict]
-    role: Optional[str]
-
-    def __repr__(self) -> str:
-        return f"User(id: {self.id}, name: {self.name}, email: {self.email})"
 
 
 class Resource(ResourceBase):

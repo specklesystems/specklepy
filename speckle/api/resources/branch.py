@@ -2,25 +2,10 @@ from typing import List, Optional
 from gql import gql
 from pydantic.main import BaseModel
 from speckle.api.resource import ResourceBase
-from speckle.api.resources.user import User
-from speckle.api.resources.commit import CommitCollection
+from speckle.api.models import Branch
 
 NAME = "branch"
 METHODS = ["create"]
-
-
-class Branch(BaseModel):
-    id: str
-    name: str
-    author: Optional[User]
-    description: Optional[str]
-    commits: CommitCollection
-
-
-class BranchCollection(BaseModel):
-    totalCount: int
-    cursor: Optional[str]
-    items: List[Branch] = []
 
 
 class Resource(ResourceBase):
@@ -30,8 +15,11 @@ class Resource(ResourceBase):
         super().__init__(
             me=me, basepath=basepath, client=client, name=NAME, methods=METHODS
         )
+        self.schema = Branch
 
-    def create(self, name: str, description: str = "No description provided") -> str:
+    def create(
+        self, streamId: str, name: str, description: str = "No description provided"
+    ) -> str:
         """Create a new branch on this stream
 
         Arguments:
@@ -51,7 +39,7 @@ class Resource(ResourceBase):
         )
         params = {
             "branch": {
-                "streamId": self.id,
+                "streamId": streamId,
                 "name": name,
                 "description": description,
             }

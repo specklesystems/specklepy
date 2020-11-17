@@ -3,9 +3,8 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel
 from gql import gql
 from speckle.api.resource import ResourceBase
+from speckle.api.models import Stream
 from speckle.logging.exceptions import GraphQLException
-from speckle.api.resources.branch import BranchCollection
-from speckle.api.resources.commit import CommitCollection
 
 NAME = "stream"
 METHODS = [
@@ -16,34 +15,6 @@ METHODS = [
     "delete",
     "search",
 ]
-
-
-class StreamCollaborator(BaseModel):
-    id: str
-    name: str
-    role: str
-    company: Optional[str]
-    avatar: Optional[str]
-
-    def __repr__(self) -> str:
-        return f"Collaborator(id: {self.id}, name: {self.name}, role: {self.role})"
-
-
-class Stream(BaseModel):
-    id: str
-    name: str
-    description: Optional[str]
-    isPublic: Optional[bool]
-    createdAt: Optional[str]
-    updatedAt: Optional[str]
-    collaborators: List[StreamCollaborator] = []
-    branches: Optional[BranchCollection]
-    commits: Optional[CommitCollection]
-
-    def __repr__(self) -> str:
-        return (
-            f"Stream(id: {self.id}, name: {self.name}, description: {self.description})"
-        )
 
 
 class Resource(ResourceBase):

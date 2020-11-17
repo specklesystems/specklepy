@@ -2,25 +2,11 @@ from typing import Optional, List
 from gql import gql
 from pydantic.main import BaseModel
 from speckle.api.resource import ResourceBase
+from speckle.api.models import Commit
 
 
 NAME = "commit"
 METHODS = []
-
-
-class Commit(BaseModel):
-    id: str
-    referencedObject: str
-    message: Optional[str]
-    authorName: Optional[str]
-    authorId: Optional[str]
-    createdAt: Optional[str]
-
-
-class CommitCollection(BaseModel):
-    totalCount: int
-    cursor: Optional[str]
-    items: List[Commit] = []
 
 
 class Resource(ResourceBase):
@@ -30,3 +16,4 @@ class Resource(ResourceBase):
         super().__init__(
             me=me, basepath=basepath, client=client, name=NAME, methods=METHODS
         )
+        self.schema = Commit
