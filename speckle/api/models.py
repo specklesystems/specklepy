@@ -18,18 +18,6 @@ class Collaborator(BaseModel):
     avatar: Optional[str]
 
 
-class User(BaseModel):
-    id: Optional[str]
-    email: Optional[str]
-    name: Optional[str]
-    bio: Optional[str]
-    company: Optional[str]
-    avatar: Optional[str]
-    verified: bool
-    role: Optional[str]
-    streams: Streams
-
-
 class Commit(BaseModel):
     id: Optional[str]
     message: Optional[str]
@@ -41,16 +29,16 @@ class Commit(BaseModel):
 
 
 class Commits(BaseModel):
-    totalCount: int
-    cursor: Any
-    items: List[Commit]
+    totalCount: Optional[int]
+    cursor: Optional[Any]
+    items: List[Commit] = []
 
 
 class Object(BaseModel):
     id: Optional[str]
     speckleType: Optional[str]
     applicationId: Optional[str]
-    totalChildrenCount: int
+    totalChildrenCount: Optional[int]
     createdAt: Optional[str]
 
 
@@ -58,29 +46,41 @@ class Branch(BaseModel):
     id: Optional[str]
     name: Optional[str]
     description: Optional[str]
-    commits: Commits
+    commits: Optional[Commits]
 
 
 class Branches(BaseModel):
-    totalCount: int
-    cursor: datetime
-    items: List[Branch]
+    totalCount: Optional[int]
+    cursor: Optional[datetime]
+    items: List[Branch] = []
 
 
 class Streams(BaseModel):
-    totalCount: int
-    cursor: datetime
-    items: List[Stream]
+    totalCount: Optional[int]
+    cursor: Optional[datetime]
+    items: List[Stream] = []
 
 
 class Stream(BaseModel):
     id: Optional[str]
     name: Optional[str]
     description: Optional[str]
-    isPublic: bool
+    isPublic: Optional[bool]
     createdAt: Optional[str]
     updatedAt: Optional[str]
-    collaborators: List[Collaborator]
-    branches: Branches
-    commit: Commit
-    object: Object
+    collaborators: List[Collaborator] = []
+    branches: Optional[Branches]
+    commit: Optional[Commit]
+    object: Optional[Object]
+
+
+class User(BaseModel):
+    id: Optional[str]
+    email: Optional[str]
+    name: Optional[str]
+    bio: Optional[str]
+    company: Optional[str]
+    avatar: Optional[str]
+    verified: Optional[bool]
+    role: Optional[str]
+    streams: Optional[Streams]
