@@ -22,7 +22,19 @@ class ResourceBase(object):
         self.methods = methods
         self.schema = None
 
+    def _step_into_response(self, response: dict, return_type: str or List):
+        """Step into the dict to get the relevant data"""
+        if return_type is None:
+            return response
+        elif isinstance(return_type, str):
+            return response[return_type]
+        elif isinstance(return_type, List):
+            for key in return_type:
+                response = response[key]
+            return response
+
     def _parse_response(self, response: dict or list, schema=None):
+        """Try to create a class instance from the response"""
         if isinstance(response, list):
             return [self._parse_response(response=r, schema=schema) for r in response]
         if schema:
@@ -56,11 +68,7 @@ class ResourceBase(object):
                     exception=e,
                 )
 
-        if isinstance(return_type, str):
-            response = response[return_type]
-        elif isinstance(return_type, List):
-            for key in return_type:
-                response = response[key]
+        response = self._step_into_response(response=response, return_type=return_type)
 
         if parse_response:
             return self._parse_response(response=response, schema=schema)
