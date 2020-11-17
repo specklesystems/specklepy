@@ -3,7 +3,7 @@ from speckle.logging.exceptions import SpeckleException
 from typing import Dict
 
 from speckle.api import resources
-from speckle.api.resources import stream, server, user
+from speckle.api.resources import stream, server, user, subscriptions
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -24,12 +24,13 @@ class SpeckleClient:
 
         self.url = f"{http_protocol}://{host}"
         self.graphql = self.url + "/graphql"
-        self.ws_url = f"{ws_protocol}://{host}"
+        self.ws_url = f"{ws_protocol}://{host}/graphql"
         self.me = None
 
         self.httpclient = Client(
             transport=RequestsHTTPTransport(url=self.graphql, verify=True, retries=3)
         )
+        self.wsclient = None
 
         self._init_resources()
 
@@ -48,7 +49,12 @@ class SpeckleClient:
         httptransport = RequestsHTTPTransport(
             url=self.graphql, headers=headers, verify=True, retries=3
         )
+        wstransport = WebsocketsTransport(
+            url=self.ws_url,
+            init_payload={"Authorization": f"Bearer {self.me['token']}"},
+        )
         self.httpclient = Client(transport=httptransport)
+        self.wsclient = Client(transport=wstransport)
 
         self._init_resources()
 
@@ -63,6 +69,11 @@ class SpeckleClient:
             me=self.me, basepath=self.url, client=self.httpclient
         )
         self.user = user.Resource(me=self.me, basepath=self.url, client=self.httpclient)
+        self.subscribe = subscriptions.Resource(
+            me=self.me,
+            basepath=self.ws_url,
+            client=self.wsclient,
+        )
 
     def __getattr__(self, name):
         try:
