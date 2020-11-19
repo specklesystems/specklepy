@@ -28,9 +28,7 @@ class Base(BaseModel):
 
     def get_dynamic_member_names(self) -> List[str]:
         """Get all of the names of the dynamic properties of this object"""
-        props = self.get_member_names()
-        typed = self.get_typed_member_names()
-        return [prop for prop in props if prop not in typed]
+        return list(set(self.__dict__.keys()) - set(self.__fields__.keys()))
 
     class Config:
         extra = Extra.allow
