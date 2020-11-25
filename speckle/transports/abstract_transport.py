@@ -14,7 +14,10 @@ from pydantic.dataclasses import dataclass
 
 
 class Transport(ABC):
-    """Literally just so I can put a type hint in the AbstractTransport. If there is a better way to do this pls lemme know, my dude"""
+    """Literally just so I can put a type hint in the AbstractTransport. If there is a better way to do this pls lemme know, my dude
+
+    UPDATE: this can be done in 3.7+ with `from __future__ import annotations`, but we are wanting to support 3.6+
+    """
 
     @abstractmethod
     def name(self):
@@ -30,7 +33,13 @@ class AbstractTransport(Transport):
         return type(self)._name
 
     @abstractmethod
-    def begin_write(self):
+    def begin_write(self) -> None:
+        """Optional: signals to the transport that writes are about to begin."""
+        pass
+
+    @abstractmethod
+    def end_write(self) -> None:
+        """Optional: signals to the transport that no more items will need to be written."""
         pass
 
     @abstractmethod

@@ -116,6 +116,9 @@ class SQLiteTransport(AbstractTransport):
     def begin_write(self):
         self.saved_obj_count = 0
 
+    def end_write(self):
+        pass
+
     def close(self):
         """Close the connection to the database"""
         if self._connection:
