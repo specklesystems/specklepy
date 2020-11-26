@@ -24,11 +24,11 @@ class BaseObjectSerializer:
         if not self.detach_lineage:
             self.detach_lineage.append(False)
         stack = [(base, base.get_member_names())]
-        object_dict = {}
+        object_dict = {"id": ""}
         while stack:
             obj, props = stack.pop()
             while props:
-                prop = props.pop()
+                prop = props.pop(0)
                 value = obj[prop]
                 if not value or prop.startswith("__"):
                     continue
