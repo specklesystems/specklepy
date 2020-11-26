@@ -24,37 +24,48 @@ class BaseObjectSerializer:
     def traverse_base(self, base: Base) -> Tuple[str, dict]:
         if not self.detach_lineage:
             self.detach_lineage.append(True)
-        stack = [(base, base.get_member_names())]
         object_dict = {"id": ""}
-        while stack:
-            obj, props = stack.pop()
-            while props:
-                prop = props.pop(0)
-                value = obj[prop]
+        obj, props = base, base.get_member_names()
+        while props:
+            prop = props.pop(0)
+            value = obj[prop]
 
-                # skip nulls or props marked to be ignored with "__"
-                if not value or prop.startswith("__"):
-                    continue
+            # skip nulls or props marked to be ignored with "__"
+            if not value or prop.startswith("__"):
+                continue
 
-                # handle base objects
-                if isinstance(value, Base):
-                    if prop.startswith(("@", "__")):
-                        self.detach_lineage.append(True)
-                        ref_hash, _ = self.traverse_base(value)
-                        object_dict[prop] = {
-                            "reference_id": ref_hash,
-                            "speckle_type": "reference",
-                        }
-                        self.closure_table[ref_hash] = len(self.detach_lineage) + 1
+            # handle base objects
+            if isinstance(value, Base):
+                if prop.startswith("@"):
+                    self.detach_lineage.append(True)
+                    ref_hash, _ = self.traverse_base(value)
+                    object_dict[prop] = {
+                        "reference_id": ref_hash,
+                        "speckle_type": "reference",
+                    }
+
+                    if (
+                        ref_hash in self.closure_table
+                        and self.closure_table[ref_hash] < len(self.detach_lineage) + 1
+                    ):
+                        pass
                     else:
-                        self.detach_lineage.append(False)
-                        _, child_obj = self.traverse_base(value)
-                        object_dict[prop] = child_obj
-                    stack.extend([(obj, props)])
-                    break
+                        self.closure_table[ref_hash] = len(self.detach_lineage) + 1
+                else:
+                    self.detach_lineage.append(False)
+                    _, child_obj = self.traverse_base(value)
+                    object_dict[prop] = child_obj
+                continue
 
-                # all other cases
-                # TODO: primitive case, unknown object case
+            # TODO: handle iterables (lists and dictionaries)
+            if isinstance(value, (list, dict)):
+                self.in_iterable = True
+
+                self.in_iterable = False
+
+            # TODO: primitive case, unknown object case
+            # all other cases
+            else:
                 object_dict[prop] = value
 
         hash = hash_dict(object_dict)
