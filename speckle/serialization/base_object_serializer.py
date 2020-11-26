@@ -6,13 +6,14 @@ from speckle.objects.base import Base
 
 
 def hash_dict(obj: dict) -> str:
-    return hashlib.sha224(json.dumps(obj).encode()).hexdigest()[0:32]
+    return hashlib.sha224(json.dumps(obj).encode()).hexdigest()[:32]
 
 
 class BaseObjectSerializer:
     detach_lineage: list = []
     closure_table: dict = {}
     traversed_objects: dict = {}
+    in_iterable: bool = False
 
     def __init__(self) -> None:
         pass
@@ -22,7 +23,7 @@ class BaseObjectSerializer:
 
     def traverse_base(self, base: Base) -> Tuple[str, dict]:
         if not self.detach_lineage:
-            self.detach_lineage.append(False)
+            self.detach_lineage.append(True)
         stack = [(base, base.get_member_names())]
         object_dict = {"id": ""}
         while stack:
@@ -30,8 +31,12 @@ class BaseObjectSerializer:
             while props:
                 prop = props.pop(0)
                 value = obj[prop]
+
+                # skip nulls or props marked to be ignored with "__"
                 if not value or prop.startswith("__"):
                     continue
+
+                # handle base objects
                 if isinstance(value, Base):
                     if prop.startswith(("@", "__")):
                         self.detach_lineage.append(True)
@@ -47,12 +52,19 @@ class BaseObjectSerializer:
                         object_dict[prop] = child_obj
                     stack.extend([(obj, props)])
                     break
+
+                # all other cases
+                # TODO: primitive case, unknown object case
                 object_dict[prop] = value
+
         hash = hash_dict(object_dict)
         object_dict["id"] = hash
-        self.traversed_objects[hash] = object_dict
 
-        if self.detach_lineage:
+        # write detached or root objects to transports
+        if self.detach_lineage[-1]:
+            self.traversed_objects[hash] = object_dict
+
+        if self.detach_lineage and not self.in_iterable:
             self.detach_lineage.pop()
 
         return hash, object_dict
