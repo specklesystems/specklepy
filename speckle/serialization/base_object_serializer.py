@@ -67,6 +67,7 @@ class BaseObjectSerializer:
                 traversed = self.traverse_value(value)
 
                 if prop.startswith("@"):
+                    traversed = self.traverse_value(value, detach=True)
                     ref_hash = hash_obj(traversed)
                     object_dict[prop] = self.detach_helper(
                         ref_hash=ref_hash, obj=traversed
@@ -74,6 +75,7 @@ class BaseObjectSerializer:
                     children.append(ref_hash)
 
                 else:
+                    traversed = self.traverse_value(value)
                     object_dict[prop] = traversed
 
                 self.in_iterable = False
@@ -98,7 +100,7 @@ class BaseObjectSerializer:
 
         return hash, object_dict
 
-    def traverse_value(self, obj: Any) -> Any:
+    def traverse_value(self, obj: Any, detach: bool = False) -> Any:
         if isinstance(obj, PRIMITIVES):
             return obj
 
@@ -114,6 +116,7 @@ class BaseObjectSerializer:
             return obj
 
         elif isinstance(obj, Base):
+            self.detach_lineage.append(detach)
             _, base_obj = self.traverse_base(obj)
             return base_obj
 
