@@ -4,6 +4,7 @@ import hashlib
 from typing import Any, Dict, List, Tuple
 from speckle.objects.base import Base
 from speckle.logging.exceptions import SerializationException
+from speckle.transports.abstract_transport import AbstractTransport
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -13,20 +14,22 @@ def hash_obj(obj: Any) -> str:
 
 
 class BaseObjectSerializer:
+    write_transports: List[AbstractTransport]
     detach_lineage: List[bool] = []  # tracks depth and whether or not to detach
-    family_tree: Dict = [{}]  # holds all the children in the root object
+    family_tree: List[Dict[str, int]] = [{}]
     leaf: int = 0
-    traversed_objects: Dict = {}  # all bases (root and its detached children)
-    closure_table: Dict = {}  # hash of each base and its children with min depth
+    traversed_objects: Dict[str, Dict] = {}
+    closure_table: Dict[str, Dict[str, int]] = {}
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, write_transports: List[AbstractTransport] = []) -> None:
+        self.write_transports = write_transports
 
     def write_json(self, base: Base):
         self.detach_lineage = [True]
-        raise NotImplementedError
+        hash, obj = self.traverse_base(base)
+        return hash, json.dumps(obj)
 
-    def traverse_base(self, base: Base) -> Tuple[str, dict]:
+    def traverse_base(self, base: Base) -> Tuple[str, Dict]:
         """Decomposes the given base object and builds a serializable dictionary
 
         Arguments:
@@ -36,7 +39,7 @@ class BaseObjectSerializer:
             (str, dict) -- a tuple containing the hash (id) of the base object and the constructed serializable dictionary
         """
         if not self.detach_lineage:
-            self.detach_lineage.append(True)
+            self.detach_lineage = [True]
         object_builder = {"id": ""}
         children = []
         obj, props = base, base.get_member_names()
@@ -105,12 +108,7 @@ class BaseObjectSerializer:
         hash = hash_obj(object_builder)
         object_builder["id"] = hash
 
-        # write detached or root objects to transports
-        if self.detach_lineage[-1]:
-            self.traversed_objects[hash] = object_builder
-
-        if self.detach_lineage:
-            self.detach_lineage.pop()
+        lineage = self.detach_lineage.pop() if self.detach_lineage else False
 
         # add closures to object and to closure table
         if children:
@@ -119,6 +117,11 @@ class BaseObjectSerializer:
                 hash: minDepth - lineage_length if lineage_length > 0 else minDepth
                 for hash, minDepth in self.family_tree[self.leaf].items()
             }
+
+        # write detached or root objects to transports
+        if lineage:
+            self.traversed_objects[hash] = object_builder
+            self.write_to_transports(hash, object_builder)
 
         return hash, object_builder
 
@@ -160,7 +163,7 @@ class BaseObjectSerializer:
                 )
                 return str(obj)
 
-    def detach_helper(self, ref_hash: str, obj: Any) -> Dict:
+    def detach_helper(self, ref_hash: str, obj: Any) -> Dict[str, str]:
         """Helper to keep track of detached objects and their depth in the family tree, write fully traversed objects, and create reference objects to place in the parent object
 
         Arguments:
@@ -177,9 +180,11 @@ class BaseObjectSerializer:
         else:
             self.family_tree[self.leaf][ref_hash] = len(self.detach_lineage)
 
-        self.traversed_objects[ref_hash] = obj
-
         return {
             "reference_id": ref_hash,
             "speckle_type": "reference",
         }
+
+    def write_to_transports(self, hash: str, obj: Dict) -> None:
+        for t in self.write_transports:
+            t.save_object(id=hash, serialized_object=json.dumps(obj))

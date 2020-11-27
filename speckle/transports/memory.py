@@ -8,8 +8,9 @@ class MemoryTransport(AbstractTransport):
     objects: dict = {}
     saved_object_count: int = 0
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, name=None) -> None:
+        if name:
+            self._name = name
 
     def __repr__(self) -> str:
         return f"MemoryTransport(objects: {len(self.objects)})"
