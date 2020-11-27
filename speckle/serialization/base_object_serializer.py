@@ -14,10 +14,10 @@ def hash_obj(obj: Any) -> str:
 
 class BaseObjectSerializer:
     detach_lineage: List[bool] = []  # tracks depth and whether or not to detach
-    children_helper: Dict = {}  # holds all the children in the root object
+    family_tree: Dict = [{}]  # holds all the children in the root object
+    leaf: int = 0
     traversed_objects: Dict = {}  # all bases (root and its detached children)
     closure_table: Dict = {}  # hash of each base and its children with min depth
-    in_iterable: bool = False  # tracks whether we are in a list or dict
 
     def __init__(self) -> None:
         pass
@@ -40,8 +40,12 @@ class BaseObjectSerializer:
             if not value or prop.startswith("__"):
                 continue
 
+            # handle primitives (ints, floats, strings, and bools)
+            elif isinstance(value, PRIMITIVES):
+                object_dict[prop] = value
+
             # handle base objects
-            if isinstance(value, Base):
+            elif isinstance(value, Base):
                 if prop.startswith("@"):
                     self.detach_lineage.append(True)
 
@@ -57,14 +61,11 @@ class BaseObjectSerializer:
 
                     _, child_obj = self.traverse_base(value)
                     object_dict[prop] = child_obj
-                continue
 
-            # all other cases
-            else:
-                if isinstance(value, (list, dict)):
-                    self.in_iterable = True
-
-                traversed = self.traverse_value(value)
+            # handle lists and dicts
+            elif isinstance(value, (list, dict)):
+                self.leaf += 1
+                self.family_tree.append({})
 
                 if prop.startswith("@"):
                     traversed = self.traverse_value(value, detach=True)
@@ -78,7 +79,28 @@ class BaseObjectSerializer:
                     traversed = self.traverse_value(value)
                     object_dict[prop] = traversed
 
-                self.in_iterable = False
+                self.leaf -= 1
+                for hash, depth in self.family_tree.pop().items():
+                    if (
+                        hash in self.family_tree[self.leaf]
+                        and self.family_tree[self.leaf][hash] < depth
+                    ):
+                        pass
+                    else:
+                        self.family_tree[self.leaf][hash] = depth
+
+            # all other cases
+            elif prop.startswith("@"):
+                self.detach_lineage.append(True)
+                traversed = self.traverse_value(value, detach=True)
+                ref_hash = hash_obj(traversed)
+                object_dict[prop] = self.detach_helper(ref_hash=ref_hash, obj=traversed)
+                children.append(ref_hash)
+
+            else:
+                self.detach_lineage.append(False)
+                traversed = self.traverse_value(value)
+                object_dict[prop] = traversed
 
         hash = hash_obj(object_dict)
         object_dict["id"] = hash
@@ -95,7 +117,7 @@ class BaseObjectSerializer:
             lineage_length = len(self.detach_lineage)
             object_dict["__closure"] = self.closure_table[hash] = {
                 hash: minDepth - lineage_length if lineage_length > 0 else minDepth
-                for hash, minDepth in self.children_helper.items()
+                for hash, minDepth in self.family_tree[self.leaf].items()
             }
 
         return hash, object_dict
@@ -131,12 +153,12 @@ class BaseObjectSerializer:
                 return str(obj)
 
     def detach_helper(self, ref_hash: str, obj: Any) -> Dict:
-        if ref_hash in self.children_helper and self.children_helper[ref_hash] < len(
-            self.detach_lineage
-        ):
+        if ref_hash in self.family_tree[self.leaf] and self.family_tree[self.leaf][
+            ref_hash
+        ] < len(self.detach_lineage):
             pass
         else:
-            self.children_helper[ref_hash] = len(self.detach_lineage)
+            self.family_tree[self.leaf][ref_hash] = len(self.detach_lineage)
 
         self.traversed_objects[ref_hash] = obj
 
