@@ -28,56 +28,38 @@ class BaseObjectSerializer:
     def traverse_base(self, base: Base) -> Tuple[str, dict]:
         if not self.detach_lineage:
             self.detach_lineage.append(True)
-        object_dict = {"id": ""}
+        object_builder = {"id": ""}
         children = []
         obj, props = base, base.get_member_names()
 
         while props:
             prop = props.pop(0)
             value = obj[prop]
+            detach = False
 
             # skip nulls or props marked to be ignored with "__"
             if not value or prop.startswith("__"):
                 continue
 
-            # handle primitives (ints, floats, strings, and bools)
-            elif isinstance(value, PRIMITIVES):
-                object_dict[prop] = value
+            if prop.startswith("@"):
+                detach = True
 
-            # handle base objects
-            elif isinstance(value, Base):
-                if prop.startswith("@"):
-                    self.detach_lineage.append(True)
+            # 1. handle primitives (ints, floats, strings, and bools)
+            if isinstance(value, PRIMITIVES):
+                object_builder[prop] = value
+                continue
 
-                    ref_hash, child_obj = self.traverse_base(value)
-                    children.append(ref_hash)
-
-                    object_dict[prop] = self.detach_helper(
-                        ref_hash=ref_hash, obj=child_obj
-                    )
-
-                else:
-                    self.detach_lineage.append(False)
-
-                    _, child_obj = self.traverse_base(value)
-                    object_dict[prop] = child_obj
-
-            # handle lists and dicts
+            # 2. handle lists and dicts
             elif isinstance(value, (list, dict)):
                 self.leaf += 1
                 self.family_tree.append({})
 
-                if prop.startswith("@"):
-                    traversed = self.traverse_value(value, detach=True)
-                    ref_hash = hash_obj(traversed)
-                    object_dict[prop] = self.detach_helper(
-                        ref_hash=ref_hash, obj=traversed
-                    )
-                    children.append(ref_hash)
+                if detach:
+                    child_obj = self.traverse_value(value, detach=True)
+                    ref_hash = hash_obj(child_obj)
 
                 else:
-                    traversed = self.traverse_value(value)
-                    object_dict[prop] = traversed
+                    child_obj = self.traverse_value(value)
 
                 self.leaf -= 1
                 for hash, depth in self.family_tree.pop().items():
@@ -89,25 +71,34 @@ class BaseObjectSerializer:
                     else:
                         self.family_tree[self.leaf][hash] = depth
 
-            # all other cases
-            elif prop.startswith("@"):
-                self.detach_lineage.append(True)
-                traversed = self.traverse_value(value, detach=True)
-                ref_hash = hash_obj(traversed)
-                object_dict[prop] = self.detach_helper(ref_hash=ref_hash, obj=traversed)
-                children.append(ref_hash)
+            # 3. handle all other cases (nested Base objects, other objects, etc)
+            elif detach:
+                # self.detach_lineage.append(True)
+                child_obj = self.traverse_value(value, detach=True)
+                if isinstance(value, Base):
+                    ref_hash = child_obj["id"]
+                else:
+                    ref_hash = hash_obj(child_obj)
 
             else:
-                self.detach_lineage.append(False)
-                traversed = self.traverse_value(value)
-                object_dict[prop] = traversed
+                # self.detach_lineage.append(False)
+                child_obj = self.traverse_value(value)
 
-        hash = hash_obj(object_dict)
-        object_dict["id"] = hash
+            # save child object (or the referenced to the detached child) to the object builder
+            if detach:
+                children.append(ref_hash)
+                object_builder[prop] = self.detach_helper(
+                    ref_hash=ref_hash, obj=child_obj
+                )
+            else:
+                object_builder[prop] = child_obj
+
+        hash = hash_obj(object_builder)
+        object_builder["id"] = hash
 
         # write detached or root objects to transports
         if self.detach_lineage[-1]:
-            self.traversed_objects[hash] = object_dict
+            self.traversed_objects[hash] = object_builder
 
         if self.detach_lineage:
             self.detach_lineage.pop()
@@ -115,12 +106,12 @@ class BaseObjectSerializer:
         # add closures to object and to closure table
         if children:
             lineage_length = len(self.detach_lineage)
-            object_dict["__closure"] = self.closure_table[hash] = {
+            object_builder["__closure"] = self.closure_table[hash] = {
                 hash: minDepth - lineage_length if lineage_length > 0 else minDepth
                 for hash, minDepth in self.family_tree[self.leaf].items()
             }
 
-        return hash, object_dict
+        return hash, object_builder
 
     def traverse_value(self, obj: Any, detach: bool = False) -> Any:
         if isinstance(obj, PRIMITIVES):
