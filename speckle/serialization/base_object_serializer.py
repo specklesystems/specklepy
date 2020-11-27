@@ -22,10 +22,19 @@ class BaseObjectSerializer:
     def __init__(self) -> None:
         pass
 
-    def to_json(self, base: Base):
+    def write_json(self, base: Base):
         self.detach_lineage = [True]
+        raise NotImplementedError
 
     def traverse_base(self, base: Base) -> Tuple[str, dict]:
+        """Decomposes the given base object and builds a serializable dictionary
+
+        Arguments:
+            base {Base} -- the base object to be decomposed and serialized
+
+        Returns:
+            (str, dict) -- a tuple containing the hash (id) of the base object and the constructed serializable dictionary
+        """
         if not self.detach_lineage:
             self.detach_lineage.append(True)
         object_builder = {"id": ""}
@@ -114,6 +123,14 @@ class BaseObjectSerializer:
         return hash, object_builder
 
     def traverse_value(self, obj: Any, detach: bool = False) -> Any:
+        """Decomposes a given object and constructs a serializable object or dictionary
+
+        Arguments:
+            obj {Any} -- the value to decompose
+
+        Returns:
+            Any -- a serializable version of the given object
+        """
         if isinstance(obj, PRIMITIVES):
             return obj
 
@@ -144,6 +161,15 @@ class BaseObjectSerializer:
                 return str(obj)
 
     def detach_helper(self, ref_hash: str, obj: Any) -> Dict:
+        """Helper to keep track of detached objects and their depth in the family tree, write fully traversed objects, and create reference objects to place in the parent object
+
+        Arguments:
+            ref_hash {str} -- the hash of the fully traversed object
+            obj {Any} -- the fully traversed object
+
+        Returns:
+            dict -- a reference object to be inserted into the given object's parent
+        """
         if ref_hash in self.family_tree[self.leaf] and self.family_tree[self.leaf][
             ref_hash
         ] < len(self.detach_lineage):
