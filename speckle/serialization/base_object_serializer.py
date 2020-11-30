@@ -181,7 +181,7 @@ class BaseObjectSerializer:
             self.family_tree[self.leaf][ref_hash] = len(self.detach_lineage)
 
         return {
-            "reference_id": ref_hash,
+            "referencedId": ref_hash,
             "speckle_type": "reference",
         }
 
