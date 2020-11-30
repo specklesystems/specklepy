@@ -1,9 +1,10 @@
 import json
 import hashlib
 
+from uuid import uuid4
 from typing import Any, Dict, List, Tuple
 from speckle.objects.base import Base
-from speckle.logging.exceptions import SerializationException
+from speckle.logging.exceptions import SerializationException, SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 
 PRIMITIVES = (int, float, str, bool)
@@ -14,15 +15,18 @@ def hash_obj(obj: Any) -> str:
 
 
 class BaseObjectSerializer:
+    read_transport: AbstractTransport
     write_transports: List[AbstractTransport]
     detach_lineage: List[bool] = []  # tracks depth and whether or not to detach
-    family_tree: List[Dict[str, int]] = [{}]
-    leaf: int = 0
-    traversed_objects: Dict[str, Dict] = {}
+    lineage: List[str] = []  # keeps track of hash chain through the object tree
+    family_tree: Dict[str, Dict[str, int]] = {}
     closure_table: Dict[str, Dict[str, int]] = {}
 
-    def __init__(self, write_transports: List[AbstractTransport] = []) -> None:
+    def __init__(
+        self, write_transports: List[AbstractTransport] = [], read_transport=None
+    ) -> None:
         self.write_transports = write_transports
+        self.read_transport = read_transport
 
     def write_json(self, base: Base):
         self.detach_lineage = [True]
@@ -40,88 +44,56 @@ class BaseObjectSerializer:
         """
         if not self.detach_lineage:
             self.detach_lineage = [True]
+
+        self.lineage.append(uuid4().hex)
         object_builder = {"id": ""}
-        children = []
         obj, props = base, base.get_member_names()
 
         while props:
             prop = props.pop(0)
             value = obj[prop]
-            detach = False
 
             # skip nulls or props marked to be ignored with "__"
             if not value or prop.startswith("__"):
                 continue
 
-            if prop.startswith("@"):
-                detach = True
+            detach = True if prop.startswith("@") else False
 
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):
                 object_builder[prop] = value
                 continue
 
-            # 2. handle lists and dicts
-            elif isinstance(value, (list, dict)):
-                self.leaf += 1
-                self.family_tree.append({})
-
+            # 2. handle Base objects
+            elif isinstance(value, Base):
+                child_obj = self.traverse_value(value, detach=detach)
                 if detach:
-                    child_obj = self.traverse_value(value, detach=True)
-                    ref_hash = hash_obj(child_obj)
-
-                else:
-                    child_obj = self.traverse_value(value)
-
-                self.leaf -= 1
-                for hash, depth in self.family_tree.pop().items():
-                    if (
-                        hash in self.family_tree[self.leaf]
-                        and self.family_tree[self.leaf][hash] < depth
-                    ):
-                        pass
-                    else:
-                        self.family_tree[self.leaf][hash] = depth
-
-            # 3. handle all other cases (nested Base objects, other objects, etc)
-            elif detach:
-                # self.detach_lineage.append(True)
-                child_obj = self.traverse_value(value, detach=True)
-                if isinstance(value, Base):
                     ref_hash = child_obj["id"]
-                else:
-                    ref_hash = hash_obj(child_obj)
+                    object_builder[prop] = self.detach_helper(ref_hash=ref_hash)
 
+            # 3. handle all other cases
             else:
-                # self.detach_lineage.append(False)
                 child_obj = self.traverse_value(value)
-
-            # save child object (or the referenced to the detached child) to the object builder
-            if detach:
-                children.append(ref_hash)
-                object_builder[prop] = self.detach_helper(
-                    ref_hash=ref_hash, obj=child_obj
-                )
-            else:
                 object_builder[prop] = child_obj
 
         hash = hash_obj(object_builder)
         object_builder["id"] = hash
 
-        lineage = self.detach_lineage.pop() if self.detach_lineage else False
+        detached = self.detach_lineage.pop()
 
-        # add closures to object and to closure table
-        if children:
-            lineage_length = len(self.detach_lineage)
+        # add closures to the object
+        if self.lineage[-1] in self.family_tree:
             object_builder["__closure"] = self.closure_table[hash] = {
-                hash: minDepth - lineage_length if lineage_length > 0 else minDepth
-                for hash, minDepth in self.family_tree[self.leaf].items()
+                ref: depth - len(self.detach_lineage)
+                for ref, depth in self.family_tree[self.lineage[-1]].items()
             }
 
         # write detached or root objects to transports
-        if lineage:
-            self.traversed_objects[hash] = object_builder
-            self.write_to_transports(hash, object_builder)
+        if detached:
+            for t in self.write_transports:
+                t.save_object(id=hash, serialized_object=json.dumps(object_builder))
+
+        del self.lineage[-1]
 
         return hash, object_builder
 
