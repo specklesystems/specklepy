@@ -12,6 +12,10 @@ class Base(BaseModel):
     applicationId: Optional[str] = None
     speckle_type: Optional[str] = None
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__()
+        self.__dict__.update(kwargs)
+
     def __setitem__(self, name: str, value: Any) -> None:
         self.__dict__[name] = value
 
