@@ -135,22 +135,23 @@ class BaseObjectSerializer:
                 )
                 return str(obj)
 
-    def detach_helper(self, ref_hash: str, obj: Any) -> Dict[str, str]:
-        """Helper to keep track of detached objects and their depth in the family tree, write fully traversed objects, and create reference objects to place in the parent object
+    def detach_helper(self, ref_hash: str) -> Dict[str, str]:
+        """Helper to keep track of detached objects and their depth in the family tree and create reference objects to place in the parent object
 
         Arguments:
             ref_hash {str} -- the hash of the fully traversed object
-            obj {Any} -- the fully traversed object
 
         Returns:
             dict -- a reference object to be inserted into the given object's parent
         """
-        if ref_hash in self.family_tree[self.leaf] and self.family_tree[self.leaf][
-            ref_hash
-        ] < len(self.detach_lineage):
-            pass
-        else:
-            self.family_tree[self.leaf][ref_hash] = len(self.detach_lineage)
+
+        for parent in self.lineage:
+            if parent not in self.family_tree:
+                self.family_tree[parent] = {}
+            if ref_hash not in self.family_tree[parent] or self.family_tree[parent][
+                ref_hash
+            ] > len(self.detach_lineage):
+                self.family_tree[parent][ref_hash] = len(self.detach_lineage)
 
         return {
             "referencedId": ref_hash,
