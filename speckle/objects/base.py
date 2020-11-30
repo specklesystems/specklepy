@@ -16,6 +16,9 @@ class Base(BaseModel):
         super().__init__()
         self.__dict__.update(kwargs)
 
+    def __str__(self) -> str:
+        return f"Base(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+
     def __setitem__(self, name: str, value: Any) -> None:
         self.__dict__[name] = value
 
