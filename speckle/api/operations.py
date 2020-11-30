@@ -1,3 +1,4 @@
+from speckle.transports.memory import MemoryTransport
 from typing import List
 from speckle.logging.exceptions import SpeckleException
 from speckle.objects.base import Base
@@ -32,7 +33,10 @@ def send(
 
     for t in transports:
         t.begin_write()
-    hash, obj = serializer.write_json(base=base)
+    hash, _ = serializer.write_json(base=base)
+
+    for t in transports:
+        t.end_write()
 
     return hash
 
@@ -40,7 +44,7 @@ def send(
 def receive(
     obj_id: str,
     remote_transport: AbstractTransport,
-    local_transport: AbstractTransport,
+    local_transport: AbstractTransport = None,
 ) -> Base:
     """Receives an object from a transport.
 
@@ -52,4 +56,15 @@ def receive(
     Returns:
         Base -- the base object
     """
-    raise NotImplementedError
+
+    # TODO: replace with sqlite transport
+    if not local_transport:
+        local_transport = MemoryTransport()
+
+    serializer = BaseObjectSerializer(read_transport=local_transport)
+
+    obj_string = local_transport.get_object(obj_id)
+
+    base = serializer.read_json(id=obj_id, obj_string=obj_string)
+
+    return base

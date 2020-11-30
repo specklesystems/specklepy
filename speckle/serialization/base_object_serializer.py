@@ -29,6 +29,7 @@ class BaseObjectSerializer:
         self.read_transport = read_transport
 
     def write_json(self, base: Base):
+        self.__reset_writer()
         self.detach_lineage = [True]
         hash, obj = self.traverse_base(base)
         return hash, json.dumps(obj)
@@ -70,6 +71,8 @@ class BaseObjectSerializer:
                 if detach:
                     ref_hash = child_obj["id"]
                     object_builder[prop] = self.detach_helper(ref_hash=ref_hash)
+                else:
+                    object_builder[prop] = child_obj
 
             # 3. handle all other cases
             else:
@@ -158,6 +161,90 @@ class BaseObjectSerializer:
             "speckle_type": "reference",
         }
 
-    def write_to_transports(self, hash: str, obj: Dict) -> None:
-        for t in self.write_transports:
-            t.save_object(id=hash, serialized_object=json.dumps(obj))
+    def __reset_writer(self) -> None:
+        """Reinitializes the lineage, and other variables that get used during the json writing process"""
+        self.detach_lineage = []
+        self.lineage = []
+        self.family_tree = {}
+        self.closure_table = {}
+
+    def read_json(self, id: str, obj_string: str) -> Base:
+        """Recomposes a Base object from the string representation of the object
+
+        Arguments:
+            id {str} -- the hash of the object
+            obj_string {str} -- the string representation of the object
+
+        Returns:
+            Base -- the base object with all it's children attached
+        """
+        if not obj_string:
+            return None
+        obj = json.loads(obj_string)
+        base = self.recompose_base(obj=obj)
+
+        return base
+
+    def recompose_base(self, obj: dict) -> Base:
+        """Steps through a base object dictionary and recomposes the base object
+
+        Arguments:
+            obj {dict} -- the dictionary representation of the object
+
+        Returns:
+            Base -- the base object with all it's children attached
+        """
+        base = Base()
+
+        # get total children count
+        if "__closure" in obj:
+            if not self.read_transport:
+                raise SpeckleException(
+                    message="Cannot resolve reference - no read transport is defined"
+                )
+            closure = obj.pop("__closure")
+            base.totalChildrenCount = len(closure)
+
+        for prop, value in obj.items():
+            # 1. handle primitives (ints, floats, strings, and bools)
+            if isinstance(value, PRIMITIVES):
+                base[prop] = value
+                continue
+
+            # 2. handle referenced child objects
+            elif "referencedId" in value:
+                ref_hash = value["referencedId"]
+                ref_obj = json.loads(self.read_transport.get_object(id=ref_hash))
+                base[prop] = self.recompose_base(obj=ref_obj)
+
+            # 3. handle all other cases (base objects, lists, and dicts)
+            else:
+                base[prop] = self.handle_value(value)
+
+        return base
+
+    def handle_value(self, obj: Any):
+        """Helper for recomposing a base object by handling the dictionary representation's values
+
+        Arguments:
+            obj {Any} -- a value from the base object dictionary
+
+        Returns:
+            Any -- the handled value (primitive, list, dictionary, or Base)
+        """
+        if isinstance(obj, PRIMITIVES):
+            return obj
+
+        if isinstance(obj, list):
+            return [self.handle_value(o) for o in obj]
+
+        if isinstance(obj, dict) and "speckle_type" in obj:
+            return self.recompose_base(obj=obj)
+
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if isinstance(v, PRIMITIVES):
+                    continue
+                else:
+                    obj[k] = self.handle_value(v)
+            return obj
