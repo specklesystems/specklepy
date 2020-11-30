@@ -27,7 +27,7 @@ class MemoryTransport(AbstractTransport):
 
     def get_object(self, id: str) -> str:
         if id in self.objects:
-            return object[id]
+            return self.objects[id]
         else:
             raise SpeckleException("No object found in this memory transport")
 
