@@ -1,16 +1,19 @@
 from __future__ import annotations
+from speckle.logging.exceptions import SpeckleException
 
-from typing import List, Optional, Any
+from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel
 from pydantic.main import Extra
+
+PRIMITIVES = (int, float, str, bool)
 
 
 class Base(BaseModel):
     id: Optional[str] = None
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
-    speckle_type: Optional[str] = None
+    speckle_type: Optional[str] = "Base"
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -24,6 +27,35 @@ class Base(BaseModel):
 
     def __getitem__(self, name: str) -> Any:
         return self.__dict__[name]
+
+    def to_dict(self) -> Dict:
+        """Convenience method to view the whole base object as a dict"""
+        base_dict = self.__dict__
+        for key, value in base_dict.items():
+            if not value or isinstance(value, PRIMITIVES):
+                continue
+            else:
+                base_dict[key] = self.__dict_helper(value)
+        return base_dict
+
+    def __dict_helper(self, obj: Any) -> Any:
+        if isinstance(obj, PRIMITIVES):
+            return obj
+        if isinstance(obj, Base):
+            return self.__dict_helper(obj.__dict__)
+        if isinstance(obj, (list, set)):
+            return [self.__dict_helper(v) for v in obj]
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if not v or isinstance(obj, PRIMITIVES):
+                    pass
+                else:
+                    obj[k] = self.__dict_helper(v)
+            return obj
+        else:
+            raise SpeckleException(
+                message=f"Could not convert to dict due to unrecognised type: {type(obj)}"
+            )
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
