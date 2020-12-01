@@ -25,14 +25,19 @@ class MemoryTransport(AbstractTransport):
     ) -> None:
         raise NotImplementedError
 
-    def get_object(self, id: str) -> str:
+    def get_object(self, id: str) -> str or None:
         if id in self.objects:
             return self.objects[id]
         else:
-            raise SpeckleException("No object found in this memory transport")
+            return None
 
     def begin_write(self) -> None:
         self.saved_object_count = 0
 
     def end_write(self) -> None:
         pass
+
+    def copy_object_and_children(
+        self, id: str, target_transport: AbstractTransport
+    ) -> str:
+        raise NotImplementedError

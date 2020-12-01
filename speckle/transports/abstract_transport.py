@@ -63,13 +63,25 @@ class AbstractTransport(Transport):
         pass
 
     @abstractmethod
-    def get_object(self, id: str) -> str:
-        """Gets an object
+    def get_object(self, id: str) -> str or None:
+        """Gets an object. Returns `None` if the object is not found.
 
         Arguments:
             id {str} -- the hash of the object
 
         Returns:
             str -- the full string representation of the object (or null of no object is found)
+        """
+        pass
+
+    @abstractmethod
+    def copy_object_and_children(self, id: str, target_transport: Transport) -> str:
+        """Copies the parent object and all its children to the provided transport.
+
+        Arguments:
+            id {str} -- the id of the object you want to copy
+            target_transport {AbstractTransport} -- the transport you want to copy the object to
+        Returns:
+            str -- the string representation of the root object
         """
         pass

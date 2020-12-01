@@ -105,19 +105,24 @@ class SQLiteTransport(AbstractTransport):
             print(e)
             raise e
 
-    def get_object(self, id: str) -> tuple:
+    def get_object(self, id: str) -> str or None:
         self.__check_connection()
         with closing(self.__connection.cursor()) as c:
             row = c.execute(
                 "SELECT * FROM objects WHERE hash = ? LIMIT 1", (id,)
             ).fetchone()
-        return row
+        return row[1] if row else None
 
     def begin_write(self):
         self.saved_obj_count = 0
 
     def end_write(self):
         pass
+
+    def copy_object_and_children(
+        self, id: str, target_transport: AbstractTransport
+    ) -> str:
+        raise NotImplementedError
 
     def close(self):
         """Close the connection to the database"""
