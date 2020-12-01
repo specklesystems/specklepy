@@ -112,7 +112,7 @@ class BaseObjectSerializer:
         if isinstance(obj, PRIMITIVES):
             return obj
 
-        elif isinstance(obj, (list, set)):
+        elif isinstance(obj, (list, tuple, set)):
             return [self.traverse_value(o) for o in obj]
 
         elif isinstance(obj, dict):
@@ -192,7 +192,7 @@ class BaseObjectSerializer:
             obj {dict} -- the dictionary representation of the object
 
         Returns:
-            Base -- the base object with all it's children attached
+            Base -- the base object with all its children attached
         """
         base = Base()
 
