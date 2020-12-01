@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 
 class SpeckleException(Exception):
@@ -8,6 +8,16 @@ class SpeckleException(Exception):
 
     def __repr__(self) -> str:
         return f"SpeckleException: {self.message}"
+
+
+class SerializationException(SpeckleException):
+    def __init__(self, message: str, object: Any, exception: Exception = None) -> None:
+        super().__init__(message=message)
+        self.object = object
+        self.unhandled_type = type(object)
+
+    def __repr__(self) -> str:
+        return f"SpeckleException: Could not serialize object of type {self.unhandled_type}"
 
 
 class GraphQLException(SpeckleException):
