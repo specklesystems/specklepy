@@ -1,7 +1,7 @@
-from speckle.transports.memory import MemoryTransport
 from typing import List
-from speckle.logging.exceptions import SpeckleException
 from speckle.objects.base import Base
+from speckle.transports.memory import MemoryTransport
+from speckle.logging.exceptions import SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 from speckle.serialization.base_object_serializer import BaseObjectSerializer
 
@@ -43,7 +43,7 @@ def send(
 
 def receive(
     obj_id: str,
-    remote_transport: AbstractTransport,
+    remote_transport: AbstractTransport = None,
     local_transport: AbstractTransport = None,
 ) -> Base:
     """Receives an object from a transport.
@@ -63,8 +63,19 @@ def receive(
 
     serializer = BaseObjectSerializer(read_transport=local_transport)
 
+    # try local transport first. if the parent is there, we assume all the children are there and continue wth deserialisation using the local transport
     obj_string = local_transport.get_object(obj_id)
+    if obj_string:
+        base = serializer.read_json(id=obj_id, obj_string=obj_string)
+        return base
 
-    base = serializer.read_json(id=obj_id, obj_string=obj_string)
+    if not remote_transport:
+        raise SpeckleException(
+            message="Could not find the specified object using the local transport, and you didn't provide a fallback remote from which to pull it."
+        )
 
-    return base
+    obj_string = remote_transport.copy_object_and_children(
+        id=obj_id, target_transport=local_transport
+    )
+
+    return serializer.read_json(id=obj_id, obj_string=obj_string)
