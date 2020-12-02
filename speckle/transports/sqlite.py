@@ -2,6 +2,7 @@ import os
 import time
 import sqlite3
 import sched
+from appdirs import user_data_dir
 from contextlib import closing
 from multiprocessing import Process, Queue
 from speckle.transports.abstract_transport import AbstractTransport
@@ -23,15 +24,15 @@ class SQLiteTransport(AbstractTransport):
     def __init__(
         self, base_path: str = None, app_name: str = None, scope: str = None
     ) -> None:
-        base_path = base_path or os.getenv("APPDATA")
         self.app_name = app_name or "Speckle"
         self.scope = scope or "Objects"
-
-        os.makedirs(os.path.join(base_path, self.app_name), exist_ok=True)
-
-        self._root_path = os.path.join(
-            os.path.join(base_path, self.app_name, f"{self.scope}.db")
+        base_path = base_path or user_data_dir(
+            appname=self.app_name, appauthor=False, roaming=True
         )
+
+        os.makedirs(base_path, exist_ok=True)
+
+        self._root_path = os.path.join(os.path.join(base_path, f"{self.scope}.db"))
         self.__initialise()
 
     def __repr__(self) -> str:
@@ -123,6 +124,13 @@ class SQLiteTransport(AbstractTransport):
         self, id: str, target_transport: AbstractTransport
     ) -> str:
         raise NotImplementedError
+
+    def get_all_objects(self):
+        """Returns all the objects in the store. NOTE: do not use for large collections!"""
+        self.__check_connection()
+        with closing(self.__connection.cursor()) as c:
+            rows = c.execute("SELECT * FROM objects").fetchall()
+        return rows
 
     def close(self):
         """Close the connection to the database"""
