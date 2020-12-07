@@ -3,7 +3,7 @@ from speckle.logging.exceptions import SpeckleException
 from typing import Dict
 
 from speckle.api import resources
-from speckle.api.resources import stream, server, user, subscriptions
+from speckle.api.resources import commit, stream, object, server, user, subscriptions
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -63,6 +63,12 @@ class SpeckleClient:
 
     def _init_resources(self) -> None:
         self.stream = stream.Resource(
+            me=self.me, basepath=self.url, client=self.httpclient
+        )
+        self.commit = commit.Resource(
+            me=self.me, basepath=self.url, client=self.httpclient
+        )
+        self.object = object.Resource(
             me=self.me, basepath=self.url, client=self.httpclient
         )
         self.server = server.Resource(
