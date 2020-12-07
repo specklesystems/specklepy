@@ -94,9 +94,33 @@ class Resource(ResourceBase):
         message: str = "",
     ):
         """
-        docstring
+        Creates a commit on a branch
+
+        Arguments:
+            stream_id {str} -- the stream you want to commit to
+            object_id {str} -- the hash of your commit object
+            branch_name {str} -- the name of the branch to commit to (defaults to "main")
+            message {str} -- optional: a message to give more information about the commit
+
+        Returns:
+            str -- the id of the created commit
         """
-        raise NotImplementedError
+        query = gql(
+            """
+            mutation CommitCreate ($commit: CommitCreateInput!){ commitCreate(commit: $commit)}
+            """
+        )
+        params = {
+            "commit": {
+                "streamId": stream_id,
+                "branchName": branch_name,
+                "objectId": object_id,
+                "message": message,
+            }
+        }
+        return self.make_request(
+            query=query, params=params, return_type="commitCreate", parse_response=False
+        )
 
     def update(self, stream_id: str, commit_id: str, message: str) -> bool:
         """
