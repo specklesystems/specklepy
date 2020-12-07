@@ -118,18 +118,54 @@ class Resource(ResourceBase):
                 "message": message,
             }
         }
+
         return self.make_request(
             query=query, params=params, return_type="commitCreate", parse_response=False
         )
 
     def update(self, stream_id: str, commit_id: str, message: str) -> bool:
         """
-        docstring
+        Update a commit
+
+        Arguments:
+            stream_id {str} -- the id of the stream that contains the commit you'd like to update
+            commit_id {str} -- the id of the commit you'd like to update
+            message {str} -- the updated commit message
+
+        Returns:
+            bool -- True if the operation succeeded
         """
-        raise NotImplementedError
+        query = gql(
+            """
+            mutation CommitUpdate($commit: CommitUpdateInput!){ commitUpdate(commit: $commit)}
+            """
+        )
+        params = {
+            "commit": {"streamId": stream_id, "id": commit_id, "message": message}
+        }
+
+        return self.make_request(
+            query=query, params=params, return_type="commitUpdate", parse_response=False
+        )
 
     def delete(self, stream_id: str, commit_id: str) -> bool:
         """
-        docstring
+        Delete a commit
+
+        Arguments:
+            stream_id {str} -- the id of the stream that contains the commit you'd like to delete
+            commit_id {str} -- the id of the commit you'd like to delete
+
+        Returns:
+            bool -- True if the operation succeeded
         """
-        raise NotImplementedError
+        query = gql(
+            """
+            mutation CommitDelete($commit: CommitDeleteInput!){ commitDelete(commit: $commit)}
+            """
+        )
+        params = {"commit": {"streamId": stream_id, "id": commit_id}}
+
+        return self.make_request(
+            query=query, params=params, return_type="commitDelete", parse_response=False
+        )
