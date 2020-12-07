@@ -18,6 +18,74 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Overview of functionality 
+
+Create a client and authenticate
+
+```py
+from speckle.api.client import SpeckleClient
+from speckle.api.credentials import get_default_account, get_local_accounts
+
+all_accounts = get_local_accounts() # get back a list
+account = get_default_account()
+
+client = SpeckleClient(host="localhost:3000", use_ssl=False)
+# client = SpeckleClinet(host="yourserver.com") or whatever your host is
+
+client.authenticate(account.token)
+```
+
+streams
+
+```py
+# get your streams
+stream_list = client.stream.list()
+
+# search your streams
+results = client.user.search("mech")
+
+# create a stream
+new_stream_id = client.stream.create(name="a shiny new stream")
+
+# get a stream
+new_stream = client.stream.get(id=new_stream_id)
+```
+
+commits
+
+```py
+
+```
+
+objects
+
+```py
+
+```
+
+serialisation
+
+```py
+detached_base = Base()
+detached_base.name = "this will get detached"
+
+base_obj = Base()
+base_obj.name = "my base"
+base_obj["@nested"] = detached_base
+
+serializer = BaseObjectSerializer()
+hash, obj_dict = serializer.traverse_base(base_obj)
+```
+
+transports
+
+```py
+transport = MemoryTransport()
+
+hash = operations.send(base=base_obj, transports=[transport])
+
+```
+
 ## Contributing
 
 Please make sure you read the [contribution guidelines](.github/CONTRIBUTING.md) for an overview of the best practices we try to follow.
