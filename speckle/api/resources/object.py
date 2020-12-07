@@ -1,5 +1,6 @@
-from typing import List
+from typing import Dict, List
 from gql import gql
+from graphql.language import parser
 from speckle.api.resource import ResourceBase
 from speckle.objects.base import Base
 
@@ -51,8 +52,26 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["stream", "object"]
         )
 
-    def create(self, stream_id: str, objects: List[str]):
+    def create(self, stream_id: str, objects: List[Dict]) -> str:
         """
-        docstring
+        Create a new object on a stream. To send a base object, you can prepare it by running it through the `BaseObjectSerializer.travers_base` function to get a valid (serialisable) object to send.
+
+        NOTE: this does not create a commit - you can create one with `SpeckleClient.commit.create`.
+
+        Arguments:
+            stream_id {str} -- the id of the stream you want to send the object to
+            objects {List[Dict]} -- a list of base dictionary objects (NOTE: must be json serialisable)
+
+        Returns:
+            str -- the id of the object
         """
-        raise NotImplementedError
+        query = gql(
+            """
+          mutation ObjectCreate($object_input: ObjectCreateInput!) { objectCreate(objectInput: $object_input) }
+          """
+        )
+        params = {"object_input": {"streamId": stream_id, "objects": objects}}
+
+        return self.make_request(
+            query=query, params=params, return_type="objectCreate", parse_response=False
+        )
