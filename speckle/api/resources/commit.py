@@ -92,7 +92,7 @@ class Resource(ResourceBase):
         object_id: str,
         branch_name: str = "main",
         message: str = "",
-    ):
+    ) -> str:
         """
         Creates a commit on a branch
 
