@@ -35,7 +35,7 @@ client = SpeckleClient(host="localhost:3000", use_ssl=False)
 client.authenticate(account.token)
 ```
 
-streams
+Interacting with streams is meant to be intuitive and evocative of PySpeckle 1.0
 
 ```py
 # get your streams
@@ -51,7 +51,7 @@ new_stream_id = client.stream.create(name="a shiny new stream")
 new_stream = client.stream.get(id=new_stream_id)
 ```
 
-commits
+New in 2.0: commits! Here are some basic commit interactions.
 
 ```py
 # get list of commits
@@ -62,6 +62,9 @@ commit = client.commit.get("stream id", "commit id")
 
 # create a commit
 commit_id = client.commit.create("stream id", "object id", "this is a commit message to describe the commit")
+
+# delete a commit
+deleted = client.commit.delete("stream id", "commit id")
 ```
 
 The `BaseObjectSerializer` is used for decomposing and serializing `Base` objects so they can be sent / received to the server. You can use it directly to get the id (hash) and a serializable object representation of the decomposed `Base`.
@@ -109,6 +112,8 @@ objCreate = client.object.create(stream_id="stream id", objects=[obj])
 
 received_base = client.object.get(hash)
 ```
+
+This doc is not complete - there's more to see so have a dive into the code and play around! Please feel free to provide feedback, submit issues, or discuss new features ✨
 
 ## Contributing
 
