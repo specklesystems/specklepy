@@ -30,7 +30,7 @@ all_accounts = get_local_accounts() # get back a list
 account = get_default_account()
 
 client = SpeckleClient(host="localhost:3000", use_ssl=False)
-# client = SpeckleClinet(host="yourserver.com") or whatever your host is
+# client = SpeckleClient(host="yourserver.com") or whatever your host is
 
 client.authenticate(account.token)
 ```
@@ -55,7 +55,7 @@ New in 2.0: commits! Here are some basic commit interactions.
 
 ```py
 # get list of commits
-commits = client.commit.get_list("stream id here")
+commits = client.commit.list("stream id")
 
 # get a specific commit
 commit = client.commit.get("stream id", "commit id")
