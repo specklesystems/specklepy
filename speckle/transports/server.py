@@ -1,9 +1,9 @@
-import json
-from speckle.logging.exceptions import SpeckleException
 import requests
 from asyncio import Queue, Task
-from speckle.api.client import SpeckleClient
 from typing import Dict, List
+
+from speckle.api.client import SpeckleClient
+from speckle.logging.exceptions import SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 
 
@@ -21,7 +21,9 @@ class ServerTransport(AbstractTransport):
         self.url = client.url
         self.stream_id = stream_id
         self.session = requests.Session()
-        self.session.headers.update({"Authorization": f"Bearer {client.me['token']}"})
+        self.session.headers.update(
+            {"Authorization": f"Bearer {client.me['token']}", "Accept": "text/plain"}
+        )
 
     def begin_write(self) -> None:
         self.saved_obj_count = 0
@@ -47,11 +49,43 @@ class ServerTransport(AbstractTransport):
         pass
 
     def get_object(self, id: str) -> str:
-        endpoint = f"{self.url}/objects/{self.stream_id}/{id}/single"
-        r = self.session.get(url=endpoint)
-        print(r.text)
+        raise NotImplementedError
 
     def copy_object_and_children(
         self, id: str, target_transport: AbstractTransport
     ) -> str:
-        raise NotImplementedError
+        endpoint = f"{self.url}/objects/{self.stream_id}/{id}"
+        r = self.session.get(endpoint, stream=True)
+        if r.encoding is None:
+            r.encoding = "utf-8"
+        lines = r.iter_lines(decode_unicode=True)
+
+        # save first (root) obj for return
+        root_hash, root_obj = next(lines).split("\t")
+        target_transport.save_object(root_hash, root_obj)
+
+        # iter through returned objects saving them as we go
+        for line in lines:
+            if line:
+                hash, obj = line.split("\t")
+                target_transport.save_object(hash, obj)
+
+        return root_obj
+
+    # async def stream_res(self, endpoint: str) -> str:
+    #     data = b""
+    #     async with aiohttp.ClientSession() as session:
+    #         session.headers.update(
+    #             {
+    #                 "Authorization": f"{self.session.headers['Authorization']}",
+    #                 "Accept": "text/plain",
+    #             }
+    #         )
+    #         async with session.get(endpoint) as res:
+    #             while True:
+    #                 chunk = await res.content.read(self.chunk_size)
+    #                 if not chunk:
+    #                     break
+    #                 data += chunk
+
+    #     return data.decode("utf-8")
