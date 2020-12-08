@@ -194,6 +194,13 @@ class BaseObjectSerializer:
         Returns:
             Base -- the base object with all its children attached
         """
+        # make sure an obj was passed and create dict if string was somehow passed
+        if not obj:
+            return
+        if isinstance(obj, str):
+            obj = json.loads(obj)
+
+        # initialise the base object
         base = Base()
 
         # get total children count
@@ -214,7 +221,12 @@ class BaseObjectSerializer:
             # 2. handle referenced child objects
             elif "referencedId" in value:
                 ref_hash = value["referencedId"]
-                ref_obj = json.loads(self.read_transport.get_object(id=ref_hash))
+                ref_obj_str = self.read_transport.get_object(id=ref_hash)
+                if not ref_obj_str:
+                    raise SpeckleException(
+                        f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
+                    )
+                ref_obj = json.loads(ref_obj_str)
                 base[prop] = self.recompose_base(obj=ref_obj)
 
             # 3. handle all other cases (base objects, lists, and dicts)
