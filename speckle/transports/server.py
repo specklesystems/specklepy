@@ -46,7 +46,8 @@ class ServerTransport(AbstractTransport):
     def save_object_from_transport(
         self, id: str, source_transport: AbstractTransport
     ) -> None:
-        pass
+        obj_string = source_transport.get_object(id=id)
+        self.save_object(id=id, serialized_object=obj_string)
 
     def get_object(self, id: str) -> str:
         raise NotImplementedError
