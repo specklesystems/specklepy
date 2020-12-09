@@ -50,7 +50,12 @@ class ServerTransport(AbstractTransport):
         self.save_object(id=id, serialized_object=obj_string)
 
     def get_object(self, id: str) -> str:
-        raise NotImplementedError
+        endpoint = f"{self.url}/objects/{self.stream_id}/{id}/single"
+        r = self.session.get(endpoint, stream=True)
+
+        _, obj = next(r.iter_lines().decode("utf-8")).split("\t")
+
+        return obj
 
     def copy_object_and_children(
         self, id: str, target_transport: AbstractTransport
