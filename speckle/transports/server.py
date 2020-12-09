@@ -50,12 +50,17 @@ class ServerTransport(AbstractTransport):
         self.save_object(id=id, serialized_object=obj_string)
 
     def get_object(self, id: str) -> str:
-        endpoint = f"{self.url}/objects/{self.stream_id}/{id}/single"
-        r = self.session.get(endpoint, stream=True)
+        # endpoint = f"{self.url}/objects/{self.stream_id}/{id}/single"
+        # r = self.session.get(endpoint, stream=True)
 
-        _, obj = next(r.iter_lines().decode("utf-8")).split("\t")
+        # _, obj = next(r.iter_lines().decode("utf-8")).split("\t")
 
-        return obj
+        # return obj
+
+        raise SpeckleException(
+            "Getting a single object using `ServerTransport.get_object()` is not implemented. To get an object from the server, please use the `SpeckleClient.object.get()` route",
+            NotImplementedError,
+        )
 
     def copy_object_and_children(
         self, id: str, target_transport: AbstractTransport
