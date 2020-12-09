@@ -6,7 +6,7 @@ class SpeckleException(Exception):
         self.message = message
         self.exception = exception
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"SpeckleException: {self.message}"
 
 
@@ -16,7 +16,7 @@ class SerializationException(SpeckleException):
         self.object = object
         self.unhandled_type = type(object)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"SpeckleException: Could not serialize object of type {self.unhandled_type}"
 
 
@@ -25,3 +25,6 @@ class GraphQLException(SpeckleException):
         super().__init__(message=message)
         self.errors = errors
         self.data = data
+
+    def __str__(self) -> str:
+        return f"GraphQLException: {self.message}"
