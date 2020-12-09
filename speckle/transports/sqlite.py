@@ -1,7 +1,8 @@
 import os
+import sys
 import time
-import sqlite3
 import sched
+import sqlite3
 from appdirs import user_data_dir
 from contextlib import closing
 from multiprocessing import Process, Queue
@@ -26,9 +27,7 @@ class SQLiteTransport(AbstractTransport):
     ) -> None:
         self.app_name = app_name or "Speckle"
         self.scope = scope or "Objects"
-        base_path = base_path or user_data_dir(
-            appname=self.app_name, appauthor=False, roaming=True
-        )
+        base_path = base_path or self.__get_base_path()
 
         os.makedirs(base_path, exist_ok=True)
 
@@ -43,6 +42,23 @@ class SQLiteTransport(AbstractTransport):
         proc = Process(target=_run_queue, args=(self.__queue, self._root_path))
         proc.start()
         proc.join()
+
+    def __get_base_path(self):
+        # from appdirs https://github.com/ActiveState/appdirs/blob/master/appdirs.py
+        # default mac path is not the one we use (we use unix path), so using special case for this
+        system = sys.platform
+        if system.startswith("java"):
+            import platform
+
+            os_name = platform.java_ver()[3][0]
+            if os_name.startswith("Mac"):
+                system = "darwin"
+
+        if system == "darwin":
+            path = os.path.expanduser("~/.config/")
+            return os.path.join(path, self.app_name)
+        else:
+            return user_data_dir(appname=self.app_name, appauthor=False, roaming=True)
 
     def __consume_queue(self):
         if self._is_writing or self.__queue.empty():
@@ -102,9 +118,10 @@ class SQLiteTransport(AbstractTransport):
                     (id, serialized_object),
                 )
                 self.__connection.commit()
-        except Exception as e:
-            print(e)
-            raise e
+        except Exception as ex:
+            raise SpeckleException(
+                f"Could not save the object to the local db. Inner exception: {ex}", ex
+            )
 
     def get_object(self, id: str) -> str or None:
         self.__check_connection()
