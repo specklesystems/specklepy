@@ -18,6 +18,16 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+on mac:
+
+```
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+
+
 ## Overview of functionality 
 
 The `SpeckleClient` is the entry point for interacting with the GraphQL API. You'll need to have a running server to use this.
