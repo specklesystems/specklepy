@@ -70,7 +70,7 @@ class AbstractTransport(Transport):
             id {str} -- the hash of the object
 
         Returns:
-            str -- the full string representation of the object (or null of no object is found)
+            str -- the full string representation of the object (or null if no object is found)
         """
         pass
 

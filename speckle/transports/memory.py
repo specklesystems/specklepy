@@ -1,4 +1,4 @@
-import os
+import json
 from speckle.logging.exceptions import SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 
@@ -27,7 +27,7 @@ class MemoryTransport(AbstractTransport):
 
     def get_object(self, id: str) -> str or None:
         if id in self.objects:
-            return self.objects[id]
+            return json.dumps(self.objects[id])
         else:
             return None
 
