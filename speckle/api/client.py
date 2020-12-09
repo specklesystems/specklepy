@@ -1,3 +1,4 @@
+import re
 from gql.client import SyncClientSession
 from speckle.logging.exceptions import SpeckleException
 from typing import Dict
@@ -21,6 +22,9 @@ class SpeckleClient:
         if use_ssl:
             ws_protocol = "wss"
             http_protocol = "https"
+
+        # sanitise host input by removing protocol and trailing slash
+        host = re.sub(r"((^\w+:|^)\/\/)|(\/$)", "", host)
 
         self.url = f"{http_protocol}://{host}"
         self.graphql = self.url + "/graphql"
