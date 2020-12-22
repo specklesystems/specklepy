@@ -22,7 +22,7 @@ class Base(BaseModel):
         self.__dict__.update(kwargs)
 
     def __repr__(self) -> str:
-        return f"{self.speckle_type}(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+        return f"{self.__class__.__name__}(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
 
     def __str__(self) -> str:
         return self.__repr__()
