@@ -17,10 +17,14 @@ class Base(BaseModel):
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
+        self.speckle_type = self.__class__.__name__
         self.__dict__.update(kwargs)
 
+    def __repr__(self) -> str:
+        return f"{self.speckle_type}(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+
     def __str__(self) -> str:
-        return f"Base(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+        return self.__repr__()
 
     def __setitem__(self, name: str, value: Any) -> None:
         self.__dict__[name] = value
