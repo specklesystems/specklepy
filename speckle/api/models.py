@@ -27,6 +27,12 @@ class Commit(BaseModel):
     createdAt: Optional[str]
     referencedObject: Optional[str]
 
+    def __repr__(self) -> str:
+        return f"Commit( id: {self.id}, message: {self.message}, referencedObject: {self.referencedObject}, authorName: {self.authorName}, createdAt: {self.createdAt} )"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 class Commits(BaseModel):
     totalCount: Optional[int]
@@ -73,6 +79,12 @@ class Stream(BaseModel):
     commit: Optional[Commit]
     object: Optional[Object]
 
+    def __repr__(self):
+        return f"Stream( id: {self.id}, name: {self.name}, description: {self.description}, isPublic: {self.isPublic})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 class User(BaseModel):
     id: Optional[str]
@@ -84,3 +96,9 @@ class User(BaseModel):
     verified: Optional[bool]
     role: Optional[str]
     streams: Optional[Streams]
+
+    def __repr__(self):
+        return f"User( id: {self.id}, name: {self.name}, email: {self.email}, company: {self.company} )"
+
+    def __str__(self) -> str:
+        return self.__repr__()
