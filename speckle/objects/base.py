@@ -13,14 +13,14 @@ class Base(BaseModel):
     id: Optional[str] = None
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
-    speckleType: Optional[str] = "Base"
+    speckle_type: Optional[str] = "Base"
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
         self.__dict__.update(kwargs)
 
     def __str__(self) -> str:
-        return f"Base(id: {self.id}, speckleType: {self.speckleType}, totalChildrenCount: {self.totalChildrenCount})"
+        return f"Base(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
 
     def __setitem__(self, name: str, value: Any) -> None:
         self.__dict__[name] = value
