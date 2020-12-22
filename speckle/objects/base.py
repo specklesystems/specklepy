@@ -120,3 +120,7 @@ class Base(BaseModel):
 
     class Config:
         extra = Extra.allow
+
+
+class DataChunk(Base):
+    data: List[Any] = []
