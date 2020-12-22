@@ -158,7 +158,7 @@ class BaseObjectSerializer:
 
         return {
             "referencedId": ref_hash,
-            "speckleType": "reference",
+            "speckle_type": "reference",
         }
 
     def __reset_writer(self) -> None:
@@ -250,7 +250,7 @@ class BaseObjectSerializer:
         if isinstance(obj, list):
             return [self.handle_value(o) for o in obj]
 
-        if isinstance(obj, dict) and "speckleType" in obj:
+        if isinstance(obj, dict) and "speckle_type" in obj:
             return self.recompose_base(obj=obj)
 
         if isinstance(obj, dict):
