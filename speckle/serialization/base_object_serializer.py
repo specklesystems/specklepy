@@ -225,10 +225,6 @@ class BaseObjectSerializer:
         if obj["speckle_type"] == "reference":
             obj = self.get_child(obj=obj)
 
-        # if it's a chunk, we know the shape of it already so we can just create the chunk and return it
-        if obj["speckle_type"] == "DataChunk":
-            return DataChunk(id=obj["id"], data=obj["data"])
-
         # initialise the base object using `speckle_type`
         base = getattr(objects, obj["speckle_type"], Base)()
 
