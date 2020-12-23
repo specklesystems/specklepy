@@ -18,10 +18,6 @@ class Mesh(Base):
     faces: List[int] = None
     colors: List[int] = None
     textureCoordinates: List[float] = None
-    id: Optional[str] = None
-    totalChildrenCount: Optional[int] = None
-    applicationId: Optional[str] = None
-    speckle_type: Optional[str] = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
