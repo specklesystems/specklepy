@@ -1,4 +1,5 @@
 import json
+from typing import Any
 from speckle.logging.exceptions import SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 
@@ -8,7 +9,8 @@ class MemoryTransport(AbstractTransport):
     objects: dict = {}
     saved_object_count: int = 0
 
-    def __init__(self, name=None) -> None:
+    def __init__(self, name=None, **data: Any) -> None:
+        super().__init__(**data)
         if name:
             self._name = name
 

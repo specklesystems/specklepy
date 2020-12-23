@@ -3,6 +3,7 @@ import sys
 import time
 import sched
 import sqlite3
+from typing import Any
 from appdirs import user_data_dir
 from contextlib import closing
 from multiprocessing import Process, Queue
@@ -18,13 +19,18 @@ class SQLiteTransport(AbstractTransport):
     _polling_interval = 0.5  # seconds
     __connection: sqlite3.Connection = None
     __queue: Queue = Queue()
-    app_name: str
-    scope: str
+    app_name: str = ""
+    scope: str = ""
     saved_obj_count: int = 0
 
     def __init__(
-        self, base_path: str = None, app_name: str = None, scope: str = None
+        self,
+        base_path: str = None,
+        app_name: str = None,
+        scope: str = None,
+        **data: Any,
     ) -> None:
+        super().__init__(**data)
         self.app_name = app_name or "Speckle"
         self.scope = scope or "Objects"
         base_path = base_path or self.__get_base_path()

@@ -1,6 +1,6 @@
 import requests
 from asyncio import Queue, Task
-from typing import Dict, List
+from typing import Any, Dict, List, Type
 
 from speckle.api.client import SpeckleClient
 from speckle.logging.exceptions import SpeckleException
@@ -16,7 +16,8 @@ class ServerTransport(AbstractTransport):
     __queue: Queue = None
     __workers: List[Task] = []
 
-    def __init__(self, client: SpeckleClient, stream_id: str) -> None:
+    def __init__(self, client: SpeckleClient, stream_id: str, **data: Any) -> None:
+        super().__init__(**data)
         # TODO: replace client with account or some other auth avenue
         self.url = client.url
         self.stream_id = stream_id
