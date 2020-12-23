@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
-from pydantic import BaseModel
+from typing import Optional
 from pydantic.dataclasses import dataclass
 
 #  __________________
@@ -17,6 +16,9 @@ class Transport(ABC):
     """Literally just so I can put a type hint in the AbstractTransport. If there is a better way to do this pls lemme know, my dude
 
     UPDATE: this can be done in 3.7+ with `from __future__ import annotations`, but we are wanting to support 3.6+
+    
+    This is not really needed, you can deffer evaluating the type hints by putting
+    the type hint into `"`. See implementation bellow. This class should  be removed.
     """
 
     @abstractmethod
@@ -25,7 +27,7 @@ class Transport(ABC):
 
 
 @dataclass
-class AbstractTransport(Transport):
+class AbstractTransport(ABC):
     _name: str = "Abstract"
 
     @property
@@ -53,7 +55,7 @@ class AbstractTransport(Transport):
         pass
 
     @abstractmethod
-    def save_object_from_transport(self, id: str, source_transport: Transport) -> None:
+    def save_object_from_transport(self, id: str, source_transport: "AbstractTransport") -> None:
         """Saves an object from the given source transport.
 
         Arguments:
@@ -63,7 +65,7 @@ class AbstractTransport(Transport):
         pass
 
     @abstractmethod
-    def get_object(self, id: str) -> str or None:
+    def get_object(self, id: str) -> Optional[str]:
         """Gets an object. Returns `None` if the object is not found.
 
         Arguments:
@@ -75,7 +77,7 @@ class AbstractTransport(Transport):
         pass
 
     @abstractmethod
-    def copy_object_and_children(self, id: str, target_transport: Transport) -> str:
+    def copy_object_and_children(self, id: str, target_transport: "AbstractTransport") -> str:
         """Copies the parent object and all its children to the provided transport.
 
         Arguments:
