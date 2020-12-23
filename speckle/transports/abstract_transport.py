@@ -12,19 +12,6 @@ from pydantic.dataclasses import dataclass
 # / 　 づ
 
 
-class Transport(ABC):
-    """Literally just so I can put a type hint in the AbstractTransport. If there is a better way to do this pls lemme know, my dude
-
-    UPDATE: this can be done in 3.7+ with `from __future__ import annotations`, but we are wanting to support 3.6+
-    
-    This is not really needed, you can deffer evaluating the type hints by putting
-    the type hint into `"`. See implementation bellow. This class should  be removed.
-    """
-
-    @abstractmethod
-    def name(self):
-        pass
-
 
 @dataclass
 class AbstractTransport(ABC):
