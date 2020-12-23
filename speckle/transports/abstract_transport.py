@@ -13,9 +13,7 @@ from pydantic.main import Extra
 # / 　 づ
 
 
-
-
-class AbstractTransport(Transport, BaseModel):
+class AbstractTransport(ABC, BaseModel):
     _name: str = "Abstract"
 
     @property
@@ -43,7 +41,9 @@ class AbstractTransport(Transport, BaseModel):
         pass
 
     @abstractmethod
-    def save_object_from_transport(self, id: str, source_transport: "AbstractTransport") -> None:
+    def save_object_from_transport(
+        self, id: str, source_transport: "AbstractTransport"
+    ) -> None:
         """Saves an object from the given source transport.
 
         Arguments:
@@ -65,7 +65,9 @@ class AbstractTransport(Transport, BaseModel):
         pass
 
     @abstractmethod
-    def copy_object_and_children(self, id: str, target_transport: "AbstractTransport") -> str:
+    def copy_object_and_children(
+        self, id: str, target_transport: "AbstractTransport"
+    ) -> str:
         """Copies the parent object and all its children to the provided transport.
 
         Arguments:
