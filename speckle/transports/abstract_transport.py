@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Optional
-from pydantic.dataclasses import dataclass
+from typing import Any, Optional
+from pydantic import BaseModel
+from pydantic.main import Extra
 
 #  __________________
 # |                  |
@@ -13,8 +14,8 @@ from pydantic.dataclasses import dataclass
 
 
 
-@dataclass
-class AbstractTransport(ABC):
+
+class AbstractTransport(Transport, BaseModel):
     _name: str = "Abstract"
 
     @property
@@ -74,3 +75,7 @@ class AbstractTransport(ABC):
             str -- the string representation of the root object
         """
         pass
+
+    class Config:
+        extra = Extra.allow
+        arbitrary_types_allowed = True
