@@ -1,10 +1,11 @@
 from __future__ import annotations
-from speckle.logging.exceptions import SpeckleException
-
-from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel
 from pydantic.main import Extra
+from typing import Dict, List, Optional, Any
+from speckle.transports.memory import MemoryTransport
+from speckle.logging.exceptions import SpeckleException
+
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -78,6 +79,19 @@ class Base(BaseModel):
         """Get the total count of children Base objects"""
         parsed = []
         return 1 + self._count_descendants(self, parsed)
+
+    def get_id(self, decompose: bool = False) -> str:
+        if self.id and not decompose:
+            return self.id
+        else:
+            from speckle.serialization.base_object_serializer import (
+                BaseObjectSerializer,
+            )
+
+            serializer = BaseObjectSerializer()
+            if decompose:
+                serializer.write_transports = [MemoryTransport()]
+            return serializer.traverse_base(self)[0]
 
     def _count_descendants(self, base: Base, parsed: List) -> int:
         if base in parsed:
