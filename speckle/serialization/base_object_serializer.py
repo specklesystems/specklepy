@@ -1,9 +1,10 @@
 import json
 import hashlib
 
+from speckle import objects
 from uuid import uuid4
 from typing import Any, Dict, List, Tuple
-from speckle.objects.base import Base
+from speckle.objects.base import Base, DataChunk
 from speckle.logging.exceptions import SerializationException, SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 
@@ -54,11 +55,16 @@ class BaseObjectSerializer:
             prop = props.pop(0)
             value = obj[prop]
 
-            # skip nulls or props marked to be ignored with "__"
-            if not value or prop.startswith("__"):
+            # skip nulls or props marked to be ignored with "__" or "_"
+            if not value or prop.startswith(("__", "_")):
                 continue
 
-            detach = True if prop.startswith("@") else False
+            # don't prepopulate id as this will mess up hashing
+            if prop == "id":
+                continue
+
+            chunkable = True if prop in base._chunkable else False
+            detach = True if prop.startswith("@") or chunkable else False
 
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):
@@ -68,13 +74,33 @@ class BaseObjectSerializer:
             # 2. handle Base objects
             elif isinstance(value, Base):
                 child_obj = self.traverse_value(value, detach=detach)
-                if detach:
+                if detach and self.write_transports:
                     ref_hash = child_obj["id"]
                     object_builder[prop] = self.detach_helper(ref_hash=ref_hash)
                 else:
                     object_builder[prop] = child_obj
 
-            # 3. handle all other cases
+            # 3. handle chunkable props
+            elif chunkable and self.write_transports:
+                chunks = []
+                max_size = base._chunkable[prop]
+                chunk = DataChunk()
+                for count, item in enumerate(value):
+                    if count and count % max_size == 0:
+                        chunks.append(chunk)
+                        chunk = DataChunk()
+                    chunk.data.append(item)
+                chunks.append(chunk)
+
+                chunk_refs = []
+                for c in chunks:
+                    self.detach_lineage.append(detach)
+                    ref_hash, _ = self.traverse_base(c)
+                    ref_obj = self.detach_helper(ref_hash=ref_hash)
+                    chunk_refs.append(ref_obj)
+                object_builder[prop] = chunk_refs
+
+            # 4. handle all other cases
             else:
                 child_obj = self.traverse_value(value)
                 object_builder[prop] = child_obj
@@ -92,7 +118,7 @@ class BaseObjectSerializer:
             }
 
         # write detached or root objects to transports
-        if detached:
+        if detached and self.write_transports:
             for t in self.write_transports:
                 t.save_object(id=hash, serialized_object=json.dumps(object_builder))
 
@@ -168,11 +194,10 @@ class BaseObjectSerializer:
         self.family_tree = {}
         self.closure_table = {}
 
-    def read_json(self, id: str, obj_string: str) -> Base:
+    def read_json(self, obj_string: str) -> Base:
         """Recomposes a Base object from the string representation of the object
 
         Arguments:
-            id {str} -- the hash of the object
             obj_string {str} -- the string representation of the object
 
         Returns:
@@ -199,9 +224,11 @@ class BaseObjectSerializer:
             return
         if isinstance(obj, str):
             obj = json.loads(obj)
+        if obj["speckle_type"] == "reference":
+            obj = self.get_child(obj=obj)
 
-        # initialise the base object
-        base = Base()
+        # initialise the base object using `speckle_type`
+        base = getattr(objects, obj["speckle_type"], Base)()
 
         # get total children count
         if "__closure" in obj:
@@ -247,12 +274,23 @@ class BaseObjectSerializer:
         if isinstance(obj, PRIMITIVES):
             return obj
 
+        # lists (regular and chunked)
         if isinstance(obj, list):
-            return [self.handle_value(o) for o in obj]
+            obj_list = [self.handle_value(o) for o in obj]
+            # handle chunked lists
+            if isinstance(obj_list[0], DataChunk):
+                data = []
+                for o in obj_list:
+                    data.extend(o["data"])
+                return data
+            else:
+                return obj_list
 
+        # bases
         if isinstance(obj, dict) and "speckle_type" in obj:
             return self.recompose_base(obj=obj)
 
+        # dictionaries
         if isinstance(obj, dict):
             for k, v in obj.items():
                 if isinstance(v, PRIMITIVES):
@@ -260,3 +298,12 @@ class BaseObjectSerializer:
                 else:
                     obj[k] = self.handle_value(v)
             return obj
+
+    def get_child(self, obj: Dict):
+        ref_hash = obj["referencedId"]
+        ref_obj_str = self.read_transport.get_object(id=ref_hash)
+        if not ref_obj_str:
+            raise SpeckleException(
+                f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
+            )
+        return json.loads(ref_obj_str)

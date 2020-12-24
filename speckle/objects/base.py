@@ -1,10 +1,11 @@
 from __future__ import annotations
-from speckle.logging.exceptions import SpeckleException
-
-from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel
 from pydantic.main import Extra
+from typing import Dict, List, Optional, Any
+from speckle.transports.memory import MemoryTransport
+from speckle.logging.exceptions import SpeckleException
+
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -14,13 +15,18 @@ class Base(BaseModel):
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
     speckle_type: Optional[str] = "Base"
+    _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
+        self.speckle_type = self.__class__.__name__
         self.__dict__.update(kwargs)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+
     def __str__(self) -> str:
-        return f"Base(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+        return self.__repr__()
 
     def __setitem__(self, name: str, value: Any) -> None:
         self.__dict__[name] = value
@@ -74,6 +80,19 @@ class Base(BaseModel):
         parsed = []
         return 1 + self._count_descendants(self, parsed)
 
+    def get_id(self, decompose: bool = False) -> str:
+        if self.id and not decompose:
+            return self.id
+        else:
+            from speckle.serialization.base_object_serializer import (
+                BaseObjectSerializer,
+            )
+
+            serializer = BaseObjectSerializer()
+            if decompose:
+                serializer.write_transports = [MemoryTransport()]
+            return serializer.traverse_base(self)[0]
+
     def _count_descendants(self, base: Base, parsed: List) -> int:
         if base in parsed:
             return 0
@@ -115,3 +134,7 @@ class Base(BaseModel):
 
     class Config:
         extra = Extra.allow
+
+
+class DataChunk(Base):
+    data: List[Any] = []
