@@ -59,6 +59,10 @@ class BaseObjectSerializer:
             if not value or prop.startswith(("__", "_")):
                 continue
 
+            # don't prepopulate id as this will mess up hashing
+            if prop == "id":
+                continue
+
             chunkable = True if prop in base._chunkable else False
             detach = True if prop.startswith("@") or chunkable else False
 
@@ -70,15 +74,14 @@ class BaseObjectSerializer:
             # 2. handle Base objects
             elif isinstance(value, Base):
                 child_obj = self.traverse_value(value, detach=detach)
-                if detach:
+                if detach and self.write_transports:
                     ref_hash = child_obj["id"]
                     object_builder[prop] = self.detach_helper(ref_hash=ref_hash)
                 else:
                     object_builder[prop] = child_obj
 
             # 3. handle chunkable props
-            elif chunkable:
-                self.detach_lineage.append(detach)
+            elif chunkable and self.write_transports:
                 chunks = []
                 max_size = base._chunkable[prop]
                 chunk = DataChunk()
@@ -115,7 +118,7 @@ class BaseObjectSerializer:
             }
 
         # write detached or root objects to transports
-        if detached:
+        if detached and self.write_transports:
             for t in self.write_transports:
                 t.save_object(id=hash, serialized_object=json.dumps(object_builder))
 
@@ -191,11 +194,10 @@ class BaseObjectSerializer:
         self.family_tree = {}
         self.closure_table = {}
 
-    def read_json(self, id: str, obj_string: str) -> Base:
+    def read_json(self, obj_string: str) -> Base:
         """Recomposes a Base object from the string representation of the object
 
         Arguments:
-            id {str} -- the hash of the object
             obj_string {str} -- the string representation of the object
 
         Returns:

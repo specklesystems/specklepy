@@ -66,7 +66,7 @@ def receive(
     # try local transport first. if the parent is there, we assume all the children are there and continue wth deserialisation using the local transport
     obj_string = local_transport.get_object(obj_id)
     if obj_string:
-        base = serializer.read_json(id=obj_id, obj_string=obj_string)
+        base = serializer.read_json(obj_string=obj_string)
         return base
 
     if not remote_transport:
@@ -78,4 +78,16 @@ def receive(
         id=obj_id, target_transport=local_transport
     )
 
-    return serializer.read_json(id=obj_id, obj_string=obj_string)
+    return serializer.read_json(obj_string=obj_string)
+
+
+def serialize(base: Base) -> str:
+    serializer = BaseObjectSerializer()
+
+    return serializer.write_json(base)[1]
+
+
+def deserialize(obj_string: str) -> Base:
+    serializer = BaseObjectSerializer()
+
+    return serializer.read_json(obj_string=obj_string)
