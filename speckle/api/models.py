@@ -21,6 +21,10 @@ class Collaborator(BaseModel):
 class Commit(BaseModel):
     id: Optional[str]
     message: Optional[str]
+    sourceApplication: Optional[str]
+    totalChildrenCount: Optional[int]
+    branchName: Optional[str]
+    parents: Optional[List[str]]
     authorName: Optional[str]
     authorId: Optional[str]
     authorAvatar: Optional[str]

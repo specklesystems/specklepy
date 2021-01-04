@@ -92,6 +92,7 @@ class Resource(ResourceBase):
         object_id: str,
         branch_name: str = "main",
         message: str = "",
+        source_application: str = "PySpeckle",
     ) -> str:
         """
         Creates a commit on a branch
@@ -101,6 +102,7 @@ class Resource(ResourceBase):
             object_id {str} -- the hash of your commit object
             branch_name {str} -- the name of the branch to commit to (defaults to "main")
             message {str} -- optional: a message to give more information about the commit
+            source_application {str} -- optional: the name of the application creating the commit (defaults to "PySpeckle")
 
         Returns:
             str -- the id of the created commit
@@ -116,6 +118,7 @@ class Resource(ResourceBase):
                 "branchName": branch_name,
                 "objectId": object_id,
                 "message": message,
+                "sourceApplication": source_application,
             }
         }
 
