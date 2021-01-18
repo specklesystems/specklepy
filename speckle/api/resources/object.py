@@ -54,7 +54,8 @@ class Resource(ResourceBase):
 
     def create(self, stream_id: str, objects: List[Dict]) -> str:
         """
-        Create a new object on a stream. To send a base object, you can prepare it by running it through the `BaseObjectSerializer.travers_base` function to get a valid (serialisable) object to send.
+        Create a new object on a stream. To send a base object, you can prepare it by running it through the
+        `operations.serialize` function to get a valid (serialisable) object to send.
 
         NOTE: this does not create a commit - you can create one with `SpeckleClient.commit.create`.
 

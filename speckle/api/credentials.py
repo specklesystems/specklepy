@@ -60,4 +60,4 @@ class Account(BaseModel):
         return f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url}, isDefault: {self.isDefault})"
 
     def __str__(self) -> str:
-        return f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url}, isDefault: {self.isDefault})"
+        return self.__repr__()
