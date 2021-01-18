@@ -34,6 +34,12 @@ class Base(BaseModel):
     def __getitem__(self, name: str) -> Any:
         return self.__dict__[name]
 
+    def __setattr__(self, name, value):
+        attr = getattr(self.__class__, name, None)
+        if isinstance(attr, property):
+            attr.__set__(self, value)
+        super().__setattr__(name, value)
+
     def to_dict(self) -> Dict:
         """Convenience method to view the whole base object as a dict"""
         base_dict = self.__dict__
