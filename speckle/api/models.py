@@ -25,7 +25,10 @@ class Commit(BaseModel):
     authorId: Optional[str]
     authorAvatar: Optional[str]
     createdAt: Optional[str]
+    sourceApplication: Optional[str]
     referencedObject: Optional[str]
+    totalChildrenCount: Optional[int]
+    parents: Optional[List[str]]
 
     def __repr__(self) -> str:
         return f"Commit( id: {self.id}, message: {self.message}, referencedObject: {self.referencedObject}, authorName: {self.authorName}, createdAt: {self.createdAt} )"
