@@ -37,9 +37,13 @@ class Resource(ResourceBase):
                         id
                         referencedObject
                         message
-                        authorName
                         authorId
+                        authorName
+                        authorAvatar
                         createdAt
+                        sourceApplication
+                        totalChildrenCount
+                        parents
                     }
                 }
             }
@@ -70,10 +74,15 @@ class Resource(ResourceBase):
                         items {
                             id
                             message
+                            referencedObject
                             authorName
                             authorId
+                            authorName
+                            authorAvatar
                             createdAt
-                            referencedObject
+                            sourceApplication
+                            totalChildrenCount
+                            parents
                         }
                     }
                 }
@@ -92,6 +101,8 @@ class Resource(ResourceBase):
         object_id: str,
         branch_name: str = "main",
         message: str = "",
+        source_application: str = "pyspeckle",
+        parents: List[str] = None,
     ) -> str:
         """
         Creates a commit on a branch
@@ -101,6 +112,8 @@ class Resource(ResourceBase):
             object_id {str} -- the hash of your commit object
             branch_name {str} -- the name of the branch to commit to (defaults to "main")
             message {str} -- optional: a message to give more information about the commit
+            source_application{str} -- optional: the application from which the commit was created (defaults ty "pyspeckle")
+            parents {List[str]} -- optional: the id of the parent commits
 
         Returns:
             str -- the id of the created commit
@@ -116,8 +129,11 @@ class Resource(ResourceBase):
                 "branchName": branch_name,
                 "objectId": object_id,
                 "message": message,
+                "sourceApplication": source_application,
             }
         }
+        if parents:
+            params["commit"]["parents"] = parents
 
         return self.make_request(
             query=query, params=params, return_type="commitCreate", parse_response=False
