@@ -29,7 +29,7 @@ def test_create(client, stream):
     )
     stream.id = stream_id
 
-    assert stream_id is not None
+    assert isinstance(stream_id, str)
 
 
 def test_get(client, stream):
@@ -61,7 +61,7 @@ def test_list(client):
 
     streams = client.stream.list()
 
-    assert len(streams) == 3
+    assert len(streams) >= 3
 
 
 def test_search(client, updated_stream):
