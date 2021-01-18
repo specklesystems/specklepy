@@ -242,7 +242,7 @@ class BaseObjectSerializer:
         for prop, value in obj.items():
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):
-                base[prop] = value
+                base.__setattr__(prop, value)
                 continue
 
             # 2. handle referenced child objects
@@ -254,11 +254,11 @@ class BaseObjectSerializer:
                         f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
                     )
                 ref_obj = json.loads(ref_obj_str)
-                base[prop] = self.recompose_base(obj=ref_obj)
+                base.__setattr__(prop, self.recompose_base(obj=ref_obj))
 
             # 3. handle all other cases (base objects, lists, and dicts)
             else:
-                base[prop] = self.handle_value(value)
+                base.__setattr__(prop, self.handle_value(value))
 
         return base
 
