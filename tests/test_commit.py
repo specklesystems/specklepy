@@ -19,12 +19,11 @@ def stream_id(client):
 
 
 def test_create(client, stream_id, commit):
-    commit_id = client.commit.create(
+    commit.id = client.commit.create(
         stream_id=stream_id, object_id="object123", message=commit.message
     )
-    commit.id = commit_id
 
-    assert isinstance(commit_id, str)
+    assert isinstance(commit.id, str)
 
 
 def test_get(client, stream_id, commit):
