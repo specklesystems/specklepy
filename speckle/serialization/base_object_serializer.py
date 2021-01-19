@@ -1,5 +1,6 @@
 import json
 import hashlib
+import re
 
 from speckle import objects
 from uuid import uuid4
@@ -62,6 +63,13 @@ class BaseObjectSerializer:
             # don't prepopulate id as this will mess up hashing
             if prop == "id":
                 continue
+
+            dynamic_chunk_match = re.match(r"^@\((\d*)\)", prop)
+            if dynamic_chunk_match:
+                chunk_size = dynamic_chunk_match.groups()[0]
+                base._chunkable[prop] = (
+                    int(chunk_size) if chunk_size else base._chunk_size_default
+                )
 
             chunkable = True if prop in base._chunkable else False
             detach = True if prop.startswith("@") or chunkable else False
