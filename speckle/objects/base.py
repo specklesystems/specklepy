@@ -16,6 +16,7 @@ class Base(BaseModel):
     applicationId: Optional[str] = None
     speckle_type: Optional[str] = "Base"
     _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
+    _chunk_size_default: int = 1000
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
