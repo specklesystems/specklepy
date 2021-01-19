@@ -8,15 +8,12 @@ jobs:
     executor: python/default
     steps:
       - checkout
+      - run: python -m pip install --upgrade pip
       - python/install-packages:
           pkg-manager: pip
       - python/install-packages:
           pip-dependency-file: requirements.txt
           pkg-manager: pip
-      - python/install-packages:
-          args: pytest
-          pkg-manager: pip
-          pypi-cache: false
       - run:
           command: |
             pytest --version
