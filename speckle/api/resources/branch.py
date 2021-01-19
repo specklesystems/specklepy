@@ -18,7 +18,7 @@ class Resource(ResourceBase):
         self.schema = Branch
 
     def create(
-        self, streamId: str, name: str, description: str = "No description provided"
+        self, stream_id: str, name: str, description: str = "No description provided"
     ) -> str:
         """Create a new branch on this stream
 
@@ -39,10 +39,12 @@ class Resource(ResourceBase):
         )
         params = {
             "branch": {
-                "streamId": streamId,
+                "streamId": stream_id,
                 "name": name,
                 "description": description,
             }
         }
 
-        return self.make_request(query=query, params=params, parse_response=False)
+        return self.make_request(
+            query=query, params=params, return_type="branchCreate", parse_response=False
+        )
