@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pydantic import BaseModel
 from pydantic.main import Extra
 from typing import Dict, List, Optional, Any
@@ -100,7 +98,7 @@ class Base(BaseModel):
                 serializer.write_transports = [MemoryTransport()]
             return serializer.traverse_base(self)[0]
 
-    def _count_descendants(self, base: Base, parsed: List) -> int:
+    def _count_descendants(self, base: "Base", parsed: List) -> int:
         if base in parsed:
             return 0
         parsed.append(base)
@@ -119,20 +117,20 @@ class Base(BaseModel):
         count = 0
         if obj == None:
             return count
-        if isinstance(obj, Base):
+        if isinstance(obj, "Base"):
             count += 1
             count += self._count_descendants(obj, parsed)
             return count
         elif isinstance(obj, list):
             for item in obj:
-                if isinstance(item, Base):
+                if isinstance(item, "Base"):
                     count += 1
                     count += self._count_descendants(item, parsed)
                 else:
                     count += self._handle_object_count(item, parsed)
         elif isinstance(obj, dict):
             for _, value in obj.items():
-                if isinstance(value, Base):
+                if isinstance(value, "Base"):
                     count += 1
                     count += self._count_descendants(value, parsed)
                 else:

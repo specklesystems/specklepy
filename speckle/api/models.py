@@ -2,8 +2,6 @@
 #   filename:  stream_schema.json
 #   timestamp: 2020-11-17T14:33:13+00:00
 
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -64,12 +62,6 @@ class Branches(BaseModel):
     items: List[Branch] = []
 
 
-class Streams(BaseModel):
-    totalCount: Optional[int]
-    cursor: Optional[datetime]
-    items: List[Stream] = []
-
-
 class Stream(BaseModel):
     id: Optional[str]
     name: Optional[str]
@@ -87,6 +79,12 @@ class Stream(BaseModel):
 
     def __str__(self) -> str:
         return self.__repr__()
+
+
+class Streams(BaseModel):
+    totalCount: Optional[int]
+    cursor: Optional[datetime]
+    items: List[Stream] = []
 
 
 class User(BaseModel):
