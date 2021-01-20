@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import List, Optional
 from pydantic import BaseModel
 from speckle.transports.sqlite import SQLiteTransport
