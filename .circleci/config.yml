@@ -2,27 +2,34 @@ version: 2.1
 
 orbs:
   python: circleci/python@1.3.2
-
+  
 jobs:
   build:
-    executor: python/default
+    executor: 
+      name: python/default
+      tag: << parameters.tag >>
+    parameters:
+      tag:
+        default: "3.8"
+        type: string
     steps:
       - checkout
-      - run: python -m pip install --upgrade pip
-      - python/install-packages:
-          pkg-manager: pip
+      - run: python --version
+      - run: 
+          command: python -m pip install --upgrade pip
+          name: upgrade pip
       - python/install-packages:
           pip-dependency-file: requirements.txt
           pkg-manager: pip
-      - run:
-          command: |
-            pytest --version
-          name: Test
+      - run:  pytest --version
 
 workflows:
   main:
     jobs:
-      - build
       - python/test:
+          matrix:
+            parameters:
+              version: ["3.6", "3.7", "3.8", "3.9"]
           pkg-manager: pip
           test-tool: pytest
+          
