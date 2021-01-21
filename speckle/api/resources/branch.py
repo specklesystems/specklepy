@@ -33,7 +33,7 @@ class Resource(ResourceBase):
 
         query = gql(
             """
-            mutation BranchCreate($branch: BranchCreateInput!){
+            mutation BranchCreate($branch: BranchCreateInput!) {
               branchCreate(branch: $branch)
             }
           """
@@ -147,4 +147,66 @@ class Resource(ResourceBase):
 
         return self.make_request(
             query=query, params=params, return_type=["stream", "branches", "items"]
+        )
+
+    def update(
+        self, stream_id: str, branch_id: str, name: str = None, description: str = None
+    ):
+        """Update a branch
+
+        Arguments:
+            stream_id {str} -- the id of the stream containing the branch to update
+            branch_id {str} -- the id of the branch to update
+            name {str} -- optional: the updated branch name
+            description {str} -- optional: the updated branch description
+
+        Returns:
+            bool -- True if update is successfull
+        """
+        query = gql(
+            """
+            mutation  BranchUpdate($branch: BranchUpdateInput!) {
+                branchUpdate(branch: $branch)
+                }
+            """
+        )
+        params = {
+            "branch": {
+                "streamId": stream_id,
+                "id": branch_id,
+            }
+        }
+
+        if name:
+            params["branch"]["name"] = name
+        if description:
+            params["branch"]["description"] = description
+
+        return self.make_request(
+            query=query, params=params, return_type="branchUpdate", parse_response=False
+        )
+
+    def delete(self, stream_id: str, branch_id: str):
+        """Delete a branch
+
+        Arguments:
+            stream_id {str} -- the id of the stream containing the branch to delete
+            branch_id {str} -- the branch to delete
+
+        Returns:
+            bool -- True if deletion is successful
+        """
+
+        query = gql(
+            """
+            mutation BranchDelete($branch: BranchDeleteInput!) {
+                branchDelete(branch: $branch)
+            }
+            """
+        )
+
+        params = {"branch": {"streamId": stream_id, "id": branch_id}}
+
+        return self.make_request(
+            query=query, params=params, return_type="branchDelete", parse_response=False
         )
