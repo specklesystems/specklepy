@@ -1,10 +1,7 @@
-from re import search
 from typing import Dict, List, Optional
-from pydantic import BaseModel
 from gql import gql
 from speckle.api.resource import ResourceBase
 from speckle.api.models import Stream
-from speckle.logging.exceptions import GraphQLException
 
 NAME = "stream"
 METHODS = [
