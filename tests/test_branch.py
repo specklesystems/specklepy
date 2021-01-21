@@ -8,6 +8,10 @@ class TestBranch:
         return Branch(name="olive branch 🌿", description="a test branch")
 
     @pytest.fixture(scope="module")
+    def updated_branch(self):
+        return Branch(name="eucalyptus branch 🌿", description="an updated test branch")
+
+    @pytest.fixture(scope="module")
     def stream(self, client):
         stream = Stream(
             name="a sample stream for testing",
@@ -50,3 +54,24 @@ class TestBranch:
         assert len(branches) == 2
         assert isinstance(branches[0], Branch)
         assert branches[0].name == branch.name
+
+    def test_branch_update(self, client, stream, branch, updated_branch):
+        updated = client.branch.update(
+            stream_id=stream.id,
+            branch_id=branch.id,
+            name=updated_branch.name,
+            description=updated_branch.description,
+        )
+
+        fetched_branch = client.branch.get(
+            stream_id=stream.id, name=updated_branch.name
+        )
+
+        assert updated is True
+        assert fetched_branch.name == updated_branch.name
+        assert fetched_branch.description == updated_branch.description
+
+    def test_branch_delete(self, client, stream, branch):
+        deleted = client.branch.delete(stream_id=stream.id, branch_id=branch.id)
+
+        assert deleted is True
