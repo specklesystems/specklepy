@@ -2,7 +2,7 @@ import pytest
 from speckle.api.models import Commit, Stream
 
 
-@pytest.mark.run(order=3)
+@pytest.mark.run(order=4)
 class TestCommit:
     @pytest.fixture(scope="module")
     def commit(self):

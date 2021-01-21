@@ -6,7 +6,7 @@ from speckle.transports.memory import MemoryTransport
 from speckle.serialization.base_object_serializer import BaseObjectSerializer
 
 
-@pytest.mark.run(order=2)
+@pytest.mark.run(order=3)
 class TestSerialization:
     def test_serialize(self, base):
         serialized = operations.serialize(base)
