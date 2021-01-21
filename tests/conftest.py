@@ -13,7 +13,6 @@ def host():
     return "testing.speckle.dev"
 
 
-@pytest.fixture(scope="session")
 def seed_user(host):
     seed = uuid.uuid4().hex
     user_dict = {
@@ -27,7 +26,6 @@ def seed_user(host):
         url=f"https://{host}/auth/local/register?challenge=pyspeckletests",
         data=user_dict,
     )
-    print(r.url)
     access_code = r.url.split("access_code=")[1]
 
     r_tokens = requests.post(
@@ -46,9 +44,19 @@ def seed_user(host):
 
 
 @pytest.fixture(scope="session")
-def client(host, seed_user):
+def user_dict(host):
+    return seed_user(host)
+
+
+@pytest.fixture(scope="session")
+def second_user_dict(host):
+    return seed_user(host)
+
+
+@pytest.fixture(scope="session")
+def client(host, user_dict):
     client = SpeckleClient(host=host, use_ssl=True)
-    client.authenticate(seed_user["token"])
+    client.authenticate(user_dict["token"])
     return client
 
 
