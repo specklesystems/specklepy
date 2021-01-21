@@ -118,7 +118,6 @@ class Resource(ResourceBase):
                             id
                             name
                             description
-                            totalCount
                             commits(limit: $commits_limit) {
                                 totalCount
                                 items{
@@ -141,11 +140,11 @@ class Resource(ResourceBase):
         )
 
         params = {
-            "stream_id": stream,
+            "stream_id": stream_id,
             "branches_limit": branches_limit,
             "commits_limit": commits_limit,
         }
 
         return self.make_request(
-            query=query, params=params, return_type=["stream", "branches"]
+            query=query, params=params, return_type=["stream", "branches", "items"]
         )
