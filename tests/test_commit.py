@@ -39,6 +39,12 @@ class TestCommit:
         assert fetched_commit.message == commit.message
         assert fetched_commit.referencedObject == mesh.id
 
+    def test_commit_list(self, client, stream):
+        commits = client.commit.list(stream_id=stream.id)
+
+        assert isinstance(commits, list)
+        assert isinstance(commits[0], Commit)
+
     def test_commit_update(self, client, stream, commit, updated_commit):
         updated = client.commit.update(
             stream_id=stream.id, commit_id=commit.id, message=updated_commit.message
