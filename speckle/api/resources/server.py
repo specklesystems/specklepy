@@ -1,6 +1,7 @@
 from typing import Dict
 from gql import gql
 from gql.client import Client
+from speckle.api.models import ServerInfo
 from speckle.api.resource import ResourceBase
 
 
@@ -16,7 +17,7 @@ class Resource(ResourceBase):
             me=me, basepath=basepath, client=client, name=NAME, methods=METHODS
         )
 
-    def get(self) -> Dict:
+    def get(self) -> ServerInfo:
         """Get the server info
 
         Returns:
@@ -25,32 +26,34 @@ class Resource(ResourceBase):
         query = gql(
             """
             query Server {
-              serverInfo {
-                name
-                company
-                description
-                adminContact
-                canonicalUrl
-                roles {
-                  name
-                  description
-                  resourceTarget
+                serverInfo {
+                    name
+                    company
+                    description
+                    adminContact
+                    canonicalUrl
+                    roles {
+                        name
+                        description
+                        resourceTarget
+                    }
+                    scopes {
+                        name
+                        description
+                    }
+                    authStrategies{
+                        id
+                        name
+                        icon
+                    }
                 }
-                scopes {
-                  name
-                  description
-                }
-                authStrategies{
-                  id
-                  name
-                  icon
-                }
-              }
             }
-        """
+            """
         )
 
-        return self.make_request(query=query)
+        return self.make_request(
+            query=query, return_type="serverInfo", schema=ServerInfo
+        )
 
     def apps(self) -> Dict:
         """Get the apps registered on the server
@@ -60,20 +63,22 @@ class Resource(ResourceBase):
         """
         query = gql(
             """
-            query Apps {
-              apps {
-                id
-                name
-                description
-                termsAndConditionsLink
-                logo
-                author {
-                  id
-                  name
+            query {
+                apps{
+                    id
+                    name
+                    description
+                    termsAndConditionsLink
+                    trustByDefault
+                    logo
+                    author {
+                        id
+                        name
+                        avatar
+                    }
                 }
-              }
             }
         """
         )
 
-        return self.make_request(query=query)
+        return self.make_request(query=query, return_type="apps", parse_response=False)
