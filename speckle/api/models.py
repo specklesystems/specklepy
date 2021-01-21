@@ -103,3 +103,15 @@ class User(BaseModel):
 
     def __str__(self) -> str:
         return self.__repr__()
+
+
+class ServerInfo(BaseModel):
+    name: Optional[str]
+    company: Optional[str]
+    url: Optional[str]
+    description: Optional[str]
+    adminContact: Optional[str]
+    canonicalUrl: Optional[str]
+    roles: List[dict]
+    scopes: List[dict]
+    authStrategies: List[dict]

@@ -3,7 +3,7 @@ from speckle.api.models import Stream
 from speckle.logging.exceptions import GraphQLException
 
 
-@pytest.mark.run(order=1)
+@pytest.mark.run(order=2)
 class TestStream:
     @pytest.fixture(scope="session")
     def stream(self):
@@ -66,6 +66,29 @@ class TestStream:
 
         assert len(search_results) == 1
         assert search_results[0].name == updated_stream.name
+
+    def test_stream_grant_permission(self, client, stream, second_user_dict):
+        granted = client.stream.grant_permission(
+            stream_id=stream.id,
+            user_id=second_user_dict["id"],
+            role="stream:contributor",
+        )
+
+        fetched_stream = client.stream.get(stream.id)
+
+        assert granted is True
+        assert len(fetched_stream.collaborators) == 2
+        assert fetched_stream.collaborators[0].name == second_user_dict["name"]
+
+    def test_stream_revoke_permission(self, client, stream, second_user_dict):
+        revoked = client.stream.revoke_permission(
+            stream_id=stream.id, user_id=second_user_dict["id"]
+        )
+
+        fetched_stream = client.stream.get(stream.id)
+
+        assert revoked == True
+        assert len(fetched_stream.collaborators) == 1
 
     def test_stream_delete(self, client, stream):
         deleted = client.stream.delete(stream.id)

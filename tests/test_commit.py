@@ -2,7 +2,7 @@ import pytest
 from speckle.api.models import Commit, Stream
 
 
-@pytest.mark.run(order=3)
+@pytest.mark.run(order=4)
 class TestCommit:
     @pytest.fixture(scope="module")
     def commit(self):
@@ -38,6 +38,12 @@ class TestCommit:
 
         assert fetched_commit.message == commit.message
         assert fetched_commit.referencedObject == mesh.id
+
+    def test_commit_list(self, client, stream):
+        commits = client.commit.list(stream_id=stream.id)
+
+        assert isinstance(commits, list)
+        assert isinstance(commits[0], Commit)
 
     def test_commit_update(self, client, stream, commit, updated_commit):
         updated = client.commit.update(

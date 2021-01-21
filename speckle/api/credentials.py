@@ -1,14 +1,9 @@
 from typing import List, Optional
 from pydantic import BaseModel
+from speckle.api.models import ServerInfo
 from speckle.transports.sqlite import SQLiteTransport
 
 account_storage = SQLiteTransport(scope="Accounts")
-
-
-class ServerInfo(BaseModel):
-    name: str
-    company: Optional[str]
-    url: str
 
 
 class UserInfo(BaseModel):

@@ -1,10 +1,7 @@
-from re import search
 from typing import Dict, List, Optional
-from pydantic import BaseModel
 from gql import gql
 from speckle.api.resource import ResourceBase
 from speckle.api.models import Stream
-from speckle.logging.exceptions import GraphQLException
 
 NAME = "stream"
 METHODS = [
@@ -295,4 +292,65 @@ class Resource(ResourceBase):
 
         return self.make_request(
             query=query, params=params, return_type=["streams", "items"]
+        )
+
+    def grant_permission(self, stream_id: str, user_id: str, role: str):
+        """Grant permissions to a user on a given stream
+
+        Arguments:
+            stream_id {str} -- the id of the stream to grant permissions to
+            user_id {str} -- the id of the user to grant permissions for
+            role {str} -- the role to grant the user
+
+        Returns:
+            bool -- True if the operation was successful
+        """
+        query = gql(
+            """
+            mutation StreamGrantPermission($permission_params: StreamGrantPermissionInput !) {
+                streamGrantPermission(permissionParams: $permission_params)
+            }
+            """
+        )
+
+        params = {
+            "permission_params": {
+                "streamId": stream_id,
+                "userId": user_id,
+                "role": role,
+            }
+        }
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamGrantPermission",
+            parse_response=False,
+        )
+
+    def revoke_permission(self, stream_id: str, user_id: str):
+        """Revoke permissions from a user on a given stream
+
+        Arguments:
+            stream_id {str} -- the id of the stream to revoke permissions from
+            user_id {str} -- the id of the user to revoke permissions from
+
+        Returns:
+            bool -- True if the operation was successful
+        """
+        query = gql(
+            """
+            mutation StreamRevokePermission($permission_params: StreamRevokePermissionInput !) {
+                streamRevokePermission(permissionParams: $permission_params)
+            }
+            """
+        )
+
+        params = {"permission_params": {"streamId": stream_id, "userId": user_id}}
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamRevokePermission",
+            parse_response=False,
         )
