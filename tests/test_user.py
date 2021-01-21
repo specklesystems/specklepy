@@ -1,3 +1,4 @@
+from speckle.logging.exceptions import SpeckleException
 from speckle.api.models import User
 import pytest
 
@@ -30,3 +31,15 @@ class TestUser:
         assert fetched_user.email == second_user_dict["email"]
 
         second_user_dict["id"] = fetched_user.id
+
+    def test_user_update(self, client):
+        bio = "i am a ghost in the machine"
+
+        failed_update = client.user.update()
+        updated = client.user.update(bio=bio)
+
+        me = client.user.get()
+
+        assert isinstance(failed_update, SpeckleException)
+        assert updated is True
+        assert me.bio == bio
