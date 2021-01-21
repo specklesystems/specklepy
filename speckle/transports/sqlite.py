@@ -43,11 +43,11 @@ class SQLiteTransport(AbstractTransport):
     def __repr__(self) -> str:
         return f"SQLiteTransport(app: '{self.app_name}', scope: '{self.scope}')"
 
-    def __write_timer_elapsed(self):
-        print("WRITE TIMER ELAPSED")
-        proc = Process(target=_run_queue, args=(self.__queue, self._root_path))
-        proc.start()
-        proc.join()
+    # def __write_timer_elapsed(self):
+    #     print("WRITE TIMER ELAPSED")
+    #     proc = Process(target=_run_queue, args=(self.__queue, self._root_path))
+    #     proc.start()
+    #     proc.join()
 
     def __get_base_path(self):
         # from appdirs https://github.com/ActiveState/appdirs/blob/master/appdirs.py
@@ -73,7 +73,7 @@ class SQLiteTransport(AbstractTransport):
         self._is_writing = True
         while not self.__queue.empty():
             data = self.__queue.get()
-            self.save_object_sync(data[0], data[1])
+            self.save_object(data[0], data[1])
         self._is_writing = False
 
         self._scheduler.enter(
@@ -81,20 +81,20 @@ class SQLiteTransport(AbstractTransport):
         )
         self._scheduler.run(blocking=True)
 
-    def save_object(self, id: str, serialized_object: str) -> None:
-        """Adds an object to the queue and schedules it to be saved.
+    # def save_object(self, id: str, serialized_object: str) -> None:
+    #     """Adds an object to the queue and schedules it to be saved.
 
-        Arguments:
-            id {str} -- the object id
-            serialized_object {str} -- the full string representation of the object
-        """
-        print("SAVE OBJECT")
-        self.__queue.put((id, serialized_object))
+    #     Arguments:
+    #         id {str} -- the object id
+    #         serialized_object {str} -- the full string representation of the object
+    #     """
+    #     print("SAVE OBJECT")
+    #     self.__queue.put((id, serialized_object))
 
-        self._scheduler.enter(
-            delay=self._polling_interval, priority=1, action=self.__consume_queue
-        )
-        self._scheduler.run(blocking=True)
+    #     self._scheduler.enter(
+    #         delay=self._polling_interval, priority=1, action=self.__consume_queue
+    #     )
+    #     self._scheduler.run(blocking=True)
 
     def save_object_from_transport(
         self, id: str, source_transport: AbstractTransport
@@ -109,7 +109,7 @@ class SQLiteTransport(AbstractTransport):
         self.__queue.put((id, serialized_object))
         raise NotImplementedError
 
-    def save_object_sync(self, id: str, serialized_object: str) -> None:
+    def save_object(self, id: str, serialized_object: str) -> None:
         """Directly saves an object into the database.
 
         Arguments:
@@ -183,17 +183,17 @@ class SQLiteTransport(AbstractTransport):
         self.__connection.close()
 
 
-def _run_queue(queue: Queue, root_path: str):
-    if queue.empty():
-        return
-    print("RUN QUEUE")
-    conn = sqlite3.connect(root_path)
-    while not queue.empty():
-        data = queue.get()
-        with closing(conn.cursor()) as c:
-            c.execute(
-                "INSERT OR IGNORE INTO objects(hash, content) VALUES(?,?)",
-                (data[0], data[1]),
-            )
-            conn.commit()
-    conn.close()
+# def _run_queue(queue: Queue, root_path: str):
+#     if queue.empty():
+#         return
+#     print("RUN QUEUE")
+#     conn = sqlite3.connect(root_path)
+#     while not queue.empty():
+#         data = queue.get()
+#         with closing(conn.cursor()) as c:
+#             c.execute(
+#                 "INSERT OR IGNORE INTO objects(hash, content) VALUES(?,?)",
+#                 (data[0], data[1]),
+#             )
+#             conn.commit()
+#     conn.close()

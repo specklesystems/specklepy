@@ -38,7 +38,7 @@ def seed_user(host):
         },
     )
 
-    user_dict["token"] = r_tokens.json()["token"]
+    user_dict.update(**r_tokens.json())
 
     return user_dict
 

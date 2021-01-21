@@ -1,6 +1,6 @@
 from typing import List
 from speckle.objects.base import Base
-from speckle.transports.memory import MemoryTransport
+from speckle.transports.sqlite import SQLiteTransport
 from speckle.logging.exceptions import SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 from speckle.serialization.base_object_serializer import BaseObjectSerializer
@@ -26,8 +26,7 @@ def send(
             message="You need to provide at least one transport: cannot send with an empty transport list and no default cache"
         )
     if use_default_cache:
-        # TODO: finish sqlite transport and chuck it in here
-        pass
+        transports.insert(0, SQLiteTransport())
 
     serializer = BaseObjectSerializer(write_transports=transports)
 
@@ -57,9 +56,8 @@ def receive(
         Base -- the base object
     """
 
-    # TODO: replace with sqlite transport
     if not local_transport:
-        local_transport = MemoryTransport()
+        local_transport = SQLiteTransport()
 
     serializer = BaseObjectSerializer(read_transport=local_transport)
 
