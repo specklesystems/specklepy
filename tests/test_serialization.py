@@ -33,7 +33,7 @@ class TestSerialization:
     def test_send_and_receive(self, client, sample_stream, mesh):
         transport = ServerTransport(client=client, stream_id=sample_stream.id)
         hash = operations.send(mesh, transports=[transport])
-        received = operations.receive(hash, remote_transport=transport)
+        received = operations.receive(hash)
 
         assert mesh.get_id(True) == received.get_id()
 
