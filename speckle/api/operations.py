@@ -1,6 +1,8 @@
+import json
 from typing import List
 from speckle.objects.base import Base
 from speckle.transports.sqlite import SQLiteTransport
+from speckle.transports.server import ServerTransport
 from speckle.logging.exceptions import SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 from speckle.serialization.base_object_serializer import BaseObjectSerializer
@@ -76,7 +78,13 @@ def receive(
         id=obj_id, target_transport=local_transport
     )
 
-    return serializer.read_json(obj_string=obj_string)
+    # if receiving from server, go into the 'data' prop for the actual base obj
+    if isinstance(remote_transport, ServerTransport):
+        return serializer.read_json(
+            obj_string=None, obj_dict=json.loads(obj_string)["data"]
+        )
+    else:
+        return serializer.read_json(obj_string=obj_string)
 
 
 def serialize(base: Base) -> str:

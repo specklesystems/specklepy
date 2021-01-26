@@ -5,6 +5,7 @@ import requests
 from speckle.api.models import Stream
 from speckle.api.client import SpeckleClient
 from speckle.objects.base import Base
+from speckle.objects.point import Point
 from speckle.objects.fakemesh import FakeMesh
 
 
@@ -79,8 +80,10 @@ def mesh():
     mesh.faces = [i for i in range(1, 210)]
     mesh["@(100)colours"] = [random.uniform(0, 10) for _ in range(1, 210)]
     mesh["@()default_chunk"] = [random.uniform(0, 10) for _ in range(1, 210)]
-    mesh.test_bases = [Base(name=i) for i in range(1, 22)]
+    mesh.test_bases = [Base(name=f"test {i}") for i in range(1, 22)]
+    mesh.detach_this = Base(name="predefined detached base")
     mesh["@detach"] = Base(name="detached base")
+    mesh.origin = Point(value=[4, 2, 0])
     return mesh
 
 
@@ -88,6 +91,7 @@ def mesh():
 def base():
     base = Base()
     base.name = "my_base"
+    base.units = "millimetres"
     base.vertices = [random.uniform(0, 10) for _ in range(1, 120)]
     base.test_bases = [Base(name=i) for i in range(1, 22)]
     base["@detach"] = Base(name="detached base")

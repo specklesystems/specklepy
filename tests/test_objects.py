@@ -32,10 +32,8 @@ class TestObject:
         fetched_base = client.object.get(
             stream_id=stream.id, object_id=base.get_id(True)
         )
-        print(base.name)
-        print(fetched_base.__dict__)
 
         assert isinstance(fetched_base, Base)
-        assert fetched_base.data["name"] == base["name"]
-        assert "vertices" in fetched_base.data
-        assert "@detach" in fetched_base.data
+        assert fetched_base.name == base.name
+        assert isinstance(fetched_base.vertices, list)
+        assert fetched_base["@detach"]["speckle_type"] == "reference"

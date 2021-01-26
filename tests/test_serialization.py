@@ -1,10 +1,12 @@
 import json
-from speckle.objects.base import Base
 import pytest
 from speckle.api import operations
 from speckle.transports.server import ServerTransport
 from speckle.transports.memory import MemoryTransport
 from speckle.serialization.base_object_serializer import BaseObjectSerializer
+from speckle.objects.base import Base
+from speckle.objects.point import Point
+from speckle.objects.fakemesh import FakeMesh
 
 
 @pytest.mark.run(order=3)
@@ -14,6 +16,22 @@ class TestSerialization:
         deserialized = operations.deserialize(serialized)
 
         assert base.get_id() == deserialized.get_id()
+        assert base.units == "mm"
+        assert isinstance(base.test_bases[0], Base)
+        assert base["@detach"].name == deserialized["@detach"].name
+
+    def test_detaching(self, mesh):
+        transport = MemoryTransport()
+        s = BaseObjectSerializer(write_transports=[transport], read_transport=transport)
+        _, serialized = s.write_json(mesh)
+        deserialized = s.read_json(serialized)
+
+        serialized_dict = json.loads(serialized)
+
+        assert serialized_dict["detach_this"]["speckle_type"] == "reference"
+        assert serialized_dict["@detach"]["speckle_type"] == "reference"
+        assert serialized_dict["origin"]["speckle_type"] == "reference"
+        assert mesh.get_id(True) == deserialized.get_id()
 
     def test_chunking(self, mesh):
         transport = MemoryTransport()
@@ -39,7 +57,10 @@ class TestSerialization:
             hash, remote_transport=transport, local_transport=MemoryTransport()
         )
 
-        assert isinstance(received, Base)
+        assert isinstance(received, FakeMesh)
+        assert received.vertices == mesh.vertices
+        assert isinstance(received.origin, Point)
+        assert received.origin.value == mesh.origin.value
         assert mesh.get_id(True) == received.get_id()
 
         mesh.id = hash  # populate with decomposed id for use in proceeding tests
