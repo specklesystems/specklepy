@@ -72,7 +72,11 @@ class BaseObjectSerializer:
                 )
 
             chunkable = True if prop in base._chunkable else False
-            detach = True if prop.startswith("@") or chunkable else False
+            detach = (
+                True
+                if prop.startswith("@") or prop in base._detachable or chunkable
+                else False
+            )
 
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):
@@ -202,7 +206,7 @@ class BaseObjectSerializer:
         self.family_tree = {}
         self.closure_table = {}
 
-    def read_json(self, obj_string: str) -> Base:
+    def read_json(self, obj_string: str, obj_dict: dict = None) -> Base:
         """Recomposes a Base object from the string representation of the object
 
         Arguments:
@@ -211,9 +215,9 @@ class BaseObjectSerializer:
         Returns:
             Base -- the base object with all it's children attached
         """
-        if not obj_string:
+        if not obj_string and not obj_dict:
             return None
-        obj = json.loads(obj_string)
+        obj = obj_dict or json.loads(obj_string)
         base = self.recompose_base(obj=obj)
 
         return base
