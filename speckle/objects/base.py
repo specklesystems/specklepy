@@ -3,7 +3,7 @@ from pydantic.main import Extra
 from typing import Dict, List, Optional, Any
 from speckle.transports.memory import MemoryTransport
 from speckle.logging.exceptions import SpeckleException
-
+from speckle.objects.units import get_units_from_string
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -13,8 +13,10 @@ class Base(BaseModel):
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
     speckle_type: Optional[str] = "Base"
+    _units: str = "m"
     _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
     _chunk_size_default: int = 1000
+    _detachable: List[str] = []  # list of defined detachable props
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -38,6 +40,14 @@ class Base(BaseModel):
         if isinstance(attr, property):
             attr.__set__(self, value)
         super().__setattr__(name, value)
+
+    @property
+    def units(self):
+        return self._units
+
+    @units.setter
+    def units(self, value: str):
+        self._units = get_units_from_string(value)
 
     def to_dict(self) -> Dict:
         """Convenience method to view the whole base object as a dict"""
