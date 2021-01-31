@@ -8,25 +8,13 @@
 > ⚠ This is the start of the Python client for Speckle 2.0. It is currently quite nebulous and may be trashed and rebuilt at any moment! It is compatible with Python 3.6+ ⚠
 
 ## Developing & Debugging
+This project uses python-poetry for dependency management, make sure you follow the official [docs](https://python-poetry.org/docs/#installation) to get poetry.
 
-To get started, create a virtual environment and pip install the requirements. 
+To bootstrap the project environment run `$ poetry install`. This will create a new virtual-env for the project and install both the package and dev dependencies.
 
-on windows:
-```
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
+To execute any python script run `$ poetry run python my_script.py`
 
-on mac:
-
-```
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-
+> Alternatively you may roll your own virtual-env with either venv, virtualenv, pyenv-virtualenv etc. Poetry will play along an recognize if it is invoked from inside a virtual environment.
 
 ## Overview of functionality 
 
