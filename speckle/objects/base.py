@@ -1,10 +1,9 @@
-from __future__ import annotations
-from speckle.logging.exceptions import SpeckleException
-
-from typing import Dict, List, Optional, Any
-
 from pydantic import BaseModel
 from pydantic.main import Extra
+from typing import Dict, List, Optional, Any
+from speckle.transports.memory import MemoryTransport
+from speckle.logging.exceptions import SpeckleException
+from speckle.objects.units import get_units_from_string
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -14,19 +13,41 @@ class Base(BaseModel):
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
     speckle_type: Optional[str] = "Base"
+    _units: str = "m"
+    _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
+    _chunk_size_default: int = 1000
+    _detachable: List[str] = []  # list of defined detachable props
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
+        self.speckle_type = self.__class__.__name__
         self.__dict__.update(kwargs)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+
     def __str__(self) -> str:
-        return f"Base(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+        return self.__repr__()
 
     def __setitem__(self, name: str, value: Any) -> None:
         self.__dict__[name] = value
 
     def __getitem__(self, name: str) -> Any:
         return self.__dict__[name]
+
+    def __setattr__(self, name, value):
+        attr = getattr(self.__class__, name, None)
+        if isinstance(attr, property):
+            attr.__set__(self, value)
+        super().__setattr__(name, value)
+
+    @property
+    def units(self):
+        return self._units
+
+    @units.setter
+    def units(self, value: str):
+        self._units = get_units_from_string(value)
 
     def to_dict(self) -> Dict:
         """Convenience method to view the whole base object as a dict"""
@@ -74,7 +95,20 @@ class Base(BaseModel):
         parsed = []
         return 1 + self._count_descendants(self, parsed)
 
-    def _count_descendants(self, base: Base, parsed: List) -> int:
+    def get_id(self, decompose: bool = False) -> str:
+        if self.id and not decompose:
+            return self.id
+        else:
+            from speckle.serialization.base_object_serializer import (
+                BaseObjectSerializer,
+            )
+
+            serializer = BaseObjectSerializer()
+            if decompose:
+                serializer.write_transports = [MemoryTransport()]
+            return serializer.traverse_base(self)[0]
+
+    def _count_descendants(self, base: "Base", parsed: List) -> int:
         if base in parsed:
             return 0
         parsed.append(base)
@@ -93,20 +127,20 @@ class Base(BaseModel):
         count = 0
         if obj == None:
             return count
-        if isinstance(obj, Base):
+        if isinstance(obj, "Base"):
             count += 1
             count += self._count_descendants(obj, parsed)
             return count
         elif isinstance(obj, list):
             for item in obj:
-                if isinstance(item, Base):
+                if isinstance(item, "Base"):
                     count += 1
                     count += self._count_descendants(item, parsed)
                 else:
                     count += self._handle_object_count(item, parsed)
         elif isinstance(obj, dict):
             for _, value in obj.items():
-                if isinstance(value, Base):
+                if isinstance(value, "Base"):
                     count += 1
                     count += self._count_descendants(value, parsed)
                 else:
@@ -115,3 +149,7 @@ class Base(BaseModel):
 
     class Config:
         extra = Extra.allow
+
+
+class DataChunk(Base):
+    data: List[Any] = []

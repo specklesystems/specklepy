@@ -2,8 +2,6 @@
 #   filename:  stream_schema.json
 #   timestamp: 2020-11-17T14:33:13+00:00
 
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -25,7 +23,10 @@ class Commit(BaseModel):
     authorId: Optional[str]
     authorAvatar: Optional[str]
     createdAt: Optional[str]
+    sourceApplication: Optional[str]
     referencedObject: Optional[str]
+    totalChildrenCount: Optional[int]
+    parents: Optional[List[str]]
 
     def __repr__(self) -> str:
         return f"Commit( id: {self.id}, message: {self.message}, referencedObject: {self.referencedObject}, authorName: {self.authorName}, createdAt: {self.createdAt} )"
@@ -61,12 +62,6 @@ class Branches(BaseModel):
     items: List[Branch] = []
 
 
-class Streams(BaseModel):
-    totalCount: Optional[int]
-    cursor: Optional[datetime]
-    items: List[Stream] = []
-
-
 class Stream(BaseModel):
     id: Optional[str]
     name: Optional[str]
@@ -86,6 +81,12 @@ class Stream(BaseModel):
         return self.__repr__()
 
 
+class Streams(BaseModel):
+    totalCount: Optional[int]
+    cursor: Optional[datetime]
+    items: List[Stream] = []
+
+
 class User(BaseModel):
     id: Optional[str]
     email: Optional[str]
@@ -102,3 +103,15 @@ class User(BaseModel):
 
     def __str__(self) -> str:
         return self.__repr__()
+
+
+class ServerInfo(BaseModel):
+    name: Optional[str]
+    company: Optional[str]
+    url: Optional[str]
+    description: Optional[str]
+    adminContact: Optional[str]
+    canonicalUrl: Optional[str]
+    roles: Optional[List[dict]]
+    scopes: Optional[List[dict]]
+    authStrategies: Optional[List[dict]]

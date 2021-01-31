@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Optional
-from pydantic.dataclasses import dataclass
+from typing import Any, Optional
+from pydantic import BaseModel
+from pydantic.main import Extra
 
 #  __________________
 # |                  |
@@ -12,22 +13,7 @@ from pydantic.dataclasses import dataclass
 # / 　 づ
 
 
-class Transport(ABC):
-    """Literally just so I can put a type hint in the AbstractTransport. If there is a better way to do this pls lemme know, my dude
-
-    UPDATE: this can be done in 3.7+ with `from __future__ import annotations`, but we are wanting to support 3.6+
-    
-    This is not really needed, you can deffer evaluating the type hints by putting
-    the type hint into `"`. See implementation bellow. This class should  be removed.
-    """
-
-    @abstractmethod
-    def name(self):
-        pass
-
-
-@dataclass
-class AbstractTransport(ABC):
+class AbstractTransport(ABC, BaseModel):
     _name: str = "Abstract"
 
     @property
@@ -55,7 +41,9 @@ class AbstractTransport(ABC):
         pass
 
     @abstractmethod
-    def save_object_from_transport(self, id: str, source_transport: "AbstractTransport") -> None:
+    def save_object_from_transport(
+        self, id: str, source_transport: "AbstractTransport"
+    ) -> None:
         """Saves an object from the given source transport.
 
         Arguments:
@@ -77,7 +65,9 @@ class AbstractTransport(ABC):
         pass
 
     @abstractmethod
-    def copy_object_and_children(self, id: str, target_transport: "AbstractTransport") -> str:
+    def copy_object_and_children(
+        self, id: str, target_transport: "AbstractTransport"
+    ) -> str:
         """Copies the parent object and all its children to the provided transport.
 
         Arguments:
@@ -87,3 +77,7 @@ class AbstractTransport(ABC):
             str -- the string representation of the root object
         """
         pass
+
+    class Config:
+        extra = Extra.allow
+        arbitrary_types_allowed = True

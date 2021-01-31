@@ -30,17 +30,17 @@ class Resource(ResourceBase):
         query = gql(
             """
             query User($id: String) {
-              user(id: $id) {
-                id
-                email
-                name
-                bio
-                company
-                avatar
-                verified
-                profiles
-                role
-              }
+                user(id: $id) {
+                    id
+                    email
+                    name
+                    bio
+                    company
+                    avatar
+                    verified
+                    profiles
+                    role
+                }
             }
           """
         )
@@ -66,16 +66,16 @@ class Resource(ResourceBase):
         query = gql(
             """
             query UserSearch($search_query: String!, $limit: Int!) {
-              userSearch(query: $search_query, limit: $limit) {
-                items {
-                  id
-                  name
-                  bio
-                  company
-                  avatar
-                  verified
+                userSearch(query: $search_query, limit: $limit) {
+                    items {
+                        id
+                        name
+                        bio
+                        company
+                        avatar
+                        verified
+                    }
                 }
-              }
             }
           """
         )
@@ -83,4 +83,38 @@ class Resource(ResourceBase):
 
         return self.make_request(
             query=query, params=params, return_type=["userSearch", "items"]
+        )
+
+    def update(
+        self, name: str = None, company: str = None, bio: str = None, avatar: str = None
+    ):
+        """Updates your user profile. All arguments are optional.
+
+        Arguments:
+            name {str} -- your name
+            company {str} -- the company you may or may not work for
+            bio {str} -- tell us about yourself
+            avatar {str} -- a nice photo of yourself
+
+        Returns:
+            bool -- True if your profile was updated successfully
+        """
+        query = gql(
+            """
+            mutation UserUpdate($user: UserUpdateInput!) {
+                userUpdate(user: $user)
+            }
+            """
+        )
+        params = {"name": name, "company": company, "bio": bio, "avatar": avatar}
+
+        params = {"user": {k: v for k, v in params.items() if v is not None}}
+
+        if not params["user"]:
+            return SpeckleException(
+                message="You must provide at least one field to update your user profile"
+            )
+
+        return self.make_request(
+            query=query, params=params, return_type="userUpdate", parse_response=False
         )

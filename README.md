@@ -1,7 +1,6 @@
 # speckle-py 🥧
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/SpeckleSystems?style=social)](https://twitter.com/SpeckleSystems) [![Discourse users](https://img.shields.io/discourse/users?server=https%3A%2F%2Fdiscourse.speckle.works&style=flat-square)](https://discourse.speckle.works)
-[![Slack Invite](https://img.shields.io/badge/-slack-grey?style=flat-square&logo=slack)](https://speckle-works.slack.com/join/shared_invite/enQtNjY5Mzk2NTYxNTA4LTU4MWI5ZjdhMjFmMTIxZDIzOTAzMzRmMTZhY2QxMmM1ZjVmNzJmZGMzMDVlZmJjYWQxYWU0MWJkYmY3N2JjNGI) [![website](https://img.shields.io/badge/www-speckle.systems-royalblue?style=flat-square)](https://speckle.systems)
+[![Twitter Follow](https://img.shields.io/twitter/follow/SpeckleSystems?style=social)](https://twitter.com/SpeckleSystems) [![Discourse users](https://img.shields.io/discourse/users?server=https%3A%2F%2Fdiscourse.speckle.works&style=flat-square)](https://discourse.speckle.works) [![website](https://img.shields.io/badge/www-speckle.systems-royalblue?style=flat-square)](https://speckle.systems)
 
 ## Introduction
 
@@ -84,7 +83,7 @@ If you use the `operations`, you will not need to interact with the serializer d
 ```py
 transport = MemoryTransport()
 
-# this serialises the object and sends it to the transport 
+# this serialises the object and sends it to the transport
 hash = operations.send(base=base_obj, transports=[transport])
 
 # if the object had detached objects, you can see these as well
@@ -102,7 +101,7 @@ test_base = Base()
 test_base.testing = "a test base obj"
 
 # run it through the serialiser
-s = BaseObjectSerializer() 
+s = BaseObjectSerializer()
 hash, obj = s.traverse_base(test_base)
 
 # send it to the server
@@ -119,12 +118,7 @@ Please make sure you read the [contribution guidelines](.github/CONTRIBUTING.md)
 
 ## Community
 
-The Speckle Community hangs out in two main places, usually:
-
-- on [the forum](https://discourse.speckle.works)
-- on [the chat](https://speckle-works.slack.com/join/shared_invite/enQtNjY5Mzk2NTYxNTA4LTU4MWI5ZjdhMjFmMTIxZDIzOTAzMzRmMTZhY2QxMmM1ZjVmNzJmZGMzMDVlZmJjYWQxYWU0MWJkYmY3N2JjNGI)
-
-Do join and introduce yourself!
+The Speckle Community hangs out on [the forum](https://discourse.speckle.works), do join and introduce yourself & feel free to ask us questions!
 
 ## License
 

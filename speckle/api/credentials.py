@@ -1,10 +1,31 @@
-from __future__ import annotations
-
 from typing import List, Optional
 from pydantic import BaseModel
+from speckle.api.models import ServerInfo
 from speckle.transports.sqlite import SQLiteTransport
 
 account_storage = SQLiteTransport(scope="Accounts")
+
+
+class UserInfo(BaseModel):
+    name: str
+    email: str
+    company: Optional[str]
+    id: str
+
+
+class Account(BaseModel):
+    isDefault: bool
+    token: str
+    refreshToken: str
+    serverInfo: ServerInfo
+    userInfo: UserInfo
+    id: str
+
+    def __repr__(self) -> str:
+        return f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url}, isDefault: {self.isDefault})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
 
 def get_local_accounts() -> List[Account]:
@@ -33,31 +54,3 @@ def get_default_account() -> Account:
         default.isDefault = True
 
     return default
-
-
-class ServerInfo(BaseModel):
-    name: str
-    company: Optional[str]
-    url: str
-
-
-class UserInfo(BaseModel):
-    name: str
-    email: str
-    company: Optional[str]
-    id: str
-
-
-class Account(BaseModel):
-    isDefault: bool
-    token: str
-    refreshToken: str
-    serverInfo: ServerInfo
-    userInfo: UserInfo
-    id: str
-
-    def __repr__(self) -> str:
-        return f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url}, isDefault: {self.isDefault})"
-
-    def __str__(self) -> str:
-        return f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url}, isDefault: {self.isDefault})"

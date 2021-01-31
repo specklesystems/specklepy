@@ -1,9 +1,11 @@
 import json
 import hashlib
+import re
 
+from speckle import objects
 from uuid import uuid4
 from typing import Any, Dict, List, Tuple
-from speckle.objects.base import Base
+from speckle.objects.base import Base, DataChunk
 from speckle.logging.exceptions import SerializationException, SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 
@@ -54,11 +56,27 @@ class BaseObjectSerializer:
             prop = props.pop(0)
             value = obj[prop]
 
-            # skip nulls or props marked to be ignored with "__"
-            if not value or prop.startswith("__"):
+            # skip nulls or props marked to be ignored with "__" or "_"
+            if not value or prop.startswith(("__", "_")):
                 continue
 
-            detach = True if prop.startswith("@") else False
+            # don't prepopulate id as this will mess up hashing
+            if prop == "id":
+                continue
+
+            dynamic_chunk_match = re.match(r"^@\((\d*)\)", prop)
+            if dynamic_chunk_match:
+                chunk_size = dynamic_chunk_match.groups()[0]
+                base._chunkable[prop] = (
+                    int(chunk_size) if chunk_size else base._chunk_size_default
+                )
+
+            chunkable = True if prop in base._chunkable else False
+            detach = (
+                True
+                if prop.startswith("@") or prop in base._detachable or chunkable
+                else False
+            )
 
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):
@@ -68,13 +86,33 @@ class BaseObjectSerializer:
             # 2. handle Base objects
             elif isinstance(value, Base):
                 child_obj = self.traverse_value(value, detach=detach)
-                if detach:
+                if detach and self.write_transports:
                     ref_hash = child_obj["id"]
                     object_builder[prop] = self.detach_helper(ref_hash=ref_hash)
                 else:
                     object_builder[prop] = child_obj
 
-            # 3. handle all other cases
+            # 3. handle chunkable props
+            elif chunkable and self.write_transports:
+                chunks = []
+                max_size = base._chunkable[prop]
+                chunk = DataChunk()
+                for count, item in enumerate(value):
+                    if count and count % max_size == 0:
+                        chunks.append(chunk)
+                        chunk = DataChunk()
+                    chunk.data.append(item)
+                chunks.append(chunk)
+
+                chunk_refs = []
+                for c in chunks:
+                    self.detach_lineage.append(detach)
+                    ref_hash, _ = self.traverse_base(c)
+                    ref_obj = self.detach_helper(ref_hash=ref_hash)
+                    chunk_refs.append(ref_obj)
+                object_builder[prop] = chunk_refs
+
+            # 4. handle all other cases
             else:
                 child_obj = self.traverse_value(value)
                 object_builder[prop] = child_obj
@@ -92,7 +130,7 @@ class BaseObjectSerializer:
             }
 
         # write detached or root objects to transports
-        if detached:
+        if detached and self.write_transports:
             for t in self.write_transports:
                 t.save_object(id=hash, serialized_object=json.dumps(object_builder))
 
@@ -168,19 +206,18 @@ class BaseObjectSerializer:
         self.family_tree = {}
         self.closure_table = {}
 
-    def read_json(self, id: str, obj_string: str) -> Base:
+    def read_json(self, obj_string: str, obj_dict: dict = None) -> Base:
         """Recomposes a Base object from the string representation of the object
 
         Arguments:
-            id {str} -- the hash of the object
             obj_string {str} -- the string representation of the object
 
         Returns:
             Base -- the base object with all it's children attached
         """
-        if not obj_string:
+        if not obj_string and not obj_dict:
             return None
-        obj = json.loads(obj_string)
+        obj = obj_dict or json.loads(obj_string)
         base = self.recompose_base(obj=obj)
 
         return base
@@ -200,8 +237,18 @@ class BaseObjectSerializer:
         if isinstance(obj, str):
             obj = json.loads(obj)
 
-        # initialise the base object
-        base = Base()
+        # TODO: remove check for `speckleType` when server bug is fixed
+        if "speckle_type" in obj and obj["speckle_type"] == "reference":
+            obj = self.get_child(obj=obj)
+        if "speckleType" in obj and obj["speckleType"] == "reference":
+            obj = self.get_child(obj=obj)
+
+        # initialise the base object using `speckle_type`
+        base = getattr(
+            objects,
+            obj["speckle_type"] if "speckle_type" in obj else obj["speckleType"],
+            Base,
+        )()
 
         # get total children count
         if "__closure" in obj:
@@ -215,7 +262,7 @@ class BaseObjectSerializer:
         for prop, value in obj.items():
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):
-                base[prop] = value
+                base.__setattr__(prop, value)
                 continue
 
             # 2. handle referenced child objects
@@ -227,11 +274,11 @@ class BaseObjectSerializer:
                         f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
                     )
                 ref_obj = json.loads(ref_obj_str)
-                base[prop] = self.recompose_base(obj=ref_obj)
+                base.__setattr__(prop, self.recompose_base(obj=ref_obj))
 
             # 3. handle all other cases (base objects, lists, and dicts)
             else:
-                base[prop] = self.handle_value(value)
+                base.__setattr__(prop, self.handle_value(value))
 
         return base
 
@@ -247,12 +294,23 @@ class BaseObjectSerializer:
         if isinstance(obj, PRIMITIVES):
             return obj
 
+        # lists (regular and chunked)
         if isinstance(obj, list):
-            return [self.handle_value(o) for o in obj]
+            obj_list = [self.handle_value(o) for o in obj]
+            # handle chunked lists
+            if isinstance(obj_list[0], DataChunk):
+                data = []
+                for o in obj_list:
+                    data.extend(o["data"])
+                return data
+            else:
+                return obj_list
 
+        # bases
         if isinstance(obj, dict) and "speckle_type" in obj:
             return self.recompose_base(obj=obj)
 
+        # dictionaries
         if isinstance(obj, dict):
             for k, v in obj.items():
                 if isinstance(v, PRIMITIVES):
@@ -260,3 +318,12 @@ class BaseObjectSerializer:
                 else:
                     obj[k] = self.handle_value(v)
             return obj
+
+    def get_child(self, obj: Dict):
+        ref_hash = obj["referencedId"]
+        ref_obj_str = self.read_transport.get_object(id=ref_hash)
+        if not ref_obj_str:
+            raise SpeckleException(
+                f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
+            )
+        return json.loads(ref_obj_str)

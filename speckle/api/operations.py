@@ -1,6 +1,8 @@
+import json
 from typing import List
 from speckle.objects.base import Base
-from speckle.transports.memory import MemoryTransport
+from speckle.transports.sqlite import SQLiteTransport
+from speckle.transports.server import ServerTransport
 from speckle.logging.exceptions import SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
 from speckle.serialization.base_object_serializer import BaseObjectSerializer
@@ -26,8 +28,7 @@ def send(
             message="You need to provide at least one transport: cannot send with an empty transport list and no default cache"
         )
     if use_default_cache:
-        # TODO: finish sqlite transport and chuck it in here
-        pass
+        transports.insert(0, SQLiteTransport())
 
     serializer = BaseObjectSerializer(write_transports=transports)
 
@@ -57,16 +58,15 @@ def receive(
         Base -- the base object
     """
 
-    # TODO: replace with sqlite transport
     if not local_transport:
-        local_transport = MemoryTransport()
+        local_transport = SQLiteTransport()
 
     serializer = BaseObjectSerializer(read_transport=local_transport)
 
     # try local transport first. if the parent is there, we assume all the children are there and continue wth deserialisation using the local transport
     obj_string = local_transport.get_object(obj_id)
     if obj_string:
-        base = serializer.read_json(id=obj_id, obj_string=obj_string)
+        base = serializer.read_json(obj_string=obj_string)
         return base
 
     if not remote_transport:
@@ -78,4 +78,22 @@ def receive(
         id=obj_id, target_transport=local_transport
     )
 
-    return serializer.read_json(id=obj_id, obj_string=obj_string)
+    # if receiving from server, go into the 'data' prop for the actual base obj
+    if isinstance(remote_transport, ServerTransport):
+        return serializer.read_json(
+            obj_string=None, obj_dict=json.loads(obj_string)["data"]
+        )
+    else:
+        return serializer.read_json(obj_string=obj_string)
+
+
+def serialize(base: Base) -> str:
+    serializer = BaseObjectSerializer()
+
+    return serializer.write_json(base)[1]
+
+
+def deserialize(obj_string: str) -> Base:
+    serializer = BaseObjectSerializer()
+
+    return serializer.read_json(obj_string=obj_string)
