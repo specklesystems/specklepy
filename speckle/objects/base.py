@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from pydantic.main import Extra
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from speckle.transports.memory import MemoryTransport
 from speckle.logging.exceptions import SpeckleException
 from speckle.objects.units import get_units_from_string
@@ -30,16 +30,43 @@ class Base(BaseModel):
         return self.__repr__()
 
     def __setitem__(self, name: str, value: Any) -> None:
-        self.__dict__[name] = value
+        valid, exception = self.validate_prop_name(name)
+        if not valid:
+            raise exception
+        else:
+            self.__dict__[name] = value
 
     def __getitem__(self, name: str) -> Any:
         return self.__dict__[name]
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         attr = getattr(self.__class__, name, None)
         if isinstance(attr, property):
             attr.__set__(self, value)
         super().__setattr__(name, value)
+
+    def validate_prop_name(self, name: str) -> Tuple[bool, SpeckleException]:
+        if name in ("", "@"):
+            return (
+                False,
+                ValueError("Invalid Name: Base member names cannot be empty strings"),
+            )
+        if name.startswith("@@"):
+            return (
+                False,
+                ValueError(
+                    "Invalid Name: Base member names cannot start with more than one '@'"
+                ),
+            )
+        if "." in name or "/" in name:
+            return (
+                False,
+                ValueError(
+                    "Invalid Name: Base member names cannot contain characters '.' or '/'"
+                ),
+            )
+        else:
+            return (True, None)
 
     @property
     def units(self):
