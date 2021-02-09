@@ -11,6 +11,12 @@
       "program": "${file}",
       "console": "integratedTerminal",
       "justMyCode": false
+    },
+    {
+      "name": "Python: Test debug config",
+      "type": "python",
+      "request": "test",
+      "console": "integratedTerminal",
     }
   ]
 }
