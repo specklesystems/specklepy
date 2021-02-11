@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from pydantic.main import Extra
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from speckle.transports.memory import MemoryTransport
 from speckle.logging.exceptions import SpeckleException
 from speckle.objects.units import get_units_from_string
@@ -30,11 +30,8 @@ class Base(BaseModel):
         return self.__repr__()
 
     def __setitem__(self, name: str, value: Any) -> None:
-        valid, exception = self.validate_prop_name(name)
-        if not valid:
-            raise exception
-        else:
-            self.__dict__[name] = value
+        self.validate_prop_name(name)
+        self.__dict__[name] = value
 
     def __getitem__(self, name: str) -> Any:
         return self.__dict__[name]
@@ -45,28 +42,18 @@ class Base(BaseModel):
             attr.__set__(self, value)
         super().__setattr__(name, value)
 
-    def validate_prop_name(self, name: str) -> Tuple[bool, SpeckleException]:
+    @classmethod
+    def validate_prop_name(cls, name: str) -> None:
         if name in ("", "@"):
-            return (
-                False,
-                ValueError("Invalid Name: Base member names cannot be empty strings"),
-            )
+            raise ValueError("Invalid Name: Base member names cannot be empty strings")
         if name.startswith("@@"):
-            return (
-                False,
-                ValueError(
-                    "Invalid Name: Base member names cannot start with more than one '@'"
-                ),
+            raise ValueError(
+                "Invalid Name: Base member names cannot start with more than one '@'",
             )
         if "." in name or "/" in name:
-            return (
-                False,
-                ValueError(
-                    "Invalid Name: Base member names cannot contain characters '.' or '/'"
-                ),
+            raise ValueError(
+                "Invalid Name: Base member names cannot contain characters '.' or '/'",
             )
-        else:
-            return (True, None)
 
     @property
     def units(self):
@@ -102,7 +89,7 @@ class Base(BaseModel):
             return obj
         else:
             raise SpeckleException(
-                message=f"Could not convert to dict due to unrecognised type: {type(obj)}"
+                message=f"Could not convert to dict due to unrecognized type: {type(obj)}"
             )
 
     def get_member_names(self) -> List[str]:
@@ -125,15 +112,15 @@ class Base(BaseModel):
     def get_id(self, decompose: bool = False) -> str:
         if self.id and not decompose:
             return self.id
-        else:
-            from speckle.serialization.base_object_serializer import (
-                BaseObjectSerializer,
-            )
 
-            serializer = BaseObjectSerializer()
-            if decompose:
-                serializer.write_transports = [MemoryTransport()]
-            return serializer.traverse_base(self)[0]
+        from speckle.serialization.base_object_serializer import (
+            BaseObjectSerializer,
+        )
+
+        serializer = BaseObjectSerializer()
+        if decompose:
+            serializer.write_transports = [MemoryTransport()]
+        return serializer.traverse_base(self)[0]
 
     def _count_descendants(self, base: "Base", parsed: List) -> int:
         if base in parsed:
@@ -152,7 +139,7 @@ class Base(BaseModel):
 
     def _handle_object_count(self, obj: Any, parsed: List) -> int:
         count = 0
-        if obj == None:
+        if obj is None:
             return count
         if isinstance(obj, "Base"):
             count += 1
