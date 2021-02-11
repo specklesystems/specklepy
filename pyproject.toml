@@ -24,6 +24,27 @@ isort = "^5.7.0"
 pytest = "^6.2.2"
 pytest-ordering = "^0.6"
 
+
+[tool.black]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+include = '\.pyi?$'
+line-length = 88
+target-version = ["py36", "py37", "py38"]
+
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
