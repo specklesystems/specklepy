@@ -78,13 +78,7 @@ def receive(
         id=obj_id, target_transport=local_transport
     )
 
-    # if receiving from server, go into the 'data' prop for the actual base obj
-    if isinstance(remote_transport, ServerTransport):
-        return serializer.read_json(
-            obj_string=None, obj_dict=json.loads(obj_string)["data"]
-        )
-    else:
-        return serializer.read_json(obj_string=obj_string)
+    return serializer.read_json(obj_string=obj_string)
 
 
 def serialize(base: Base) -> str:
