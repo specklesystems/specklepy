@@ -237,18 +237,11 @@ class BaseObjectSerializer:
         if isinstance(obj, str):
             obj = json.loads(obj)
 
-        # TODO: remove check for `speckleType` when server bug is fixed
         if "speckle_type" in obj and obj["speckle_type"] == "reference":
-            obj = self.get_child(obj=obj)
-        if "speckleType" in obj and obj["speckleType"] == "reference":
             obj = self.get_child(obj=obj)
 
         # initialise the base object using `speckle_type`
-        base = getattr(
-            objects,
-            obj["speckle_type"] if "speckle_type" in obj else obj["speckleType"],
-            Base,
-        )()
+        base = getattr(objects, obj["speckle_type"], Base)()
 
         # get total children count
         if "__closure" in obj:
