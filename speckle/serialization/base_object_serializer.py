@@ -206,7 +206,7 @@ class BaseObjectSerializer:
         self.family_tree = {}
         self.closure_table = {}
 
-    def read_json(self, obj_string: str, obj_dict: dict = None) -> Base:
+    def read_json(self, obj_string: str) -> Base:
         """Recomposes a Base object from the string representation of the object
 
         Arguments:
@@ -215,9 +215,9 @@ class BaseObjectSerializer:
         Returns:
             Base -- the base object with all it's children attached
         """
-        if not obj_string and not obj_dict:
+        if not obj_string:
             return None
-        obj = obj_dict or json.loads(obj_string)
+        obj = json.loads(obj_string)
         base = self.recompose_base(obj=obj)
 
         return base
