@@ -206,7 +206,7 @@ class BaseObjectSerializer:
         self.family_tree = {}
         self.closure_table = {}
 
-    def read_json(self, obj_string: str, obj_dict: dict = None) -> Base:
+    def read_json(self, obj_string: str) -> Base:
         """Recomposes a Base object from the string representation of the object
 
         Arguments:
@@ -215,9 +215,9 @@ class BaseObjectSerializer:
         Returns:
             Base -- the base object with all it's children attached
         """
-        if not obj_string and not obj_dict:
+        if not obj_string:
             return None
-        obj = obj_dict or json.loads(obj_string)
+        obj = json.loads(obj_string)
         base = self.recompose_base(obj=obj)
 
         return base
@@ -237,18 +237,11 @@ class BaseObjectSerializer:
         if isinstance(obj, str):
             obj = json.loads(obj)
 
-        # TODO: remove check for `speckleType` when server bug is fixed
         if "speckle_type" in obj and obj["speckle_type"] == "reference":
-            obj = self.get_child(obj=obj)
-        if "speckleType" in obj and obj["speckleType"] == "reference":
             obj = self.get_child(obj=obj)
 
         # initialise the base object using `speckle_type`
-        base = getattr(
-            objects,
-            obj["speckle_type"] if "speckle_type" in obj else obj["speckleType"],
-            Base,
-        )()
+        base = getattr(objects, obj["speckle_type"], Base)()
 
         # get total children count
         if "__closure" in obj:
