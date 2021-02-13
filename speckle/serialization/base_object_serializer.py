@@ -2,7 +2,6 @@ import json
 import hashlib
 import re
 
-from speckle import objects
 from uuid import uuid4
 from typing import Any, Dict, List, Tuple
 from speckle.objects.base import Base, DataChunk
@@ -50,6 +49,7 @@ class BaseObjectSerializer:
 
         self.lineage.append(uuid4().hex)
         object_builder = {"id": ""}
+        object_builder.update(speckle_type=base.speckle_type)
         obj, props = base, base.get_member_names()
 
         while props:
@@ -218,9 +218,7 @@ class BaseObjectSerializer:
         if not obj_string:
             return None
         obj = json.loads(obj_string)
-        base = self.recompose_base(obj=obj)
-
-        return base
+        return self.recompose_base(obj=obj)
 
     def recompose_base(self, obj: dict) -> Base:
         """Steps through a base object dictionary and recomposes the base object
@@ -240,8 +238,10 @@ class BaseObjectSerializer:
         if "speckle_type" in obj and obj["speckle_type"] == "reference":
             obj = self.get_child(obj=obj)
 
+        object_type = Base.get_registered_type(obj.get("speckle_type"))
         # initialise the base object using `speckle_type`
-        base = getattr(objects, obj["speckle_type"], Base)()
+        base = object_type()
+
 
         # get total children count
         if "__closure" in obj:

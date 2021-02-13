@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from pydantic.main import Extra
-from typing import Dict, List, Optional, Any
+from typing import ClassVar, Dict, List, Optional, Any, Type
 from speckle.transports.memory import MemoryTransport
 from speckle.logging.exceptions import SpeckleException
 from speckle.objects.units import get_units_from_string
@@ -8,23 +8,57 @@ from speckle.objects.units import get_units_from_string
 PRIMITIVES = (int, float, str, bool)
 
 
-class Base(BaseModel):
+class _RegisteringBase(BaseModel):
+    """
+    Private Base model for Speckle types.
+
+    This class provices the speckle_type registry for each subclassing types.
+    The type registry may be
+    """
+
+    speckle_type: ClassVar[str]
+    _type_registry: ClassVar[Dict[str, Type["Base"]]] = {}
+
+    @classmethod
+    def get_registered_type(cls, speckle_type: str) -> Optional[Type["Base"]]:
+        """Get the registered type from the protected mapping via the `speckle_type`"""
+        return cls._type_registry.get(speckle_type, None)
+
+    def __init_subclass__(
+        cls,
+        speckle_type: Optional[str] = None,
+        **kwargs: Dict[str, Any],
+    ):
+        # this requires some validation, there is nothing blocking identical keys...
+        # if speckle_type in cls._type_registry:
+        #     raise ValueError(
+        #         f"The speckle_type: {speckle_type} is already registered. "
+        #         f"Please choose a different type name."
+        #     )
+        cls.speckle_type = speckle_type or cls.__name__
+        cls._type_registry[cls.speckle_type] = cls  # type: ignore
+        super().__init_subclass__(**kwargs)
+
+
+class Base(_RegisteringBase):
     id: Optional[str] = None
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
-    speckle_type: Optional[str] = "Base"
     _units: str = "m"
     _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
     _chunk_size_default: int = 1000
     _detachable: List[str] = []  # list of defined detachable props
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Dict[str, Any]) -> None:
         super().__init__()
-        self.speckle_type = self.__class__.__name__
         self.__dict__.update(kwargs)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(id: {self.id}, speckle_type: {self.speckle_type}, totalChildrenCount: {self.totalChildrenCount})"
+        return (
+            f"{self.__class__.__name__}(id: {self.id}, "
+            f"speckle_type: {self.speckle_type}, "
+            f"totalChildrenCount: {self.totalChildrenCount})"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -63,7 +97,7 @@ class Base(BaseModel):
     def units(self, value: str):
         self._units = get_units_from_string(value)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> Dict[str, Any]:
         """Convenience method to view the whole base object as a dict"""
         base_dict = self.__dict__
         for key, value in base_dict.items():
