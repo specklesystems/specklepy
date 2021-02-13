@@ -37,5 +37,9 @@ def test_fake_base_serialization() -> None:
     deserialized = operations.deserialize(serialized)
 
     assert fake_model.get_id() == deserialized.get_id()
-    # assert isinstance(base.test_bases[0], Base)
-    # assert base["@detach"].name == deserialized["@detach"].name
+
+
+def test_duplicate_speckle_type_raises_error():
+    with pytest.raises(ValueError):
+        class NaughtyClass(Base, speckle_type="Base"):
+            """This class has a speckle_type that is already taken."""
