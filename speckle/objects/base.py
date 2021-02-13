@@ -30,11 +30,12 @@ class _RegisteringBase(BaseModel):
         **kwargs: Dict[str, Any],
     ):
         # this requires some validation, there is nothing blocking identical keys...
-        # if speckle_type in cls._type_registry:
-        #     raise ValueError(
-        #         f"The speckle_type: {speckle_type} is already registered. "
-        #         f"Please choose a different type name."
-        #     )
+        if speckle_type in cls._type_registry:
+            raise ValueError(
+                f"The speckle_type: {speckle_type} is already registered for type: "
+                f"{cls._type_registry[speckle_type].__name__}. "
+                f"Please choose a different type name."
+            )
         cls.speckle_type = speckle_type or cls.__name__
         cls._type_registry[cls.speckle_type] = cls  # type: ignore
         super().__init_subclass__(**kwargs)
@@ -49,9 +50,20 @@ class Base(_RegisteringBase):
     _chunk_size_default: int = 1000
     _detachable: List[str] = []  # list of defined detachable props
 
-    def __init__(self, **kwargs: Dict[str, Any]) -> None:
-        super().__init__()
-        self.__dict__.update(kwargs)
+    # def __init__(self, **kwargs: Dict[str, Any]) -> None:
+    #     super().__init__(**kwargs)
+
+    #     """
+    #     based on my testing, the __dict__ update is not required,
+    #     even works with extra init arguments, that are not part of the basic object
+    #     definition. It is even possible, that the custom __init__ definition could go
+    #     away all together
+
+    #     >>> base = Base(foo="bar")
+    #     >>> base.foo
+    #     "bar"
+    #     """
+    #     # self.__dict__.update(kwargs)
 
     def __repr__(self) -> str:
         return (
