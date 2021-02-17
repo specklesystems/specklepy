@@ -71,7 +71,6 @@ class TestSerialization:
         assert isinstance(received, Base)
         assert mesh.get_id(True) == received.get_id()
 
-
     def test_serialize(self, base):
         serialized = operations.serialize(base)
         deserialized = operations.deserialize(serialized)

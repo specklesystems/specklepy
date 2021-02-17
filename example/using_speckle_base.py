@@ -11,18 +11,19 @@ class ExampleSub(Base):
     Inheriting from `Base` is done with in the standard way by default.
 
     The syntax is similar to the stdlib dataclass syntax.
-    No __init__ method definition is required, that is done automatically by the base 
+    No __init__ method definition is required, that is done automatically by the base
     type. Also the attributes defined this way are instance attributes despite they
     might look like class attributes.
 
     The speckle Base uses the pydantic BaseModel in the background, but ideally that
     is not the consumers concern.
 
-    **Important note:** currently the way how serialization works, requires 
+    **Important note:** currently the way how serialization works, requires
     each attribute to have a valid default value, just like `foo` has. This includes
     default values for all primitives and complex datastructures.
-    Failing to provide a default, breaks the receiving end of the transport. 
+    Failing to provide a default, breaks the receiving end of the transport.
     """
+
     foo: str = "bar"
 
 
@@ -34,7 +35,8 @@ class SpeckleSub(ExampleSub, speckle_type="custom_speckle_sub"):
     The default value of the speckle_type is generated from the name of the class, but
     optionally it may be overridden. This is useful, since the speckle_type has to be
     unique for each subclass of speckle Base.
-    """    
+    """
+
     magic: str = "trick"
 
 
@@ -52,6 +54,6 @@ if __name__ == "__main__":
 
     serialized = operations.serialize(custom_sub)
     deserialized = operations.deserialize(serialized)
-    # the only difference should be between the two data is that the deserialized 
+    # the only difference should be between the two data is that the deserialized
     # instance id attribute is not None.
     debug(deserialized.json())

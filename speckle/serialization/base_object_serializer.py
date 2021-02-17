@@ -242,7 +242,6 @@ class BaseObjectSerializer:
         # initialise the base object using `speckle_type`
         base = object_type()
 
-
         # get total children count
         if "__closure" in obj:
             if not self.read_transport:
