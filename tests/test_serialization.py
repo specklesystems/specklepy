@@ -70,3 +70,10 @@ class TestSerialization:
 
         assert isinstance(received, Base)
         assert mesh.get_id(True) == received.get_id()
+
+    def test_unknown_type(self):
+        unknown = '{"speckle_type": "mysterious.type"}'
+        deserialised = operations.deserialize(unknown)
+
+        assert isinstance(deserialised, Base)
+        assert deserialised.speckle_type == "mysterious.type"
