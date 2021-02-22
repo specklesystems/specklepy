@@ -79,3 +79,10 @@ class TestSerialization:
         assert base.units == "mm"
         assert isinstance(base.test_bases[0], Base)
         assert base["@detach"].name == deserialized["@detach"].name
+
+    def test_unknown_type(self):
+        unknown = '{"speckle_type": "mysterious.type"}'
+        deserialised = operations.deserialize(unknown)
+
+        assert isinstance(deserialised, Base)
+        assert deserialised.speckle_type == "mysterious.type"

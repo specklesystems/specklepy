@@ -1,10 +1,17 @@
 # speckle-py 🥧
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/SpeckleSystems?style=social)](https://twitter.com/SpeckleSystems) [![Discourse users](https://img.shields.io/discourse/users?server=https%3A%2F%2Fdiscourse.speckle.works&style=flat-square)](https://discourse.speckle.works) [![website](https://img.shields.io/badge/www-speckle.systems-royalblue?style=flat-square)](https://speckle.systems)
+[![Twitter Follow](https://img.shields.io/twitter/follow/SpeckleSystems?style=social)](https://twitter.com/SpeckleSystems) [![Community forum users](https://img.shields.io/discourse/users?server=https%3A%2F%2Fdiscourse.speckle.works&style=flat-square&logo=discourse&logoColor=white)](https://discourse.speckle.works) [![website](https://img.shields.io/badge/https://-speckle.systems-royalblue?style=flat-square)](https://speckle.systems) [![docs](https://img.shields.io/badge/docs-speckle.guide-orange?style=flat-square&logo=read-the-docs&logoColor=white)](https://speckle.guide/dev/)
 
 ## Introduction
 
 > ⚠ This is the start of the Python client for Speckle 2.0. It is currently quite nebulous and may be trashed and rebuilt at any moment! It is compatible with Python 3.6+ ⚠
+> 
+
+## Documentation
+
+Comprehensive developer and user documentation can be found in our:
+
+#### 📚 [Speckle Docs website](https://speckle.guide/dev/)
 
 ## Developing & Debugging
 This project uses python-poetry for dependency management, make sure you follow the official [docs](https://python-poetry.org/docs/#installation) to get poetry.
@@ -69,6 +76,9 @@ deleted = client.commit.delete("stream id", "commit id")
 The `BaseObjectSerializer` is used for decomposing and serializing `Base` objects so they can be sent / received to the server. You can use it directly to get the id (hash) and a serializable object representation of the decomposed `Base`. You can learn more about the Speckle `Base` object [here](https://discourse.speckle.works/t/core-2-0-the-base-object/782) and the decomposition API [here](https://discourse.speckle.works/t/core-2-0-decomposition-api/911).
 
 ```py
+from speckle.objects.base import Base
+from speckle.serialization.base_object_serializer import BaseObjectSerializer
+
 detached_base = Base()
 detached_base.name = "this will get detached"
 
@@ -83,6 +93,9 @@ hash, obj_dict = serializer.traverse_base(base_obj)
 If you use the `operations`, you will not need to interact with the serializer directly as this will be taken care of for you. You will just need to provide a transport to indicate where the objects should be sent / received from. At the moment, just the `MemoryTransport` and the `ServerTransport` are fully functional at the moment. If you'd like to learn more about Transports in Speckle 2.0, have a look [here](https://discourse.speckle.works/t/core-2-0-transports/919).
 
 ```py
+from speckle.transports.memory import MemoryTransport
+from speckle.api import operations
+
 transport = MemoryTransport()
 
 # this serialises the object and sends it to the transport
@@ -109,7 +122,7 @@ hash, obj = s.traverse_base(test_base)
 # send it to the server
 objCreate = client.object.create(stream_id="stream id", objects=[obj])
 
-received_base = client.object.get(hash)
+received_base = client.object.get("stream id", hash)
 ```
 
 This doc is not complete - there's more to see so have a dive into the code and play around! Please feel free to provide feedback, submit issues, or discuss new features ✨
