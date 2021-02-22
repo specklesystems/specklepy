@@ -86,3 +86,9 @@ class TestSerialization:
 
         assert isinstance(deserialised, Base)
         assert deserialised.speckle_type == "mysterious.type"
+
+    def test_no_speckle_type(self):
+        untyped = '{"foo": "bar"}'
+        deserialised = operations.deserialize(untyped)
+
+        assert deserialised == {"foo": "bar"}
