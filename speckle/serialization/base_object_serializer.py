@@ -235,6 +235,11 @@ class BaseObjectSerializer:
             obj = self.get_child(obj=obj)
 
         speckle_type = obj.get("speckle_type")
+        # if speckle type is not in the object definition, it is treated as a dict
+        if not speckle_type:
+            return obj
+
+        # get the registered type from base register.
         object_type = Base.get_registered_type(speckle_type)
 
         # initialise the base object using `speckle_type` fall back to base if needed
