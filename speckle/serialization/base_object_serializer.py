@@ -285,20 +285,26 @@ class BaseObjectSerializer:
         Returns:
             Any -- the handled value (primitive, list, dictionary, or Base)
         """
+        if not obj:
+            return obj
+
         if isinstance(obj, PRIMITIVES):
             return obj
 
         # lists (regular and chunked)
         if isinstance(obj, list):
             obj_list = [self.handle_value(o) for o in obj]
-            if not obj_list or not isinstance(obj_list[0], DataChunk):
-                return obj_list
+            if (
+                hasattr(obj_list[0], "speckle_type")
+                and "DataChunk" in obj_list[0].speckle_type
+            ):
+                # handle chunked lists
+                data = []
+                for o in obj_list:
+                    data.extend(o["data"])
+                return data
+            return obj_list
 
-            # handle chunked lists
-            data = []
-            for o in obj_list:
-                data.extend(o["data"])
-            return data
         # bases
         if isinstance(obj, dict) and "speckle_type" in obj:
             return self.recompose_base(obj=obj)
