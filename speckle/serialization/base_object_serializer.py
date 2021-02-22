@@ -57,7 +57,7 @@ class BaseObjectSerializer:
             value = obj[prop]
 
             # skip nulls or props marked to be ignored with "__" or "_"
-            if not value or prop.startswith(("__", "_")):
+            if value is None or prop.startswith(("__", "_")):
                 continue
 
             # don't prepopulate id as this will mess up hashing
@@ -71,12 +71,8 @@ class BaseObjectSerializer:
                     int(chunk_size) if chunk_size else base._chunk_size_default
                 )
 
-            chunkable = True if prop in base._chunkable else False
-            detach = (
-                True
-                if prop.startswith("@") or prop in base._detachable or chunkable
-                else False
-            )
+            chunkable = prop in base._chunkable
+            detach = bool(prop.startswith("@") or prop in base._detachable or chunkable)
 
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):
@@ -241,8 +237,8 @@ class BaseObjectSerializer:
             obj = self.get_child(obj=obj)
 
         # initialise the base object using `speckle_type`
-        base = getattr(objects, obj["speckle_type"], Base)()
-
+        object_type = getattr(objects, obj["speckle_type"], None)
+        base = object_type() if object_type else Base(speckle_type=obj["speckle_type"])
         # get total children count
         if "__closure" in obj:
             if not self.read_transport:
@@ -290,15 +286,14 @@ class BaseObjectSerializer:
         # lists (regular and chunked)
         if isinstance(obj, list):
             obj_list = [self.handle_value(o) for o in obj]
-            # handle chunked lists
-            if isinstance(obj_list[0], DataChunk):
-                data = []
-                for o in obj_list:
-                    data.extend(o["data"])
-                return data
-            else:
+            if not obj_list or not isinstance(obj_list[0], DataChunk):
                 return obj_list
 
+            # handle chunked lists
+            data = []
+            for o in obj_list:
+                data.extend(o["data"])
+            return data
         # bases
         if isinstance(obj, dict) and "speckle_type" in obj:
             return self.recompose_base(obj=obj)
