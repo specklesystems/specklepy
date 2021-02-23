@@ -23,6 +23,21 @@ black = "^20.8b1"
 isort = "^5.7.0"
 pytest = "^6.2.2"
 pytest-ordering = "^0.6"
+pytest-cov = "^2.11.1"
+coverage = {extras = ["toml"], version = "^5.4"}
+pytest-sugar = "^0.9.4"
+
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = ["speckle"]
+
+[tool.coverage.paths]
+source = ["speckle"]
+
+[tool.coverage.report]
+show_missing = true
 
 
 [tool.black]
