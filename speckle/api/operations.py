@@ -66,8 +66,7 @@ def receive(
     # try local transport first. if the parent is there, we assume all the children are there and continue wth deserialisation using the local transport
     obj_string = local_transport.get_object(obj_id)
     if obj_string:
-        base = serializer.read_json(obj_string=obj_string)
-        return base
+        return serializer.read_json(obj_string=obj_string)
 
     if not remote_transport:
         raise SpeckleException(
