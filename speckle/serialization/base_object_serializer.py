@@ -54,7 +54,7 @@ class BaseObjectSerializer:
 
         while props:
             prop = props.pop(0)
-            value = obj[prop]
+            value = getattr(obj, prop, None)
 
             # skip nulls or props marked to be ignored with "__" or "_"
             if value is None or prop.startswith(("__", "_")):

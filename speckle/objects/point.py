@@ -2,7 +2,7 @@ from typing import List
 from speckle.objects.base import Base
 
 
-class Point(Base):
+class Point(Base, speckle_type="Objects.Geometry.Point"):
     value: List[int or float] = [0, 0, 0]
 
     def __repr__(self) -> str:
