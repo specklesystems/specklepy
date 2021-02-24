@@ -1,3 +1,4 @@
+from inspect import getattr_static
 from pydantic import BaseModel, validator
 from pydantic.main import Extra
 from typing import ClassVar, Dict, List, Optional, Any, Type
@@ -88,7 +89,10 @@ class Base(_RegisteringBase):
         if name != "speckle_type":
             attr = getattr(self.__class__, name, None)
             if isinstance(attr, property):
-                attr.__set__(self, value)
+                try:
+                    attr.__set__(self, value)
+                except AttributeError:
+                    pass  # the prop probably doesn't have a setter
             super().__setattr__(name, value)
 
     @classmethod
@@ -124,27 +128,34 @@ class Base(_RegisteringBase):
         return base_dict
 
     def __dict_helper(self, obj: Any) -> Any:
-        if isinstance(obj, PRIMITIVES):
+        if not obj or isinstance(obj, PRIMITIVES):
             return obj
         if isinstance(obj, Base):
             return self.__dict_helper(obj.__dict__)
         if isinstance(obj, (list, set)):
             return [self.__dict_helper(v) for v in obj]
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                if not v or isinstance(obj, PRIMITIVES):
-                    pass
-                else:
-                    obj[k] = self.__dict_helper(v)
-            return obj
-        else:
+        if not isinstance(obj, dict):
             raise SpeckleException(
                 message=f"Could not convert to dict due to unrecognized type: {type(obj)}"
             )
 
+        for k, v in obj.items():
+            if v and not isinstance(obj, PRIMITIVES):
+                obj[k] = self.__dict_helper(v)
+        return obj
+
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
-        return list(self.__dict__.keys())
+        attrs = list(self.__dict__.keys())
+        properties = [
+            name
+            for name in dir(self)
+            if not name.startswith("_")
+            and name
+            != "fields"  # soon to be removed as this pydantic prop is depreciated
+            and isinstance(getattr_static(self, name, None), property)
+        ]
+        return attrs + properties
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""
