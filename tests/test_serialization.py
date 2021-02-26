@@ -4,8 +4,8 @@ from speckle.api import operations
 from speckle.transports.server import ServerTransport
 from speckle.transports.memory import MemoryTransport
 from speckle.serialization.base_object_serializer import BaseObjectSerializer
-from speckle.objects.base import Base
-from speckle.objects.point import Point
+from speckle.objects import Base
+from speckle.objects.geometry import Point
 from speckle.objects.fakemesh import FakeMesh
 
 
