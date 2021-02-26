@@ -10,6 +10,7 @@ UNITS_STRINGS = {
     "ft": ["ft", "foot", "feet"],
     "yd": ["yd", "yard", "yards"],
     "mi": ["mi", "mile", "miles"],
+    "none": ["none", "null"],
 }
 
 

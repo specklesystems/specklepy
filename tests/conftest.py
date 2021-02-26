@@ -5,7 +5,7 @@ import requests
 from speckle.api.models import Stream
 from speckle.api.client import SpeckleClient
 from speckle.objects.base import Base
-from speckle.objects.point import Point
+from speckle.objects.geometry import Point
 from speckle.objects.fakemesh import FakeMesh
 
 

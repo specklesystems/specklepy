@@ -1,7 +1,6 @@
-from speckle.objects.base import Base
+from speckle.objects import Base
 from speckle.transports.memory import MemoryTransport
 from speckle.api.models import Stream
-from speckle.api import operations
 from speckle.serialization.base_object_serializer import BaseObjectSerializer
 import pytest
 

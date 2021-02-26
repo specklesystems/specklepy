@@ -1,5 +1,5 @@
 import pytest
-from speckle.objects.base import Base
+from speckle.objects import Base
 from speckle.api import operations
 from contextlib import ExitStack as does_not_raise
 
