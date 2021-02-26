@@ -217,3 +217,142 @@ class Surface(Base, speckle_type=GEOMETRY + "Surface"):
     countU: int = None
     countV: int = None
     bbox: Box = None
+
+
+class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
+    _Brep: "Brep" = None
+    SurfaceIndex: int = None
+    LoopIndices: List[int] = None
+    OuterLoopIndex: int = None
+    OrientationReversed: bool = None
+
+    @property
+    def _outer_loop(self):
+        return self._Brep.Loops[self.OuterLoopIndex]
+
+    @property
+    def _surface(self):
+        return self._Brep.Surfaces[self.SurfaceIndex]
+
+    @property
+    def _loops(self):
+        return [self._Brep.Loops[index] for index in self.LoopIndices]
+
+
+class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
+    _Brep: "Brep" = None
+    Curve3dIndex: int = None
+    TrimIndices: List[int] = None
+    StartIndex: int = None
+    EndIndex: int = None
+    ProxyCurveIsReversed: bool = None
+    Domain: Interval = None
+
+    @property
+    def _start_vertex(self):
+        return self._Brep.Vertices[self.StartIndex]
+
+    @property
+    def _end_vertex(self):
+        return self._Brep.Vertices[self.EndIndex]
+
+    @property
+    def _trims(self):
+        return [self._Brep.Trims[i] for i in self.TrimIndices]
+
+    @property
+    def _curve(self):
+        return self._Brep.Curve3D[self.Curve3dIndex]
+
+
+class BrepLoop(Base, speckle_type=GEOMETRY + "BrepLoop"):
+    _Brep: "Brep" = None
+    FaceIndex: int = None
+    TrimIndices: List[int] = None
+    Type: str = None
+
+    @property
+    def _face(self):
+        return self._Brep.Faces[self.FaceIndex]
+
+    @property
+    def _trims(self):
+        return [self._Brep.Trims[i] for i in self.TrimIndices]
+
+
+class BrepTrim(Base, speckle_type=GEOMETRY + "BrepTrim"):
+    _Brep: "Brep" = None
+    EdgeIndex: int = None
+    StartIndex: int = None
+    EndIndex: int = None
+    FaceIndex: int = None
+    LoopIndex: int = None
+    CurveIndex: int = None
+    IsoStatus: int = None
+    TrimType: str = None
+    IsReversed: bool = None
+    Domain: Interval = None
+
+    @property
+    def _face(self):
+        return self._Brep.Faces[self.FaceIndex]
+
+    @property
+    def _loop(self):
+        return self._Brep.Loops[self.LoopIndex]
+
+    @property
+    def _edge(self):
+        return self._Brep.Edges[self.EdgeIndex] if self.EdgeIndex != -1 else None
+
+    @property
+    def _curve_2d(self):
+        return self._Brep.Curve2D[self.CurveIndex]
+
+
+class Brep(Base, speckle_type=GEOMETRY + "Brep"):
+    provenance: str = None
+    bbox: Box = None
+    area: float = None
+    volume: float = None
+    displayValue: Mesh = None
+    Surfaces: List[Surface] = []
+    Curve3D: List[Base] = []
+    Curve2D: List[Base] = []
+    Vertices: List[Point] = []
+    Edges: List[BrepEdge] = []
+    Loops: List[BrepLoop] = []
+    Trims: List[BrepTrim] = []
+    Faces: List[BrepFace] = []
+    IsClosed: bool = None
+    Orientation: int = 0
+
+    def __init__(self, **data: Any) -> None:
+        super().__init__(**data)
+        self._detachable.append("displayValue")
+        self._chunkable.update(
+            {
+                "Surfaces": 200,
+                "Curve3D": 200,
+                "Curve2D": 200,
+                "Vertices": 5000,
+                "Edges": 5000,
+                "Loops": 5000,
+                "Trims": 5000,
+                "Faces": 5000,
+            }
+        )
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if not value:
+            return
+        if name in ["Edges", "Loops", "Trims", "Faces"]:
+            for val in value:
+                val._Brep = self
+        super().__setattr__(name, value)
+
+
+BrepEdge.update_forward_refs()
+BrepLoop.update_forward_refs()
+BrepTrim.update_forward_refs()
+BrepFace.update_forward_refs()
