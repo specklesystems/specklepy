@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Tuple
 from speckle.objects.base import Base, DataChunk
 from speckle.logging.exceptions import SerializationException, SpeckleException
 from speckle.transports.abstract_transport import AbstractTransport
+import speckle.objects.geometry
 
 PRIMITIVES = (int, float, str, bool)
 
