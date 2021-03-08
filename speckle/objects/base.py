@@ -63,14 +63,14 @@ class Base(_RegisteringBase):
     _detachable: List[str] = []  # list of defined detachable props
 
     def __repr__(self) -> str:
-        return (
+        return (  # pragma: no cover
             f"{self.__class__.__name__}(id: {self.id}, "
             f"speckle_type: {self.speckle_type}, "
             f"totalChildrenCount: {self.totalChildrenCount})"
         )
 
     def __str__(self) -> str:
-        return self.__repr__()
+        return self.__repr__()  # pragma: no cover
 
     def __setitem__(self, name: str, value: Any) -> None:
         self.validate_prop_name(name)
