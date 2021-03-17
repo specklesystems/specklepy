@@ -83,6 +83,12 @@ def mesh():
     mesh.test_bases = [Base(name=f"test {i}") for i in range(1, 22)]
     mesh.detach_this = Base(name="predefined detached base")
     mesh["@detach"] = Base(name="detached base")
+    mesh["@detached_list"] = [
+        42,
+        "some text",
+        [1, 2, 3],
+        Base(name="detached within a list"),
+    ]
     mesh.origin = Point(value=[4, 2, 0])
     return mesh
 

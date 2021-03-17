@@ -31,6 +31,7 @@ class TestSerialization:
         assert serialized_dict["detach_this"]["speckle_type"] == "reference"
         assert serialized_dict["@detach"]["speckle_type"] == "reference"
         assert serialized_dict["origin"]["speckle_type"] == "reference"
+        assert serialized_dict["@detached_list"][-1]["speckle_type"] == "reference"
         assert mesh.get_id(True) == deserialized.get_id()
 
     def test_chunking(self, mesh):
@@ -70,15 +71,6 @@ class TestSerialization:
 
         assert isinstance(received, Base)
         assert mesh.get_id(True) == received.get_id()
-
-    def test_serialize(self, base):
-        serialized = operations.serialize(base)
-        deserialized = operations.deserialize(serialized)
-
-        assert base.get_id() == deserialized.get_id()
-        assert base.units == "mm"
-        assert isinstance(base.test_bases[0], Base)
-        assert base["@detach"].name == deserialized["@detach"].name
 
     def test_unknown_type(self):
         unknown = '{"speckle_type": "mysterious.type"}'
