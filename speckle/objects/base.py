@@ -1,7 +1,7 @@
 from inspect import getattr_static
 from pydantic import BaseModel, validator
 from pydantic.main import Extra
-from typing import ClassVar, Dict, List, Optional, Any, Type
+from typing import ClassVar, Dict, List, Optional, Any, Set, Type
 from speckle.transports.memory import MemoryTransport
 from speckle.logging.exceptions import SpeckleException
 from speckle.objects.units import get_units_from_string
@@ -61,7 +61,7 @@ class Base(_RegisteringBase):
     _units: str = "m"
     _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
     _chunk_size_default: int = 1000
-    _detachable: List[str] = []  # list of defined detachable props
+    _detachable: Set[str] = set()  # list of defined detachable props
 
     def __repr__(self) -> str:
         return (
@@ -153,7 +153,7 @@ class Base(_RegisteringBase):
             if not name.startswith("_")
             and name
             != "fields"  # soon to be removed as this pydantic prop is depreciated
-            and isinstance(getattr_static(self, name, None), property)
+            and isinstance(getattr(self, name, None), property)
         ]
         return attrs + properties
 
@@ -171,9 +171,17 @@ class Base(_RegisteringBase):
         return 1 + self._count_descendants(self, parsed)
 
     def get_id(self, decompose: bool = False) -> str:
-        if self.id and not decompose:
-            return self.id
+        """
+        Gets the id (a unique hash) of this object. ⚠️ This method fully serializes the object, which in the case of large objects (with many sub-objects), has a tangible cost. Avoid using it!
 
+        Note: the hash of a decomposed object differs from that of a non-decomposed object
+
+        Arguments:
+            decompose {bool} -- if True, will decompose the object in the process of hashing it
+
+        Returns:
+            str -- the hash (id) of the fully serialized object
+        """
         from speckle.serialization.base_object_serializer import (
             BaseObjectSerializer,
         )

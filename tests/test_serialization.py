@@ -1,4 +1,5 @@
 import json
+from attr import has
 import pytest
 from speckle.api import operations
 from speckle.transports.server import ServerTransport
@@ -32,7 +33,7 @@ class TestSerialization:
         assert serialized_dict["@detach"]["speckle_type"] == "reference"
         assert serialized_dict["origin"]["speckle_type"] == "reference"
         assert serialized_dict["@detached_list"][-1]["speckle_type"] == "reference"
-        assert mesh.get_id(True) == deserialized.get_id()
+        assert mesh.get_id() == deserialized.get_id()
 
     def test_chunking(self, mesh):
         transport = MemoryTransport()
@@ -48,7 +49,7 @@ class TestSerialization:
         assert serialized_dict["vertices"][0]["speckle_type"] == "reference"
         assert serialized_dict["@(100)colours"][0]["speckle_type"] == "reference"
         assert serialized_dict["@()default_chunk"][0]["speckle_type"] == "reference"
-        assert mesh.get_id(True) == deserialized.get_id()
+        assert mesh.get_id() == deserialized.get_id()
 
     def test_send_and_receive(self, client, sample_stream, mesh):
         transport = ServerTransport(client=client, stream_id=sample_stream.id)
@@ -62,15 +63,16 @@ class TestSerialization:
         assert received.vertices == mesh.vertices
         assert isinstance(received.origin, Point)
         assert received.origin.value == mesh.origin.value
-        assert mesh.get_id(True) == received.get_id()
+        # not comparing hashes as order is not guaranteed back from server
 
         mesh.id = hash  # populate with decomposed id for use in proceeding tests
 
     def test_receive_local(self, client, mesh):
-        received = operations.receive(mesh.id)  # defaults to SQLiteTransport
+        hash = operations.send(mesh)  # defaults to SQLiteTransport
+        received = operations.receive(hash)
 
         assert isinstance(received, Base)
-        assert mesh.get_id(True) == received.get_id()
+        assert mesh.get_id() == received.get_id()
 
     def test_unknown_type(self):
         unknown = '{"speckle_type": "mysterious.type"}'
