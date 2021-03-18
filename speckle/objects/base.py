@@ -153,7 +153,7 @@ class Base(_RegisteringBase):
             if not name.startswith("_")
             and name
             != "fields"  # soon to be removed as this pydantic prop is depreciated
-            and isinstance(getattr_static(self, name, None), property)
+            and isinstance(getattr(self, name, None), property)
         ]
         return attrs + properties
 
