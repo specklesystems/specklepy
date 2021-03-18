@@ -111,7 +111,7 @@ class BaseObjectSerializer:
 
             # 4. handle all other cases
             else:
-                child_obj = self.traverse_value(value)
+                child_obj = self.traverse_value(value, detach)
                 object_builder[prop] = child_obj
 
         hash = hash_obj(object_builder)
@@ -148,7 +148,18 @@ class BaseObjectSerializer:
             return obj
 
         elif isinstance(obj, (list, tuple, set)):
-            return [self.traverse_value(o) for o in obj]
+            if not detach:
+                return [self.traverse_value(o) for o in obj]
+
+            detached_list = []
+            for o in obj:
+                if isinstance(o, Base):
+                    self.detach_lineage.append(detach)
+                    hash, _ = self.traverse_base(o)
+                    detached_list.append(self.detach_helper(ref_hash=hash))
+                else:
+                    detached_list.append(self.traverse_value(o, detach))
+            return detached_list
 
         elif isinstance(obj, dict):
             for k, v in obj.items():
