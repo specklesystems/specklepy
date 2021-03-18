@@ -49,7 +49,7 @@ class BaseObjectSerializer:
             self.detach_lineage = [True]
 
         self.lineage.append(uuid4().hex)
-        object_builder = {"id": ""}
+        object_builder = {"id": "", "speckle_type": "Base", "totalChildrenCount": 0}
         object_builder.update(speckle_type=base.speckle_type)
         obj, props = base, base.get_member_names()
 
@@ -114,17 +114,20 @@ class BaseObjectSerializer:
                 child_obj = self.traverse_value(value, detach)
                 object_builder[prop] = child_obj
 
-        hash = hash_obj(object_builder)
-        object_builder["id"] = hash
-
+        closure = {}
+        # add closures & children count to the object
         detached = self.detach_lineage.pop()
-
-        # add closures to the object
         if self.lineage[-1] in self.family_tree:
-            object_builder["__closure"] = self.closure_table[hash] = {
+            closure = {
                 ref: depth - len(self.detach_lineage)
                 for ref, depth in self.family_tree[self.lineage[-1]].items()
             }
+        object_builder["totalChildrenCount"] = len(closure)
+
+        hash = hash_obj(object_builder)
+
+        object_builder["id"] = hash
+        object_builder["__closure"] = self.closure_table[hash] = closure
 
         # write detached or root objects to transports
         if detached and self.write_transports:
