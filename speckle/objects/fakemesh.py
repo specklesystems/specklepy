@@ -11,7 +11,7 @@ CHUNKABLE_PROPS = {
     "test_bases": 10,
 }
 
-DETACHABLE = ["detach_this", "origin", "detached_list"]
+DETACHABLE = {"detach_this", "origin", "detached_list"}
 
 
 class FakeMesh(Base):
@@ -25,9 +25,9 @@ class FakeMesh(Base):
     _origin: Point = None
 
     def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self._chunkable.update(CHUNKABLE_PROPS)
-        self._detachable.extend(DETACHABLE)
+        super(FakeMesh, self).__init__(**kwargs)
+        self._chunkable = dict(self._chunkable, **CHUNKABLE_PROPS)
+        self._detachable = self._detachable.union(DETACHABLE)
 
     @property
     def origin(self):

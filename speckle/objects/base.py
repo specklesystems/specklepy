@@ -1,7 +1,7 @@
 from inspect import getattr_static
 from pydantic import BaseModel, validator
 from pydantic.main import Extra
-from typing import ClassVar, Dict, List, Optional, Any, Type
+from typing import ClassVar, Dict, List, Optional, Any, Set, Type
 from speckle.transports.memory import MemoryTransport
 from speckle.logging.exceptions import SpeckleException
 from speckle.objects.units import get_units_from_string
@@ -61,7 +61,7 @@ class Base(_RegisteringBase):
     _units: str = "m"
     _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
     _chunk_size_default: int = 1000
-    _detachable: List[str] = []  # list of defined detachable props
+    _detachable: Set[str] = set()  # list of defined detachable props
 
     def __repr__(self) -> str:
         return (

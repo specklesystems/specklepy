@@ -127,7 +127,8 @@ class BaseObjectSerializer:
         hash = hash_obj(object_builder)
 
         object_builder["id"] = hash
-        object_builder["__closure"] = self.closure_table[hash] = closure
+        if closure:
+            object_builder["__closure"] = self.closure_table[hash] = closure
 
         # write detached or root objects to transports
         if detached and self.write_transports:
