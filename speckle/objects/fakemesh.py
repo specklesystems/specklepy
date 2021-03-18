@@ -11,7 +11,7 @@ CHUNKABLE_PROPS = {
     "test_bases": 10,
 }
 
-DETACHABLE = ["detach_this", "origin"]
+DETACHABLE = ["detach_this", "origin", "detached_list"]
 
 
 class FakeMesh(Base):
@@ -21,6 +21,7 @@ class FakeMesh(Base):
     textureCoordinates: List[float] = None
     test_bases: List[Base] = None
     detach_this: Base = None
+    detached_list: List[Base] = None
     _origin: Point = None
 
     def __init__(self, **kwargs) -> None:
