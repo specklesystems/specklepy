@@ -171,9 +171,17 @@ class Base(_RegisteringBase):
         return 1 + self._count_descendants(self, parsed)
 
     def get_id(self, decompose: bool = False) -> str:
-        if self.id and not decompose:
-            return self.id
+        """
+        Gets the id (a unique hash) of this object. ⚠️ This method fully serializes the object, which in the case of large objects (with many sub-objects), has a tangible cost. Avoid using it!
 
+        Note: the hash of a decomposed object differs from that of a non-decomposed object
+
+        Arguments:
+            decompose {bool} -- if True, will decompose the object in the process of hashing it
+
+        Returns:
+            str -- the hash (id) of the fully serialized object
+        """
         from speckle.serialization.base_object_serializer import (
             BaseObjectSerializer,
         )
