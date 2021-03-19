@@ -56,6 +56,8 @@ class BaseObjectSerializer:
         while props:
             prop = props.pop(0)
             value = getattr(obj, prop, None)
+            chunkable = False
+            detach = False
 
             # skip nulls or props marked to be ignored with "__" or "_"
             if value is None or prop.startswith(("__", "_")):
@@ -65,15 +67,19 @@ class BaseObjectSerializer:
             if prop == "id":
                 continue
 
-            dynamic_chunk_match = re.match(r"^@\((\d*)\)", prop)
-            if dynamic_chunk_match:
-                chunk_size = dynamic_chunk_match.groups()[0]
-                base._chunkable[prop] = (
-                    int(chunk_size) if chunk_size else base._chunk_size_default
-                )
+            # only bother with chunking and detaching if there is a write transport
+            if self.write_transports:
+                dynamic_chunk_match = re.match(r"^@\((\d*)\)", prop)
+                if dynamic_chunk_match:
+                    chunk_size = dynamic_chunk_match.groups()[0]
+                    base._chunkable[prop] = (
+                        int(chunk_size) if chunk_size else base._chunk_size_default
+                    )
 
-            chunkable = prop in base._chunkable
-            detach = bool(prop.startswith("@") or prop in base._detachable or chunkable)
+                chunkable = prop in base._chunkable
+                detach = bool(
+                    prop.startswith("@") or prop in base._detachable or chunkable
+                )
 
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):

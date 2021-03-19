@@ -80,13 +80,37 @@ def receive(
     return serializer.read_json(obj_string=obj_string)
 
 
-def serialize(base: Base) -> str:
-    serializer = BaseObjectSerializer()
+def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str:
+    """
+    Serialize a base object. If no write transports are provided, the object will be serialized
+    without detaching or chunking any of the attributes.
+
+    Arguments:
+        base {Base} -- the object to serialize
+        write_transports {List[AbstractTransport]} -- optional: the transports to write to
+
+    Returns:
+        str -- the serialized object
+    """
+    serializer = BaseObjectSerializer(write_transports=write_transports)
 
     return serializer.write_json(base)[1]
 
 
-def deserialize(obj_string: str) -> Base:
-    serializer = BaseObjectSerializer()
+def deserialize(
+    obj_string: str, read_transport: AbstractTransport = SQLiteTransport()
+) -> Base:
+    """
+    Deserialize a string object into a Base object. If the object contains referenced child objects that are not stored in the local db, a read transport needs to be provided in order to recompose the base with the children objects.
+
+    Arguments:
+        obj_string {str} -- the string object to deserialize
+        read_transport {AbstractTransport} -- the transport to fetch children objects from
+                                              (defaults to SQLiteTransport)
+
+    Returns:
+        Base -- the deserialized object
+    """
+    serializer = BaseObjectSerializer(read_transport=read_transport)
 
     return serializer.read_json(obj_string=obj_string)

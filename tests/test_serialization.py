@@ -23,9 +23,8 @@ class TestSerialization:
 
     def test_detaching(self, mesh):
         transport = MemoryTransport()
-        s = BaseObjectSerializer(write_transports=[transport], read_transport=transport)
-        _, serialized = s.write_json(mesh)
-        deserialized = s.read_json(serialized)
+        serialized = operations.serialize(mesh, [transport])
+        deserialized = operations.deserialize(serialized, transport)
 
         serialized_dict = json.loads(serialized)
 
@@ -37,9 +36,8 @@ class TestSerialization:
 
     def test_chunking(self, mesh):
         transport = MemoryTransport()
-        s = BaseObjectSerializer(write_transports=[transport], read_transport=transport)
-        _, serialized = s.write_json(mesh)
-        deserialized = s.read_json(serialized)
+        serialized = operations.serialize(mesh, [transport])
+        deserialized = operations.deserialize(serialized, transport)
 
         serialized_dict = json.loads(serialized)
 
