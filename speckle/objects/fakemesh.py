@@ -27,7 +27,7 @@ class FakeMesh(Base):
     def __init__(self, **kwargs) -> None:
         super(FakeMesh, self).__init__(**kwargs)
         self.add_chunkable_attrs(**CHUNKABLE_PROPS)
-        self.add_detached_attrs(DETACHABLE)
+        self.add_detachable_attrs(DETACHABLE)
 
     @property
     def origin(self):

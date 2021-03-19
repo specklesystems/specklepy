@@ -119,7 +119,7 @@ class Base(_RegisteringBase):
         chunkable = {k: v for k, v in kwargs.items() if isinstance(v, int)}
         self._chunkable = dict(self._chunkable, **chunkable)
 
-    def add_detached_attrs(self, names: Set[str]) -> None:
+    def add_detachable_attrs(self, names: Set[str]) -> None:
         """
         Mark defined attributes as detachable for serialisation
 

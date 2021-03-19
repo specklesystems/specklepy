@@ -324,7 +324,7 @@ class Brep(Base, speckle_type=GEOMETRY + "Brep"):
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
-        self.add_detached_attrs({"displayValue"})
+        self.add_detachable_attrs({"displayValue"})
         self.add_chunkable_attrs(
             Surfaces=200,
             Curve3D=200,
