@@ -102,7 +102,7 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline"):
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
-        self._chunkable = dict(self._chunkable, value=20000)
+        self.add_chunkable_attrs(value=20000)
 
     @classmethod
     def from_points(cls, points: List[Point]):
@@ -150,9 +150,7 @@ class Curve(Base, speckle_type=GEOMETRY + "Curve"):
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
-        self._chunkable = dict(
-            self._chunkable, points=20000, weights=20000, knots=20000
-        )
+        self.add_chunkable_attrs(points=20000, weights=20000, knots=20000)
 
     def as_points(self) -> List[Point]:
         """Converts the `value` attribute to a list of Points"""
@@ -200,12 +198,8 @@ class Mesh(Base, speckle_type=GEOMETRY + "Mesh"):
 
     def __init__(self, **data) -> None:
         super().__init__(**data)
-        self._chunkable = dict(
-            self._chunkable,
-            vertices=2000,
-            faces=2000,
-            colors=2000,
-            textureCoordinates=2000,
+        self.add_chunkable_attrs(
+            vertices=2000, faces=2000, colors=2000, textureCoordinates=2000
         )
 
 
@@ -330,19 +324,16 @@ class Brep(Base, speckle_type=GEOMETRY + "Brep"):
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
-        self._detachable.update({"displayValue"})
-        self._chunkable = dict(
-            self._chunkable,
-            **{
-                "Surfaces": 200,
-                "Curve3D": 200,
-                "Curve2D": 200,
-                "Vertices": 5000,
-                "Edges": 5000,
-                "Loops": 5000,
-                "Trims": 5000,
-                "Faces": 5000,
-            },
+        self.add_detached_attrs({"displayValue"})
+        self.add_chunkable_attrs(
+            Surfaces=200,
+            Curve3D=200,
+            Curve2D=200,
+            Vertices=5000,
+            Edges=5000,
+            Loops=5000,
+            Trims=5000,
+            Faces=5000,
         )
 
     def __setattr__(self, name: str, value: Any) -> None:
