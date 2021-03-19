@@ -1,5 +1,5 @@
 from speckle.objects.geometry import Point
-from typing import List, Optional
+from typing import List
 
 from .base import Base
 
@@ -26,8 +26,8 @@ class FakeMesh(Base):
 
     def __init__(self, **kwargs) -> None:
         super(FakeMesh, self).__init__(**kwargs)
-        self._chunkable = dict(self._chunkable, **CHUNKABLE_PROPS)
-        self._detachable = self._detachable.union(DETACHABLE)
+        self.add_chunkable_attrs(**CHUNKABLE_PROPS)
+        self.add_detachable_attrs(DETACHABLE)
 
     @property
     def origin(self):

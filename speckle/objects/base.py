@@ -109,6 +109,25 @@ class Base(_RegisteringBase):
                 "Invalid Name: Base member names cannot contain characters '.' or '/'",
             )
 
+    def add_chunkable_attrs(self, **kwargs: int) -> None:
+        """
+        Mark defined attributes as chunkable for serialisation
+
+        Arguments:
+            kwargs {int} -- the name of the attribute as the keyword and the chunk size as the arg
+        """
+        chunkable = {k: v for k, v in kwargs.items() if isinstance(v, int)}
+        self._chunkable = dict(self._chunkable, **chunkable)
+
+    def add_detachable_attrs(self, names: Set[str]) -> None:
+        """
+        Mark defined attributes as detachable for serialisation
+
+        Arguments:
+            names {Set[str]} -- the names of the attributes to detach as a set of strings
+        """
+        self._detachable = self._detachable.union(names)
+
     @property
     def units(self):
         return self._units
