@@ -11,7 +11,7 @@ from speckle.objects.fakemesh import FakeMesh
 
 @pytest.fixture(scope="session")
 def host():
-    return "testing.speckle.dev"
+    return "latest.speckle.dev"
 
 
 def seed_user(host):
