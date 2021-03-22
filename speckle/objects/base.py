@@ -253,5 +253,5 @@ class Base(_RegisteringBase):
         extra = Extra.allow
 
 
-class DataChunk(Base):
+class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
     data: List[Any] = []
