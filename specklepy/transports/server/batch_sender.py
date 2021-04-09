@@ -1,4 +1,3 @@
-
 import logging
 import threading
 import queue
@@ -6,13 +5,20 @@ import time
 import gzip
 
 import requests
-from speckle.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import SpeckleException
 
 LOG = logging.getLogger(__name__)
 
 
 class BatchSender(object):
-    def __init__(self, endpoint, token, max_batch_size_mb=1, batch_buffer_length=10, thread_count=4):
+    def __init__(
+        self,
+        endpoint,
+        token,
+        max_batch_size_mb=1,
+        batch_buffer_length=10,
+        thread_count=4,
+    ):
         self.endpoint = endpoint
         self._token = token
 
@@ -84,12 +90,14 @@ class BatchSender(object):
     def _bg_send_batch(self, session, batch):
         upload_data = "[" + ",".join(batch) + "]"
         upload_data_gzip = gzip.compress(upload_data.encode())
-        LOG.info("Uploading batch of %s objects (size: %s, compressed size: %s)" %
-                 (len(batch), len(upload_data), len(upload_data_gzip)))
+        LOG.info(
+            "Uploading batch of %s objects (size: %s, compressed size: %s)"
+            % (len(batch), len(upload_data), len(upload_data_gzip))
+        )
 
         r = session.post(
             url=self.endpoint,
-            files={"batch-1": ("batch-1", upload_data_gzip, 'application/gzip')},
+            files={"batch-1": ("batch-1", upload_data_gzip, "application/gzip")},
         )
         if r.status_code != 201:
             LOG.warning("Upload server response: %s", r.text)
@@ -114,4 +122,3 @@ class BatchSender(object):
 
     def __del__(self):
         self._delete_threads()
-

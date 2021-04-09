@@ -29,8 +29,8 @@ To execute any python script run `$ poetry run python my_script.py`
 The `SpeckleClient` is the entry point for interacting with the GraphQL API. You'll need to have a running server to use this.
 
 ```py
-from speckle.api.client import SpeckleClient
-from speckle.api.credentials import get_default_account, get_local_accounts
+from specklepy.api.client import SpeckleClient
+from specklepy.api.credentials import get_default_account, get_local_accounts
 
 all_accounts = get_local_accounts() # get back a list
 account = get_default_account()
@@ -76,8 +76,8 @@ deleted = client.commit.delete("stream id", "commit id")
 The `BaseObjectSerializer` is used for decomposing and serializing `Base` objects so they can be sent / received to the server. You can use it directly to get the id (hash) and a serializable object representation of the decomposed `Base`. You can learn more about the Speckle `Base` object [here](https://discourse.speckle.works/t/core-2-0-the-base-object/782) and the decomposition API [here](https://discourse.speckle.works/t/core-2-0-decomposition-api/911).
 
 ```py
-from speckle.objects.base import Base
-from speckle.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.objects.base import Base
+from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
 detached_base = Base()
 detached_base.name = "this will get detached"
@@ -93,8 +93,8 @@ hash, obj_dict = serializer.traverse_base(base_obj)
 If you use the `operations`, you will not need to interact with the serializer directly as this will be taken care of for you. You will just need to provide a transport to indicate where the objects should be sent / received from. At the moment, just the `MemoryTransport` and the `ServerTransport` are fully functional at the moment. If you'd like to learn more about Transports in Speckle 2.0, have a look [here](https://discourse.speckle.works/t/core-2-0-transports/919).
 
 ```py
-from speckle.transports.memory import MemoryTransport
-from speckle.api import operations
+from specklepy.transports.memory import MemoryTransport
+from specklepy.api import operations
 
 transport = MemoryTransport()
 

@@ -2,9 +2,9 @@ from inspect import getattr_static
 from pydantic import BaseModel, validator
 from pydantic.main import Extra
 from typing import ClassVar, Dict, List, Optional, Any, Set, Type
-from speckle.transports.memory import MemoryTransport
-from speckle.logging.exceptions import SpeckleException
-from speckle.objects.units import get_units_from_string
+from specklepy.transports.memory import MemoryTransport
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.objects.units import get_units_from_string
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -201,7 +201,7 @@ class Base(_RegisteringBase):
         Returns:
             str -- the hash (id) of the fully serialized object
         """
-        from speckle.serialization.base_object_serializer import (
+        from specklepy.serialization.base_object_serializer import (
             BaseObjectSerializer,
         )
 

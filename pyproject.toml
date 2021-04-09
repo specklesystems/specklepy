@@ -1,13 +1,14 @@
 [tool.poetry]
-name = "speckle"
-version = "0.1.0"
-description = ""
-authors = [
-    "Izzy Lyseggen <izzy.lyseggen@gmail.com>",
-    "Matteo Cominetti <matteo@speckle.systems>",
-    "Gergő Jedlicska <gergo@jedlicska.com>"
-]
-license = "SEE LICENSE IN readme.md"
+name = "specklepy"
+version = "2.0.0"
+description = "The Python SDK for Speckle 2.0"
+readme = "README.md"
+authors = ["Speckle Systems <devops@speckle.systems>"]
+license = "Apache-2.0"
+repository = "https://github.com/specklesystems/speckle-py"
+documentation = "https://speckle.guide/dev/py-examples.html"
+homepage = "https://speckle.systems/"
+
 
 [tool.poetry.dependencies]
 python = "^3.6.5"

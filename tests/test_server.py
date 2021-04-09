@@ -1,5 +1,5 @@
 import pytest
-from speckle.api.models import ServerInfo
+from specklepy.api.models import ServerInfo
 
 
 class TestServer:

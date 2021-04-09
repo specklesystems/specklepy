@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 from gql import gql
-from speckle.api.resource import ResourceBase
-from speckle.api.models import Stream
+from specklepy.api.resource import ResourceBase
+from specklepy.api.models import Stream
 
 NAME = "stream"
 METHODS = [

@@ -1,5 +1,5 @@
 """Builtin Speckle object kit."""
 
-from speckle.objects.base import Base
+from specklepy.objects.base import Base
 
 __all__ = ["Base"]

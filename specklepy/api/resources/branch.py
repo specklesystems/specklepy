@@ -1,9 +1,9 @@
-from speckle.api.resources import stream
+from specklepy.api.resources import stream
 from typing import List, Optional
 from gql import gql
 from pydantic.main import BaseModel
-from speckle.api.resource import ResourceBase
-from speckle.api.models import Branch
+from specklepy.api.resource import ResourceBase
+from specklepy.api.models import Branch
 
 NAME = "branch"
 METHODS = ["create"]

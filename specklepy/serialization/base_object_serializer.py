@@ -4,10 +4,10 @@ import re
 
 from uuid import uuid4
 from typing import Any, Dict, List, Tuple
-from speckle.objects.base import Base, DataChunk
-from speckle.logging.exceptions import SerializationException, SpeckleException
-from speckle.transports.abstract_transport import AbstractTransport
-import speckle.objects.geometry
+from specklepy.objects.base import Base, DataChunk
+from specklepy.logging.exceptions import SerializationException, SpeckleException
+from specklepy.transports.abstract_transport import AbstractTransport
+import specklepy.objects.geometry
 
 PRIMITIVES = (int, float, str, bool)
 

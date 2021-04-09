@@ -1,5 +1,5 @@
 from logging import error
-from speckle.logging.exceptions import GraphQLException, SpeckleException
+from specklepy.logging.exceptions import GraphQLException, SpeckleException
 from typing import Dict, List
 from gql.client import Client
 from gql.gql import gql

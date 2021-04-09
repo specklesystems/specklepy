@@ -1,9 +1,9 @@
-from speckle.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import SpeckleException
 from typing import List, Optional
 from gql import gql
 from pydantic.main import BaseModel
-from speckle.api.resource import ResourceBase
-from speckle.api.models import User
+from specklepy.api.resource import ResourceBase
+from specklepy.api.models import User
 
 NAME = "user"
 METHODS = ["get"]
