@@ -1,4 +1,4 @@
-from speckle.objects.geometry import Point
+from specklepy.objects.geometry import Point
 from typing import List
 
 from .base import Base

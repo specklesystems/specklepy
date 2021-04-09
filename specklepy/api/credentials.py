@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
-from speckle.api.models import ServerInfo
-from speckle.transports.sqlite import SQLiteTransport
+from specklepy.api.models import ServerInfo
+from specklepy.transports.sqlite import SQLiteTransport
 
 account_storage = SQLiteTransport(scope="Accounts")
 

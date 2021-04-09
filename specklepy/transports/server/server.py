@@ -2,9 +2,9 @@ import requests
 
 from typing import Any, Dict, List, Type
 
-from speckle.api.client import SpeckleClient
-from speckle.logging.exceptions import SpeckleException
-from speckle.transports.abstract_transport import AbstractTransport
+from specklepy.api.client import SpeckleClient
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.abstract_transport import AbstractTransport
 
 from .batch_sender import BatchSender
 
@@ -22,7 +22,7 @@ class ServerTransport(AbstractTransport):
         self.url = client.url
         self.stream_id = stream_id
 
-        token = client.me['token']
+        token = client.me["token"]
         endpoint = f"{self.url}/objects/{self.stream_id}"
         self._batch_sender = BatchSender(endpoint, token, max_batch_size_mb=1)
 

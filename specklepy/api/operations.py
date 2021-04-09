@@ -1,11 +1,11 @@
 import json
 from typing import List
-from speckle.objects.base import Base
-from speckle.transports.sqlite import SQLiteTransport
-from speckle.transports.server import ServerTransport
-from speckle.logging.exceptions import SpeckleException
-from speckle.transports.abstract_transport import AbstractTransport
-from speckle.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.objects.base import Base
+from specklepy.transports.sqlite import SQLiteTransport
+from specklepy.transports.server import ServerTransport
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.abstract_transport import AbstractTransport
+from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
 
 def send(

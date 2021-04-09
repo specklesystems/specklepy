@@ -1,6 +1,6 @@
 import pytest
-from speckle.api.models import Stream
-from speckle.logging.exceptions import GraphQLException
+from specklepy.api.models import Stream
+from specklepy.logging.exceptions import GraphQLException
 
 
 @pytest.mark.run(order=2)

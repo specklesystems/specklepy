@@ -1,13 +1,13 @@
 import json
 from attr import has
 import pytest
-from speckle.api import operations
-from speckle.transports.server import ServerTransport
-from speckle.transports.memory import MemoryTransport
-from speckle.serialization.base_object_serializer import BaseObjectSerializer
-from speckle.objects import Base
-from speckle.objects.geometry import Point
-from speckle.objects.fakemesh import FakeMesh
+from specklepy.api import operations
+from specklepy.transports.server import ServerTransport
+from specklepy.transports.memory import MemoryTransport
+from specklepy.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.objects import Base
+from specklepy.objects.geometry import Point
+from specklepy.objects.fakemesh import FakeMesh
 
 
 @pytest.mark.run(order=3)

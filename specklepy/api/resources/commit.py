@@ -1,8 +1,8 @@
 from typing import Optional, List
 from gql import gql
 from pydantic.main import BaseModel
-from speckle.api.resource import ResourceBase
-from speckle.api.models import Commit
+from specklepy.api.resource import ResourceBase
+from specklepy.api.models import Commit
 
 
 NAME = "commit"

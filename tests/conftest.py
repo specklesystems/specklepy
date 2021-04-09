@@ -2,11 +2,11 @@ import uuid
 import random
 import pytest
 import requests
-from speckle.api.models import Stream
-from speckle.api.client import SpeckleClient
-from speckle.objects.base import Base
-from speckle.objects.geometry import Point
-from speckle.objects.fakemesh import FakeMesh
+from specklepy.api.models import Stream
+from specklepy.api.client import SpeckleClient
+from specklepy.objects.base import Base
+from specklepy.objects.geometry import Point
+from specklepy.objects.fakemesh import FakeMesh
 
 
 @pytest.fixture(scope="session")
