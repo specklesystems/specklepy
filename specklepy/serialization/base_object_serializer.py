@@ -8,6 +8,7 @@ from specklepy.objects.base import Base, DataChunk
 from specklepy.logging.exceptions import SerializationException, SpeckleException
 from specklepy.transports.abstract_transport import AbstractTransport
 import specklepy.objects.geometry
+import specklepy.objects.other
 
 PRIMITIVES = (int, float, str, bool)
 
