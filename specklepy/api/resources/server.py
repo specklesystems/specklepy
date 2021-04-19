@@ -1,8 +1,8 @@
 from typing import Dict, List
 from gql import gql
 from gql.client import Client
-from speckle.api.models import ServerInfo
-from speckle.api.resource import ResourceBase
+from specklepy.api.models import ServerInfo
+from specklepy.api.resource import ResourceBase
 
 
 NAME = "server"

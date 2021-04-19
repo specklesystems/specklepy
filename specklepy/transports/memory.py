@@ -1,7 +1,7 @@
 import json
 from typing import Any
-from speckle.logging.exceptions import SpeckleException
-from speckle.transports.abstract_transport import AbstractTransport
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.abstract_transport import AbstractTransport
 
 
 class MemoryTransport(AbstractTransport):

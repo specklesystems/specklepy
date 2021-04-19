@@ -1,10 +1,12 @@
 import requests
-from asyncio import Queue, Task
+
 from typing import Any, Dict, List, Type
 
-from speckle.api.client import SpeckleClient
-from speckle.logging.exceptions import SpeckleException
-from speckle.transports.abstract_transport import AbstractTransport
+from specklepy.api.client import SpeckleClient
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.abstract_transport import AbstractTransport
+
+from .batch_sender import BatchSender
 
 
 class ServerTransport(AbstractTransport):
@@ -13,36 +15,30 @@ class ServerTransport(AbstractTransport):
     stream_id: str = None
     saved_obj_count: int = 0
     session: requests.Session = None
-    __queue: Queue = None
-    __workers: List[Task] = []
 
     def __init__(self, client: SpeckleClient, stream_id: str, **data: Any) -> None:
         super().__init__(**data)
         # TODO: replace client with account or some other auth avenue
         self.url = client.url
         self.stream_id = stream_id
+
+        token = client.me["token"]
+        endpoint = f"{self.url}/objects/{self.stream_id}"
+        self._batch_sender = BatchSender(endpoint, token, max_batch_size_mb=1)
+
         self.session = requests.Session()
         self.session.headers.update(
-            {"Authorization": f"Bearer {client.me['token']}", "Accept": "text/plain"}
+            {"Authorization": f"Bearer {token}", "Accept": "text/plain"}
         )
 
     def begin_write(self) -> None:
         self.saved_obj_count = 0
 
     def end_write(self) -> None:
-        pass
+        self._batch_sender.flush()
 
-    # TODO: add save task to queue and process as the root is being deserialised
     def save_object(self, id: str, serialized_object: str) -> None:
-        endpoint = f"{self.url}/objects/{self.stream_id}"
-        r = self.session.post(
-            url=endpoint,
-            files={"batch-1": ("batch-1", f"[{serialized_object}]")},
-        )
-        if r.status_code != 201:
-            raise SpeckleException(
-                message=f"Could not save the object to the server - status code {r.status_code}"
-            )
+        self._batch_sender.send_object(serialized_object)
 
     def save_object_from_transport(
         self, id: str, source_transport: AbstractTransport

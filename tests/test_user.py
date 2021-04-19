@@ -1,5 +1,5 @@
-from speckle.logging.exceptions import SpeckleException
-from speckle.api.models import User
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.api.models import User
 import pytest
 
 

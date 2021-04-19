@@ -1,8 +1,8 @@
 """This is an example showcasing the usage of speckle `Base` class."""
 
 # the speckle.objects module exposes all speckle provided classes
-from speckle.objects import Base
-from speckle.api import operations
+from specklepy.objects import Base
+from specklepy.api import operations
 from devtools import debug
 
 

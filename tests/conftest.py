@@ -2,16 +2,16 @@ import uuid
 import random
 import pytest
 import requests
-from speckle.api.models import Stream
-from speckle.api.client import SpeckleClient
-from speckle.objects.base import Base
-from speckle.objects.point import Point
-from speckle.objects.fakemesh import FakeMesh
+from specklepy.api.models import Stream
+from specklepy.api.client import SpeckleClient
+from specklepy.objects.base import Base
+from specklepy.objects.geometry import Point
+from specklepy.objects.fakemesh import FakeMesh
 
 
 @pytest.fixture(scope="session")
 def host():
-    return "testing.speckle.dev"
+    return "latest.speckle.dev"
 
 
 def seed_user(host):
@@ -83,6 +83,12 @@ def mesh():
     mesh.test_bases = [Base(name=f"test {i}") for i in range(1, 22)]
     mesh.detach_this = Base(name="predefined detached base")
     mesh["@detach"] = Base(name="detached base")
+    mesh["@detached_list"] = [
+        42,
+        "some text",
+        [1, 2, 3],
+        Base(name="detached within a list"),
+    ]
     mesh.origin = Point(value=[4, 2, 0])
     return mesh
 

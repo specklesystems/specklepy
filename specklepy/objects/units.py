@@ -1,4 +1,4 @@
-from speckle.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import SpeckleException
 
 UNITS = ["mm", "cm", "m", "in", "ft", "yd", "mi"]
 
@@ -10,6 +10,7 @@ UNITS_STRINGS = {
     "ft": ["ft", "foot", "feet"],
     "yd": ["yd", "yard", "yards"],
     "mi": ["mi", "mile", "miles"],
+    "none": ["none", "null"],
 }
 
 

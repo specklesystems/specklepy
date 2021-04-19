@@ -1,8 +1,7 @@
-from speckle.objects.base import Base
-from speckle.transports.memory import MemoryTransport
-from speckle.api.models import Stream
-from speckle.api import operations
-from speckle.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.objects import Base
+from specklepy.transports.memory import MemoryTransport
+from specklepy.api.models import Stream
+from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 import pytest
 
 

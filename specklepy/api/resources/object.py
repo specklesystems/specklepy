@@ -1,8 +1,8 @@
 from typing import Dict, List
 from gql import gql
 from graphql.language import parser
-from speckle.api.resource import ResourceBase
-from speckle.objects.base import Base
+from specklepy.api.resource import ResourceBase
+from specklepy.objects.base import Base
 
 NAME = "object"
 METHODS = []

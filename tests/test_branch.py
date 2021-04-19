@@ -1,4 +1,4 @@
-from speckle.api.models import Branch, Commit, Stream
+from specklepy.api.models import Branch, Commit, Stream
 import pytest
 
 

@@ -4,9 +4,11 @@ import re
 
 from uuid import uuid4
 from typing import Any, Dict, List, Tuple
-from speckle.objects.base import Base, DataChunk
-from speckle.logging.exceptions import SerializationException, SpeckleException
-from speckle.transports.abstract_transport import AbstractTransport
+from specklepy.objects.base import Base, DataChunk
+from specklepy.logging.exceptions import SerializationException, SpeckleException
+from specklepy.transports.abstract_transport import AbstractTransport
+import specklepy.objects.geometry
+import specklepy.objects.other
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -48,13 +50,15 @@ class BaseObjectSerializer:
             self.detach_lineage = [True]
 
         self.lineage.append(uuid4().hex)
-        object_builder = {"id": ""}
+        object_builder = {"id": "", "speckle_type": "Base", "totalChildrenCount": 0}
         object_builder.update(speckle_type=base.speckle_type)
         obj, props = base, base.get_member_names()
 
         while props:
             prop = props.pop(0)
-            value = obj[prop]
+            value = getattr(obj, prop, None)
+            chunkable = False
+            detach = False
 
             # skip nulls or props marked to be ignored with "__" or "_"
             if value is None or prop.startswith(("__", "_")):
@@ -64,15 +68,19 @@ class BaseObjectSerializer:
             if prop == "id":
                 continue
 
-            dynamic_chunk_match = re.match(r"^@\((\d*)\)", prop)
-            if dynamic_chunk_match:
-                chunk_size = dynamic_chunk_match.groups()[0]
-                base._chunkable[prop] = (
-                    int(chunk_size) if chunk_size else base._chunk_size_default
-                )
+            # only bother with chunking and detaching if there is a write transport
+            if self.write_transports:
+                dynamic_chunk_match = re.match(r"^@\((\d*)\)", prop)
+                if dynamic_chunk_match:
+                    chunk_size = dynamic_chunk_match.groups()[0]
+                    base._chunkable[prop] = (
+                        int(chunk_size) if chunk_size else base._chunk_size_default
+                    )
 
-            chunkable = prop in base._chunkable
-            detach = bool(prop.startswith("@") or prop in base._detachable or chunkable)
+                chunkable = prop in base._chunkable
+                detach = bool(
+                    prop.startswith("@") or prop in base._detachable or chunkable
+                )
 
             # 1. handle primitives (ints, floats, strings, and bools)
             if isinstance(value, PRIMITIVES):
@@ -110,20 +118,24 @@ class BaseObjectSerializer:
 
             # 4. handle all other cases
             else:
-                child_obj = self.traverse_value(value)
+                child_obj = self.traverse_value(value, detach)
                 object_builder[prop] = child_obj
 
-        hash = hash_obj(object_builder)
-        object_builder["id"] = hash
-
+        closure = {}
+        # add closures & children count to the object
         detached = self.detach_lineage.pop()
-
-        # add closures to the object
         if self.lineage[-1] in self.family_tree:
-            object_builder["__closure"] = self.closure_table[hash] = {
+            closure = {
                 ref: depth - len(self.detach_lineage)
                 for ref, depth in self.family_tree[self.lineage[-1]].items()
             }
+        object_builder["totalChildrenCount"] = len(closure)
+
+        hash = hash_obj(object_builder)
+
+        object_builder["id"] = hash
+        if closure:
+            object_builder["__closure"] = self.closure_table[hash] = closure
 
         # write detached or root objects to transports
         if detached and self.write_transports:
@@ -147,7 +159,18 @@ class BaseObjectSerializer:
             return obj
 
         elif isinstance(obj, (list, tuple, set)):
-            return [self.traverse_value(o) for o in obj]
+            if not detach:
+                return [self.traverse_value(o) for o in obj]
+
+            detached_list = []
+            for o in obj:
+                if isinstance(o, Base):
+                    self.detach_lineage.append(detach)
+                    hash, _ = self.traverse_base(o)
+                    detached_list.append(self.detach_helper(ref_hash=hash))
+                else:
+                    detached_list.append(self.traverse_value(o, detach))
+            return detached_list
 
         elif isinstance(obj, dict):
             for k, v in obj.items():

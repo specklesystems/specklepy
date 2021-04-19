@@ -7,8 +7,8 @@ from typing import Any
 from appdirs import user_data_dir
 from contextlib import closing
 from multiprocessing import Process, Queue
-from speckle.transports.abstract_transport import AbstractTransport
-from speckle.logging.exceptions import SpeckleException
+from specklepy.transports.abstract_transport import AbstractTransport
+from specklepy.logging.exceptions import SpeckleException
 
 
 class SQLiteTransport(AbstractTransport):

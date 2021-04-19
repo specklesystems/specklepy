@@ -1,5 +1,5 @@
 import pytest
-from speckle.api.models import Commit, Stream
+from specklepy.api.models import Commit, Stream
 
 
 @pytest.mark.run(order=4)

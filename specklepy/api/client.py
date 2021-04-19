@@ -1,10 +1,10 @@
 import re
 from gql.client import SyncClientSession
-from speckle.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import SpeckleException
 from typing import Dict
 
-from speckle.api import resources
-from speckle.api.resources import (
+from specklepy.api import resources
+from specklepy.api.resources import (
     branch,
     commit,
     stream,
@@ -20,7 +20,7 @@ from gql.transport.websockets import WebsocketsTransport
 
 
 class SpeckleClient:
-    DEFAULT_HOST = "staging.speckle.dev"
+    DEFAULT_HOST = "speckle.xyz"
     USE_SSL = True
 
     def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL) -> None:
