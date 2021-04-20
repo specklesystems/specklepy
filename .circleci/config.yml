@@ -39,7 +39,7 @@ jobs:
       - python/install-packages:
           pip-dependency-file: requirements.txt
           pkg-manager: pip
-      - run: pytest --version
+      - run: pytest
 
 workflows:
   main:
