@@ -24,13 +24,13 @@ def seed_user(host):
     }
 
     r = requests.post(
-        url=f"https://{host}/auth/local/register?challenge=pyspeckletests",
+        url=f"http://{host}/auth/local/register?challenge=pyspeckletests",
         data=user_dict,
     )
     access_code = r.url.split("access_code=")[1]
 
     r_tokens = requests.post(
-        url=f"https://{host}/auth/token",
+        url=f"http://{host}/auth/token",
         json={
             "appSecret": "spklwebapp",
             "appId": "spklwebapp",
