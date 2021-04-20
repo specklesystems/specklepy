@@ -44,10 +44,7 @@ jobs:
 workflows:
   main:
     jobs:
-      - build
-      # - python/test:
-      #     matrix:
-      #       parameters:
-      #         version: ["3.6", "3.7", "3.8", "3.9"]
-      #     pkg-manager: pip
-      #     test-tool: pytest
+      - build:
+          matrix:
+            parameters:
+              tag: ["3.6", "3.7", "3.8", "3.9"]
