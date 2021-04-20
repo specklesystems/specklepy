@@ -11,7 +11,7 @@ from specklepy.objects.fakemesh import FakeMesh
 
 @pytest.fixture(scope="session")
 def host():
-    return "localhost:3000"
+    return "latest.speckle.dev"
 
 
 def seed_user(host):
@@ -24,13 +24,13 @@ def seed_user(host):
     }
 
     r = requests.post(
-        url=f"http://{host}/auth/local/register?challenge=pyspeckletests",
+        url=f"https://{host}/auth/local/register?challenge=pyspeckletests",
         data=user_dict,
     )
     access_code = r.url.split("access_code=")[1]
 
     r_tokens = requests.post(
-        url=f"http://{host}/auth/token",
+        url=f"https://{host}/auth/token",
         json={
             "appSecret": "spklwebapp",
             "appId": "spklwebapp",
