@@ -1,5 +1,7 @@
 import pytest
+from specklepy.api import operations
 from specklepy.api.models import Commit, Stream
+from specklepy.transports.server.server import ServerTransport
 
 
 @pytest.mark.run(order=4)
@@ -27,6 +29,9 @@ class TestCommit:
         return stream
 
     def test_commit_create(self, client, stream, mesh, commit):
+        transport = ServerTransport(client=client, stream_id=stream.id)
+        mesh.id = operations.send(mesh, transports=[transport])
+
         commit.id = client.commit.create(
             stream_id=stream.id, object_id=mesh.id, message=commit.message
         )

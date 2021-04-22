@@ -1,5 +1,7 @@
-from specklepy.api.models import Branch, Commit, Stream
 import pytest
+from specklepy.api import operations
+from specklepy.transports.server import ServerTransport
+from specklepy.api.models import Branch, Commit, Stream
 
 
 class TestBranch:
@@ -31,6 +33,9 @@ class TestBranch:
         assert isinstance(branch.id, str)
 
     def test_branch_get(self, client, mesh, stream, branch):
+        transport = ServerTransport(client=client, stream_id=stream.id)
+        mesh.id = operations.send(mesh, transports=[transport])
+
         client.commit.create(
             stream_id=stream.id,
             branch_name=branch.name,
