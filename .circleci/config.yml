@@ -37,9 +37,8 @@ jobs:
           command: python -m pip install --upgrade pip
           name: upgrade pip
       - python/install-packages:
-          pip-dependency-file: requirements.txt
-          pkg-manager: pip
-      - run: pytest
+          pkg-manager: poetry
+      - run: poetry run pytest --version
 
 workflows:
   main:
