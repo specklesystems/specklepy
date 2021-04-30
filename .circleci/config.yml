@@ -46,7 +46,7 @@ jobs:
     steps:
       - checkout
       - run: poetry build
-      - run: poetry publish --dry-run -u specklesystems -p $PYPI_PASSWORD
+      - run: poetry publish -u specklesystems -p $PYPI_PASSWORD
 
 workflows:
   main:
