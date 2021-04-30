@@ -40,6 +40,14 @@ jobs:
           pkg-manager: poetry
       - run: poetry run pytest --version
 
+  deploy:
+    docker:
+      - image: "circleci/python:3.8"
+    steps:
+      - checkout
+      - run: poetry build
+      - run: poetry publish --dry-run -u specklesystems -p $PYPI_PASSWORD
+
 workflows:
   main:
     jobs:
@@ -47,3 +55,12 @@ workflows:
           matrix:
             parameters:
               tag: ["3.6", "3.7", "3.8", "3.9"]
+
+  publish:
+    jobs: 
+      - deploy:
+          filters:
+            tags:
+              only: /[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/ # For testing only! /ci\/.*/
