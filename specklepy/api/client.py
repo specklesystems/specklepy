@@ -13,6 +13,7 @@ from specklepy.api.resources import (
     user,
     subscriptions,
 )
+from specklepy.api.models import ServerInfo
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.aiohttp import AIOHTTPTransport
@@ -45,6 +46,14 @@ class SpeckleClient:
         self.wsclient = None
 
         self._init_resources()
+
+        # Check compatibility with the server
+        try:
+            serverInfo = self.server.get()
+            if not isinstance(serverInfo, ServerInfo):
+                raise Exception("Couldn't get ServerInfo")
+        except Exception as ex:
+            raise SpeckleException(f"{self.url} is not a compatible Speckle Server", ex)
 
     def authenticate(self, token: str) -> None:
         """Authenticate the client using a personal access token

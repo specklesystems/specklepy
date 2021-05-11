@@ -1,3 +1,6 @@
+import json
+import time
+
 import requests
 
 from typing import Any, Dict, List, Type
@@ -23,8 +26,7 @@ class ServerTransport(AbstractTransport):
         self.stream_id = stream_id
 
         token = client.me["token"]
-        endpoint = f"{self.url}/objects/{self.stream_id}"
-        self._batch_sender = BatchSender(endpoint, token, max_batch_size_mb=1)
+        self._batch_sender = BatchSender(self.url, self.stream_id, token, max_batch_size_mb=1)
 
         self.session = requests.Session()
         self.session.headers.update(
@@ -38,7 +40,7 @@ class ServerTransport(AbstractTransport):
         self._batch_sender.flush()
 
     def save_object(self, id: str, serialized_object: str) -> None:
-        self._batch_sender.send_object(serialized_object)
+        self._batch_sender.send_object(id, serialized_object)
 
     def save_object_from_transport(
         self, id: str, source_transport: AbstractTransport
@@ -59,18 +61,34 @@ class ServerTransport(AbstractTransport):
             NotImplementedError,
         )
 
+    def has_objects(self, id_list: List[str]) -> Dict[str, bool]:
+        return {id: False for id in id_list}
+
     def copy_object_and_children(
         self, id: str, target_transport: AbstractTransport
     ) -> str:
-        endpoint = f"{self.url}/objects/{self.stream_id}/{id}"
-        r = self.session.get(endpoint, stream=True)
+        endpoint = f"{self.url}/objects/{self.stream_id}/{id}/single"
+        r = self.session.get(endpoint)
+        if r.encoding is None:
+            r.encoding = "utf-8"
+
+        root_obj_serialized = r.text
+        root_obj = json.loads(root_obj_serialized)
+        closures = root_obj.get('__closure', {})
+
+        target_transport.save_object(id, root_obj_serialized)
+
+        # Check which children are not already in the target transport
+        children_ids = list(closures.keys())
+        children_found_map = target_transport.has_objects(children_ids)
+        new_children_ids = [id for id in children_found_map if not children_found_map[id]]
+
+        # Get the new children
+        endpoint = f"{self.url}/api/getobjects/{self.stream_id}"
+        r = self.session.post(endpoint, data={"children": json.dumps(new_children_ids)}, stream=True)
         if r.encoding is None:
             r.encoding = "utf-8"
         lines = r.iter_lines(decode_unicode=True)
-
-        # save first (root) obj for return
-        root_hash, root_obj = next(lines).split("\t")
-        target_transport.save_object(root_hash, root_obj)
 
         # iter through returned objects saving them as we go
         for line in lines:

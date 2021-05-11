@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Optional, List, Dict
 from pydantic import BaseModel
 from pydantic.main import Extra
 
@@ -61,6 +61,18 @@ class AbstractTransport(ABC, BaseModel):
 
         Returns:
             str -- the full string representation of the object (or null if no object is found)
+        """
+        pass
+
+    @abstractmethod
+    def has_objects(self, id_list: List[str]) -> Dict[str, bool]:
+        """Checks the presence of multiple objects.
+
+        Arguments:
+            id_list -- List of object id to be checked
+
+        Returns:
+            Dict[str, bool] -- keys: input ids, values: whether the transport has that object
         """
         pass
 

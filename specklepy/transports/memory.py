@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, List, Dict
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.abstract_transport import AbstractTransport
 
@@ -32,6 +32,9 @@ class MemoryTransport(AbstractTransport):
             return self.objects[id]
         else:
             return None
+
+    def has_objects(self, id_list: List[str]) -> Dict[str, bool]:
+        return {id: (id in self.objects) for id in id_list}
 
     def begin_write(self) -> None:
         self.saved_object_count = 0
