@@ -85,7 +85,7 @@ class ServerTransport(AbstractTransport):
 
         # Get the new children
         endpoint = f"{self.url}/api/getobjects/{self.stream_id}"
-        r = self.session.post(endpoint, data={"children": json.dumps(new_children_ids)}, stream=True)
+        r = self.session.post(endpoint, data={"objects": json.dumps(new_children_ids)}, stream=True)
         if r.encoding is None:
             r.encoding = "utf-8"
         lines = r.iter_lines(decode_unicode=True)
