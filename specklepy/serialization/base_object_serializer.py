@@ -277,8 +277,8 @@ class BaseObjectSerializer:
             base.totalChildrenCount = len(closure)
 
         for prop, value in obj.items():
-            # 1. handle primitives (ints, floats, strings, and bools)
-            if isinstance(value, PRIMITIVES):
+            # 1. handle primitives (ints, floats, strings, and bools) or None
+            if isinstance(value, PRIMITIVES) or value is None:
                 base.__setattr__(prop, value)
                 continue
 
