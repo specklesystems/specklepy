@@ -72,6 +72,8 @@ class ServerTransport(AbstractTransport):
         if r.encoding is None:
             r.encoding = "utf-8"
 
+        if r.status_code != 200:
+            raise SpeckleException(f"Can't get object {self.stream_id}/{id}: HTTP error {r.status_code} ({r.text[:1000]})")
         root_obj_serialized = r.text
         root_obj = json.loads(root_obj_serialized)
         closures = root_obj.get('__closure', {})
@@ -96,7 +98,7 @@ class ServerTransport(AbstractTransport):
 
         target_transport.save_object(id, root_obj_serialized)
 
-        return root_obj
+        return root_obj_serialized
 
     # async def stream_res(self, endpoint: str) -> str:
     #     data = b""
