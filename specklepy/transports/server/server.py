@@ -76,8 +76,6 @@ class ServerTransport(AbstractTransport):
         root_obj = json.loads(root_obj_serialized)
         closures = root_obj.get('__closure', {})
 
-        target_transport.save_object(id, root_obj_serialized)
-
         # Check which children are not already in the target transport
         children_ids = list(closures.keys())
         children_found_map = target_transport.has_objects(children_ids)
@@ -95,6 +93,8 @@ class ServerTransport(AbstractTransport):
             if line:
                 hash, obj = line.split("\t")
                 target_transport.save_object(hash, obj)
+
+        target_transport.save_object(id, root_obj_serialized)
 
         return root_obj
 
