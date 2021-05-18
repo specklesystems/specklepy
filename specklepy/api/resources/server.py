@@ -32,6 +32,7 @@ class Resource(ResourceBase):
                     description
                     adminContact
                     canonicalUrl
+                    version
                     roles {
                         name
                         description

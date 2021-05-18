@@ -115,3 +115,4 @@ class ServerInfo(BaseModel):
     roles: Optional[List[dict]]
     scopes: Optional[List[dict]]
     authStrategies: Optional[List[dict]]
+    version: Optional[str]

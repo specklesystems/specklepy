@@ -1,3 +1,4 @@
+import json
 import logging
 import threading
 import queue
@@ -13,13 +14,15 @@ LOG = logging.getLogger(__name__)
 class BatchSender(object):
     def __init__(
         self,
-        endpoint,
+        server_url,
+        stream_id,
         token,
         max_batch_size_mb=1,
         batch_buffer_length=10,
         thread_count=4,
     ):
-        self.endpoint = endpoint
+        self.server_url = server_url
+        self.stream_id = stream_id
         self._token = token
 
         self.max_size = int(max_batch_size_mb * 1000 * 1000)
@@ -31,18 +34,18 @@ class BatchSender(object):
         self._send_threads = []
         self._exception = None
 
-    def send_object(self, obj: str):
+    def send_object(self, id: str, obj: str):
         if not self._send_threads:
             self._create_threads()
 
         crt_obj_size = len(obj)
         if not self._crt_batch or self._crt_batch_size + crt_obj_size < self.max_size:
-            self._crt_batch.append(obj)
+            self._crt_batch.append((id, obj))
             self._crt_batch_size += crt_obj_size
             return
 
         self._batches.put(self._crt_batch)
-        self._crt_batch = [obj]
+        self._crt_batch = [(id, obj)]
         self._crt_batch_size = crt_obj_size
 
     def flush(self):
@@ -88,15 +91,29 @@ class BatchSender(object):
             LOG.error("ServerTransport sending thread error: " + str(ex))
 
     def _bg_send_batch(self, session, batch):
-        upload_data = "[" + ",".join(batch) + "]"
+        object_ids = [obj[0] for obj in batch]
+        server_has_object = session.post(
+            url=f"{self.server_url}/api/diff/{self.stream_id}",
+            data={"objects": json.dumps(object_ids)},
+        ).json()
+
+        new_object_ids = [x for x in object_ids if not server_has_object[x]]
+        new_object_ids = set(new_object_ids)
+        new_objects = [obj[1] for obj in batch if obj[0] in new_object_ids]
+
+        if not new_objects:
+            LOG.info(f"Uploading batch of {len(batch)} objects: all objects are already in the server")
+            return
+
+        upload_data = "[" + ",".join(new_objects) + "]"
         upload_data_gzip = gzip.compress(upload_data.encode())
         LOG.info(
-            "Uploading batch of %s objects (size: %s, compressed size: %s)"
-            % (len(batch), len(upload_data), len(upload_data_gzip))
+            "Uploading batch of %s objects (%s new): (size: %s, compressed size: %s)"
+            % (len(batch), len(new_objects), len(upload_data), len(upload_data_gzip))
         )
 
         r = session.post(
-            url=self.endpoint,
+            url=f"{self.server_url}/objects/{self.stream_id}",
             files={"batch-1": ("batch-1", upload_data_gzip, "application/gzip")},
         )
         if r.status_code != 201:

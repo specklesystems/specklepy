@@ -3,7 +3,7 @@ import sys
 import time
 import sched
 import sqlite3
-from typing import Any
+from typing import Any, List, Dict
 from appdirs import user_data_dir
 from contextlib import closing
 from multiprocessing import Process, Queue
@@ -136,6 +136,17 @@ class SQLiteTransport(AbstractTransport):
                 "SELECT * FROM objects WHERE hash = ? LIMIT 1", (id,)
             ).fetchone()
         return row[1] if row else None
+
+    def has_objects(self, id_list: List[str]) -> Dict[str, bool]:
+        ret = {}
+        self.__check_connection()
+        with closing(self.__connection.cursor()) as c:
+            for id in id_list:
+                row = c.execute(
+                    "SELECT 1 FROM objects WHERE hash = ? LIMIT 1", (id,)
+                ).fetchone()
+                ret[id] = bool(row)
+        return ret
 
     def begin_write(self):
         self.saved_obj_count = 0
