@@ -266,7 +266,8 @@ class BaseObjectSerializer:
         object_type = Base.get_registered_type(speckle_type)
 
         # initialise the base object using `speckle_type` fall back to base if needed
-        base = object_type() if object_type else Base(speckle_type=speckle_type)
+        totalChildrenCount = 0
+        base_object_dict = {}
         # get total children count
         if "__closure" in obj:
             if not self.read_transport:
@@ -274,12 +275,12 @@ class BaseObjectSerializer:
                     message="Cannot resolve reference - no read transport is defined"
                 )
             closure = obj.pop("__closure")
-            base.totalChildrenCount = len(closure)
+            totalChildrenCount = len(closure)
 
         for prop, value in obj.items():
             # 1. handle primitives (ints, floats, strings, and bools) or None
             if isinstance(value, PRIMITIVES) or value is None:
-                base.__setattr__(prop, value)
+                base_object_dict[prop] = value
                 continue
 
             # 2. handle referenced child objects
@@ -291,11 +292,14 @@ class BaseObjectSerializer:
                         f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
                     )
                 ref_obj = json.loads(ref_obj_str)
-                base.__setattr__(prop, self.recompose_base(obj=ref_obj))
+                base_object_dict[prop] = self.recompose_base(obj=ref_obj)
 
             # 3. handle all other cases (base objects, lists, and dicts)
             else:
-                base.__setattr__(prop, self.handle_value(value))
+                base_object_dict[prop] = self.handle_value(value)
+
+        base = object_type(**base_object_dict) if object_type else Base(speckle_type=speckle_type)
+        base.totalChildrenCount = totalChildrenCount
 
         return base
 
