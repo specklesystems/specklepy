@@ -289,7 +289,8 @@ class BaseObjectSerializer:
                 ref_obj_str = self.read_transport.get_object(id=ref_hash)
                 if not ref_obj_str:
                     raise SpeckleException(
-                        f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
+                        f"Could not find the referenced child object of id `{ref_hash}`"
+                        f" in the given read transport: {self.read_transport.name}"
                     )
                 ref_obj = json.loads(ref_obj_str)
                 base_object_dict[prop] = self.recompose_base(obj=ref_obj)
@@ -298,7 +299,11 @@ class BaseObjectSerializer:
             else:
                 base_object_dict[prop] = self.handle_value(value)
 
-        base = object_type(**base_object_dict) if object_type else Base(speckle_type=speckle_type)
+        base = (
+            object_type(**base_object_dict)
+            if object_type
+            else Base(speckle_type=speckle_type)
+        )
         base.totalChildrenCount = totalChildrenCount
 
         return base
