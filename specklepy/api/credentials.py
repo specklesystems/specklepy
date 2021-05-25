@@ -14,12 +14,12 @@ class UserInfo(BaseModel):
 
 
 class Account(BaseModel):
-    isDefault: bool
+    isDefault: bool = None
     token: str
-    refreshToken: str
+    refreshToken: str = None
     serverInfo: ServerInfo
     userInfo: UserInfo
-    id: str
+    id: str = None
 
     def __repr__(self) -> str:
         return f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url}, isDefault: {self.isDefault})"
