@@ -50,21 +50,13 @@ class SQLiteTransport(AbstractTransport):
     #     proc.join()
 
     def __get_base_path(self):
-        # from appdirs https://github.com/ActiveState/appdirs/blob/master/appdirs.py
-        # default mac path is not the one we use (we use unix path), so using special case for this
-        system = sys.platform
-        if system.startswith("java"):
-            import platform
-
-            os_name = platform.java_ver()[3][0]
-            if os_name.startswith("Mac"):
-                system = "darwin"
-
-        if system == "darwin":
-            path = os.path.expanduser("~/.config/")
-            return os.path.join(path, self.app_name)
-        else:
-            return user_data_dir(appname=self.app_name, appauthor=False, roaming=True)
+        # Get platform dependent config folder
+        return os.path.join(
+            os.environ.get('APPDATA') or
+            os.environ.get('XDG_CONFIG_HOME') or
+            os.path.join(os.environ['HOME'], '.config'),
+            self.app_name
+            )
 
     def __consume_queue(self):
         if self._is_writing or self.__queue.empty():
