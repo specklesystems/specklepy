@@ -5,7 +5,7 @@ import pkgutil
 from importlib import import_module
 
 
-for (_, name, _) in pkgutil.iter_modules([Path(__file__).parent]):
+for (_, name, _) in pkgutil.iter_modules(__path__):
 
     imported_module = import_module("." + name, package=__name__)
 
