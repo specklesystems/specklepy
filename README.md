@@ -14,6 +14,9 @@ Comprehensive developer and user documentation can be found in our:
 #### 📚 [Speckle Docs website](https://speckle.guide/dev/)
 
 ## Developing & Debugging
+
+### Installation
+
 This project uses python-poetry for dependency management, make sure you follow the official [docs](https://python-poetry.org/docs/#installation) to get poetry.
 
 To bootstrap the project environment run `$ poetry install`. This will create a new virtual-env for the project and install both the package and dev dependencies.
@@ -23,6 +26,13 @@ If this is your first time using poetry and you're used to creating your venvs w
 To execute any python script run `$ poetry run python my_script.py`
 
 > Alternatively you may roll your own virtual-env with either venv, virtualenv, pyenv-virtualenv etc. Poetry will play along an recognize if it is invoked from inside a virtual environment.
+
+### Local Data Paths
+
+It may be helpful to know where the local accounts and object cache dbs are stored. Depending on on your OS, you can find the dbs at:
+- Windows: `APPDATA` or `<USER>\AppData\Roaming\Speckle`
+- Linux: `$XDG_DATA_HOME` or by default `~/.local/share/Speckle`
+- Mac: `~/.config/Speckle`
 
 ## Overview of functionality 
 
