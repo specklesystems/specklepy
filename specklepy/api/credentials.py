@@ -38,11 +38,9 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
         List[Account] -- list of all local accounts or an empty list if no accounts were found
     """
     account_storage = SQLiteTransport(scope="Accounts", base_path=base_path)
-    json_acct_files = [
-        file
-        for file in os.listdir(account_storage._base_path)
-        if file.endswith(".json")
-    ]
+    json_path = os.path.join(account_storage._base_path, "Accounts")
+    os.makedirs(json_path, exist_ok=True)
+    json_acct_files = [file for file in os.listdir(json_path) if file.endswith(".json")]
 
     accounts = []
     res = account_storage.get_all_objects()
@@ -51,7 +49,7 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
     if json_acct_files:
         try:
             accounts.extend(
-                Account.parse_file(os.path.join(account_storage._base_path, json_file))
+                Account.parse_file(os.path.join(json_path, json_file))
                 for json_file in json_acct_files
             )
         except Exception as ex:
