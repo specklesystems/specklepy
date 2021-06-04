@@ -13,6 +13,7 @@ from specklepy.logging.exceptions import SpeckleException
 
 class SQLiteTransport(AbstractTransport):
     _name = "SQLite"
+    _base_path: str = None
     _root_path: str = None
     _is_writing: bool = False
     _scheduler = sched.scheduler(time.time, time.sleep)
@@ -33,11 +34,13 @@ class SQLiteTransport(AbstractTransport):
         super().__init__(**data)
         self.app_name = app_name or "Speckle"
         self.scope = scope or "Objects"
-        base_path = base_path or self.__get_base_path()
+        self._base_path = base_path or self.__get_base_path()
 
-        os.makedirs(base_path, exist_ok=True)
+        os.makedirs(self._base_path, exist_ok=True)
 
-        self._root_path = os.path.join(os.path.join(base_path, f"{self.scope}.db"))
+        self._root_path = os.path.join(
+            os.path.join(self._base_path, f"{self.scope}.db")
+        )
         self.__initialise()
 
     def __repr__(self) -> str:
