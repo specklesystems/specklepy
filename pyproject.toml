@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "specklepy"
-version = "2.2.2"
+version = "2.2.3"
 description = "The Python SDK for Speckle 2.0"
 readme = "README.md"
 authors = ["Speckle Systems <devops@speckle.systems>"]
@@ -13,11 +13,8 @@ homepage = "https://speckle.systems/"
 [tool.poetry.dependencies]
 python = "^3.6.5"
 pydantic = "^1.7.3"
-gql = "^3.0.0a5"
-aiohttp = "^3.7.3"
 appdirs = "^1.4.4"
-requests = "^2.25.1"
-websockets = "^8.1"
+gql = {version = ">=3.0.0a6", extras = ["all"], allow-prereleases = true}
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
