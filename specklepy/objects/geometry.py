@@ -24,6 +24,10 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, id: {self.id}, speckle_type: {self.speckle_type})"
 
+    @property
+    def value(self) -> List[float]:
+        return [self.x, self.y, self.z]
+
 
 class Vector(Point, speckle_type=GEOMETRY + "Vector"):
     pass
