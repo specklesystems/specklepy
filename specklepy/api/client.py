@@ -21,6 +21,33 @@ from gql.transport.websockets import WebsocketsTransport
 
 
 class SpeckleClient:
+    """
+    The `SpeckleClient` is your entry point for interacting with your Speckle Server's GraphQL API.
+    You'll need to have access to a server to use it, or you can use our public server `speckle.xyz`.
+
+    To authenticate the client, you'll need to have downloaded the [Speckle Manager](https://speckle.guide/#speckle-manager)
+    and added your account.
+
+    ```py
+    from specklepy.api.client import SpeckleClient
+    from specklepy.api.credentials import get_default_account
+
+    # initialise the client
+    client = SpeckleClient(host="speckle.xyz") # or whatever your host is
+    # client = SpeckleClient(host="localhost:3000", use_ssl=False) or use local server
+
+    # authenticate the client with a token (account has been added in Speckle Manager)
+    account = get_default_account()
+    client.authenticate(token=account.token)
+
+    # create a new stream. this returns the stream id
+    new_stream_id = client.stream.create(name="a shiny new stream")
+
+    # use that stream id to get the stream from the server
+    new_stream = client.stream.get(id=new_stream_id)
+    ```
+    """
+
     DEFAULT_HOST = "speckle.xyz"
     USE_SSL = True
 
