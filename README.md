@@ -45,7 +45,7 @@ from specklepy.api.credentials import get_default_account, get_local_accounts
 all_accounts = get_local_accounts() # get back a list
 account = get_default_account()
 
-client = SpeckleClient(host="speckle.xyz", use_ssl=True)
+client = SpeckleClient(host="speckle.xyz")
 # client = SpeckleClient(host="yourserver.com") or whatever your host is
 
 client.authenticate(account.token)
