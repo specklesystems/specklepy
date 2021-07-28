@@ -98,7 +98,7 @@ class Base(_RegisteringBase):
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
         """Validator for dynamic attribute names."""
-        if name in ("", "@"):
+        if name in {"", "@"}:
             raise ValueError("Invalid Name: Base member names cannot be empty strings")
         if name.startswith("@@"):
             raise ValueError(
@@ -172,7 +172,7 @@ class Base(_RegisteringBase):
             if not name.startswith("_")
             and name
             != "fields"  # soon to be removed as this pydantic prop is depreciated
-            and isinstance(getattr(self, name, None), property)
+            and isinstance(getattr(type(self), name, None), property)
         ]
         return attrs + properties
 
@@ -215,15 +215,11 @@ class Base(_RegisteringBase):
             return 0
         parsed.append(base)
 
-        count = 0
-
-        for name, value in base.__dict__.items():
-            if name.startswith("@"):
-                continue
-            else:
-                count += self._handle_object_count(value, parsed)
-
-        return count
+        return sum(
+            self._handle_object_count(value, parsed)
+            for name, value in base.__dict__.items()
+            if not name.startswith("@")
+        )
 
     def _handle_object_count(self, obj: Any, parsed: List) -> int:
         count = 0
