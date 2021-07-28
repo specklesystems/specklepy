@@ -6,6 +6,7 @@ UNITS_STRINGS = {
     "mm": ["mm", "mil", "millimeters", "millimetres"],
     "cm": ["cm", "centimetre", "centimeter", "centimetres", "centimeters"],
     "m": ["m", "meter", "meters", "metre", "metres"],
+    "km": ["km", "kilometer", "kilometre", "kilometers", "kilometres"],
     "in": ["in", "inch", "inches"],
     "ft": ["ft", "foot", "feet"],
     "yd": ["yd", "yard", "yards"],
