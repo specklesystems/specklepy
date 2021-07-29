@@ -6,7 +6,6 @@ import sqlite3
 from typing import Any, List, Dict
 from appdirs import user_data_dir
 from contextlib import closing
-from multiprocessing import Process, Queue
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.logging.exceptions import SpeckleException
 
@@ -19,7 +18,6 @@ class SQLiteTransport(AbstractTransport):
     _scheduler = sched.scheduler(time.time, time.sleep)
     _polling_interval = 0.5  # seconds
     __connection: sqlite3.Connection = None
-    __queue: Queue = Queue()
     app_name: str = ""
     scope: str = ""
     saved_obj_count: int = 0
@@ -63,26 +61,26 @@ class SQLiteTransport(AbstractTransport):
             if os_name.startswith("Mac"):
                 system = "darwin"
 
-        if system == "darwin":
-            path = os.path.expanduser("~/.config/")
-            return os.path.join(path, self.app_name)
-        else:
+        if system != "darwin":
             return user_data_dir(appname=self.app_name, appauthor=False, roaming=True)
 
-    def __consume_queue(self):
-        if self._is_writing or self.__queue.empty():
-            return
-        print("CONSUME QUEUE")
-        self._is_writing = True
-        while not self.__queue.empty():
-            data = self.__queue.get()
-            self.save_object(data[0], data[1])
-        self._is_writing = False
+        path = os.path.expanduser("~/.config/")
+        return os.path.join(path, self.app_name)
 
-        self._scheduler.enter(
-            delay=self._polling_interval, priority=1, action=self.__consume_queue
-        )
-        self._scheduler.run(blocking=True)
+    # def __consume_queue(self):
+    #     if self._is_writing or self.__queue.empty():
+    #         return
+    #     print("CONSUME QUEUE")
+    #     self._is_writing = True
+    #     while not self.__queue.empty():
+    #         data = self.__queue.get()
+    #         self.save_object(data[0], data[1])
+    #     self._is_writing = False
+
+    #     self._scheduler.enter(
+    #         delay=self._polling_interval, priority=1, action=self.__consume_queue
+    #     )
+    #     self._scheduler.run(blocking=True)
 
     # def save_object(self, id: str, serialized_object: str) -> None:
     #     """Adds an object to the queue and schedules it to be saved.
@@ -102,15 +100,14 @@ class SQLiteTransport(AbstractTransport):
     def save_object_from_transport(
         self, id: str, source_transport: AbstractTransport
     ) -> None:
-        """Adds an object from the given transport to the queue and schedules it to be saved.
+        """Adds an object from the given transport to the the local db
 
         Arguments:
             id {str} -- the object id
             source_transport {AbstractTransport) -- the transport through which the object can be found
         """
         serialized_object = source_transport.get_object(id)
-        self.__queue.put((id, serialized_object))
-        raise NotImplementedError
+        self.save_object(id, serialized_object)
 
     def save_object(self, id: str, serialized_object: str) -> None:
         """Directly saves an object into the database.
