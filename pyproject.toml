@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "specklepy"
-version = "2.2.3"
+version = "2.2.4"
 description = "The Python SDK for Speckle 2.0"
 readme = "README.md"
 authors = ["Speckle Systems <devops@speckle.systems>"]
