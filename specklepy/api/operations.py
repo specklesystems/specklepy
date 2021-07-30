@@ -52,7 +52,8 @@ def receive(
     Arguments:
         obj_id {str} -- the id of the object to receive
         remote_transport {Transport} -- the transport to receive from
-        local_transport {Transport} -- the transport to send from
+        local_transport {Transport} -- the local cache to check for existing objects
+                                       (defaults to `SQLiteTransport`)
 
     Returns:
         Base -- the base object
