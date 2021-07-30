@@ -34,12 +34,18 @@ class SQLiteTransport(AbstractTransport):
         self.scope = scope or "Objects"
         self._base_path = base_path or self.__get_base_path()
 
-        os.makedirs(self._base_path, exist_ok=True)
+        try:
+            os.makedirs(self._base_path, exist_ok=True)
 
-        self._root_path = os.path.join(
-            os.path.join(self._base_path, f"{self.scope}.db")
-        )
-        self.__initialise()
+            self._root_path = os.path.join(
+                os.path.join(self._base_path, f"{self.scope}.db")
+            )
+            self.__initialise()
+        except Exception as ex:
+            raise SpeckleException(
+                f"SQLiteTransport could not initialise {self.scope}.db at {self._base_path}. Either provide a different `base_path` or use an alternative transport.",
+                ex,
+            )
 
     def __repr__(self) -> str:
         return f"SQLiteTransport(app: '{self.app_name}', scope: '{self.scope}')"
