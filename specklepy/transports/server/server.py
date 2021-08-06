@@ -22,6 +22,8 @@ class ServerTransport(AbstractTransport):
     def __init__(self, client: SpeckleClient, stream_id: str, **data: Any) -> None:
         super().__init__(**data)
         # TODO: replace client with account or some other auth avenue
+        if not client.me:
+            raise SpeckleException("The provided SpeckleClient was not authenticated.")
         self.url = client.url
         self.stream_id = stream_id
 
