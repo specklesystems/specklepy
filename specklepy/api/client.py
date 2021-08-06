@@ -82,6 +82,11 @@ class SpeckleClient:
         except Exception as ex:
             raise SpeckleException(f"{self.url} is not a compatible Speckle Server", ex)
 
+    def __repr__(self):
+        return (
+            f"SpeckleClient( server: {self.url}, authenticated: {self.me is not None} )"
+        )
+
     def authenticate(self, token: str) -> None:
         """Authenticate the client using a personal access token
         The token is saved in the client object and a synchronous GraphQL entrypoint is created
