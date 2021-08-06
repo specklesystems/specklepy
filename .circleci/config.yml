@@ -38,7 +38,7 @@ jobs:
           name: upgrade pip
       - python/install-packages:
           pkg-manager: poetry
-      - run: poetry run pytest --version
+      - run: poetry run pytest
 
   deploy:
     docker:
