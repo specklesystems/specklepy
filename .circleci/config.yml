@@ -58,6 +58,10 @@ workflows:
 
   publish:
     jobs: 
+      - build:
+          matrix:
+            parameters:
+              tag: ["3.6", "3.7", "3.8", "3.9"]
       - deploy:
           requires:
             - build 
