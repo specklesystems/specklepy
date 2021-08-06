@@ -14,7 +14,7 @@ jobs:
           POSTGRES_DB: speckle2_test
           POSTGRES_PASSWORD: speckle
           POSTGRES_USER: speckle
-      - image: "speckle/speckle-server:5f8cf11cba07ea6a54000243f9cb343b61cbba13"
+      - image: "speckle/speckle-server"
         command: ["bash", "-c", "/wait && node bin/www"]
         environment:
           POSTGRES_URL: "localhost"
@@ -38,7 +38,7 @@ jobs:
           name: upgrade pip
       - python/install-packages:
           pkg-manager: poetry
-      - run: poetry run pytest --version
+      - run: poetry run pytest
 
   deploy:
     docker:

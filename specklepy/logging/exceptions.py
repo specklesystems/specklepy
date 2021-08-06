@@ -28,3 +28,8 @@ class GraphQLException(SpeckleException):
 
     def __str__(self) -> str:
         return f"GraphQLException: {self.message}"
+
+
+class SpeckleWarning(Warning):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
