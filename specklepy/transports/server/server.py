@@ -26,7 +26,9 @@ class ServerTransport(AbstractTransport):
         self.stream_id = stream_id
 
         token = client.me["token"]
-        self._batch_sender = BatchSender(self.url, self.stream_id, token, max_batch_size_mb=1)
+        self._batch_sender = BatchSender(
+            self.url, self.stream_id, token, max_batch_size_mb=1
+        )
 
         self.session = requests.Session()
         self.session.headers.update(
@@ -73,19 +75,25 @@ class ServerTransport(AbstractTransport):
             r.encoding = "utf-8"
 
         if r.status_code != 200:
-            raise SpeckleException(f"Can't get object {self.stream_id}/{id}: HTTP error {r.status_code} ({r.text[:1000]})")
+            raise SpeckleException(
+                f"Can't get object {self.stream_id}/{id}: HTTP error {r.status_code} ({r.text[:1000]})"
+            )
         root_obj_serialized = r.text
         root_obj = json.loads(root_obj_serialized)
-        closures = root_obj.get('__closure', {})
+        closures = root_obj.get("__closure", {})
 
         # Check which children are not already in the target transport
         children_ids = list(closures.keys())
         children_found_map = target_transport.has_objects(children_ids)
-        new_children_ids = [id for id in children_found_map if not children_found_map[id]]
+        new_children_ids = [
+            id for id in children_found_map if not children_found_map[id]
+        ]
 
         # Get the new children
         endpoint = f"{self.url}/api/getobjects/{self.stream_id}"
-        r = self.session.post(endpoint, data={"objects": json.dumps(new_children_ids)}, stream=True)
+        r = self.session.post(
+            endpoint, data={"objects": json.dumps(new_children_ids)}, stream=True
+        )
         if r.encoding is None:
             r.encoding = "utf-8"
         lines = r.iter_lines(decode_unicode=True)
