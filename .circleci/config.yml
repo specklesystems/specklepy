@@ -45,7 +45,7 @@ jobs:
       - image: "circleci/python:3.8"
     steps:
       - checkout
-      - run: python patch_version.py $env:CIRCLE_TAG
+      - run: python patch_version.py $CIRCLE_TAG
       - run: poetry build
       - run: poetry publish -u specklesystems -p $PYPI_PASSWORD
 
