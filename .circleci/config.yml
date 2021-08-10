@@ -4,7 +4,7 @@ orbs:
   python: circleci/python@1.3.2
 
 jobs:
-  build:
+  test:
     docker:
       - image: "cimg/python:<<parameters.tag>>"
       - image: "circleci/node:12"
@@ -45,19 +45,23 @@ jobs:
       - image: "circleci/python:3.8"
     steps:
       - checkout
+      - run: python patch_version.py $env:CIRCLE_TAG
       - run: poetry build
       - run: poetry publish -u specklesystems -p $PYPI_PASSWORD
 
 workflows:
   main:
     jobs: 
-      - build:
+      - test:
           matrix:
             parameters:
               tag: ["3.6", "3.7", "3.8", "3.9"]
+          filters:
+            tags:
+              only: /.*/
       - deploy:
           requires:
-            - build 
+            - test 
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/
