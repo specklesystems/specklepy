@@ -94,6 +94,7 @@ class StreamWrapper:
     object_id: str = None
     branch_name: str = None
     client: SpeckleClient = None
+    account: Account = None
 
     def __repr__(self):
         return f"StreamWrapper( server: {self.host}, stream_id: {self.stream_id}, type: {self.type} )"
@@ -148,17 +149,27 @@ class StreamWrapper:
                 f"Cannot parse {url} into a stream wrapper class - no stream id found."
             )
 
+    def get_account(self) -> Account:
+        if self.account:
+            return self.account
+
+        self.account = next(
+            (a for a in get_local_accounts() if self.host in a.serverInfo.url),
+            None,
+        )
+
+        return self.account
+
     def get_client(self) -> SpeckleClient:
         if self.client:
             return self.client
 
-        acct = next(
-            (a for a in get_local_accounts() if self.host in a.serverInfo.url),
-            None,
-        )
+        if not self.account:
+            self.get_account()
+
         self.client = SpeckleClient(host=self.host, use_ssl=self.use_ssl)
 
-        if not acct:
+        if self.account is None:
             warn(f"No local account found for server {self.host}", SpeckleWarning)
             return self.client
 
