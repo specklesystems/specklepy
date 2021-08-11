@@ -40,6 +40,7 @@ class Resource(ResourceBase):
                         authorId
                         authorName
                         authorAvatar
+                        branchName
                         createdAt
                         sourceApplication
                         totalChildrenCount
