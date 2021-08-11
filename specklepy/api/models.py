@@ -22,6 +22,7 @@ class Commit(BaseModel):
     authorName: Optional[str]
     authorId: Optional[str]
     authorAvatar: Optional[str]
+    branchName: Optional[str]
     createdAt: Optional[str]
     sourceApplication: Optional[str]
     referencedObject: Optional[str]
