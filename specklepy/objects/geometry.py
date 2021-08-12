@@ -93,7 +93,7 @@ class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
 
 
 class Polyline(Base, speckle_type=GEOMETRY + "Polyline"):
-    value: List[float] = None
+    value: List[float] = []
     closed: bool = None
     domain: Interval = None
     bbox: Box = None
