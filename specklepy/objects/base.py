@@ -84,9 +84,6 @@ class Base(_RegisteringBase):
             f"totalChildrenCount: {self.totalChildrenCount})"
         )
 
-    def __init__(self) -> None:
-        super().__init__()
-
     @classmethod
     def of_type(self, speckle_type: str):
         """
