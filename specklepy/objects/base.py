@@ -86,14 +86,6 @@ class Base(_RegisteringBase):
 
     @classmethod
     def of_type(self, speckle_type: str):
-        """
-        Create a plain `Base` object with a specified `speckle_type`.
-
-        The speckle type is a protected attribute meaning it can't be set on a class instance.
-        If you really need a class instance with a specific type, you can use this to get it.
-        This is used in deserialisation when you receive unknown speckle objects so that the type
-        can still be preserved.
-        """
         b = Base()
         b.__setattr__("speckle_type", speckle_type, True)
         return b
