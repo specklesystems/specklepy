@@ -77,6 +77,10 @@ class Base(_RegisteringBase):
     _detachable: Set[str] = set()  # list of defined detachable props
     _defined_types: ClassVar[Dict[str, Type]] = {}
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__()
+        self.__dict__.update(kwargs)
+
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(id: {self.id}, "
