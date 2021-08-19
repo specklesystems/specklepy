@@ -257,7 +257,7 @@ class BaseObjectSerializer:
         if "speckle_type" in obj and obj["speckle_type"] == "reference":
             obj = self.get_child(obj=obj)
 
-        speckle_type = obj.pop("speckle_type", None)
+        speckle_type = obj.get("speckle_type")
         # if speckle type is not in the object definition, it is treated as a dict
         if not speckle_type:
             return obj
@@ -324,7 +324,7 @@ class BaseObjectSerializer:
                 # handle chunked lists
                 data = []
                 for o in obj_list:
-                    data.extend(o["data"])
+                    data.extend(o.data)
                 return data
             return obj_list
 

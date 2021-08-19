@@ -116,9 +116,11 @@ class Base(_RegisteringBase):
             super().__setattr__(name, value)
             return
         if name == "speckle_type":
-            raise SpeckleException(
-                "Cannot override the `speckle_type`. This is set manually by the class or on deserialisation"
-            )
+            # not sure if we should raise an exception here??
+            # raise SpeckleException(
+            #     "Cannot override the `speckle_type`. This is set manually by the class or on deserialisation"
+            # )
+            return
         value = self._type_check(name, value)
         attr = getattr(self.__class__, name, None)
         if isinstance(attr, property):
@@ -332,4 +334,7 @@ class Base(_RegisteringBase):
 
 
 class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
-    data: List[Any] = []
+    data: List[Any] = None
+
+    def __init__(self) -> None:
+        self.data = []
