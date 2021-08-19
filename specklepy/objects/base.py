@@ -1,6 +1,6 @@
 import typing
 from warnings import warn
-from typing import get_type_hints
+from typing import get_origin, get_type_hints
 from typing import ClassVar, Dict, List, Optional, Any, Set, Type
 from specklepy.transports.memory import MemoryTransport
 from specklepy.logging.exceptions import SpeckleException
@@ -84,6 +84,23 @@ class Base(_RegisteringBase):
             f"totalChildrenCount: {self.totalChildrenCount})"
         )
 
+    def __init__(self) -> None:
+        super().__init__()
+
+    @classmethod
+    def of_type(self, speckle_type: str):
+        """
+        Create a plain `Base` object with a specified `speckle_type`.
+
+        The speckle type is a protected attribute meaning it can't be set on a class instance.
+        If you really need a class instance with a specific type, you can use this to get it.
+        This is used in deserialisation when you receive unknown speckle objects so that the type
+        can still be preserved.
+        """
+        b = Base()
+        b.__setattr__("speckle_type", speckle_type, True)
+        return b
+
     def __str__(self) -> str:
         return self.__repr__()
 
@@ -94,7 +111,7 @@ class Base(_RegisteringBase):
     def __getitem__(self, name: str) -> Any:
         return self.__dict__[name]
 
-    def __setattr__(self, name: str, value: Any) -> None:
+    def __setattr__(self, name: str, value: Any, override_type: bool = False) -> None:
         """
         Type checking, guard attribute, and property set mechanism.
 
@@ -102,6 +119,9 @@ class Base(_RegisteringBase):
 
         This also performs a type check if the attribute is type hinted.
         """
+        if override_type and name == "speckle_type" and isinstance(value, str):
+            super().__setattr__(name, value)
+            return
         if name == "speckle_type":
             raise SpeckleException(
                 "Cannot override the `speckle_type`. This is set manually by the class or on deserialisation"
@@ -156,9 +176,11 @@ class Base(_RegisteringBase):
 
         if t is None:
             return value
+
         if isinstance(t, typing._GenericAlias):
-            t = eval(t._name.lower())
-            if not isinstance(t, type):
+            origin = get_origin(t)
+            t = t.__args__ if origin is typing.Union else origin
+            if not isinstance(t, (type, tuple)):
                 warn(
                     f"Unrecognised type '{t}' provided for attribute '{name}'. Type will not been validated."
                 )
@@ -173,6 +195,8 @@ class Base(_RegisteringBase):
                 return float(value)
             except ValueError:
                 pass
+        if t is str:
+            return str(value)
         raise SpeckleException(
             f"Cannot set '{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
         )
@@ -246,11 +270,11 @@ class Base(_RegisteringBase):
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""
-        return list(self.__fields__.keys())
+        return list(self._defined_types.keys())
 
     def get_dynamic_member_names(self) -> List[str]:
         """Get all of the names of the dynamic properties of this object"""
-        return list(set(self.__dict__.keys()) - set(self.__fields__.keys()))
+        return list(set(self.__dict__.keys()) - set(self._defined_types.keys()))
 
     def get_children_count(self) -> int:
         """Get the total count of children Base objects"""
