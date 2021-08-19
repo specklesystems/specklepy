@@ -1,6 +1,6 @@
 import typing
 from warnings import warn
-from typing import get_origin, get_type_hints
+from typing import get_type_hints
 from typing import ClassVar, Dict, List, Optional, Any, Set, Type
 from specklepy.transports.memory import MemoryTransport
 from specklepy.logging.exceptions import SpeckleException
@@ -173,7 +173,7 @@ class Base(_RegisteringBase):
             return value
 
         if isinstance(t, typing._GenericAlias):
-            origin = get_origin(t)
+            origin = getattr(t, "__origin__")
             t = t.__args__ if origin is typing.Union else origin
             if not isinstance(t, (type, tuple)):
                 warn(
