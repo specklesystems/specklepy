@@ -173,7 +173,7 @@ class StreamWrapper:
             warn(f"No local account found for server {self.host}", SpeckleWarning)
             return self.client
 
-        self.client.authenticate(acct.token)
+        self.client.authenticate(self.account.token)
         return self.client
 
     def get_transport(self) -> ServerTransport:
