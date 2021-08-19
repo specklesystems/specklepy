@@ -14,7 +14,12 @@ CHUNKABLE_PROPS = {
 DETACHABLE = {"detach_this", "origin", "detached_list"}
 
 
-class FakeMesh(Base):
+class FakeGeo(Base, chunkable={"dots": 50}, detachable={"pointslist"}):
+    pointslist: List[Base] = None
+    dots: List[int] = None
+
+
+class FakeMesh(FakeGeo, chunkable=CHUNKABLE_PROPS, detachable=DETACHABLE):
     vertices: List[float] = None
     faces: List[int] = None
     colors: List[int] = None
@@ -24,10 +29,10 @@ class FakeMesh(Base):
     detached_list: List[Base] = None
     _origin: Point = None
 
-    def __init__(self, **kwargs) -> None:
-        super(FakeMesh, self).__init__(**kwargs)
-        self.add_chunkable_attrs(**CHUNKABLE_PROPS)
-        self.add_detachable_attrs(DETACHABLE)
+    # def __init__(self, **kwargs) -> None:
+    #     super(FakeMesh, self).__init__(**kwargs)
+    #     self.add_chunkable_attrs(**CHUNKABLE_PROPS)
+    #     self.add_detachable_attrs(DETACHABLE)
 
     @property
     def origin(self):

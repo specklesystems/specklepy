@@ -1,15 +1,16 @@
-from inspect import getattr_static
-from pydantic import BaseModel, validator
-from pydantic.main import Extra
+import typing
+from warnings import warn
+from typing import get_type_hints
 from typing import ClassVar, Dict, List, Optional, Any, Set, Type
 from specklepy.transports.memory import MemoryTransport
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.units import get_units_from_string
 
+
 PRIMITIVES = (int, float, str, bool)
 
 
-class _RegisteringBase(BaseModel):
+class _RegisteringBase:
     """
     Private Base model for Speckle types.
 
@@ -21,7 +22,8 @@ class _RegisteringBase(BaseModel):
     """
 
     speckle_type: ClassVar[str]
-    _type_registry: ClassVar[Dict[str, Type["Base"]]] = {}
+    _type_registry: ClassVar[Dict[str, Type]] = {}  # should be Type["Base"]
+    _defined_types: ClassVar[Dict[str, Type]] = {}  # but specifying breaks this typing
 
     class Config:
         validate_assignment = True
@@ -34,6 +36,8 @@ class _RegisteringBase(BaseModel):
     def __init_subclass__(
         cls,
         speckle_type: Optional[str] = None,
+        chunkable: Dict[str, int] = None,
+        detachable: Set[str] = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -51,6 +55,15 @@ class _RegisteringBase(BaseModel):
             )
         cls.speckle_type = speckle_type or cls.__name__
         cls._type_registry[cls.speckle_type] = cls  # type: ignore
+        try:
+            cls._defined_types = get_type_hints(cls)
+        except Exception:
+            cls._defined_types = getattr(cls, "__annotations__", {})
+        if chunkable:
+            chunkable = {k: v for k, v in chunkable.items() if isinstance(v, int)}
+            cls._chunkable = dict(cls._chunkable, **chunkable)
+        if detachable:
+            cls._detachable = cls._detachable.union(detachable)
         super().__init_subclass__(**kwargs)
 
 
@@ -62,6 +75,7 @@ class Base(_RegisteringBase):
     _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
     _chunk_size_default: int = 1000
     _detachable: Set[str] = set()  # list of defined detachable props
+    _defined_types: ClassVar[Dict[str, Type]] = {}
 
     def __repr__(self) -> str:
         return (
@@ -82,18 +96,38 @@ class Base(_RegisteringBase):
 
     def __setattr__(self, name: str, value: Any) -> None:
         """
-        Guard attribute and property set mechanism.
+        Type checking, guard attribute, and property set mechanism.
 
         The `speckle_type` is a protected class attribute it must not be overridden.
+
+        This also performs a type check if the attribute is type hinted.
         """
-        if name != "speckle_type":
-            attr = getattr(self.__class__, name, None)
-            if isinstance(attr, property):
-                try:
-                    attr.__set__(self, value)
-                except AttributeError:
-                    pass  # the prop probably doesn't have a setter
-            super().__setattr__(name, value)
+        if name == "speckle_type":
+            raise SpeckleException(
+                "Cannot override the `speckle_type`. This is set manually by the class or on deserialisation"
+            )
+        value = self._type_check(name, value)
+        attr = getattr(self.__class__, name, None)
+        if isinstance(attr, property):
+            try:
+                attr.__set__(self, value)
+            except AttributeError:
+                pass  # the prop probably doesn't have a setter
+        super().__setattr__(name, value)
+
+    @classmethod
+    def update_forward_refs(cls) -> None:
+        """
+        Attempts to populate the internal defined types dict for type checking sometime after defining the class.
+        This is already done when defining the class, but can be called again if references to undefined types were
+        included.
+
+        See `objects.geometry` for an example of how this is used with the Brep class definitions
+        """
+        try:
+            cls._defined_types = get_type_hints(cls)
+        except Exception as e:
+            warn(f"Could not update forward refs for class {cls.__name__}: {e}")
 
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
@@ -108,6 +142,40 @@ class Base(_RegisteringBase):
             raise ValueError(
                 "Invalid Name: Base member names cannot contain characters '.' or '/'",
             )
+
+    def _type_check(self, name: str, value: Any):
+        """
+        Checks the type of values before setting them
+
+        NOTE: does not check subscripted types within generics as it would be wasteful
+        to check each item within a given collection. Eg if you have a type Dict[str, float],
+        we will only check if the value you're trying to set is a dict
+        """
+        types = getattr(self, "_defined_types", {})
+        t = types.get(name, None)
+
+        if t is None:
+            return value
+        if isinstance(t, typing._GenericAlias):
+            t = eval(t._name.lower())
+            if not isinstance(t, type):
+                warn(
+                    f"Unrecognised type '{t}' provided for attribute '{name}'. Type will not been validated."
+                )
+                return value
+        if isinstance(value, t):
+            return value
+
+        # to be friendly, we'll parse ints and strs into floats, but not the other way around
+        # (to avoid unexpected rounding)
+        if t is float and isinstance(value, (int, str, float)):
+            try:
+                return float(value)
+            except ValueError:
+                pass
+        raise SpeckleException(
+            f"Cannot set '{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
+        )
 
     def add_chunkable_attrs(self, **kwargs: int) -> None:
         """
@@ -244,9 +312,6 @@ class Base(_RegisteringBase):
                 else:
                     count += self._handle_object_count(value, parsed)
         return count
-
-    class Config:
-        extra = Extra.allow
 
 
 class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
