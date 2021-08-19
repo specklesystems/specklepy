@@ -1,9 +1,10 @@
-from logging import error
-from specklepy.logging.exceptions import GraphQLException, SpeckleException
+from specklepy.transports.sqlite import SQLiteTransport
 from typing import Dict, List
 from gql.client import Client
 from gql.gql import gql
 from gql.transport.exceptions import TransportQueryError
+from specklepy.logging.exceptions import GraphQLException, SpeckleException
+from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
 
 class ResourceBase(object):
@@ -40,7 +41,11 @@ class ResourceBase(object):
         if schema:
             return schema.parse_obj(response)
         elif self.schema:
-            return self.schema.parse_obj(response)
+            try:
+                return self.schema.parse_obj(response)
+            except:
+                s = BaseObjectSerializer(read_transport=SQLiteTransport())
+                return s.recompose_base(response)
         else:
             return response
 

@@ -1,6 +1,5 @@
 from typing import Optional, List
 from gql import gql
-from pydantic.main import BaseModel
 from specklepy.api.resource import ResourceBase
 from specklepy.api.models import Commit
 
