@@ -134,7 +134,8 @@ class Base(_RegisteringBase):
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
-        self.__dict__.update(kwargs)
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
     def __repr__(self) -> str:
         return (
@@ -145,6 +146,23 @@ class Base(_RegisteringBase):
 
     def __str__(self) -> str:
         return self.__repr__()
+
+    @classmethod
+    def of_type(cls, speckle_type: str, **kwargs) -> "Base":
+        """
+        Get a plain Base object with a specified speckle_type.
+
+        The speckle_type is protected and cannot be overwritten on a class instance.
+        This is to prevent problems with receiving in other platforms or connectors.
+        However, if you really need a base with a different type, here is a helper
+        to do that for you.
+
+        This is used in the deserialisation of unknown types so their speckle_type
+        can be preserved.
+        """
+        b = cls(**kwargs)
+        b.__dict__.update(speckle_type=speckle_type)
+        return b
 
     def __setitem__(self, name: str, value: Any) -> None:
         self.validate_prop_name(name)

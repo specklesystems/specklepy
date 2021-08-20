@@ -90,7 +90,7 @@ def mesh():
         [1, 2, 3],
         Base(name="detached within a list"),
     ]
-    mesh.origin = Point(value=[4, 2, 0])
+    mesh.origin = Point(x=4, y=2)
     return mesh
 
 
@@ -102,4 +102,5 @@ def base():
     base.vertices = [random.uniform(0, 10) for _ in range(1, 120)]
     base.test_bases = [Base(name=i) for i in range(1, 22)]
     base["@detach"] = Base(name="detached base")
+    base["@revit_thing"] = Base.of_type("SpecialRevitFamily", name="secret tho")
     return base

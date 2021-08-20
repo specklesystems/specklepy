@@ -72,3 +72,9 @@ def test_speckle_type_cannot_be_set(base: Base) -> None:
     assert base.speckle_type == "Base"
     base.speckle_type = "unset"
     assert base.speckle_type == "Base"
+
+
+def test_base_of_custom_speckle_type() -> None:
+    b1 = Base.of_type("BirdHouse", name="Tweety's Crib")
+    assert b1.speckle_type == "BirdHouse"
+    assert b1.name == "Tweety's Crib"
