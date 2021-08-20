@@ -1,3 +1,4 @@
+from specklepy.transports.sqlite import SQLiteTransport
 from specklepy.objects import Base
 from specklepy.transports.memory import MemoryTransport
 from specklepy.api.models import Stream
@@ -19,7 +20,7 @@ class TestObject:
         return stream
 
     def test_object_create(self, client, stream, base):
-        transport = MemoryTransport()
+        transport = SQLiteTransport()
         s = BaseObjectSerializer(write_transports=[transport], read_transport=transport)
         _, base_dict = s.traverse_base(base)
         obj_id = client.object.create(stream_id=stream.id, objects=[base_dict])[0]
