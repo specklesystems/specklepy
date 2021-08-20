@@ -218,7 +218,7 @@ class Base(_RegisteringBase):
         if t is None:
             return value
 
-        if isinstance(t, typing._GenericAlias):
+        if t.__module__ == "typing":
             origin = getattr(t, "__origin__")
             t = t.__args__ if origin is typing.Union else origin
             if not isinstance(t, (type, tuple)):
