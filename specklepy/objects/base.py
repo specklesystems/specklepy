@@ -9,6 +9,61 @@ from specklepy.objects.units import get_units_from_string
 
 PRIMITIVES = (int, float, str, bool)
 
+# to remove from dir() when calling get_member_names()
+REMOVE_FROM_DIR = {
+    "Config",
+    "_Base__dict_helper",
+    "__annotations__",
+    "__class__",
+    "__delattr__",
+    "__dict__",
+    "__dir__",
+    "__doc__",
+    "__eq__",
+    "__format__",
+    "__ge__",
+    "__getattribute__",
+    "__getitem__",
+    "__gt__",
+    "__hash__",
+    "__init__",
+    "__init_subclass__",
+    "__le__",
+    "__lt__",
+    "__module__",
+    "__ne__",
+    "__new__",
+    "__reduce__",
+    "__reduce_ex__",
+    "__repr__",
+    "__setattr__",
+    "__setitem__",
+    "__sizeof__",
+    "__str__",
+    "__subclasshook__",
+    "__weakref__",
+    "_chunk_size_default",
+    "_chunkable",
+    "_count_descendants",
+    "_defined_types",
+    "_detachable",
+    "_handle_object_count",
+    "_type_check",
+    "_type_registry",
+    "_units",
+    "add_chunkable_attrs",
+    "add_detachable_attrs",
+    "get_children_count",
+    "get_dynamic_member_names",
+    "get_id",
+    "get_member_names",
+    "get_registered_type",
+    "get_typed_member_names",
+    "to_dict",
+    "update_forward_refs",
+    "validate_prop_name",
+}
+
 
 class _RegisteringBase:
     """
@@ -88,12 +143,6 @@ class Base(_RegisteringBase):
             f"totalChildrenCount: {self.totalChildrenCount})"
         )
 
-    @classmethod
-    def of_type(self, speckle_type: str):
-        b = Base()
-        b.__setattr__("speckle_type", speckle_type, True)
-        return b
-
     def __str__(self) -> str:
         return self.__repr__()
 
@@ -104,7 +153,7 @@ class Base(_RegisteringBase):
     def __getitem__(self, name: str) -> Any:
         return self.__dict__[name]
 
-    def __setattr__(self, name: str, value: Any, override_type: bool = False) -> None:
+    def __setattr__(self, name: str, value: Any) -> None:
         """
         Type checking, guard attribute, and property set mechanism.
 
@@ -112,9 +161,6 @@ class Base(_RegisteringBase):
 
         This also performs a type check if the attribute is type hinted.
         """
-        if override_type and name == "speckle_type" and isinstance(value, str):
-            super().__setattr__(name, value)
-            return
         if name == "speckle_type":
             # not sure if we should raise an exception here??
             # raise SpeckleException(
@@ -252,16 +298,14 @@ class Base(_RegisteringBase):
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
-        attrs = list(self.__dict__.keys())
-        properties = [
+        attrs = set(self.__dict__.keys())
+        attr_dir = set(dir(self)) - REMOVE_FROM_DIR - attrs
+        props = {
             name
-            for name in dir(self)
-            if not name.startswith("_")
-            and name
-            != "fields"  # soon to be removed as this pydantic prop is depreciated
-            and isinstance(getattr(type(self), name, None), property)
-        ]
-        return attrs + properties
+            for name in attr_dir
+            if not name.startswith("_") and not callable(getattr(self, name))
+        }
+        return list(attrs | props)
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""

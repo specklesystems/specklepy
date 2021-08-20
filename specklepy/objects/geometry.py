@@ -130,7 +130,9 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 200
             raise ValueError("Points array malformed: length%3 != 0.")
 
         values = iter(self.value)
-        return [Point(v, next(values), next(values), units=self.units) for v in values]
+        return [
+            Point(x=v, y=next(values), z=next(values), units=self.units) for v in values
+        ]
 
 
 class Curve(
@@ -160,7 +162,9 @@ class Curve(
             raise ValueError("Points array malformed: length%3 != 0.")
 
         values = iter(self.points)
-        return [Point(v, next(values), next(values), units=self.units) for v in values]
+        return [
+            Point(x=v, y=next(values), z=next(values), units=self.units) for v in values
+        ]
 
 
 class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):

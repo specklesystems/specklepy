@@ -268,7 +268,7 @@ class BaseObjectSerializer:
         object_type = Base.get_registered_type(speckle_type)
 
         # initialise the base object using `speckle_type` fall back to base if needed
-        base = object_type() if object_type else Base.of_type(speckle_type=speckle_type)
+        base = object_type() if object_type else Base(speckle_type=speckle_type)
         # get total children count
         if "__closure" in obj:
             if not self.read_transport:
