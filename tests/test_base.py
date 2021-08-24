@@ -1,7 +1,9 @@
 import pytest
+from typing import Dict, List
 from specklepy.objects import Base
 from specklepy.api import operations
 from contextlib import ExitStack as does_not_raise
+from specklepy.logging.exceptions import SpeckleException
 
 
 @pytest.mark.parametrize(
@@ -78,3 +80,33 @@ def test_base_of_custom_speckle_type() -> None:
     b1 = Base.of_type("BirdHouse", name="Tweety's Crib")
     assert b1.speckle_type == "BirdHouse"
     assert b1.name == "Tweety's Crib"
+
+
+class FrozenYoghurt(Base):
+    """Testing type checking"""
+
+    servings: int
+    flavours: List[str] = None  # list item types won't be checked
+    customer: str
+    add_ons: Dict[str, float]  # dict item types won't be checked
+    price: float = 0.0
+
+
+def test_type_checking() -> None:
+    order = FrozenYoghurt()
+
+    order.servings = 2
+    order.price = "7"  # will get converted
+    order.customer = "izzy"
+
+    with pytest.raises(SpeckleException):
+        order.flavours = "not a list"
+    with pytest.raises(SpeckleException):
+        order.servings = "five"
+    with pytest.raises(SpeckleException):
+        order.add_ons = ["sprinkles"]
+
+    order.add_ons = {"sprinkles": 0.2, "chocolate": 1.0}
+    order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
+
+    assert order.price == 7.0

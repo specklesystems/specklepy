@@ -224,7 +224,7 @@ class Base(_RegisteringBase):
 
     def _type_check(self, name: str, value: Any):
         """
-        Checks the type of values before setting them
+        Lightweight type checking of values before setting them
 
         NOTE: Does not check subscripted types within generics as the performance hit of checking
         each item within a given collection isn't worth it. Eg if you have a type Dict[str, float],
