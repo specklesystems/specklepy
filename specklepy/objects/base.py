@@ -226,9 +226,9 @@ class Base(_RegisteringBase):
         """
         Checks the type of values before setting them
 
-        NOTE: does not check subscripted types within generics as it would be wasteful
-        to check each item within a given collection. Eg if you have a type Dict[str, float],
-        we will only check if the value you're trying to set is a dict
+        NOTE: Does not check subscripted types within generics as the performance hit of checking
+        each item within a given collection isn't worth it. Eg if you have a type Dict[str, float],
+        we will only check if the value you're trying to set is a dict.
         """
         types = getattr(self, "_defined_types", {})
         t = types.get(name, None)
@@ -256,8 +256,9 @@ class Base(_RegisteringBase):
                 pass
         if t is str:
             return str(value)
+
         raise SpeckleException(
-            f"Cannot set '{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
+            f"Cannot set '{self.__class__.__name__}.{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
         )
 
     def add_chunkable_attrs(self, **kwargs: int) -> None:
@@ -287,43 +288,42 @@ class Base(_RegisteringBase):
     def units(self, value: str):
         self._units = get_units_from_string(value)
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convenience method to view the whole base object as a dict"""
-        base_dict = self.__dict__
-        for key, value in base_dict.items():
-            if not value or isinstance(value, PRIMITIVES):
-                continue
-            else:
-                base_dict[key] = self.__dict_helper(value)
-        return base_dict
+    # def to_dict(self) -> Dict[str, Any]:
+    #     """Convenience method to view the whole base object as a dict"""
+    #     base_dict = self.__dict__
+    #     for key, value in base_dict.items():
+    #         if not value or isinstance(value, PRIMITIVES):
+    #             continue
+    #         else:
+    #             base_dict[key] = self.__dict_helper(value)
+    #     return base_dict
 
-    def __dict_helper(self, obj: Any) -> Any:
-        if not obj or isinstance(obj, PRIMITIVES):
-            return obj
-        if isinstance(obj, Base):
-            return self.__dict_helper(obj.__dict__)
-        if isinstance(obj, (list, set)):
-            return [self.__dict_helper(v) for v in obj]
-        if not isinstance(obj, dict):
-            raise SpeckleException(
-                message=f"Could not convert to dict due to unrecognized type: {type(obj)}"
-            )
+    # def __dict_helper(self, obj: Any) -> Any:
+    #     if not obj or isinstance(obj, PRIMITIVES):
+    #         return obj
+    #     if isinstance(obj, Base):
+    #         return self.__dict_helper(obj.__dict__)
+    #     if isinstance(obj, (list, set)):
+    #         return [self.__dict_helper(v) for v in obj]
+    #     if not isinstance(obj, dict):
+    #         raise SpeckleException(
+    #             message=f"Could not convert to dict due to unrecognized type: {type(obj)}"
+    #         )
 
-        for k, v in obj.items():
-            if v and not isinstance(obj, PRIMITIVES):
-                obj[k] = self.__dict_helper(v)
-        return obj
+    #     for k, v in obj.items():
+    #         if v and not isinstance(obj, PRIMITIVES):
+    #             obj[k] = self.__dict_helper(v)
+    #     return obj
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
-        attrs = set(self.__dict__.keys())
-        attr_dir = set(dir(self)) - REMOVE_FROM_DIR - attrs
-        props = {
+        # attrs = set(self.__dict__.keys())
+        attr_dir = list(set(dir(self)) - REMOVE_FROM_DIR)
+        return [
             name
             for name in attr_dir
             if not name.startswith("_") and not callable(getattr(self, name))
-        }
-        return list(attrs | props)
+        ]
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""
@@ -366,7 +366,7 @@ class Base(_RegisteringBase):
 
         return sum(
             self._handle_object_count(value, parsed)
-            for name, value in base.__dict__.items()
+            for name, value in base.get_member_names()
             if not name.startswith("@")
         )
 
