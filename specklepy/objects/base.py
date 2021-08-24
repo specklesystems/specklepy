@@ -45,7 +45,7 @@ REMOVE_FROM_DIR = {
     "_chunk_size_default",
     "_chunkable",
     "_count_descendants",
-    "_defined_types",
+    "_attr_types",
     "_detachable",
     "_handle_object_count",
     "_type_check",
@@ -77,8 +77,8 @@ class _RegisteringBase:
     """
 
     speckle_type: ClassVar[str]
-    _type_registry: ClassVar[Dict[str, Type]] = {}  # should be Type["Base"]
-    _defined_types: ClassVar[Dict[str, Type]] = {}  # but specifying breaks this typing
+    _type_registry: ClassVar[Dict[str, "Base"]] = {}
+    _attr_types: ClassVar[Dict[str, Type]] = {}
 
     class Config:
         validate_assignment = True
@@ -90,7 +90,7 @@ class _RegisteringBase:
 
     def __init_subclass__(
         cls,
-        speckle_type: Optional[str] = None,
+        speckle_type: str = None,
         chunkable: Dict[str, int] = None,
         detachable: Set[str] = None,
         **kwargs: Dict[str, Any],
@@ -111,9 +111,9 @@ class _RegisteringBase:
         cls.speckle_type = speckle_type or cls.__name__
         cls._type_registry[cls.speckle_type] = cls  # type: ignore
         try:
-            cls._defined_types = get_type_hints(cls)
+            cls._attr_types = get_type_hints(cls)
         except Exception:
-            cls._defined_types = getattr(cls, "__annotations__", {})
+            cls._attr_types = getattr(cls, "__annotations__", {})
         if chunkable:
             chunkable = {k: v for k, v in chunkable.items() if isinstance(v, int)}
             cls._chunkable = dict(cls._chunkable, **chunkable)
@@ -130,7 +130,6 @@ class Base(_RegisteringBase):
     _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
     _chunk_size_default: int = 1000
     _detachable: Set[str] = set()  # list of defined detachable props
-    _defined_types: ClassVar[Dict[str, Type]] = {}
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -185,6 +184,7 @@ class Base(_RegisteringBase):
             #     "Cannot override the `speckle_type`. This is set manually by the class or on deserialisation"
             # )
             return
+        # if value is not None:
         value = self._type_check(name, value)
         attr = getattr(self.__class__, name, None)
         if isinstance(attr, property):
@@ -204,7 +204,7 @@ class Base(_RegisteringBase):
         See `objects.geometry` for an example of how this is used with the Brep class definitions
         """
         try:
-            cls._defined_types = get_type_hints(cls)
+            cls._attr_types = get_type_hints(cls)
         except Exception as e:
             warn(f"Could not update forward refs for class {cls.__name__}: {e}")
 
@@ -230,7 +230,7 @@ class Base(_RegisteringBase):
         each item within a given collection isn't worth it. Eg if you have a type Dict[str, float],
         we will only check if the value you're trying to set is a dict.
         """
-        types = getattr(self, "_defined_types", {})
+        types = getattr(self, "_attr_types", {})
         t = types.get(name, None)
 
         if t is None:
@@ -254,7 +254,7 @@ class Base(_RegisteringBase):
                 return float(value)
             except ValueError:
                 pass
-        if t is str:
+        if t is str and value is not None:
             return str(value)
 
         raise SpeckleException(
@@ -327,11 +327,11 @@ class Base(_RegisteringBase):
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""
-        return list(self._defined_types.keys())
+        return list(self._attr_types.keys())
 
     def get_dynamic_member_names(self) -> List[str]:
         """Get all of the names of the dynamic properties of this object"""
-        return list(set(self.__dict__.keys()) - set(self._defined_types.keys()))
+        return list(set(self.__dict__.keys()) - set(self._attr_types.keys()))
 
     def get_children_count(self) -> int:
         """Get the total count of children Base objects"""
@@ -393,6 +393,9 @@ class Base(_RegisteringBase):
                 else:
                     count += self._handle_object_count(value, parsed)
         return count
+
+
+Base.update_forward_refs()
 
 
 class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):

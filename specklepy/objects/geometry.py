@@ -343,7 +343,7 @@ class Brep(
     Trims: List[BrepTrim] = None
     Faces: List[BrepFace] = None
     IsClosed: bool = None
-    Orientation: int = 0
+    Orientation: int = None
 
     def __setattr__(self, name: str, value: Any) -> None:
         if not value:
