@@ -1,4 +1,3 @@
-import json
 from typing import List
 from specklepy.objects.base import Base
 from specklepy.transports.sqlite import SQLiteTransport

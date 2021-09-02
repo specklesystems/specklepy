@@ -5,24 +5,26 @@ GEOMETRY = "Objects.Geometry."
 
 
 class Interval(Base, speckle_type="Objects.Primitive.Interval"):
-    start: float = 0
-    end: float = 0
+    start: float = 0.0
+    end: float = 0.0
 
     def length(self):
         return abs(self.start - self.end)
 
 
 class Point(Base, speckle_type=GEOMETRY + "Point"):
-    x: float = 0
-    y: float = 0
-    z: float = 0
-
-    def __init__(self, x: float = 0, y: float = 0, z: float = 0, **data: Any) -> None:
-        super().__init__(**data)
-        self.x, self.y, self.z = x, y, z
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, id: {self.id}, speckle_type: {self.speckle_type})"
+
+    @classmethod
+    def from_coords(x: float = 0.0, y: float = 0.0, z: float = 0.0):
+        pt = Point()
+        pt.x, pt.y, pt.z = x, y, z
+        return pt
 
 
 class Vector(Point, speckle_type=GEOMETRY + "Vector"):
@@ -92,22 +94,19 @@ class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
     length: float = None
 
 
-class Polyline(Base, speckle_type=GEOMETRY + "Polyline"):
-    value: List[float] = []
+class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 20000}):
+    value: List[float] = None
     closed: bool = None
     domain: Interval = None
     bbox: Box = None
     area: float = None
     length: float = None
 
-    def __init__(self, **data: Any) -> None:
-        super().__init__(**data)
-        self.add_chunkable_attrs(value=20000)
-
     @classmethod
     def from_points(cls, points: List[Point]):
         polyline = cls()
         polyline.units = points[0].units
+        polyline.value = []
         for point in points:
             polyline.value.extend([point.x, point.y, point.z])
         return polyline
@@ -131,10 +130,16 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline"):
             raise ValueError("Points array malformed: length%3 != 0.")
 
         values = iter(self.value)
-        return [Point(v, next(values), next(values), units=self.units) for v in values]
+        return [
+            Point(x=v, y=next(values), z=next(values), units=self.units) for v in values
+        ]
 
 
-class Curve(Base, speckle_type=GEOMETRY + "Curve"):
+class Curve(
+    Base,
+    speckle_type=GEOMETRY + "Curve",
+    chunkable={"points": 20000, "weights": 20000, "knots": 20000},
+):
     degree: int = None
     periodic: bool = None
     rational: bool = None
@@ -148,10 +153,6 @@ class Curve(Base, speckle_type=GEOMETRY + "Curve"):
     area: float = None
     length: float = None
 
-    def __init__(self, **data: Any) -> None:
-        super().__init__(**data)
-        self.add_chunkable_attrs(points=20000, weights=20000, knots=20000)
-
     def as_points(self) -> List[Point]:
         """Converts the `value` attribute to a list of Points"""
         if not self.points:
@@ -161,11 +162,13 @@ class Curve(Base, speckle_type=GEOMETRY + "Curve"):
             raise ValueError("Points array malformed: length%3 != 0.")
 
         values = iter(self.points)
-        return [Point(v, next(values), next(values), units=self.units) for v in values]
+        return [
+            Point(x=v, y=next(values), z=next(values), units=self.units) for v in values
+        ]
 
 
 class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
-    segments: List[Base] = []
+    segments: List[Base] = None
     domain: Interval = None
     closed: bool = None
     bbox: Box = None
@@ -187,7 +190,16 @@ class Extrusion(Base, speckle_type=GEOMETRY + "Extrusion"):
     bbox: Box = None
 
 
-class Mesh(Base, speckle_type=GEOMETRY + "Mesh"):
+class Mesh(
+    Base,
+    speckle_type=GEOMETRY + "Mesh",
+    chunkable={
+        "vertices": 2000,
+        "faces": 2000,
+        "colors": 2000,
+        "textureCoordinates": 2000,
+    },
+):
     vertices: List[float] = None
     faces: List[int] = None
     colors: List[int] = None
@@ -195,12 +207,6 @@ class Mesh(Base, speckle_type=GEOMETRY + "Mesh"):
     bbox: Box = None
     area: float = None
     volume: float = None
-
-    def __init__(self, **data) -> None:
-        super().__init__(**data)
-        self.add_chunkable_attrs(
-            vertices=2000, faces=2000, colors=2000, textureCoordinates=2000
-        )
 
 
 class Surface(Base, speckle_type=GEOMETRY + "Surface"):
@@ -231,7 +237,8 @@ class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
 
     @property
     def _loops(self):
-        return [self._Brep.Loops[index] for index in self.LoopIndices]
+        if self.LoopIndices:
+            return [self._Brep.Loops[i] for i in self.LoopIndices]
 
 
 class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
@@ -253,7 +260,8 @@ class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
 
     @property
     def _trims(self):
-        return [self._Brep.Trims[i] for i in self.TrimIndices]
+        if self.TrimIndices:
+            return [self._Brep.Trims[i] for i in self.TrimIndices]
 
     @property
     def _curve(self):
@@ -272,7 +280,8 @@ class BrepLoop(Base, speckle_type=GEOMETRY + "BrepLoop"):
 
     @property
     def _trims(self):
-        return [self._Brep.Trims[i] for i in self.TrimIndices]
+        if self.TrimIndices:
+            return [self._Brep.Trims[i] for i in self.TrimIndices]
 
 
 class BrepTrim(Base, speckle_type=GEOMETRY + "BrepTrim"):
@@ -305,41 +314,41 @@ class BrepTrim(Base, speckle_type=GEOMETRY + "BrepTrim"):
         return self._Brep.Curve2D[self.CurveIndex]
 
 
-class Brep(Base, speckle_type=GEOMETRY + "Brep"):
+class Brep(
+    Base,
+    speckle_type=GEOMETRY + "Brep",
+    chunkable={
+        "Surfaces": 200,
+        "Curve3D": 200,
+        "Curve2D": 200,
+        "Vertices": 5000,
+        "Edges": 5000,
+        "Loops": 5000,
+        "Trims": 5000,
+        "Faces": 5000,
+    },
+    detachable={"displayValue"},
+):
     provenance: str = None
     bbox: Box = None
     area: float = None
     volume: float = None
     displayValue: Mesh = None
-    Surfaces: List[Surface] = []
-    Curve3D: List[Base] = []
-    Curve2D: List[Base] = []
-    Vertices: List[Point] = []
-    Edges: List[BrepEdge] = []
-    Loops: List[BrepLoop] = []
-    Trims: List[BrepTrim] = []
-    Faces: List[BrepFace] = []
+    Surfaces: List[Surface] = None
+    Curve3D: List[Base] = None
+    Curve2D: List[Base] = None
+    Vertices: List[Point] = None
+    Edges: List[BrepEdge] = None
+    Loops: List[BrepLoop] = None
+    Trims: List[BrepTrim] = None
+    Faces: List[BrepFace] = None
     IsClosed: bool = None
-    Orientation: int = 0
-
-    def __init__(self, **data: Any) -> None:
-        super().__init__(**data)
-        self.add_detachable_attrs({"displayValue"})
-        self.add_chunkable_attrs(
-            Surfaces=200,
-            Curve3D=200,
-            Curve2D=200,
-            Vertices=5000,
-            Edges=5000,
-            Loops=5000,
-            Trims=5000,
-            Faces=5000,
-        )
+    Orientation: int = None
 
     def __setattr__(self, name: str, value: Any) -> None:
         if not value:
             return
-        if name in ["Edges", "Loops", "Trims", "Faces"]:
+        if name in {"Edges", "Loops", "Trims", "Faces"}:
             for val in value:
                 val._Brep = self
         super().__setattr__(name, value)

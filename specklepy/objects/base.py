@@ -1,15 +1,71 @@
-from inspect import getattr_static
-from pydantic import BaseModel, validator
-from pydantic.main import Extra
+import typing
+from warnings import warn
+from typing import get_type_hints
 from typing import ClassVar, Dict, List, Optional, Any, Set, Type
 from specklepy.transports.memory import MemoryTransport
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.units import get_units_from_string
 
+
 PRIMITIVES = (int, float, str, bool)
 
+# to remove from dir() when calling get_member_names()
+REMOVE_FROM_DIR = {
+    "Config",
+    "_Base__dict_helper",
+    "__annotations__",
+    "__class__",
+    "__delattr__",
+    "__dict__",
+    "__dir__",
+    "__doc__",
+    "__eq__",
+    "__format__",
+    "__ge__",
+    "__getattribute__",
+    "__getitem__",
+    "__gt__",
+    "__hash__",
+    "__init__",
+    "__init_subclass__",
+    "__le__",
+    "__lt__",
+    "__module__",
+    "__ne__",
+    "__new__",
+    "__reduce__",
+    "__reduce_ex__",
+    "__repr__",
+    "__setattr__",
+    "__setitem__",
+    "__sizeof__",
+    "__str__",
+    "__subclasshook__",
+    "__weakref__",
+    "_chunk_size_default",
+    "_chunkable",
+    "_count_descendants",
+    "_attr_types",
+    "_detachable",
+    "_handle_object_count",
+    "_type_check",
+    "_type_registry",
+    "_units",
+    "add_chunkable_attrs",
+    "add_detachable_attrs",
+    "get_children_count",
+    "get_dynamic_member_names",
+    "get_id",
+    "get_member_names",
+    "get_registered_type",
+    "get_typed_member_names",
+    "to_dict",
+    "update_forward_refs",
+    "validate_prop_name",
+}
 
-class _RegisteringBase(BaseModel):
+
+class _RegisteringBase:
     """
     Private Base model for Speckle types.
 
@@ -21,7 +77,8 @@ class _RegisteringBase(BaseModel):
     """
 
     speckle_type: ClassVar[str]
-    _type_registry: ClassVar[Dict[str, Type["Base"]]] = {}
+    _type_registry: ClassVar[Dict[str, "Base"]] = {}
+    _attr_types: ClassVar[Dict[str, Type]] = {}
 
     class Config:
         validate_assignment = True
@@ -33,7 +90,9 @@ class _RegisteringBase(BaseModel):
 
     def __init_subclass__(
         cls,
-        speckle_type: Optional[str] = None,
+        speckle_type: str = None,
+        chunkable: Dict[str, int] = None,
+        detachable: Set[str] = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -51,6 +110,15 @@ class _RegisteringBase(BaseModel):
             )
         cls.speckle_type = speckle_type or cls.__name__
         cls._type_registry[cls.speckle_type] = cls  # type: ignore
+        try:
+            cls._attr_types = get_type_hints(cls)
+        except Exception:
+            cls._attr_types = getattr(cls, "__annotations__", {})
+        if chunkable:
+            chunkable = {k: v for k, v in chunkable.items() if isinstance(v, int)}
+            cls._chunkable = dict(cls._chunkable, **chunkable)
+        if detachable:
+            cls._detachable = cls._detachable.union(detachable)
         super().__init_subclass__(**kwargs)
 
 
@@ -63,6 +131,11 @@ class Base(_RegisteringBase):
     _chunk_size_default: int = 1000
     _detachable: Set[str] = set()  # list of defined detachable props
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__()
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
+
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(id: {self.id}, "
@@ -73,6 +146,23 @@ class Base(_RegisteringBase):
     def __str__(self) -> str:
         return self.__repr__()
 
+    @classmethod
+    def of_type(cls, speckle_type: str, **kwargs) -> "Base":
+        """
+        Get a plain Base object with a specified speckle_type.
+
+        The speckle_type is protected and cannot be overwritten on a class instance.
+        This is to prevent problems with receiving in other platforms or connectors.
+        However, if you really need a base with a different type, here is a helper
+        to do that for you.
+
+        This is used in the deserialisation of unknown types so their speckle_type
+        can be preserved.
+        """
+        b = cls(**kwargs)
+        b.__dict__.update(speckle_type=speckle_type)
+        return b
+
     def __setitem__(self, name: str, value: Any) -> None:
         self.validate_prop_name(name)
         self.__dict__[name] = value
@@ -82,18 +172,41 @@ class Base(_RegisteringBase):
 
     def __setattr__(self, name: str, value: Any) -> None:
         """
-        Guard attribute and property set mechanism.
+        Type checking, guard attribute, and property set mechanism.
 
         The `speckle_type` is a protected class attribute it must not be overridden.
+
+        This also performs a type check if the attribute is type hinted.
         """
-        if name != "speckle_type":
-            attr = getattr(self.__class__, name, None)
-            if isinstance(attr, property):
-                try:
-                    attr.__set__(self, value)
-                except AttributeError:
-                    pass  # the prop probably doesn't have a setter
-            super().__setattr__(name, value)
+        if name == "speckle_type":
+            # not sure if we should raise an exception here??
+            # raise SpeckleException(
+            #     "Cannot override the `speckle_type`. This is set manually by the class or on deserialisation"
+            # )
+            return
+        # if value is not None:
+        value = self._type_check(name, value)
+        attr = getattr(self.__class__, name, None)
+        if isinstance(attr, property):
+            try:
+                attr.__set__(self, value)
+            except AttributeError:
+                pass  # the prop probably doesn't have a setter
+        super().__setattr__(name, value)
+
+    @classmethod
+    def update_forward_refs(cls) -> None:
+        """
+        Attempts to populate the internal defined types dict for type checking sometime after defining the class.
+        This is already done when defining the class, but can be called again if references to undefined types were
+        included.
+
+        See `objects.geometry` for an example of how this is used with the Brep class definitions
+        """
+        try:
+            cls._attr_types = get_type_hints(cls)
+        except Exception as e:
+            warn(f"Could not update forward refs for class {cls.__name__}: {e}")
 
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
@@ -108,6 +221,45 @@ class Base(_RegisteringBase):
             raise ValueError(
                 "Invalid Name: Base member names cannot contain characters '.' or '/'",
             )
+
+    def _type_check(self, name: str, value: Any):
+        """
+        Lightweight type checking of values before setting them
+
+        NOTE: Does not check subscripted types within generics as the performance hit of checking
+        each item within a given collection isn't worth it. Eg if you have a type Dict[str, float],
+        we will only check if the value you're trying to set is a dict.
+        """
+        types = getattr(self, "_attr_types", {})
+        t = types.get(name, None)
+
+        if t is None:
+            return value
+
+        if t.__module__ == "typing":
+            origin = getattr(t, "__origin__")
+            t = t.__args__ if origin is typing.Union else origin
+            if not isinstance(t, (type, tuple)):
+                warn(
+                    f"Unrecognised type '{t}' provided for attribute '{name}'. Type will not been validated."
+                )
+                return value
+        if isinstance(value, t):
+            return value
+
+        # to be friendly, we'll parse ints and strs into floats, but not the other way around
+        # (to avoid unexpected rounding)
+        if t is float and isinstance(value, (int, str, float)):
+            try:
+                return float(value)
+            except ValueError:
+                pass
+        if t is str and value is not None:
+            return str(value)
+
+        raise SpeckleException(
+            f"Cannot set '{self.__class__.__name__}.{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
+        )
 
     def add_chunkable_attrs(self, **kwargs: int) -> None:
         """
@@ -136,53 +288,50 @@ class Base(_RegisteringBase):
     def units(self, value: str):
         self._units = get_units_from_string(value)
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convenience method to view the whole base object as a dict"""
-        base_dict = self.__dict__
-        for key, value in base_dict.items():
-            if not value or isinstance(value, PRIMITIVES):
-                continue
-            else:
-                base_dict[key] = self.__dict_helper(value)
-        return base_dict
+    # def to_dict(self) -> Dict[str, Any]:
+    #     """Convenience method to view the whole base object as a dict"""
+    #     base_dict = self.__dict__
+    #     for key, value in base_dict.items():
+    #         if not value or isinstance(value, PRIMITIVES):
+    #             continue
+    #         else:
+    #             base_dict[key] = self.__dict_helper(value)
+    #     return base_dict
 
-    def __dict_helper(self, obj: Any) -> Any:
-        if not obj or isinstance(obj, PRIMITIVES):
-            return obj
-        if isinstance(obj, Base):
-            return self.__dict_helper(obj.__dict__)
-        if isinstance(obj, (list, set)):
-            return [self.__dict_helper(v) for v in obj]
-        if not isinstance(obj, dict):
-            raise SpeckleException(
-                message=f"Could not convert to dict due to unrecognized type: {type(obj)}"
-            )
+    # def __dict_helper(self, obj: Any) -> Any:
+    #     if not obj or isinstance(obj, PRIMITIVES):
+    #         return obj
+    #     if isinstance(obj, Base):
+    #         return self.__dict_helper(obj.__dict__)
+    #     if isinstance(obj, (list, set)):
+    #         return [self.__dict_helper(v) for v in obj]
+    #     if not isinstance(obj, dict):
+    #         raise SpeckleException(
+    #             message=f"Could not convert to dict due to unrecognized type: {type(obj)}"
+    #         )
 
-        for k, v in obj.items():
-            if v and not isinstance(obj, PRIMITIVES):
-                obj[k] = self.__dict_helper(v)
-        return obj
+    #     for k, v in obj.items():
+    #         if v and not isinstance(obj, PRIMITIVES):
+    #             obj[k] = self.__dict_helper(v)
+    #     return obj
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
-        attrs = list(self.__dict__.keys())
-        properties = [
+        # attrs = set(self.__dict__.keys())
+        attr_dir = list(set(dir(self)) - REMOVE_FROM_DIR)
+        return [
             name
-            for name in dir(self)
-            if not name.startswith("_")
-            and name
-            != "fields"  # soon to be removed as this pydantic prop is depreciated
-            and isinstance(getattr(type(self), name, None), property)
+            for name in attr_dir
+            if not name.startswith("_") and not callable(getattr(self, name))
         ]
-        return attrs + properties
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""
-        return list(self.__fields__.keys())
+        return list(self._attr_types.keys())
 
     def get_dynamic_member_names(self) -> List[str]:
         """Get all of the names of the dynamic properties of this object"""
-        return list(set(self.__dict__.keys()) - set(self.__fields__.keys()))
+        return list(set(self.__dict__.keys()) - set(self._attr_types.keys()))
 
     def get_children_count(self) -> int:
         """Get the total count of children Base objects"""
@@ -217,7 +366,7 @@ class Base(_RegisteringBase):
 
         return sum(
             self._handle_object_count(value, parsed)
-            for name, value in base.__dict__.items()
+            for name, value in base.get_member_names()
             if not name.startswith("@")
         )
 
@@ -245,9 +394,12 @@ class Base(_RegisteringBase):
                     count += self._handle_object_count(value, parsed)
         return count
 
-    class Config:
-        extra = Extra.allow
+
+Base.update_forward_refs()
 
 
 class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
-    data: List[Any] = []
+    data: List[Any] = None
+
+    def __init__(self) -> None:
+        self.data = []

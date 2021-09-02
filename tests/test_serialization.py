@@ -19,6 +19,7 @@ class TestSerialization:
         assert base.get_id() == deserialized.get_id()
         assert base.units == "mm"
         assert isinstance(base.test_bases[0], Base)
+        assert base["@revit_thing"].speckle_type == "SpecialRevitFamily"
         assert base["@detach"].name == deserialized["@detach"].name
 
     def test_detaching(self, mesh):
@@ -60,7 +61,7 @@ class TestSerialization:
         assert isinstance(received, FakeMesh)
         assert received.vertices == mesh.vertices
         assert isinstance(received.origin, Point)
-        assert received.origin.value == mesh.origin.value
+        assert received.origin.x == mesh.origin.x
         # not comparing hashes as order is not guaranteed back from server
 
         mesh.id = hash  # populate with decomposed id for use in proceeding tests

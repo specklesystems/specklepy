@@ -15,6 +15,7 @@ python = "^3.6.5"
 pydantic = "^1.7.3"
 appdirs = "^1.4.4"
 gql = {version = ">=3.0.0a6", extras = ["all"], allow-prereleases = true}
+ujson = "^4.1.0"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"
