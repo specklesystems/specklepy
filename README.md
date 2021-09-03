@@ -3,7 +3,7 @@
   Speckle | specklepy 🐍
 </h1>
 <h3 align="center">
-    The Python SDK for Speckle
+    The Python SDK
 </h3>
 <p align="center"><b>Speckle</b> is the data infrastructure for the AEC industry.</p><br/>
 
@@ -43,7 +43,7 @@ Give Speckle a try in no time by:
 
 # Repo structure
 
-## Introduction
+## Usage
 
 Send and receive data from a Speckle Server with `operations`, interact with the Speckle API with the `SpeckleClient`, create and extend your own custom Speckle Objects with `Base`, and more! 
 
