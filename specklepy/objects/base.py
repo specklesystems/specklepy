@@ -405,3 +405,45 @@ class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
 
     def __init__(self) -> None:
         self.data = []
+
+    @classmethod
+    def from_objects(cls, objects: List[Base]) -> 'DataChunk':
+        data_chunk = cls()
+        if len(objects) == 0:
+            return data_chunk
+
+        speckle_type = objects[0].speckle_type
+
+        for obj in objects:
+            if speckle_type != obj.speckle_type:
+                raise SpeckleException(
+                    'All objects in chunk should have the same speckle_type. '
+                    f'Found {speckle_type} and {obj.speckle_type}'
+                )
+            data_chunk.encode_object(object=obj)
+
+        return data_chunk
+
+    @staticmethod
+    def decode_data(data: List[Any], decoder: Callable[[List[Any]], Base]) -> List[Base]:
+        index = 0
+        unchunked_data = []
+        while index < len(data):
+            chunk_length = data[index]
+            chunk_start = int(index + 1)
+            chunk_end = int(chunk_start + chunk_length)
+            chunk_data = data[chunk_start:chunk_end]
+            decoded_data = decoder(chunk_data)
+            if isinstance(decoded_data, Base):
+                decoded_data.id = decoded_data.get_id()
+            unchunked_data.append(decoded_data)
+            index = chunk_end
+        return unchunked_data
+
+    def decode(self, decoder: Callable[[List[Any]], Any]):
+        return self.decode_data(data=self.data, decoder=decoder)
+
+    def encode_object(self, object: Base):
+        chunk = object.to_list()
+        chunk.insert(0, len(chunk))
+        self.data.extend(chunk)

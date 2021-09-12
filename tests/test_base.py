@@ -1,9 +1,10 @@
-import pytest
-from typing import Dict, List
-from specklepy.objects import Base
-from specklepy.api import operations
 from contextlib import ExitStack as does_not_raise
+from typing import Dict, List
+
+import pytest
+from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.objects.base import Base, DataChunk
 
 
 @pytest.mark.parametrize(
@@ -110,3 +111,16 @@ def test_type_checking() -> None:
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
 
     assert order.price == 7.0
+
+
+def test_data_chunk_decoder():
+    chunk = DataChunk()
+    chunk.data = [
+        5, 1, 1, 1, 1, 1,
+        4, 1, 1, 1, 1,
+        3, 1, 1, 1,
+        2, 1, 1,
+        1, 1
+    ]
+
+    assert chunk.decode(decoder=sum) == [5, 4, 3, 2, 1]
