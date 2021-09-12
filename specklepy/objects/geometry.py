@@ -595,13 +595,13 @@ class Brep(
     Base,
     speckle_type=GEOMETRY + "Brep",
     chunkable={
-        "Surfaces": 200,
-        "Curve3D": 200,
-        "Curve2D": 200,
-        "Vertices": 5000,
+        "SurfacesValue": 200,
+        "Curve3DValues": 200,
+        "Curve2DValues": 200,
+        "VerticesValue": 5000,
         "Edges": 5000,
         "Loops": 5000,
-        "Trims": 5000,
+        "TrimsValue": 5000,
         "Faces": 5000,
     },
     detachable={"displayValue"},
@@ -612,24 +612,97 @@ class Brep(
     area: float = None
     volume: float = None
     displayValue: Mesh = None
-    Surfaces: List[Surface] = None
-    Curve3D: List[Base] = None
-    Curve2D: List[Base] = None
-    Vertices: List[Point] = None
-    Edges: List[BrepEdge] = None
-    Loops: List[BrepLoop] = None
-    Trims: List[BrepTrim] = None
-    Faces: List[BrepFace] = None
+    SurfacesValue: List[float] = None
+    Curve3DValues: List[float] = None
+    Curve2DValues: List[float] = None
+    VerticesValue: List[float] = None
+    TrimsValue: List[float] = None
     IsClosed: bool = None
     Orientation: int = None
 
-    def __setattr__(self, name: str, value: Any) -> None:
-        if not value:
-            return
-        if name in {"Edges", "Loops", "Trims", "Faces"}:
-            for val in value:
-                val._Brep = self
-        super().__setattr__(name, value)
+    def _inject_self_into_children(self, children: Optional[List[Base]]) -> List[Base]:
+        if children is None:
+            return children
+
+        for child in children:
+            child._Brep = self
+        return children
+
+    @property
+    def Edges(self) -> List[BrepEdge]:
+        return self._inject_self_into_children(self._Edges)
+
+    @Edges.setter
+    def Edges(self, value: List[BrepEdge]):
+        self._Edges = value
+
+    @property
+    def Loops(self) -> List[BrepLoop]:
+        return self._inject_self_into_children(self._Loops)
+
+    @Loops.setter
+    def Loops(self, value: List[BrepLoop]):
+        self._Loops = value
+
+    @property
+    def Faces(self) -> List[BrepFace]:
+        return self._inject_self_into_children(self._Faces)
+
+    @Faces.setter
+    def Faces(self, value: List[BrepFace]):
+        self._Faces = value
+
+    @property
+    def Surfaces(self) -> List[Surface]:
+        if self.SurfacesValue is None:
+            return None
+        return DataChunk.decode_data(self.SurfacesValue, Surface.from_list)
+
+    @Surfaces.setter
+    def Surfaces(self, value: List[Surface]):
+        self.SurfacesValue = DataChunk.from_objects(value).data
+
+    @property
+    def Curve3D(self) -> List[Base]:
+        if self.Curve3DValues is None:
+            return None
+        return CurveArray(self.Curve3DValues).to_curves()
+
+    @Curve3D.setter
+    def Curve3D(self, value: List[Base]):
+        print(value)
+        self.Curve3DValues = CurveArray.from_curves(value).array
+
+    @property
+    def Curve2D(self) -> List[Base]:
+        if self.Curve2DValues is None:
+            return None
+        return CurveArray(self.Curve2DValues).to_curves()
+
+    @Curve2D.setter
+    def Curve2D(self, value: List[Surface]):
+        self.Curve2DValues = CurveArray.from_curves(value).array
+
+    @property
+    def Vertices(self) -> List[Point]:
+        if self.VerticesValue is None:
+            return None
+        return DataChunk.decode_data(self.VerticesValue, Point.from_list)
+
+    @Vertices.setter
+    def Vertices(self, value: List[Point]):
+        self.VerticesValue = DataChunk.from_objects(value).data
+
+    @property
+    def Trims(self) -> List[BrepTrim]:
+        if self.TrimsValue is None:
+            return None
+        trims = DataChunk.decode_data(self.TrimsValue, BrepTrim.from_list)
+        return self._inject_self_into_children(trims)
+
+    @Trims.setter
+    def Trims(self, value: List[BrepTrim]):
+        self.TrimsValue = DataChunk.from_objects(value).data
 
 
 BrepEdge.update_forward_refs()

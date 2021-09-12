@@ -301,3 +301,38 @@ def test_to_and_from_list(object_name: str, geometry_objects_dict):
     assert decoded_object.get_id() == object.get_id()
 
 
+@pytest.mark.parametrize('attribute_name,serialized_name,deserializer', [
+    ('Surfaces', 'SurfacesValue', Surface.from_list),
+    ('Curve3D', 'Curve3DValues', CurveArray.curve_from_list),
+    ('Curve2D', 'Curve2DValues', CurveArray.curve_from_list),
+    ('Vertices', 'VerticesValue', Point.from_list),
+    ('Trims', 'TrimsValue', BrepTrim.from_list)
+])
+def test_brep_list_serializable_attributes(
+        brep: Brep, attribute_name: str, serialized_name: str,
+        deserializer: Callable):
+
+    deserialized_list = DataChunk.decode_data(
+        data=getattr(brep, serialized_name), decoder=deserializer
+    )
+    assert len(deserialized_list) != 0
+    assert len(deserialized_list) == len(getattr(brep, attribute_name))
+
+    # check the attribute getter works as expected
+    for i, item in enumerate(deserialized_list):
+        assert item.get_id() == getattr(brep, attribute_name)[i].get_id()
+
+    # check the attribute setter works as expected
+    setattr(brep, attribute_name, [])
+    assert getattr(brep, serialized_name) == []
+
+
+def test_serialized_brep_attributes(brep: Brep):
+    transport = MemoryTransport()
+    serialized = operations.serialize(brep, [transport])
+    serialized_dict = json.loads(serialized)
+
+    removed_keys = ['Surfaces', 'Curve3D', 'Curve2D', 'Vertices', 'Trims']
+
+    for k in removed_keys:
+        assert k not in serialized_dict.keys()
