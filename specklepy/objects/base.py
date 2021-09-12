@@ -62,6 +62,8 @@ REMOVE_FROM_DIR = {
     "to_dict",
     "update_forward_refs",
     "validate_prop_name",
+    "from_list",
+    "to_list",
 }
 
 
