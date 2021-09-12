@@ -95,6 +95,7 @@ class _RegisteringBase:
         speckle_type: str = None,
         chunkable: Dict[str, int] = None,
         detachable: Set[str] = None,
+        serialize_ignore: Set[str] = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -121,6 +122,9 @@ class _RegisteringBase:
             cls._chunkable = dict(cls._chunkable, **chunkable)
         if detachable:
             cls._detachable = cls._detachable.union(detachable)
+        if serialize_ignore:
+            cls._serialize_ignore = cls._serialize_ignore.union(
+                serialize_ignore)
         super().__init_subclass__(**kwargs)
 
 
@@ -132,6 +136,7 @@ class Base(_RegisteringBase):
     _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
     _chunk_size_default: int = 1000
     _detachable: Set[str] = set()  # list of defined detachable props
+    _serialize_ignore: Set[str] = set()
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -319,8 +324,8 @@ class Base(_RegisteringBase):
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
-        # attrs = set(self.__dict__.keys())
-        attr_dir = list(set(dir(self)) - REMOVE_FROM_DIR)
+        ignored_attributes = REMOVE_FROM_DIR.union(self._serialize_ignore)
+        attr_dir = list(set(dir(self)) - ignored_attributes)
         return [
             name
             for name in attr_dir

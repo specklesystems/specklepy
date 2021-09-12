@@ -605,6 +605,7 @@ class Brep(
         "Faces": 5000,
     },
     detachable={"displayValue"},
+    serialize_ignore={"Surfaces", "Curve3D", "Curve2D", "Vertices", "Trims"},
 ):
     provenance: str = None
     bbox: Box = None
