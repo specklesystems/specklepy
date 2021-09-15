@@ -1,11 +1,11 @@
 import typing
+from typing import (Any, Callable, ClassVar, Dict, List, Optional, Set, Type,
+                    get_type_hints)
 from warnings import warn
-from typing import get_type_hints
-from typing import ClassVar, Dict, List, Optional, Any, Set, Type
-from specklepy.transports.memory import MemoryTransport
+
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.units import get_units_from_string
-
+from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -295,33 +295,6 @@ class Base(_RegisteringBase):
     def units(self, value: str):
         self._units = get_units_from_string(value)
 
-    # def to_dict(self) -> Dict[str, Any]:
-    #     """Convenience method to view the whole base object as a dict"""
-    #     base_dict = self.__dict__
-    #     for key, value in base_dict.items():
-    #         if not value or isinstance(value, PRIMITIVES):
-    #             continue
-    #         else:
-    #             base_dict[key] = self.__dict_helper(value)
-    #     return base_dict
-
-    # def __dict_helper(self, obj: Any) -> Any:
-    #     if not obj or isinstance(obj, PRIMITIVES):
-    #         return obj
-    #     if isinstance(obj, Base):
-    #         return self.__dict_helper(obj.__dict__)
-    #     if isinstance(obj, (list, set)):
-    #         return [self.__dict_helper(v) for v in obj]
-    #     if not isinstance(obj, dict):
-    #         raise SpeckleException(
-    #             message=f"Could not convert to dict due to unrecognized type: {type(obj)}"
-    #         )
-
-    #     for k, v in obj.items():
-    #         if v and not isinstance(obj, PRIMITIVES):
-    #             obj[k] = self.__dict_helper(v)
-    #     return obj
-
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
         ignored_attributes = REMOVE_FROM_DIR.union(self._serialize_ignore)
@@ -357,9 +330,8 @@ class Base(_RegisteringBase):
         Returns:
             str -- the hash (id) of the fully serialized object
         """
-        from specklepy.serialization.base_object_serializer import (
-            BaseObjectSerializer,
-        )
+        from specklepy.serialization.base_object_serializer import \
+            BaseObjectSerializer
 
         serializer = BaseObjectSerializer()
         if decompose:
