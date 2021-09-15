@@ -113,14 +113,3 @@ def test_type_checking() -> None:
     assert order.price == 7.0
 
 
-def test_data_chunk_decoder():
-    chunk = DataChunk()
-    chunk.data = [
-        5, 1, 1, 1, 1, 1,
-        4, 1, 1, 1, 1,
-        3, 1, 1, 1,
-        2, 1, 1,
-        1, 1
-    ]
-
-    assert chunk.decode(decoder=sum) == [5, 4, 3, 2, 1]

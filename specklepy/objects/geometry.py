@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Any, List, Optional
 
-from .base import Base, DataChunk
-from .encoding import CurveArray, CurveTypeEncoding
+from .base import Base
+from .encoding import CurveArray, CurveTypeEncoding, ObjectArray
 from .units import get_encoding_from_units, get_units_from_encoding
 
 GEOMETRY = "Objects.Geometry."
@@ -656,11 +656,11 @@ class Brep(
     def Surfaces(self) -> List[Surface]:
         if self.SurfacesValue is None:
             return None
-        return DataChunk.decode_data(self.SurfacesValue, Surface.from_list)
+        return ObjectArray.decode_data(self.SurfacesValue, Surface.from_list)
 
     @Surfaces.setter
     def Surfaces(self, value: List[Surface]):
-        self.SurfacesValue = DataChunk.from_objects(value).data
+        self.SurfacesValue = ObjectArray.from_objects(value).data
 
     @property
     def Curve3D(self) -> List[Base]:
@@ -687,22 +687,22 @@ class Brep(
     def Vertices(self) -> List[Point]:
         if self.VerticesValue is None:
             return None
-        return DataChunk.decode_data(self.VerticesValue, Point.from_list)
+        return ObjectArray.decode_data(self.VerticesValue, Point.from_list)
 
     @Vertices.setter
     def Vertices(self, value: List[Point]):
-        self.VerticesValue = DataChunk.from_objects(value).data
+        self.VerticesValue = ObjectArray.from_objects(value).data
 
     @property
     def Trims(self) -> List[BrepTrim]:
         if self.TrimsValue is None:
             return None
-        trims = DataChunk.decode_data(self.TrimsValue, BrepTrim.from_list)
+        trims = ObjectArray.decode_data(self.TrimsValue, BrepTrim.from_list)
         return self._inject_self_into_children(trims)
 
     @Trims.setter
     def Trims(self, value: List[BrepTrim]):
-        self.TrimsValue = DataChunk.from_objects(value).data
+        self.TrimsValue = ObjectArray.from_objects(value).data
 
 
 BrepEdge.update_forward_refs()

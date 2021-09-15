@@ -118,7 +118,8 @@ class _RegisteringBase:
         except Exception:
             cls._attr_types = getattr(cls, "__annotations__", {})
         if chunkable:
-            chunkable = {k: v for k, v in chunkable.items() if isinstance(v, int)}
+            chunkable = {k: v for k, v in chunkable.items()
+                         if isinstance(v, int)}
             cls._chunkable = dict(cls._chunkable, **chunkable)
         if detachable:
             cls._detachable = cls._detachable.union(detachable)
@@ -133,7 +134,8 @@ class Base(_RegisteringBase):
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
     _units: str = "m"
-    _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
+    # dict of chunkable props and their max chunk size
+    _chunkable: Dict[str, int] = {}
     _chunk_size_default: int = 1000
     _detachable: Set[str] = set()  # list of defined detachable props
     _serialize_ignore: Set[str] = set()
@@ -213,13 +215,15 @@ class Base(_RegisteringBase):
         try:
             cls._attr_types = get_type_hints(cls)
         except Exception as e:
-            warn(f"Could not update forward refs for class {cls.__name__}: {e}")
+            warn(
+                f"Could not update forward refs for class {cls.__name__}: {e}")
 
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
         """Validator for dynamic attribute names."""
         if name in {"", "@"}:
-            raise ValueError("Invalid Name: Base member names cannot be empty strings")
+            raise ValueError(
+                "Invalid Name: Base member names cannot be empty strings")
         if name.startswith("@@"):
             raise ValueError(
                 "Invalid Name: Base member names cannot start with more than one '@'",
@@ -382,45 +386,3 @@ class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
 
     def __init__(self) -> None:
         self.data = []
-
-    @classmethod
-    def from_objects(cls, objects: List[Base]) -> 'DataChunk':
-        data_chunk = cls()
-        if len(objects) == 0:
-            return data_chunk
-
-        speckle_type = objects[0].speckle_type
-
-        for obj in objects:
-            if speckle_type != obj.speckle_type:
-                raise SpeckleException(
-                    'All objects in chunk should have the same speckle_type. '
-                    f'Found {speckle_type} and {obj.speckle_type}'
-                )
-            data_chunk.encode_object(object=obj)
-
-        return data_chunk
-
-    @staticmethod
-    def decode_data(data: List[Any], decoder: Callable[[List[Any]], Base]) -> List[Base]:
-        index = 0
-        unchunked_data = []
-        while index < len(data):
-            chunk_length = data[index]
-            chunk_start = int(index + 1)
-            chunk_end = int(chunk_start + chunk_length)
-            chunk_data = data[chunk_start:chunk_end]
-            decoded_data = decoder(chunk_data)
-            if isinstance(decoded_data, Base):
-                decoded_data.id = decoded_data.get_id()
-            unchunked_data.append(decoded_data)
-            index = chunk_end
-        return unchunked_data
-
-    def decode(self, decoder: Callable[[List[Any]], Any]):
-        return self.decode_data(data=self.data, decoder=decoder)
-
-    def encode_object(self, object: Base):
-        chunk = object.to_list()
-        chunk.insert(0, len(chunk))
-        self.data.extend(chunk)

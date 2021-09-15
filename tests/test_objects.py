@@ -1,9 +1,9 @@
-from specklepy.transports.sqlite import SQLiteTransport
-from specklepy.objects import Base
-from specklepy.transports.memory import MemoryTransport
-from specklepy.api.models import Stream
-from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 import pytest
+from specklepy.api.models import Stream
+from specklepy.objects import Base
+from specklepy.objects.encoding import ObjectArray
+from specklepy.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 class TestObject:
@@ -38,3 +38,14 @@ class TestObject:
         assert fetched_base.name == base.name
         assert isinstance(fetched_base.vertices, list)
         # assert fetched_base["@detach"]["speckle_type"] == "reference"
+
+    def test_object_array_decoder():
+        array = ObjectArray([
+            5, 1, 1, 1, 1, 1,
+            4, 1, 1, 1, 1,
+            3, 1, 1, 1,
+            2, 1, 1,
+            1, 1
+        ])
+
+        assert array.decode(decoder=sum) == [5, 4, 3, 2, 1]

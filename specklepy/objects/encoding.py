@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, List, Type, Union
+from typing import Any, Callable, List, Type
 
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
@@ -40,23 +40,69 @@ def curve_from_list(args: List[float]):
     return curve_type.object_class.from_list(args)
 
 
-class CurveArray:
 
-    def __init__(self, array: List[float]):
-        self.array = array
+class ObjectArray:
+
+    def __init__(self, data: List[float]) -> None:
+        self.data = data
+
+    @classmethod
+    def from_objects(cls, objects: List[Base]) -> 'ObjectArray':
+        data_chunk = cls()
+        if len(objects) == 0:
+            return data_chunk
+
+        speckle_type = objects[0].speckle_type
+
+        for obj in objects:
+            if speckle_type != obj.speckle_type:
+                raise SpeckleException(
+                    'All objects in chunk should have the same speckle_type. '
+                    f'Found {speckle_type} and {obj.speckle_type}'
+                )
+            data_chunk.encode_object(object=obj)
+
+        return data_chunk
+
+    @staticmethod
+    def decode_data(data: List[Any], decoder: Callable[[List[Any]], Base]) -> List[Base]:
+        index = 0
+        unchunked_data = []
+        while index < len(data):
+            chunk_length = data[index]
+            chunk_start = int(index + 1)
+            chunk_end = int(chunk_start + chunk_length)
+            chunk_data = data[chunk_start:chunk_end]
+            decoded_data = decoder(chunk_data)
+            # if isinstance(decoded_data, Base):
+                # decoded_data.id = decoded_data.get_id()
+            unchunked_data.append(decoded_data)
+            index = chunk_end
+        return unchunked_data
+
+    def decode(self, decoder: Callable[[List[Any]], Any]):
+        return self.decode_data(data=self.data, decoder=decoder)
+
+    def encode_object(self, object: Base):
+        chunk = object.to_list()
+        chunk.insert(0, len(chunk))
+        self.data.extend(chunk)
+
+
+class CurveArray(ObjectArray):
 
     @classmethod
     def from_curve(cls, curve: Base) -> 'CurveArray':
-        return cls(array=curve.to_list())
+        return cls(data=curve.to_list())
 
     @classmethod
     def from_curves(cls, curves: List[Base]) -> 'CurveArray':
-        array = []
+        data = []
         for curve in curves:
             curve_list = curve.to_list()
             curve_list.insert(0, len(curve_list))
-            array.extend(curve_list)
-        return cls(array=array)
+            data.extend(curve_list)
+        return cls(data=data)
 
     @staticmethod
     def curve_from_list(args: List[float]) -> Base:
@@ -65,20 +111,14 @@ class CurveArray:
 
     @property
     def type(self) -> CurveTypeEncoding:
-        return CurveTypeEncoding(self.array[0])
+        return CurveTypeEncoding(self.data[0])
 
     def to_curve(self) -> Base:
-        return self.type.object_class.from_list(self.array)
+        return self.type.object_class.from_list(self.data)
+
+    @classmethod
+    def _curve_decoder(cls, data: List[float]) -> Base:
+        return cls(data).to_curve()
 
     def to_curves(self) -> List[Base]:
-        index = 0
-        curves = []
-        while index < len(self.array):
-            chunk_length = self.array[index]
-            chunk_start = int(index + 1)
-            chunk_end = int(chunk_start + chunk_length)
-            chunk_data = self.array[chunk_start:chunk_end]
-            child_array = self.__class__(array=chunk_data)
-            curves.append(child_array.to_curve())
-            index = chunk_end
-        return curves
+        return self.decode(decoder=self._curve_decoder)
