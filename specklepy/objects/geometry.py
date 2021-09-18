@@ -613,19 +613,10 @@ class Brep(
     area: float = None
     volume: float = None
     displayValue: Mesh = None
-
-    # SurfacesValue: List[float] = None
-    # Curve3DValues: List[float] = None
-    # Curve2DValues: List[float] = None
-    # VerticesValue: List[float] = None
-    # TrimsValue: List[float] = None
-
     Surfaces: List[Surface] = None
     Curve3D: List[Base] = None
     Curve2D: List[Base] = None
     Vertices: List[Point] = None
-    # Trims: List[BrepTrim] = None
-
     IsClosed: bool = None
     Orientation: int = None
 
