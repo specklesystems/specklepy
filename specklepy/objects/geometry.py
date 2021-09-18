@@ -613,11 +613,19 @@ class Brep(
     area: float = None
     volume: float = None
     displayValue: Mesh = None
-    SurfacesValue: List[float] = None
-    Curve3DValues: List[float] = None
-    Curve2DValues: List[float] = None
-    VerticesValue: List[float] = None
-    TrimsValue: List[float] = None
+
+    # SurfacesValue: List[float] = None
+    # Curve3DValues: List[float] = None
+    # Curve2DValues: List[float] = None
+    # VerticesValue: List[float] = None
+    # TrimsValue: List[float] = None
+
+    Surfaces: List[Surface] = None
+    Curve3D: List[Base] = None
+    Curve2D: List[Base] = None
+    Vertices: List[Point] = None
+    # Trims: List[BrepTrim] = None
+
     IsClosed: bool = None
     Orientation: int = None
 
@@ -654,59 +662,66 @@ class Brep(
         self._Faces = value
 
     @property
-    def Surfaces(self) -> List[Surface]:
-        if self.SurfacesValue is None:
+    def SurfacesValue(self) -> List[float]:
+        if self.Surfaces is None:
             return None
-        return ObjectArray.decode_data(self.SurfacesValue, Surface.from_list)
+        return ObjectArray.from_objects(self.Surfaces).data
 
-    @Surfaces.setter
-    def Surfaces(self, value: List[Surface]):
-        self.SurfacesValue = ObjectArray.from_objects(value).data
+    @SurfacesValue.setter
+    def SurfacesValue(self, value: List[float]):
+        self.Surfaces = ObjectArray.decode_data(value, Surface.from_list)
 
     @property
-    def Curve3D(self) -> List[Base]:
-        if self.Curve3DValues is None:
+    def Curve3DValues(self) -> List[float]:
+        if self.Curve3D is None:
             return None
+        return CurveArray.from_curves(self.Curve3D).data
+
+    @Curve3DValues.setter
+    def Curve3DValues(self, value: List[float]):
         crv_array = CurveArray()
-        crv_array.data = self.Curve3DValues
-        return crv_array.to_curves()
-
-    @Curve3D.setter
-    def Curve3D(self, value: List[Base]):
-        self.Curve3DValues = CurveArray.from_curves(value).data
+        crv_array.data = value
+        self.Curve3D = crv_array.to_curves()
 
     @property
-    def Curve2D(self) -> List[Base]:
-        if self.Curve2DValues is None:
+    def Curve2DValues(self) -> List[Base]:
+        if self.Curve2D is None:
             return None
+        return CurveArray.from_curves(self.Curve2D).data
+
+    @Curve2DValues.setter
+    def Curve2DValues(self, value: List[float]):
         crv_array = CurveArray()
-        crv_array.data = self.Curve2DValues
-        return crv_array.to_curves()
-
-    @Curve2D.setter
-    def Curve2D(self, value: List[Surface]):
-        self.Curve2DValues = CurveArray.from_curves(value).data
+        crv_array.data = value
+        self.Curve3D = crv_array.to_curves()
 
     @property
-    def Vertices(self) -> List[Point]:
-        if self.VerticesValue is None:
+    def VerticesValue(self) -> List[Point]:
+        if self.Vertices is None:
             return None
-        return ObjectArray.decode_data(self.VerticesValue, Point.from_list)
+        return ObjectArray.from_objects(self.Vertices).data
 
-    @Vertices.setter
-    def Vertices(self, value: List[Point]):
-        self.VerticesValue = ObjectArray.from_objects(value).data
+    @VerticesValue.setter
+    def VerticesValue(self, value: List[float]):
+        self.Vertices = ObjectArray.decode_data(value, Point.from_list)
 
     @property
     def Trims(self) -> List[BrepTrim]:
-        if self.TrimsValue is None:
-            return None
-        trims = ObjectArray.decode_data(self.TrimsValue, BrepTrim.from_list)
-        return self._inject_self_into_children(trims)
+        return self._inject_self_into_children(self._Trims)
 
     @Trims.setter
     def Trims(self, value: List[BrepTrim]):
-        self.TrimsValue = ObjectArray.from_objects(value).data
+        self._Trims = value
+
+    @property
+    def TrimsValue(self) -> List[float]:
+        if self.Trims is None:
+            return None
+        return ObjectArray.from_objects(self.Trims).data
+
+    @TrimsValue.setter
+    def TrimsValue(self, value: List[float]):
+        self.Trims = ObjectArray.decode_data(value, BrepTrim.from_list)
 
 
 BrepEdge.update_forward_refs()
