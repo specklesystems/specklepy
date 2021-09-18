@@ -301,13 +301,16 @@ class Base(_RegisteringBase):
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
-        ignored_attributes = REMOVE_FROM_DIR.union(self._serialize_ignore)
-        attr_dir = list(set(dir(self)) - ignored_attributes)
+        attr_dir = list(set(dir(self)) - REMOVE_FROM_DIR)
         return [
             name
             for name in attr_dir
             if not name.startswith("_") and not callable(getattr(self, name))
         ]
+
+    def get_serializable_attributes(self) -> List[str]:
+        """Get the attributes that should be serialized"""
+        return list(set(self.get_member_names()) - self._serialize_ignore)
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""
