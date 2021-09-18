@@ -40,11 +40,10 @@ def curve_from_list(args: List[float]):
     return curve_type.object_class.from_list(args)
 
 
-
 class ObjectArray:
 
-    def __init__(self, data: List[float]) -> None:
-        self.data = data
+    def __init__(self) -> None:
+        self.data = []
 
     @classmethod
     def from_objects(cls, objects: List[Base]) -> 'ObjectArray':
@@ -74,8 +73,6 @@ class ObjectArray:
             chunk_end = int(chunk_start + chunk_length)
             chunk_data = data[chunk_start:chunk_end]
             decoded_data = decoder(chunk_data)
-            # if isinstance(decoded_data, Base):
-                # decoded_data.id = decoded_data.get_id()
             unchunked_data.append(decoded_data)
             index = chunk_end
         return unchunked_data
@@ -93,7 +90,9 @@ class CurveArray(ObjectArray):
 
     @classmethod
     def from_curve(cls, curve: Base) -> 'CurveArray':
-        return cls(data=curve.to_list())
+        crv_array = cls()
+        crv_array.data = curve.to_list()
+        return crv_array
 
     @classmethod
     def from_curves(cls, curves: List[Base]) -> 'CurveArray':
@@ -102,7 +101,9 @@ class CurveArray(ObjectArray):
             curve_list = curve.to_list()
             curve_list.insert(0, len(curve_list))
             data.extend(curve_list)
-        return cls(data=data)
+        crv_array = cls()
+        crv_array.data = data
+        return crv_array
 
     @staticmethod
     def curve_from_list(args: List[float]) -> Base:
@@ -118,7 +119,9 @@ class CurveArray(ObjectArray):
 
     @classmethod
     def _curve_decoder(cls, data: List[float]) -> Base:
-        return cls(data).to_curve()
+        crv_array = cls()
+        crv_array.data = data
+        return crv_array.to_curve()
 
     def to_curves(self) -> List[Base]:
         return self.decode(decoder=self._curve_decoder)

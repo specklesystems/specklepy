@@ -344,7 +344,8 @@ class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
 
     @classmethod
     def from_list(cls, args: List[Any]) -> 'Polycurve':
-        curve_arrays = CurveArray(array=args[4:-1])
+        curve_arrays = CurveArray()
+        curve_arrays.data = args[4:-1]
         return cls(
             closed=bool(args[1]),
             domain=Interval.from_list(args[2:4]),
@@ -358,7 +359,7 @@ class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
         encoded.append(int(self.closed))
         encoded.extend(self.domain.to_list())
         curve_array = CurveArray.from_curves(self.segments)
-        encoded.extend(curve_array.array)
+        encoded.extend(curve_array.data)
         encoded.append(get_encoding_from_units(self.units))
         return encoded
 
@@ -666,22 +667,25 @@ class Brep(
     def Curve3D(self) -> List[Base]:
         if self.Curve3DValues is None:
             return None
-        return CurveArray(self.Curve3DValues).to_curves()
+        crv_array = CurveArray()
+        crv_array.data = self.Curve3DValues
+        return crv_array.to_curves()
 
     @Curve3D.setter
     def Curve3D(self, value: List[Base]):
-        print(value)
-        self.Curve3DValues = CurveArray.from_curves(value).array
+        self.Curve3DValues = CurveArray.from_curves(value).data
 
     @property
     def Curve2D(self) -> List[Base]:
         if self.Curve2DValues is None:
             return None
-        return CurveArray(self.Curve2DValues).to_curves()
+        crv_array = CurveArray()
+        crv_array.data = self.Curve2DValues
+        return crv_array.to_curves()
 
     @Curve2D.setter
     def Curve2D(self, value: List[Surface]):
-        self.Curve2DValues = CurveArray.from_curves(value).array
+        self.Curve2DValues = CurveArray.from_curves(value).data
 
     @property
     def Vertices(self) -> List[Point]:

@@ -21,9 +21,11 @@ class TestObject:
 
     def test_object_create(self, client, stream, base):
         transport = SQLiteTransport()
-        s = BaseObjectSerializer(write_transports=[transport], read_transport=transport)
+        s = BaseObjectSerializer(
+            write_transports=[transport], read_transport=transport)
         _, base_dict = s.traverse_base(base)
-        obj_id = client.object.create(stream_id=stream.id, objects=[base_dict])[0]
+        obj_id = client.object.create(
+            stream_id=stream.id, objects=[base_dict])[0]
 
         assert isinstance(obj_id, str)
         assert base_dict["@detach"]["speckle_type"] == "reference"
@@ -39,13 +41,14 @@ class TestObject:
         assert isinstance(fetched_base.vertices, list)
         # assert fetched_base["@detach"]["speckle_type"] == "reference"
 
-    def test_object_array_decoder():
-        array = ObjectArray([
+    def test_object_array_decoder(self):
+        array = ObjectArray()
+        array.data = [
             5, 1, 1, 1, 1, 1,
             4, 1, 1, 1, 1,
             3, 1, 1, 1,
             2, 1, 1,
             1, 1
-        ])
+        ]
 
         assert array.decode(decoder=sum) == [5, 4, 3, 2, 1]

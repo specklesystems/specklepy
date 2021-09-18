@@ -3,8 +3,8 @@ from typing import Callable
 
 import pytest
 from specklepy.api import operations
-from specklepy.objects.base import Base, DataChunk
-from specklepy.objects.encoding import CurveArray
+from specklepy.objects.base import Base
+from specklepy.objects.encoding import CurveArray, ObjectArray
 from specklepy.objects.geometry import (Arc, Box, Brep, BrepEdge, BrepFace,
                                         BrepLoop, BrepTrim, Circle, Curve,
                                         Ellipse, Interval, Line, Mesh, Plane,
@@ -312,7 +312,7 @@ def test_brep_list_serializable_attributes(
         brep: Brep, attribute_name: str, serialized_name: str,
         deserializer: Callable):
 
-    deserialized_list = DataChunk.decode_data(
+    deserialized_list = ObjectArray.decode_data(
         data=getattr(brep, serialized_name), decoder=deserializer
     )
     assert len(deserialized_list) != 0
