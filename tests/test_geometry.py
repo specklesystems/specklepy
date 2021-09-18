@@ -6,10 +6,10 @@ from specklepy.api import operations
 from specklepy.objects.base import Base
 from specklepy.objects.encoding import CurveArray, ObjectArray
 from specklepy.objects.geometry import (Arc, Box, Brep, BrepEdge, BrepFace,
-                                        BrepLoop, BrepTrim, Circle, Curve,
-                                        Ellipse, Interval, Line, Mesh, Plane,
-                                        Point, Polycurve, Polyline, Surface,
-                                        Vector)
+                                        BrepLoop, BrepTrim, BrepTrimTypeEnum,
+                                        Circle, Curve, Ellipse, Interval, Line,
+                                        Mesh, Plane, Point, Polycurve,
+                                        Polyline, Surface, Vector)
 from specklepy.transports.memory import MemoryTransport
 
 
@@ -305,8 +305,6 @@ def test_to_and_from_list(object_name: str, geometry_objects_dict):
     ('Surfaces', 'SurfacesValue', Surface.from_list),
     ('Curve3D', 'Curve3DValues', CurveArray.curve_from_list),
     ('Curve2D', 'Curve2DValues', CurveArray.curve_from_list),
-    ('Vertices', 'VerticesValue', Point.from_list),
-    ('Trims', 'TrimsValue', BrepTrim.from_list)
 ])
 def test_brep_list_serializable_attributes(
         brep: Brep, attribute_name: str, serialized_name: str,
@@ -325,6 +323,46 @@ def test_brep_list_serializable_attributes(
     # check the attribute setter works as expected
     setattr(brep, attribute_name, [])
     assert getattr(brep, serialized_name) == []
+
+
+def test_brep_vertices_values_serialization():
+    brep = Brep()
+    brep.VerticesValue = [1, 1, 1, 1, 2, 2, 2, 3, 3, 3]
+    brep.Vertices[0].get_id() == Point(x=1, y=1, z=1, _units='mm').get_id()
+    brep.Vertices[1].get_id() == Point(x=2, y=2, z=2, _units='mm').get_id()
+    brep.Vertices[2].get_id() == Point(x=3, y=3, z=3, _units='mm').get_id()
+
+
+def test_trims_value_serialization():
+    brep = Brep()
+    brep.TrimsValue = [
+        0, 0, 0, 0, 0, 0, 1, 1, 1,
+        1, 0, 0, 0, 0, 1, 2, 1, 0,
+    ]
+
+    brep.Trims[0].get_id() == BrepTrim(
+        EdgeIndex=0,
+        StartIndex=0,
+        EndIndex=0,
+        FaceIndex=0,
+        LoopIndex=0,
+        CurveIndex=0,
+        IsoStatus=1,
+        TrimType=BrepTrimTypeEnum.Boundary,
+        IsReversed=False,
+    ).get_id()
+
+    brep.Trims[1].get_id() == BrepTrim(
+        EdgeIndex=1,
+        StartIndex=0,
+        EndIndex=0,
+        FaceIndex=0,
+        LoopIndex=0,
+        CurveIndex=1,
+        IsoStatus=2,
+        TrimType=BrepTrimTypeEnum.Boundary,
+        IsReversed=True,
+    ).get_id()
 
 
 def test_serialized_brep_attributes(brep: Brep):

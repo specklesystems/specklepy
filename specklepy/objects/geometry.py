@@ -690,11 +690,25 @@ class Brep(
     def VerticesValue(self) -> List[Point]:
         if self.Vertices is None:
             return None
-        return ObjectArray.from_objects(self.Vertices).data
+        encoded_unit = get_encoding_from_units(self.Vertices[0].units)
+        values = [encoded_unit]
+        for vertex in self.Vertices:
+            values.extend(vertex.to_list())
+        return values
 
     @VerticesValue.setter
     def VerticesValue(self, value: List[float]):
-        self.Vertices = ObjectArray.decode_data(value, Point.from_list)
+        value = value.copy()
+        units = get_units_from_encoding(value.pop(0))
+
+        vertices = []
+
+        for i in range(0, len(value), 3):
+            vertex = Point.from_list(value[i:i+3])
+            vertex._units = units
+            vertices.append(vertex)
+
+        self.Vertices = vertices
 
     @property
     def Trims(self) -> List[BrepTrim]:
@@ -708,11 +722,15 @@ class Brep(
     def TrimsValue(self) -> List[float]:
         if self.Trims is None:
             return None
-        return ObjectArray.from_objects(self.Trims).data
+        values = []
+        for trim in self.Trims:
+            values.extend(trim.to_list())
+        return values
 
     @TrimsValue.setter
     def TrimsValue(self, value: List[float]):
-        self.Trims = ObjectArray.decode_data(value, BrepTrim.from_list)
+        self.Trims = [BrepTrim.from_list(value[i:i + 9])
+                      for i in range(0, len(value), 9)]
 
 
 BrepEdge.update_forward_refs()
