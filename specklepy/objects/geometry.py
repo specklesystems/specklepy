@@ -684,7 +684,7 @@ class Brep(
     def Curve2DValues(self, value: List[float]):
         crv_array = CurveArray()
         crv_array.data = value
-        self.Curve3D = crv_array.to_curves()
+        self.Curve2D = crv_array.to_curves()
 
     @property
     def VerticesValue(self) -> List[Point]:
