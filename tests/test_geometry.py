@@ -301,28 +301,41 @@ def test_to_and_from_list(object_name: str, geometry_objects_dict):
     assert decoded_object.get_id() == object.get_id()
 
 
-@pytest.mark.parametrize('attribute_name,serialized_name,deserializer', [
-    ('Surfaces', 'SurfacesValue', Surface.from_list),
-    ('Curve3D', 'Curve3DValues', CurveArray.curve_from_list),
-    ('Curve2D', 'Curve2DValues', CurveArray.curve_from_list),
-])
-def test_brep_list_serializable_attributes(
-        brep: Brep, attribute_name: str, serialized_name: str,
-        deserializer: Callable):
+def test_brep_surfaces_value_serialization(surface):
+    brep = Brep()
+    assert brep.Surfaces == None
+    assert brep.SurfacesValue == None
+    brep.Surfaces = [surface, surface]
+    assert brep.SurfacesValue == ObjectArray.from_objects(
+        [surface, surface]).data
 
-    deserialized_list = ObjectArray.decode_data(
-        data=getattr(brep, serialized_name), decoder=deserializer
-    )
-    assert len(deserialized_list) != 0
-    assert len(deserialized_list) == len(getattr(brep, attribute_name))
+    brep.SurfacesValue = ObjectArray.from_objects([surface]).data
+    assert len(brep.Surfaces) == 1
+    assert brep.Surfaces[0].get_id() == surface.get_id()
 
-    # check the attribute getter works as expected
-    for i, item in enumerate(deserialized_list):
-        assert item.get_id() == getattr(brep, attribute_name)[i].get_id()
 
-    # check the attribute setter works as expected
-    setattr(brep, attribute_name, [])
-    assert getattr(brep, serialized_name) == []
+def test_brep_curve2d_values_serialization(curve, polyline, circle):
+    brep = Brep()
+    assert brep.Curve2D == None
+    assert brep.Curve2DValues == None
+    brep.Curve2D = [curve, polyline]
+    assert brep.Curve2DValues == CurveArray.from_curves([curve, polyline]).data
+
+    brep.Curve2DValues = CurveArray.from_curves([circle]).data
+    assert len(brep.Curve2D) == 1
+    assert brep.Curve2D[0].get_id() == circle.get_id()
+
+
+def test_brep_curve3d_values_serialization(curve, polyline, circle):
+    brep = Brep()
+    assert brep.Curve3D == None
+    assert brep.Curve3DValues == None
+    brep.Curve3D = [curve, polyline]
+    assert brep.Curve3DValues == CurveArray.from_curves([curve, polyline]).data
+
+    brep.Curve3DValues = CurveArray.from_curves([circle]).data
+    assert len(brep.Curve3D) == 1
+    assert brep.Curve3D[0].get_id() == circle.get_id()
 
 
 def test_brep_vertices_values_serialization():
