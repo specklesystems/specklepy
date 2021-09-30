@@ -14,6 +14,17 @@ UNITS_STRINGS = {
     "none": ["none", "null"],
 }
 
+UNITS_ENCODINGS = {
+    "mm": 1,
+    "cm": 2,
+    "m": 3,
+    "km": 4,
+    "in": 5,
+    "ft": 6,
+    "yd": 7,
+    "mi": 8,
+}
+
 
 def get_units_from_string(unit: str):
     unit = str.lower(unit)
@@ -24,3 +35,22 @@ def get_units_from_string(unit: str):
     raise SpeckleException(
         message=f"Could not understand what unit {unit} is referring to. Please enter a valid unit (eg {UNITS})."
     )
+
+
+def get_units_from_encoding(unit: int):
+    for name, encoding in UNITS_ENCODINGS.items():
+        if unit == encoding:
+            return name
+
+    raise SpeckleException(
+        message=f"Could not understand what unit {unit} is referring to. Please enter a valid unit encoding (eg {UNITS_ENCODINGS})."
+    )
+
+
+def get_encoding_from_units(unit: str):
+    try:
+        return UNITS_ENCODINGS[unit]
+    except KeyError:
+        raise SpeckleException(
+            message=f"No encoding exists for unit {unit}. Please enter a valid unit to encode (eg {UNITS_ENCODINGS})."
+        )

@@ -1,9 +1,10 @@
-import pytest
-from typing import Dict, List
-from specklepy.objects import Base
-from specklepy.api import operations
 from contextlib import ExitStack as does_not_raise
+from typing import Dict, List
+
+import pytest
+from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.objects.base import Base, DataChunk
 
 
 @pytest.mark.parametrize(
@@ -110,3 +111,5 @@ def test_type_checking() -> None:
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
 
     assert order.price == 7.0
+
+

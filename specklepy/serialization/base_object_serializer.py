@@ -52,7 +52,7 @@ class BaseObjectSerializer:
         self.lineage.append(uuid4().hex)
         object_builder = {"id": "", "speckle_type": "Base", "totalChildrenCount": 0}
         object_builder.update(speckle_type=base.speckle_type)
-        obj, props = base, base.get_member_names()
+        obj, props = base, base.get_serializable_attributes()
 
         while props:
             prop = props.pop(0)

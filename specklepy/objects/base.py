@@ -1,11 +1,11 @@
 import typing
+from typing import (Any, Callable, ClassVar, Dict, List, Optional, Set, Type,
+                    get_type_hints)
 from warnings import warn
-from typing import get_type_hints
-from typing import ClassVar, Dict, List, Optional, Any, Set, Type
-from specklepy.transports.memory import MemoryTransport
+
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.units import get_units_from_string
-
+from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -62,6 +62,8 @@ REMOVE_FROM_DIR = {
     "to_dict",
     "update_forward_refs",
     "validate_prop_name",
+    "from_list",
+    "to_list",
 }
 
 
@@ -93,6 +95,7 @@ class _RegisteringBase:
         speckle_type: str = None,
         chunkable: Dict[str, int] = None,
         detachable: Set[str] = None,
+        serialize_ignore: Set[str] = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -115,10 +118,14 @@ class _RegisteringBase:
         except Exception:
             cls._attr_types = getattr(cls, "__annotations__", {})
         if chunkable:
-            chunkable = {k: v for k, v in chunkable.items() if isinstance(v, int)}
+            chunkable = {k: v for k, v in chunkable.items()
+                         if isinstance(v, int)}
             cls._chunkable = dict(cls._chunkable, **chunkable)
         if detachable:
             cls._detachable = cls._detachable.union(detachable)
+        if serialize_ignore:
+            cls._serialize_ignore = cls._serialize_ignore.union(
+                serialize_ignore)
         super().__init_subclass__(**kwargs)
 
 
@@ -127,9 +134,11 @@ class Base(_RegisteringBase):
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
     _units: str = "m"
-    _chunkable: Dict[str, int] = {}  # dict of chunkable props and their max chunk size
+    # dict of chunkable props and their max chunk size
+    _chunkable: Dict[str, int] = {}
     _chunk_size_default: int = 1000
     _detachable: Set[str] = set()  # list of defined detachable props
+    _serialize_ignore: Set[str] = set()
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -206,13 +215,15 @@ class Base(_RegisteringBase):
         try:
             cls._attr_types = get_type_hints(cls)
         except Exception as e:
-            warn(f"Could not update forward refs for class {cls.__name__}: {e}")
+            warn(
+                f"Could not update forward refs for class {cls.__name__}: {e}")
 
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
         """Validator for dynamic attribute names."""
         if name in {"", "@"}:
-            raise ValueError("Invalid Name: Base member names cannot be empty strings")
+            raise ValueError(
+                "Invalid Name: Base member names cannot be empty strings")
         if name.startswith("@@"):
             raise ValueError(
                 "Invalid Name: Base member names cannot start with more than one '@'",
@@ -288,42 +299,18 @@ class Base(_RegisteringBase):
     def units(self, value: str):
         self._units = get_units_from_string(value)
 
-    # def to_dict(self) -> Dict[str, Any]:
-    #     """Convenience method to view the whole base object as a dict"""
-    #     base_dict = self.__dict__
-    #     for key, value in base_dict.items():
-    #         if not value or isinstance(value, PRIMITIVES):
-    #             continue
-    #         else:
-    #             base_dict[key] = self.__dict_helper(value)
-    #     return base_dict
-
-    # def __dict_helper(self, obj: Any) -> Any:
-    #     if not obj or isinstance(obj, PRIMITIVES):
-    #         return obj
-    #     if isinstance(obj, Base):
-    #         return self.__dict_helper(obj.__dict__)
-    #     if isinstance(obj, (list, set)):
-    #         return [self.__dict_helper(v) for v in obj]
-    #     if not isinstance(obj, dict):
-    #         raise SpeckleException(
-    #             message=f"Could not convert to dict due to unrecognized type: {type(obj)}"
-    #         )
-
-    #     for k, v in obj.items():
-    #         if v and not isinstance(obj, PRIMITIVES):
-    #             obj[k] = self.__dict_helper(v)
-    #     return obj
-
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
-        # attrs = set(self.__dict__.keys())
         attr_dir = list(set(dir(self)) - REMOVE_FROM_DIR)
         return [
             name
             for name in attr_dir
             if not name.startswith("_") and not callable(getattr(self, name))
         ]
+
+    def get_serializable_attributes(self) -> List[str]:
+        """Get the attributes that should be serialized"""
+        return list(set(self.get_member_names()) - self._serialize_ignore)
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""
@@ -350,9 +337,8 @@ class Base(_RegisteringBase):
         Returns:
             str -- the hash (id) of the fully serialized object
         """
-        from specklepy.serialization.base_object_serializer import (
-            BaseObjectSerializer,
-        )
+        from specklepy.serialization.base_object_serializer import \
+            BaseObjectSerializer
 
         serializer = BaseObjectSerializer()
         if decompose:
