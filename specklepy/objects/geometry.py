@@ -16,7 +16,7 @@ class Interval(Base, speckle_type="Objects.Primitive.Interval"):
         return abs(self.start - self.end)
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Interval':
+    def from_list(cls, args: List[Any]) -> "Interval":
         return cls(start=args[0], end=args[1])
 
     def to_list(self) -> List[Any]:
@@ -32,18 +32,14 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
         return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, id: {self.id}, speckle_type: {self.speckle_type})"
 
     @classmethod
-    def from_list(cls, args: List[float]) -> 'Point':
-        return cls(
-            x=args[0],
-            y=args[1],
-            z=args[2]
-        )
+    def from_list(cls, args: List[float]) -> "Point":
+        return cls(x=args[0], y=args[1], z=args[2])
 
     def to_list(self) -> List[Any]:
         return [self.x, self.y, self.z]
 
     @classmethod
-    def from_coords(x: float = 0.0, y: float = 0.0, z: float = 0.0):
+    def from_coords(cls, x: float = 0.0, y: float = 0.0, z: float = 0.0):
         pt = Point()
         pt.x, pt.y, pt.z = x, y, z
         return pt
@@ -64,12 +60,12 @@ class Plane(Base, speckle_type=GEOMETRY + "Plane"):
     ydir: Vector = Vector()
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Plane':
+    def from_list(cls, args: List[Any]) -> "Plane":
         return cls(
-            origin=Point.from_list(args[0: 3]),
-            normal=Vector.from_list(args[3: 6]),
-            xdir=Vector.from_list(args[6: 9]),
-            ydir=Vector.from_list(args[9: 12]),
+            origin=Point.from_list(args[0:3]),
+            normal=Vector.from_list(args[3:6]),
+            xdir=Vector.from_list(args[6:9]),
+            ydir=Vector.from_list(args[9:12]),
         )
 
     def to_list(self) -> List[Any]:
@@ -98,11 +94,11 @@ class Line(Base, speckle_type=GEOMETRY + "Line"):
     length: float = None
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Line':
+    def from_list(cls, args: List[Any]) -> "Line":
         return cls(
-            start=Point.from_list(args[0: 3]),
-            end=Point.from_list(args[3: 6]),
-            domain=Interval.from_list(args[6: 9]),
+            start=Point.from_list(args[0:3]),
+            end=Point.from_list(args[3:6]),
+            domain=Interval.from_list(args[6:9]),
         )
 
     def to_list(self) -> List[Any]:
@@ -128,14 +124,14 @@ class Arc(Base, speckle_type=GEOMETRY + "Arc"):
     length: float = None
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Arc':
+    def from_list(cls, args: List[Any]) -> "Arc":
         return cls(
             radius=args[1],
             startAngle=args[2],
             endAngle=args[3],
             angleRadians=args[4],
-            domain=Interval.from_list(args[5: 7]),
-            plane=Plane.from_list(args[7: 20]),
+            domain=Interval.from_list(args[5:7]),
+            plane=Plane.from_list(args[7:20]),
             units=get_units_from_encoding(args[-1]),
         )
 
@@ -161,7 +157,7 @@ class Circle(Base, speckle_type=GEOMETRY + "Circle"):
     length: float = None
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Circle':
+    def from_list(cls, args: List[Any]) -> "Circle":
         return cls(
             radius=args[1],
             domain=Interval.from_list(args[2:4]),
@@ -190,7 +186,7 @@ class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
     length: float = None
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Ellipse':
+    def from_list(cls, args: List[Any]) -> "Ellipse":
         return cls(
             firstRadius=args[1],
             secondRadius=args[2],
@@ -228,12 +224,12 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 200
         return polyline
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Polyline':
+    def from_list(cls, args: List[Any]) -> "Polyline":
         point_count = args[4]
         return cls(
             closed=bool(args[1]),
             domain=Interval.from_list(args[2:4]),
-            value=args[5:5+point_count],
+            value=args[5 : 5 + point_count],
             units=get_units_from_encoding(args[-1]),
         )
 
@@ -293,8 +289,7 @@ class Curve(
         ]
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Curve':
-
+    def from_list(cls, args: List[Any]) -> "Curve":
         point_count = args[7]
         weights_count = args[8]
         knots_count = args[9]
@@ -310,9 +305,9 @@ class Curve(
             rational=bool(args[3]),
             closed=bool(args[4]),
             domain=Interval.from_list(args[5:7]),
-            points=args[points_start: weights_start],
-            weights=args[weights_start: knots_start],
-            knots=args[knots_start: knots_end],
+            points=args[points_start:weights_start],
+            weights=args[weights_start:knots_start],
+            knots=args[knots_start:knots_end],
             units=get_units_from_encoding(args[-1]),
         )
 
@@ -343,7 +338,7 @@ class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
     length: float = None
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Polycurve':
+    def from_list(cls, args: List[Any]) -> "Polycurve":
         curve_arrays = CurveArray()
         curve_arrays.data = args[4:-1]
         return cls(
@@ -414,7 +409,7 @@ class Surface(Base, speckle_type=GEOMETRY + "Surface"):
     knotsV: List[float] = None
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'Surface':
+    def from_list(cls, args: List[Any]) -> "Surface":
         point_count = int(args[11])
         knots_u_count = int(args[12])
         knots_v_count = int(args[13])
@@ -433,9 +428,9 @@ class Surface(Base, speckle_type=GEOMETRY + "Surface"):
             closedV=bool(args[6]),
             domainU=Interval(start=args[7], end=args[8]),
             domainV=Interval(start=args[9], end=args[10]),
-            pointData=args[start_point_data: start_knots_u],
-            knotsU=args[start_knots_u: start_knots_v],
-            knotsV=args[start_knots_v: start_knots_v + knots_v_count],
+            pointData=args[start_point_data:start_knots_u],
+            knotsU=args[start_knots_u:start_knots_v],
+            knotsV=args[start_knots_v : start_knots_v + knots_v_count],
             units=get_units_from_encoding(args[-1]),
         )
 
@@ -565,7 +560,7 @@ class BrepTrim(Base, speckle_type=GEOMETRY + "BrepTrim"):
         return self._Brep.Curve2D[self.CurveIndex]
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> 'BrepTrim':
+    def from_list(cls, args: List[Any]) -> "BrepTrim":
         return cls(
             EdgeIndex=args[0],
             StartIndex=args[1],
@@ -704,7 +699,7 @@ class Brep(
         vertices = []
 
         for i in range(0, len(value), 3):
-            vertex = Point.from_list(value[i:i+3])
+            vertex = Point.from_list(value[i : i + 3])
             vertex._units = units
             vertices.append(vertex)
 
@@ -729,8 +724,9 @@ class Brep(
 
     @TrimsValue.setter
     def TrimsValue(self, value: List[float]):
-        self.Trims = [BrepTrim.from_list(value[i:i + 9])
-                      for i in range(0, len(value), 9)]
+        self.Trims = [
+            BrepTrim.from_list(value[i : i + 9]) for i in range(0, len(value), 9)
+        ]
 
 
 BrepEdge.update_forward_refs()
