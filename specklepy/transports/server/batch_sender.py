@@ -102,7 +102,9 @@ class BatchSender(object):
         new_objects = [obj[1] for obj in batch if obj[0] in new_object_ids]
 
         if not new_objects:
-            LOG.info(f"Uploading batch of {len(batch)} objects: all objects are already in the server")
+            LOG.info(
+                f"Uploading batch of {len(batch)} objects: all objects are already in the server"
+            )
             return
 
         upload_data = "[" + ",".join(new_objects) + "]"
@@ -112,24 +114,30 @@ class BatchSender(object):
             % (len(batch), len(new_objects), len(upload_data), len(upload_data_gzip))
         )
 
-        r = session.post(
-            url=f"{self.server_url}/objects/{self.stream_id}",
-            files={"batch-1": ("batch-1", upload_data_gzip, "application/gzip")},
-        )
-        if r.status_code != 201:
-            LOG.warning("Upload server response: %s", r.text)
-            raise SpeckleException(
-                message=f"Could not save the object to the server - status code {r.status_code}"
+        try:
+            r = session.post(
+                url=f"{self.server_url}/objects/{self.stream_id}",
+                files={"batch-1": ("batch-1", upload_data_gzip, "application/gzip")},
+            )
+            if r.status_code != 201:
+                LOG.warning("Upload server response: %s", r.text)
+                raise SpeckleException(
+                    message=f"Could not save the object to the server - status code {r.status_code}"
+                )
+        except json.JSONDecodeError as error:
+            return SpeckleException(
+                f"Failed to send objects to {self.server_url}. Please ensure this stream ({self.stream_id}) exists on this server and that you have permission to send to it.",
+                error,
             )
 
     def _create_threads(self):
-        for i in range(self.thread_count):
+        for _ in range(self.thread_count):
             t = threading.Thread(target=self._sending_thread_main, daemon=True)
             t.start()
             self._send_threads.append(t)
 
     def _delete_threads(self):
-        for i in range(len(self._send_threads)):
+        for _ in range(len(self._send_threads)):
             self._batches.put(None)
 
         for thread in self._send_threads:
