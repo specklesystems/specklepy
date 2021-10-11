@@ -1,7 +1,9 @@
-from typing import Dict, List, Optional
 from gql import gql
-from specklepy.api.resource import ResourceBase
+from typing import Dict, List, Optional
+from specklepy.logging import metrics
 from specklepy.api.models import Stream
+from specklepy.api.resource import ResourceBase
+
 
 NAME = "stream"
 METHODS = [
@@ -35,6 +37,7 @@ class Resource(ResourceBase):
         Returns:
             Stream -- the retrieved stream
         """
+        metrics.track(metrics.STREAM_GET)
         query = gql(
             """
             query Stream($id: String!, $branch_limit: Int!, $commit_limit: Int!) {
@@ -90,6 +93,7 @@ class Resource(ResourceBase):
         Returns:
             List[Stream] -- A list of Stream objects
         """
+        metrics.track(metrics.STREAM_LIST)
         query = gql(
             """
             query User($stream_limit: Int!) {
@@ -147,6 +151,7 @@ class Resource(ResourceBase):
         Returns:
             id {str} -- the id of the newly created stream
         """
+        metrics.track(metrics.STREAM_CREATE)
         query = gql(
             """
             mutation StreamCreate($stream: StreamCreateInput!) {
@@ -177,6 +182,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- whether the stream update was successful
         """
+        metrics.track(metrics.STREAM_UPDATE)
         query = gql(
             """
             mutation StreamUpdate($stream: StreamUpdateInput!) {
@@ -207,6 +213,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- whether the deletion was successful
         """
+        metrics.track(metrics.STREAM_DELETE)
         query = gql(
             """
             mutation StreamDelete($id: String!) {
@@ -239,6 +246,7 @@ class Resource(ResourceBase):
         Returns:
             List[Stream] -- a list of Streams that match the search query
         """
+        metrics.track(metrics.STREAM_SEARCH)
         query = gql(
             """
             query StreamSearch($search_query: String!,$limit: Int!, $branch_limit:Int!, $commit_limit:Int!) {
