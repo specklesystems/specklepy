@@ -7,6 +7,9 @@ from specklepy.api.client import SpeckleClient
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Point
 from specklepy.objects.fakemesh import FakeMesh
+from specklepy.logging import metrics
+
+metrics.disable()
 
 
 @pytest.fixture(scope="session")
