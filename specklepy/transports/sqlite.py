@@ -32,7 +32,7 @@ class SQLiteTransport(AbstractTransport):
         super().__init__(**data)
         self.app_name = app_name or "Speckle"
         self.scope = scope or "Objects"
-        self._base_path = base_path or self.__get_base_path()
+        self._base_path = base_path or self.get_base_path(self.app_name)
 
         try:
             os.makedirs(self._base_path, exist_ok=True)
@@ -56,7 +56,8 @@ class SQLiteTransport(AbstractTransport):
     #     proc.start()
     #     proc.join()
 
-    def __get_base_path(self):
+    @staticmethod
+    def get_base_path(app_name):
         # from appdirs https://github.com/ActiveState/appdirs/blob/master/appdirs.py
         # default mac path is not the one we use (we use unix path), so using special case for this
         system = sys.platform
@@ -68,10 +69,10 @@ class SQLiteTransport(AbstractTransport):
                 system = "darwin"
 
         if system != "darwin":
-            return user_data_dir(appname=self.app_name, appauthor=False, roaming=True)
+            return user_data_dir(appname=app_name, appauthor=False, roaming=True)
 
         path = os.path.expanduser("~/.config/")
-        return os.path.join(path, self.app_name)
+        return os.path.join(path, app_name)
 
     # def __consume_queue(self):
     #     if self._is_writing or self.__queue.empty():
