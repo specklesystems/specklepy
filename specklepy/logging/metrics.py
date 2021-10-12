@@ -49,30 +49,34 @@ def set_host_app(host_app: str):
 def track(action: str):
     if not TRACK:
         return
-    global METRICS_TRACKER
-    if not METRICS_TRACKER:
-        METRICS_TRACKER = MetricsTracker()
+    try:
+        global METRICS_TRACKER
+        if not METRICS_TRACKER:
+            METRICS_TRACKER = MetricsTracker()
 
-    page_params = {
-        "rec": 1,
-        "idsite": METRICS_TRACKER.site_id,
-        "uid": METRICS_TRACKER.suuid,
-        "action_name": action,
-        "url": f"http://connectors/{HOST_APP}/{action}",
-        "urlref": f"http://connectors/{HOST_APP}/{action}",
-        "_cvar": {"1": ["hostApplication", HOST_APP]},
-    }
+        page_params = {
+            "rec": 1,
+            "idsite": METRICS_TRACKER.site_id,
+            "uid": METRICS_TRACKER.suuid,
+            "action_name": action,
+            "url": f"http://connectors/{HOST_APP}/{action}",
+            "urlref": f"http://connectors/{HOST_APP}/{action}",
+            "_cvar": {"1": ["hostApplication", HOST_APP]},
+        }
 
-    event_params = {
-        "rec": 1,
-        "idsite": METRICS_TRACKER.site_id,
-        "uid": MetricsTracker.suuid,
-        "_cvar": {"1": ["hostApplication", HOST_APP]},
-        "e_c": HOST_APP,
-        "e_a": action,
-    }
+        event_params = {
+            "rec": 1,
+            "idsite": METRICS_TRACKER.site_id,
+            "uid": MetricsTracker.suuid,
+            "_cvar": {"1": ["hostApplication", HOST_APP]},
+            "e_c": HOST_APP,
+            "e_a": action,
+        }
 
-    METRICS_TRACKER.queue.put_nowait([event_params, page_params])
+        METRICS_TRACKER.queue.put_nowait([event_params, page_params])
+    except Exception as ex:
+        # wrapping this whole thing in a try except as we never want a failure here to annoy users!
+        LOG.error("Error queueing metrics request: " + str(ex))
 
 
 class Singleton(type):
