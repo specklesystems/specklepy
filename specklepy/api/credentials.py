@@ -1,12 +1,13 @@
 import os
-from specklepy.transports.server.server import ServerTransport
 from warnings import warn
 from pydantic import BaseModel
 from typing import List, Optional
 from urllib.parse import urlparse, unquote
+from specklepy.logging import metrics
 from specklepy.api.models import ServerInfo
 from specklepy.api.client import SpeckleClient
 from specklepy.transports.sqlite import SQLiteTransport
+from specklepy.transports.server.server import ServerTransport
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
 
@@ -41,6 +42,7 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
     Returns:
         List[Account] -- list of all local accounts or an empty list if no accounts were found
     """
+    metrics.track(metrics.ACCOUNT_LIST)
     account_storage = SQLiteTransport(scope="Accounts", base_path=base_path)
     json_path = os.path.join(account_storage._base_path, "Accounts")
     os.makedirs(json_path, exist_ok=True)
@@ -73,6 +75,7 @@ def get_default_account(base_path: str = None) -> Account:
     Returns:
         Account -- the default account or None if no local accounts were found
     """
+    metrics.track(metrics.ACCOUNT_DEFAULT)
     accounts = get_local_accounts(base_path=base_path)
     if not accounts:
         return None
@@ -114,6 +117,7 @@ class StreamWrapper:
             return "stream" if self.stream_id else "invalid"
 
     def __init__(self, url: str) -> None:
+        metrics.track("streamwrapper")
         self.stream_url = url
         parsed = urlparse(url)
         self.host = parsed.netloc
