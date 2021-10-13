@@ -22,7 +22,7 @@ def send(
     Returns:
         str -- the object id of the sent object
     """
-    metrics.track(metrics.RECEIVE)
+    metrics.track(metrics.SEND)
     if not transports and not use_default_cache:
         raise SpeckleException(
             message="You need to provide at least one transport: cannot send with an empty transport list and no default cache"
