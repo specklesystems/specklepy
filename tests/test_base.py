@@ -1,5 +1,5 @@
 from contextlib import ExitStack as does_not_raise
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import pytest
 from specklepy.api import operations
@@ -87,9 +87,9 @@ class FrozenYoghurt(Base):
     """Testing type checking"""
 
     servings: int
-    flavours: List[str] = None  # list item types won't be checked
+    flavours: List[str]  # list item types won't be checked
     customer: str
-    add_ons: Dict[str, float]  # dict item types won't be checked
+    add_ons: Optional[Dict[str, float]]  # dict item types won't be checked
     price: float = 0.0
 
 
@@ -111,5 +111,3 @@ def test_type_checking() -> None:
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
 
     assert order.price == 7.0
-
-

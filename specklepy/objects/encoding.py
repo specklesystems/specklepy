@@ -17,6 +17,7 @@ class CurveTypeEncoding(int, Enum):
     @property
     def object_class(self) -> Type:
         from . import geometry
+
         if self == self.Arc:
             return geometry.Arc
         elif self == self.Circle:
@@ -32,7 +33,8 @@ class CurveTypeEncoding(int, Enum):
         elif self == self.Polycurve:
             return geometry.Polycurve
         raise SpeckleException(
-            f'No corresponding object class for CurveTypeEncoding: {self}')
+            f"No corresponding object class for CurveTypeEncoding: {self}"
+        )
 
 
 def curve_from_list(args: List[float]):
@@ -41,61 +43,68 @@ def curve_from_list(args: List[float]):
 
 
 class ObjectArray:
-
     def __init__(self) -> None:
         self.data = []
 
     @classmethod
-    def from_objects(cls, objects: List[Base]) -> 'ObjectArray':
-        data_chunk = cls()
-        if len(objects) == 0:
-            return data_chunk
+    def from_objects(cls, objects: List[Base]) -> "ObjectArray":
+        data_list = cls()
+        if not objects:
+            return data_list
 
         speckle_type = objects[0].speckle_type
 
         for obj in objects:
             if speckle_type != obj.speckle_type:
                 raise SpeckleException(
-                    'All objects in chunk should have the same speckle_type. '
-                    f'Found {speckle_type} and {obj.speckle_type}'
+                    "All objects in chunk should have the same speckle_type. "
+                    f"Found {speckle_type} and {obj.speckle_type}"
                 )
-            data_chunk.encode_object(object=obj)
+            data_list.encode_object(object=obj)
 
-        return data_chunk
+        return data_list
 
     @staticmethod
-    def decode_data(data: List[Any], decoder: Callable[[List[Any]], Base]) -> List[Base]:
+    def decode_data(
+        data: List[Any], decoder: Callable[[List[Any]], Base]
+    ) -> List[Base]:
+        bases = []
+        if not data:
+            return bases
+
         index = 0
-        unchunked_data = []
         while index < len(data):
-            chunk_length = data[index]
-            chunk_start = int(index + 1)
-            chunk_end = int(chunk_start + chunk_length)
-            chunk_data = data[chunk_start:chunk_end]
-            decoded_data = decoder(chunk_data)
-            unchunked_data.append(decoded_data)
-            index = chunk_end
-        return unchunked_data
+            item_length = data[index]
+            item_start = index + 1
+            item_end = item_start + item_length
+            item_data = data[item_start:item_end]
+            index = item_end
+            # TODO: investigate what's going on w this fail
+            try:
+                decoded_data = decoder(item_data)
+                bases.append(decoded_data)
+            except ValueError:
+                continue
+        return bases
 
     def decode(self, decoder: Callable[[List[Any]], Any]):
         return self.decode_data(data=self.data, decoder=decoder)
 
     def encode_object(self, object: Base):
-        chunk = object.to_list()
-        chunk.insert(0, len(chunk))
-        self.data.extend(chunk)
+        encoded = object.to_list()
+        encoded.insert(0, len(encoded))
+        self.data.extend(encoded)
 
 
 class CurveArray(ObjectArray):
-
     @classmethod
-    def from_curve(cls, curve: Base) -> 'CurveArray':
+    def from_curve(cls, curve: Base) -> "CurveArray":
         crv_array = cls()
         crv_array.data = curve.to_list()
         return crv_array
 
     @classmethod
-    def from_curves(cls, curves: List[Base]) -> 'CurveArray':
+    def from_curves(cls, curves: List[Base]) -> "CurveArray":
         data = []
         for curve in curves:
             curve_list = curve.to_list()

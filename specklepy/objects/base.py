@@ -1,6 +1,15 @@
 import typing
-from typing import (Any, Callable, ClassVar, Dict, List, Optional, Set, Type,
-                    get_type_hints)
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Type,
+    get_type_hints,
+)
 from warnings import warn
 
 from specklepy.logging.exceptions import SpeckleException
@@ -118,14 +127,12 @@ class _RegisteringBase:
         except Exception:
             cls._attr_types = getattr(cls, "__annotations__", {})
         if chunkable:
-            chunkable = {k: v for k, v in chunkable.items()
-                         if isinstance(v, int)}
+            chunkable = {k: v for k, v in chunkable.items() if isinstance(v, int)}
             cls._chunkable = dict(cls._chunkable, **chunkable)
         if detachable:
             cls._detachable = cls._detachable.union(detachable)
         if serialize_ignore:
-            cls._serialize_ignore = cls._serialize_ignore.union(
-                serialize_ignore)
+            cls._serialize_ignore = cls._serialize_ignore.union(serialize_ignore)
         super().__init_subclass__(**kwargs)
 
 
@@ -215,15 +222,13 @@ class Base(_RegisteringBase):
         try:
             cls._attr_types = get_type_hints(cls)
         except Exception as e:
-            warn(
-                f"Could not update forward refs for class {cls.__name__}: {e}")
+            warn(f"Could not update forward refs for class {cls.__name__}: {e}")
 
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
         """Validator for dynamic attribute names."""
         if name in {"", "@"}:
-            raise ValueError(
-                "Invalid Name: Base member names cannot be empty strings")
+            raise ValueError("Invalid Name: Base member names cannot be empty strings")
         if name.startswith("@@"):
             raise ValueError(
                 "Invalid Name: Base member names cannot start with more than one '@'",
@@ -249,7 +254,12 @@ class Base(_RegisteringBase):
 
         if t.__module__ == "typing":
             origin = getattr(t, "__origin__")
-            t = t.__args__ if origin is typing.Union else origin
+            t = (
+                tuple(getattr(sub_t, "__origin__", sub_t) for sub_t in t.__args__)
+                if origin is typing.Union
+                else origin
+            )
+
             if not isinstance(t, (type, tuple)):
                 warn(
                     f"Unrecognised type '{t}' provided for attribute '{name}'. Type will not been validated."
@@ -260,13 +270,16 @@ class Base(_RegisteringBase):
 
         # to be friendly, we'll parse ints and strs into floats, but not the other way around
         # (to avoid unexpected rounding)
-        if t is float and isinstance(value, (int, str, float)):
-            try:
+        if isinstance(t, tuple):
+            t = t[0]
+
+        try:
+            if t is float:
                 return float(value)
-            except ValueError:
-                pass
-        if t is str and value is not None:
-            return str(value)
+            if t is str and value:
+                return str(value)
+        except ValueError:
+            pass
 
         raise SpeckleException(
             f"Cannot set '{self.__class__.__name__}.{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
@@ -327,7 +340,8 @@ class Base(_RegisteringBase):
 
     def get_id(self, decompose: bool = False) -> str:
         """
-        Gets the id (a unique hash) of this object. ⚠️ This method fully serializes the object, which in the case of large objects (with many sub-objects), has a tangible cost. Avoid using it!
+        Gets the id (a unique hash) of this object. ⚠️ This method fully serializes the object which,
+        in the case of large objects (with many sub-objects), has a tangible cost. Avoid using it!
 
         Note: the hash of a decomposed object differs from that of a non-decomposed object
 
@@ -337,8 +351,7 @@ class Base(_RegisteringBase):
         Returns:
             str -- the hash (id) of the fully serialized object
         """
-        from specklepy.serialization.base_object_serializer import \
-            BaseObjectSerializer
+        from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
         serializer = BaseObjectSerializer()
         if decompose:
