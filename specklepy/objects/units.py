@@ -15,6 +15,7 @@ UNITS_STRINGS = {
 }
 
 UNITS_ENCODINGS = {
+    "none": 0,
     "mm": 1,
     "cm": 2,
     "m": 3,
