@@ -70,9 +70,10 @@ class ServerTransport(AbstractTransport):
                     "The provided SpeckleClient was not authenticated."
                 )
             token = client.me["token"]
-            self.url = url = client.url
+            url = client.url
 
         self.stream_id = stream_id
+        self.url = url
 
         self._batch_sender = BatchSender(
             self.url, self.stream_id, token, max_batch_size_mb=1
