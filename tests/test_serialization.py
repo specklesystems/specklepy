@@ -53,6 +53,11 @@ class TestSerialization:
     def test_send_and_receive(self, client, sample_stream, mesh):
         transport = ServerTransport(client=client, stream_id=sample_stream.id)
         hash = operations.send(mesh, transports=[transport])
+
+        # also try constructing server transport with token and url
+        transport = ServerTransport(
+            stream_id=sample_stream.id, token=client.me["token"], url=client.url
+        )
         # use a fresh memory transport to force receiving from remote
         received = operations.receive(
             hash, remote_transport=transport, local_transport=MemoryTransport()
