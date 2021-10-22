@@ -13,21 +13,68 @@ from .batch_sender import BatchSender
 
 
 class ServerTransport(AbstractTransport):
+    """
+    The `ServerTransport` is the vehicle through which you transport objects to and from a Speckle Server. Provide it to
+    `operations.send()` or `operations.receive()`.
+
+    The `ServerTransport` can be authenticted two different ways:
+        1. by providing a `SpeckleClient`
+        2. by providing a `token` and `url`
+
+    ```py
+    from specklepy.api import operations
+    from specklepy.transports.server import ServerTransport
+
+    # here's the data you want to send
+    block = Block(length=2, height=4)
+
+    # next create the server transport - this is the vehicle through which you will send and receive
+    transport = ServerTransport(stream_id=new_stream_id, client=client)
+
+    # this serialises the block and sends it to the transport
+    hash = operations.send(base=block, transports=[transport])
+
+    # you can now create a commit on your stream with this object
+    commid_id = client.commit.create(
+        stream_id=new_stream_id,
+        obj_id=hash,
+        message="this is a block I made in speckle-py",
+    )
+    ```
+    """
+
     _name = "RemoteTransport"
     url: str = None
     stream_id: str = None
     saved_obj_count: int = 0
     session: requests.Session = None
 
-    def __init__(self, client: SpeckleClient, stream_id: str, **data: Any) -> None:
+    def __init__(
+        self,
+        stream_id: str,
+        client: SpeckleClient = None,
+        token: str = None,
+        url: str = None,
+        **data: Any,
+    ) -> None:
         super().__init__(**data)
         # TODO: replace client with account or some other auth avenue
-        if not client.me:
-            raise SpeckleException("The provided SpeckleClient was not authenticated.")
-        self.url = client.url
-        self.stream_id = stream_id
+        if client is None and token is None and url is None:
+            raise SpeckleException(
+                "You must provide either a client or a token and url to construct a ServerTransport."
+            )
 
-        token = client.me["token"]
+        if client:
+            if not client.me:
+                raise SpeckleException(
+                    "The provided SpeckleClient was not authenticated."
+                )
+            token = client.me["token"]
+            url = client.url
+
+        self.stream_id = stream_id
+        self.url = url
+
         self._batch_sender = BatchSender(
             self.url, self.stream_id, token, max_batch_size_mb=1
         )

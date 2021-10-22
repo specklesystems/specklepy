@@ -39,3 +39,33 @@ class TestWrapper:
             "https://testing.speckle.dev/streams/0c6ad366c4/globals/abd3787893"
         )
         assert wrap.type == "commit"
+
+    #! NOTE: the following three tests may not pass locally if you have a `speckle.xyz` account in manager
+    def test_get_client_without_auth(self):
+        wrap = StreamWrapper(
+            "https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792"
+        )
+        client = wrap.get_client()
+
+        assert client is not None
+
+    def test_get_new_client_with_token(self):
+        wrap = StreamWrapper(
+            "https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792"
+        )
+        client = wrap.get_client()
+        client = wrap.get_client(token="super-secret-token")
+
+        assert client.me["token"] == "super-secret-token"
+
+    def test_get_transport_with_token(self):
+        wrap = StreamWrapper(
+            "https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792"
+        )
+        client = wrap.get_client()
+        assert not client.me  # unauthenticated bc no local accounts
+
+        transport = wrap.get_transport(token="super-secret-token")
+
+        assert transport is not None
+        assert client.me["token"] == "super-secret-token"
