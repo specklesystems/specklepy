@@ -1,7 +1,9 @@
+from typing import Dict, List
 import pytest
 from specklepy.api import operations
 from specklepy.api.models import Commit, Stream
 from specklepy.transports.server.server import ServerTransport
+from gql import gql
 
 
 @pytest.mark.run(order=4)
@@ -68,3 +70,58 @@ class TestCommit:
         deleted = client.commit.delete(stream_id=stream.id, commit_id=commit_id)
 
         assert deleted is True
+
+    def _get_commit_activity(self, client, stream_id, commit_id) -> List[Dict]:
+        return client.httpclient.execute(
+            gql(
+                """
+            query Commit($stream_id: String!, $commit_id: String!) {
+                stream(id: $stream_id) {
+                    commit(id: $commit_id) {
+                        id
+                        referencedObject
+                        message
+                        authorId
+                        authorName
+                        authorAvatar
+                        branchName
+                        createdAt
+                        sourceApplication
+                        totalChildrenCount
+                        parents
+                        activity {
+                            items {
+                                userId
+                                actionType
+                                info
+                            }
+                        }
+                    }
+                }
+            }
+            """
+            ),
+            variable_values={"stream_id": stream_id, "commit_id": commit_id},
+        )["stream"]["commit"]["activity"]
+
+    def test_commit_marked_as_received(self, client, stream, mesh) -> None:
+        commit = Commit(message="this commit should be received")
+        commit.id = client.commit.create(
+            stream_id=stream.id,
+            object_id=mesh.id,
+            message=commit.message,
+        )
+
+        activity = self._get_commit_activity(client, stream.id, commit.id)
+
+        assert len(activity) == 1
+        assert (
+            client.commit.received(
+                stream.id,
+                commit.id,
+                source_application="pytest",
+                message="testing received",
+            )
+            == True
+        )
+        assert len(activity) == 2

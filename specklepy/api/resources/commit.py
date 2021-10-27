@@ -185,3 +185,40 @@ class Resource(ResourceBase):
         return self.make_request(
             query=query, params=params, return_type="commitDelete", parse_response=False
         )
+
+    def received(
+        self,
+        stream_id: str,
+        commit_id: str,
+        source_application: str = "python",
+        message: Optional[str] = None,
+    ) -> bool:
+        """
+        Mark a commit object a received by the source application.
+        """
+        query = gql(
+            """
+            mutation CommitReceive($receivedInput:CommitReceivedInput!){
+                commitReceive(input:$receivedInput)
+            }
+            """
+        )
+        params = {
+            "receivedInput": {
+                "sourceApplication": source_application,
+                "streamId": stream_id,
+                "commitId": commit_id,
+                "message": "message",
+            }
+        }
+
+        try:
+            return self.make_request(
+                query=query,
+                params=params,
+                return_type="commitReceive",
+                parse_response=False,
+            )
+        except Exception as ex:
+            print(ex.with_traceback)
+            return False
