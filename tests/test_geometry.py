@@ -5,11 +5,28 @@ import pytest
 from specklepy.api import operations
 from specklepy.objects.base import Base
 from specklepy.objects.encoding import CurveArray, ObjectArray
-from specklepy.objects.geometry import (Arc, Box, Brep, BrepEdge, BrepFace,
-                                        BrepLoop, BrepTrim, BrepTrimTypeEnum,
-                                        Circle, Curve, Ellipse, Interval, Line,
-                                        Mesh, Plane, Point, Polycurve,
-                                        Polyline, Surface, Vector)
+from specklepy.objects.geometry import (
+    Arc,
+    Box,
+    Brep,
+    BrepEdge,
+    BrepFace,
+    BrepLoop,
+    BrepTrim,
+    BrepTrimTypeEnum,
+    Circle,
+    Curve,
+    Ellipse,
+    Interval,
+    Line,
+    Mesh,
+    Plane,
+    Point,
+    Polycurve,
+    Polyline,
+    Surface,
+    Vector,
+)
 from specklepy.transports.memory import MemoryTransport
 
 
@@ -71,7 +88,7 @@ def arc(plane, interval):
         angleRadians=33,
         plane=plane,
         domain=interval,
-        units='m',
+        units="m",
         # These attributes are not handled in C#
         # bbox=None,
         # area=None,
@@ -88,7 +105,7 @@ def circle(plane, interval):
         radius=22,
         plane=plane,
         domain=interval,
-        units='m',
+        units="m",
         # These attributes are not handled in C#
         # bbox=None,
         # area=None,
@@ -103,7 +120,7 @@ def ellipse(plane, interval):
         secondRadius=22,
         plane=plane,
         domain=interval,
-        units='m',
+        units="m",
         # These attributes are not handled in C#
         # trimDomain=None,
         # bbox=None,
@@ -118,7 +135,7 @@ def polyline(interval):
         value=[22, 44, 54.3, 99, 232, 21],
         closed=True,
         domain=interval,
-        units='m',
+        units="m",
         # These attributes are not handled in C#
         # bbox=None,
         # area=None,
@@ -137,7 +154,7 @@ def curve(interval):
         points=[23, 21, 44, 43, 56, 76, 1, 3, 2],
         weights=[23, 11, 23],
         knots=[22, 45, 76, 11],
-        units='m',
+        units="m",
         # These attributes are not handled in C#
         # displayValue=None,
         # bbox=None,
@@ -152,7 +169,7 @@ def polycurve(interval, curve, polyline):
         segments=[curve, polyline],
         domain=interval,
         closed=True,
-        units='m',
+        units="m",
         # These attributes are not handled in C#
         # bbox=None,
         # area=None,
@@ -187,7 +204,7 @@ def surface(interval):
         domainV=interval,
         knotsU=[1.1, 2.2, 3.3, 4.4],
         knotsV=[9, 8, 7, 6, 5, 4.4],
-        units='m',
+        units="m",
         # These attributes are not handled in C#
         # bbox=None,
         # area=None,
@@ -218,11 +235,7 @@ def brep_edge(interval):
 
 @pytest.fixture()
 def brep_loop():
-    return BrepLoop(
-        FaceIndex=5,
-        TrimIndices=[3, 4, 5],
-        Type='unknown'
-    )
+    return BrepLoop(FaceIndex=5, TrimIndices=[3, 4, 5], Type="unknown")
 
 
 @pytest.fixture()
@@ -235,7 +248,7 @@ def brep_trim():
         LoopIndex=4,
         CurveIndex=7,
         IsoStatus=6,
-        TrimType='Mated',
+        TrimType="Mated",
         IsReversed=False,
         # These attributes are not handled in C#
         # Domain=None,
@@ -243,10 +256,21 @@ def brep_trim():
 
 
 @pytest.fixture
-def brep(mesh, box, surface, curve, polyline, circle, point,
-         brep_edge, brep_loop, brep_trim, brep_face):
+def brep(
+    mesh,
+    box,
+    surface,
+    curve,
+    polyline,
+    circle,
+    point,
+    brep_edge,
+    brep_loop,
+    brep_trim,
+    brep_face,
+):
     return Brep(
-        provenance='pytest',
+        provenance="pytest",
         bbox=box,
         area=32,
         volume=54,
@@ -265,33 +289,57 @@ def brep(mesh, box, surface, curve, polyline, circle, point,
 
 
 @pytest.fixture
-def geometry_objects_dict(point, vector, plane, line, arc,
-                          circle, ellipse, polyline, curve,
-                          polycurve, surface, brep_trim):
+def geometry_objects_dict(
+    point,
+    vector,
+    plane,
+    line,
+    arc,
+    circle,
+    ellipse,
+    polyline,
+    curve,
+    polycurve,
+    surface,
+    brep_trim,
+):
     return {
-        'point': point,
-        'vector': vector,
-        'plane': plane,
-        'line': line,
-        'arc': arc,
-        'circle': circle,
-        'ellipse': ellipse,
-        'polyline': polyline,
-        'curve': curve,
-        'polycurve': polycurve,
-        'surface': surface,
-        'brep_trim': brep_trim
+        "point": point,
+        "vector": vector,
+        "plane": plane,
+        "line": line,
+        "arc": arc,
+        "circle": circle,
+        "ellipse": ellipse,
+        "polyline": polyline,
+        "curve": curve,
+        "polycurve": polycurve,
+        "surface": surface,
+        "brep_trim": brep_trim,
     }
 
 
-@pytest.mark.parametrize('object_name', [
-    'point', 'vector', 'plane', 'line', 'arc', 'circle',
-    'ellipse', 'polyline', 'curve', 'polycurve', 'surface', 'brep_trim'
-])
+@pytest.mark.parametrize(
+    "object_name",
+    [
+        "point",
+        "vector",
+        "plane",
+        "line",
+        "arc",
+        "circle",
+        "ellipse",
+        "polyline",
+        "curve",
+        "polycurve",
+        "surface",
+        "brep_trim",
+    ],
+)
 def test_to_and_from_list(object_name: str, geometry_objects_dict):
     object = geometry_objects_dict[object_name]
-    assert hasattr(object, 'to_list')
-    assert hasattr(object, 'from_list')
+    assert hasattr(object, "to_list")
+    assert hasattr(object, "from_list")
 
     chunks = object.to_list()
     assert isinstance(chunks, list)
@@ -306,8 +354,7 @@ def test_brep_surfaces_value_serialization(surface):
     assert brep.Surfaces == None
     assert brep.SurfacesValue == None
     brep.Surfaces = [surface, surface]
-    assert brep.SurfacesValue == ObjectArray.from_objects(
-        [surface, surface]).data
+    assert brep.SurfacesValue == ObjectArray.from_objects([surface, surface]).data
 
     brep.SurfacesValue = ObjectArray.from_objects([surface]).data
     assert len(brep.Surfaces) == 1
@@ -341,16 +388,32 @@ def test_brep_curve3d_values_serialization(curve, polyline, circle):
 def test_brep_vertices_values_serialization():
     brep = Brep()
     brep.VerticesValue = [1, 1, 1, 1, 2, 2, 2, 3, 3, 3]
-    brep.Vertices[0].get_id() == Point(x=1, y=1, z=1, _units='mm').get_id()
-    brep.Vertices[1].get_id() == Point(x=2, y=2, z=2, _units='mm').get_id()
-    brep.Vertices[2].get_id() == Point(x=3, y=3, z=3, _units='mm').get_id()
+    brep.Vertices[0].get_id() == Point(x=1, y=1, z=1, _units="mm").get_id()
+    brep.Vertices[1].get_id() == Point(x=2, y=2, z=2, _units="mm").get_id()
+    brep.Vertices[2].get_id() == Point(x=3, y=3, z=3, _units="mm").get_id()
 
 
 def test_trims_value_serialization():
     brep = Brep()
     brep.TrimsValue = [
-        0, 0, 0, 0, 0, 0, 1, 1, 1,
-        1, 0, 0, 0, 0, 1, 2, 1, 0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        1,
+        0,
     ]
 
     brep.Trims[0].get_id() == BrepTrim(
@@ -383,7 +446,7 @@ def test_serialized_brep_attributes(brep: Brep):
     serialized = operations.serialize(brep, [transport])
     serialized_dict = json.loads(serialized)
 
-    removed_keys = ['Surfaces', 'Curve3D', 'Curve2D', 'Vertices', 'Trims']
+    removed_keys = ["Surfaces", "Curve3D", "Curve2D", "Vertices", "Trims"]
 
     for k in removed_keys:
         assert k not in serialized_dict.keys()

@@ -1,5 +1,4 @@
 import json
-from attr import has
 import pytest
 from specklepy.api import operations
 from specklepy.transports.server import ServerTransport
