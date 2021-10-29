@@ -68,3 +68,20 @@ class TestCommit:
         deleted = client.commit.delete(stream_id=stream.id, commit_id=commit_id)
 
         assert deleted is True
+
+    def test_commit_marked_as_received(self, client, stream, mesh) -> None:
+        commit = Commit(message="this commit should be received")
+        commit.id = client.commit.create(
+            stream_id=stream.id,
+            object_id=mesh.id,
+            message=commit.message,
+        )
+
+        commit_marked_received = client.commit.received(
+            stream.id,
+            commit.id,
+            source_application="pytest",
+            message="testing received",
+        )
+
+        assert commit_marked_received == True
