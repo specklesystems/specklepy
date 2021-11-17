@@ -18,6 +18,14 @@ class TestWrapper:
         assert wacky_wrap.branch_name == "🍕⬅🌟 you wat?"
         assert wrap.type == "branch"
 
+    def test_parse_nested_branch(self):
+        wrap = StreamWrapper(
+            "https://testing.speckle.dev/streams/4c3ce1459c/branches/izzy/dev"
+        )
+
+        assert wrap.branch_name == "izzy/dev"
+        assert wrap.type == "branch"
+
     def test_parse_commit(self):
         wrap = StreamWrapper(
             "https://testing.speckle.dev/streams/4c3ce1459c/commits/8b9b831792"
