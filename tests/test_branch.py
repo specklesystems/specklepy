@@ -58,7 +58,7 @@ class TestBranch:
         assert isinstance(branches, list)
         assert len(branches) == 2
         assert isinstance(branches[0], Branch)
-        assert branches[0].name == branch.name
+        assert branches[1].name == branch.name
 
     def test_branch_update(self, client, stream, branch, updated_branch):
         updated = client.branch.update(

@@ -144,9 +144,9 @@ class StreamWrapper:
         parsed = urlparse(url)
         self.host = parsed.netloc
         self.use_ssl = parsed.scheme == "https"
-        segments = parsed.path.strip("/").split("/")
+        segments = parsed.path.strip("/").split("/", 3)
 
-        if not segments or len(segments) > 4 or len(segments) < 2:
+        if not segments or len(segments) < 2:
             raise SpeckleException(
                 f"Cannot parse {url} into a stream wrapper class - invalid URL provided."
             )
