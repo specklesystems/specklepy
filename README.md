@@ -8,7 +8,9 @@
 <p align="center"><b>Speckle</b> is the data infrastructure for the AEC industry.</p><br/>
 
 <p align="center"><a href="https://twitter.com/SpeckleSystems"><img src="https://img.shields.io/twitter/follow/SpeckleSystems?style=social" alt="Twitter Follow"></a> <a href="https://speckle.community"><img src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fspeckle.community&amp;style=flat-square&amp;logo=discourse&amp;logoColor=white" alt="Community forum users"></a> <a href="https://speckle.systems"><img src="https://img.shields.io/badge/https://-speckle.systems-royalblue?style=flat-square" alt="website"></a> <a href="https://speckle.guide/dev/"><img src="https://img.shields.io/badge/docs-speckle.guide-orange?style=flat-square&amp;logo=read-the-docs&amp;logoColor=white" alt="docs"></a></p>
-<p align="center"><a href="https://github.com/specklesystems/specklepy/"><img src="https://circleci.com/gh/specklesystems/specklepy.svg?style=svg&amp;circle-token=76eabd350ea243575cbb258b746ed3f471f7ac29" alt="Speckle-Next"></a> </p>
+<p align="center"><a href="https://github.com/specklesystems/specklepy/"><img src="https://circleci.com/gh/specklesystems/specklepy.svg?style=svg&amp;circle-token=76eabd350ea243575cbb258b746ed3f471f7ac29" alt="Speckle-Next"></a><a href="https://codecov.io/gh/specklesystems/specklepy">
+  <img src="https://codecov.io/gh/specklesystems/specklepy/branch/main/graph/badge.svg?token=8KQFL5N0YF"/>
+</a> </p>
 
 # About Speckle
 
