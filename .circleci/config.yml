@@ -39,7 +39,7 @@ jobs:
           name: upgrade pip
       - python/install-packages:
           pkg-manager: poetry
-      - run: poetry run pytest --cov --cov-report html:reports/cov_html --junitxml=reports/test-results.xml
+      - run: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
 
       - store_test_results:
           path: reports
