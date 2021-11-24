@@ -1,4 +1,6 @@
 .tool-versions
+.envrc
+reports/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
