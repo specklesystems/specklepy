@@ -7,10 +7,25 @@ from .units import get_encoding_from_units, get_units_from_encoding
 
 STRUCTURAL_MATERIALS = "Objects.Structural.Materials"
 
+
+class MaterialType(int, Enum):
+    Concrete = 0
+    Steel = 1
+    Timber = 2 
+    Aluminium = 3
+    Masonry = 4
+    FRP = 5
+    Glass = 6
+    Fabric = 7
+    Rebar = 8 
+    Tendon = 9
+    ColdFormed = 10
+    Other = 11
+
 class Material(Base, speckle_type=STRUCTURAL_MATERIALS):
     name: str = None
     grade: str = None
-    materialType: str = None
+    materialType: MaterialType = None
     designCode: str = None
     codeYear: str = None
     strength: float = 0.0
@@ -41,17 +56,3 @@ class Steel(Material, speckle_type = STRUCTURAL_MATERIALS + ".Steel"):
 class Timber(Material, speckle_type = STRUCTURAL_MATERIALS + ".Timber"):
     species: str = None
 
-
-class MaterialType(int, Enum):
-    Concrete = 0
-    Steel = 1
-    Timber = 2 
-    Aluminium = 3
-    Masonry = 4
-    FRP = 5
-    Glass = 6
-    Fabric = 7
-    Rebar = 8 
-    Tendon = 9
-    ColdFormed = 10
-    Other = 11
