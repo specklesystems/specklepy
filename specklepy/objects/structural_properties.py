@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, List, Optional
 
-from structural_geometry import Axis
+from .structural_geometry import Axis
 
 from .base import Base
 from .encoding import CurveArray, CurveTypeEncoding, ObjectArray
