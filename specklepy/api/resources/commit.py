@@ -34,8 +34,8 @@ class Resource(ResourceBase):
                 stream(id: $stream_id) {
                     commit(id: $commit_id) {
                         id
-                        referencedObject
                         message
+                        referencedObject
                         authorId
                         authorName
                         authorAvatar
@@ -79,6 +79,7 @@ class Resource(ResourceBase):
                             authorId
                             authorName
                             authorAvatar
+                            branchName
                             createdAt
                             sourceApplication
                             totalChildrenCount

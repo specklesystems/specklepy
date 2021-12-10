@@ -30,7 +30,7 @@ class Commit(BaseModel):
     parents: Optional[List[str]]
 
     def __repr__(self) -> str:
-        return f"Commit( id: {self.id}, message: {self.message}, referencedObject: {self.referencedObject}, authorName: {self.authorName}, createdAt: {self.createdAt} )"
+        return f"Commit( id: {self.id}, message: {self.message}, referencedObject: {self.referencedObject}, authorName: {self.authorName}, branchName: {self.branchName}, createdAt: {self.createdAt} )"
 
     def __str__(self) -> str:
         return self.__repr__()
