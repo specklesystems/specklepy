@@ -2,17 +2,15 @@ from enum import Enum
 import enum
 from typing import Any, List, Optional
 
-from .base import Base
-from .encoding import CurveArray, CurveTypeEncoding, ObjectArray
-from .units import get_encoding_from_units, get_units_from_encoding
-from .geometry import *
-from .structural_properties import *
+from ..base import Base
+from ..geometry import *
+from .properties import *
+from .axis import Axis
 
 STRUCTURAL_GEOMETRY = "Objects.Structural.Geometry"
 
 
 class ElementType1D(int, Enum):
-
     Beam = 0
     Brace = 1
     Bar = 2
@@ -30,7 +28,6 @@ class ElementType1D(int, Enum):
 
 
 class ElementType2D(int, Enum):
-
     Quad4 = 0
     Quad8 = 1
     Triangle3 = 2
@@ -38,7 +35,6 @@ class ElementType2D(int, Enum):
 
 
 class ElementType3D(int, Enum):
-
     Brick8 = 0
     Wedge6 = 1
     Pyramid5 = 2
@@ -111,9 +107,3 @@ class Element3D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element3D"):
 
 
 # class Storey needs ependency on built elements first
-
-
-class Axis(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Axis"):
-    name: str = None
-    axisType: str = None
-    plane: Plane = None

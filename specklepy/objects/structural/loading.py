@@ -1,10 +1,8 @@
 from enum import Enum
 from typing import Any, List, Optional
 
-from .base import Base
-from .encoding import CurveArray, CurveTypeEncoding, ObjectArray
-from .units import get_encoding_from_units, get_units_from_encoding
-from .structural_geometry import *
+from ..base import Base
+from .geometry import *
 
 STRUCTURAL_LOADING = "Objects.Structural.Loading."
 

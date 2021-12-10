@@ -1,13 +1,11 @@
 from enum import Enum
 from typing import Any, List, Optional
 
-from .structural_geometry import Axis
 
-from .base import Base
-from .encoding import CurveArray, CurveTypeEncoding, ObjectArray
-from .units import get_encoding_from_units, get_units_from_encoding
+from ..base import Base
 
-from .structural_material import *
+from .material import *
+from .axis import Axis
 
 
 STRUCTURAL_PROPERTY = "Objectives.Structural.Properties"
@@ -96,6 +94,18 @@ class Property(Base, speckle_type=STRUCTURAL_PROPERTY):
     name: str = None
 
 
+class SectionProfile(Base, speckle_type=STRUCTURAL_PROPERTY + ".SectionProfile"):
+    name: str = None
+    shapeType: ShapeType = None
+    area: float = 0.0
+    Iyy: float = 0.0
+    Izz: float = 0.0
+    J: float = 0.0
+    Ky: float = 0.0
+    weight: float = 0.0
+    units: str = None
+
+
 class Property1D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property1D"):
     memberType: MemberType = None
     Material: Material = None
@@ -172,18 +182,6 @@ class PropertySpring(Property, speckle_type=STRUCTURAL_PROPERTY + ".PropertySpri
     matrix: float = 0.0
     postiveLockup: float = 0.0
     frictionCoefficient: float = 0.0
-
-
-class SectionProfile(Base, speckle_type=STRUCTURAL_PROPERTY + ".SectionProfile"):
-    name: str = None
-    shapeType: ShapeType = None
-    area: float = 0.0
-    Iyy: float = 0.0
-    Izz: float = 0.0
-    J: float = 0.0
-    Ky: float = 0.0
-    weight: float = 0.0
-    units: str = None
 
 
 class ReferenceSurfaceEnum(int, Enum):

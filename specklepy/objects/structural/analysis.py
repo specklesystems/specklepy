@@ -2,11 +2,9 @@ from enum import Enum
 import enum
 from typing import Any, List, Optional
 
-from .base import Base
-from .encoding import CurveArray, CurveTypeEncoding, ObjectArray
-from .units import get_encoding_from_units, get_units_from_encoding
-from .geometry import *
-from .structural_properties import *
+from ..base import Base
+from ..geometry import *
+from .properties import *
 
 STRUCTURAL_ANALYSIS = "Objects.Structural.Analysis."
 
@@ -27,7 +25,7 @@ class ModelUnits(Base, speckle_type=STRUCTURAL_ANALYSIS + "ModelUnits"):
     strain: str = None
 
 
-class ModelSetttings(Base, speckle_type=STRUCTURAL_ANALYSIS + "ModelSettings"):
+class ModelSettings(Base, speckle_type=STRUCTURAL_ANALYSIS + "ModelSettings"):
     modelUnits: ModelUnits = None
     steelCode: str = None
     concreteCode: str = None
@@ -39,7 +37,7 @@ class ModelInfo(Base, speckle_type=STRUCTURAL_ANALYSIS + "ModelInfo"):
     description: str = None
     projectNumber: str = None
     projectName: str = None
-    settings: ModelSetttings = None
+    settings: ModelSettings = None
     initials: str = None
     application: str = None
 
