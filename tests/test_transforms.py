@@ -88,5 +88,12 @@ def test_points_values_transform(points_values: List[float], transform: Transfor
         assert new_coords[i + 2] == points_values[i + 2] * 0.5
 
 
+def test_transform_fails_with_malformed_value():
+    with pytest.raises(ValueError):
+        Transform.from_list("asdf")
+    with pytest.raises(ValueError):
+        Transform.from_list([7, 8, 9])
+
+
 def test_transform_serialisation():
     return
