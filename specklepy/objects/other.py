@@ -1,5 +1,5 @@
 from typing import List
-from specklepy.objects.geometry import Point
+from specklepy.objects.geometry import Point, Vector
 from .base import Base
 
 OTHER = "Objects.Other."
@@ -33,7 +33,11 @@ class RenderMaterial(Base, speckle_type=OTHER + "RenderMaterial"):
     emissive: int = -16777216  # black arbg
 
 
-class Transform(Base, speckle_type=OTHER + "Transform"):
+class Transform(
+    Base,
+    speckle_type=OTHER + "Transform",
+    serialize_ignore={"translation", "scaling", "is_identity"},
+):
     """The 4x4 transformation matrix
 
     The 3x3 sub-matrix determines scaling.
@@ -136,6 +140,34 @@ class Transform(Base, speckle_type=OTHER + "Transform"):
             transformed.extend(self.apply_to_point_value(points_value[i : i + 3]))
 
         return transformed
+
+    def apply_to_vector(self, vector: Vector) -> Vector:
+        """Transform a single speckle Vector
+
+        Arguments:
+            point {Vector} -- the speckle Vector to transform
+
+        Returns:
+            Vector -- a new transformed point
+        """
+        coords = self.apply_to_vector_value([vector.x, vector.y, vector.z])
+        return Vector(x=coords[0], y=coords[1], z=coords[2], units=vector.units)
+
+    def apply_to_vector_value(self, vector_value: List[float]) -> List[float]:
+        """Transform a list of three floats representing a vector
+
+        Arguments:
+            vector_value {List[float]} -- a list of 3 floats
+
+        Returns:
+            List[float] -- the list with the transform applied
+        """
+        return [
+            vector_value[0] * self._value[i]
+            + vector_value[1] * self._value[i + 1]
+            + vector_value[2] * self._value[i + 2]
+            for i in range(0, 15, 4)
+        ][:3]
 
     @classmethod
     def from_list(cls, value: List[float] = None) -> "Transform":
