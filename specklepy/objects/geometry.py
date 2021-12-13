@@ -391,6 +391,15 @@ class Mesh(
     area: float = None
     volume: float = None
 
+    def transform_to(self, transform: "Transform") -> "Mesh":
+        mesh = Mesh(vertices=transform.apply_to_points_values(self.vertices))
+        for attr in set(self.get_serializable_attributes()) - {"vertices"}:
+            orig_val = getattr(self, attr, None)
+            if orig_val:
+                setattr(mesh, attr, orig_val)
+
+        return mesh
+
 
 class Surface(Base, speckle_type=GEOMETRY + "Surface"):
     degreeU: int = None

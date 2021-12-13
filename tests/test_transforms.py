@@ -1,7 +1,7 @@
 from typing import List
 import pytest
 from specklepy.api import operations
-from specklepy.objects.geometry import Point, Vector
+from specklepy.objects.geometry import Mesh, Point, Vector
 from specklepy.objects.other import (
     Transform,
     BlockInstance,
@@ -41,6 +41,15 @@ def vector():
 @pytest.fixture()
 def vector_value():
     return [1, 1, 2]
+
+
+@pytest.fixture()
+def mesh():
+    return Mesh(
+        vertices=[-7, 5, 1, -8, 4, 0, -7, 3, 0, -6, 4, 0],
+        faces=[1, 1, 2, 3, 0],
+        units="feet",
+    )
 
 
 @pytest.fixture()
@@ -130,3 +139,13 @@ def test_transform_serialisation(transform: Transform):
     deserialized = operations.deserialize(serialized)
 
     assert transform.get_id() == deserialized.get_id()
+
+
+def test_mesh_transform(mesh: Mesh, transform: Transform):
+    new_mesh = mesh.transform_to(transform)
+
+    assert mesh.vertices != new_mesh.vertices
+
+    new_mesh.vertices = mesh.vertices
+
+    assert mesh.get_id() == new_mesh.get_id()
