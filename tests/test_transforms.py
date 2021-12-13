@@ -1,6 +1,7 @@
 from typing import List
 import pytest
-from specklepy.objects.geometry import Point
+from specklepy.api import operations
+from specklepy.objects.geometry import Point, Vector
 from specklepy.objects.other import (
     Transform,
     BlockInstance,
@@ -30,6 +31,16 @@ def points_values():
     for i in range(5):
         coords.extend([1 + i, 10 + i, 2 + 1])
     return coords
+
+
+@pytest.fixture()
+def vector():
+    return Vector(x=1, y=10, z=2)
+
+
+@pytest.fixture()
+def vector_value():
+    return [1, 1, 2]
 
 
 @pytest.fixture()
@@ -67,6 +78,7 @@ def test_point_transform(point: Point, transform: Transform):
 
 def test_points_transform(points: List[Point], transform: Transform):
     new_points = transform.apply_to_points(points)
+
     for (i, new_point) in enumerate(new_points):
         assert new_point.x == points[i].x + 1
         assert new_point.y == points[i].y + 2
@@ -75,6 +87,7 @@ def test_points_transform(points: List[Point], transform: Transform):
 
 def test_point_value_transform(point_value: List[float], transform: Transform):
     new_coords = transform.apply_to_point_value(point_value)
+
     assert new_coords[0] == point_value[0] + 1
     assert new_coords[1] == point_value[1] + 2
     assert new_coords[2] == point_value[2] * 0.5
@@ -82,10 +95,27 @@ def test_point_value_transform(point_value: List[float], transform: Transform):
 
 def test_points_values_transform(points_values: List[float], transform: Transform):
     new_coords = transform.apply_to_points_values(points_values)
+
     for i in range(0, len(points_values), 3):
         assert new_coords[i] == points_values[i] + 1
         assert new_coords[i + 1] == points_values[i + 1] + 2
         assert new_coords[i + 2] == points_values[i + 2] * 0.5
+
+
+def test_vector_transform(vector: Vector, transform: Transform):
+    new_vector = transform.apply_to_vector(vector)
+
+    assert new_vector.x == vector.x
+    assert new_vector.y == vector.y
+    assert new_vector.z == vector.z * 0.5
+
+
+def test_vector_value_transform(vector_value: List[float], transform: Transform):
+    new_coords = transform.apply_to_vector_value(vector_value)
+
+    assert new_coords[0] == vector_value[0]
+    assert new_coords[1] == vector_value[1]
+    assert new_coords[2] == vector_value[2] * 0.5
 
 
 def test_transform_fails_with_malformed_value():
@@ -95,5 +125,8 @@ def test_transform_fails_with_malformed_value():
         Transform.from_list([7, 8, 9])
 
 
-def test_transform_serialisation():
-    return
+def test_transform_serialisation(transform: Transform):
+    serialized = operations.serialize(transform)
+    deserialized = operations.deserialize(serialized)
+
+    assert transform.get_id() == deserialized.get_id()
