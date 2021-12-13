@@ -207,7 +207,7 @@ class Base(_RegisteringBase):
             try:
                 attr.__set__(self, value)
             except AttributeError:
-                pass  # the prop probably doesn't have a setter
+                return  # the prop probably doesn't have a setter
         super().__setattr__(name, value)
 
     @classmethod
