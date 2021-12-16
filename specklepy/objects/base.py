@@ -252,6 +252,9 @@ class Base(_RegisteringBase):
         if t is None:
             return value
 
+        if value is None:
+            return None
+
         if t.__module__ == "typing":
             origin = getattr(t, "__origin__")
             t = (

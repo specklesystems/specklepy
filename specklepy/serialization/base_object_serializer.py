@@ -60,8 +60,13 @@ class BaseObjectSerializer:
             chunkable = False
             detach = False
 
-            # skip nulls or props marked to be ignored with "__" or "_"
-            if value is None or prop.startswith(("__", "_")):
+            # skip props marked to be ignored with "__" or "_"
+            if prop.startswith(("__", "_")):
+                continue
+
+            # allow serialisation of nulls
+            if not value:
+                object_builder[prop] = value
                 continue
 
             # don't prepopulate id as this will mess up hashing
