@@ -64,13 +64,13 @@ class BaseObjectSerializer:
             if prop.startswith(("__", "_")):
                 continue
 
-            # allow serialisation of nulls
-            if not value:
-                object_builder[prop] = value
-                continue
-
             # don't prepopulate id as this will mess up hashing
             if prop == "id":
+                continue
+
+            # allow serialisation of nulls
+            if value is None:
+                object_builder[prop] = value
                 continue
 
             # only bother with chunking and detaching if there is a write transport
