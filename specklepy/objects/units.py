@@ -1,4 +1,5 @@
-from specklepy.logging.exceptions import SpeckleException
+from warnings import warn
+from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
 UNITS = ["mm", "cm", "m", "in", "ft", "yd", "mi"]
 
@@ -28,6 +29,12 @@ UNITS_ENCODINGS = {
 
 
 def get_units_from_string(unit: str):
+    if not isinstance(unit, str):
+        warn(
+            f"Invalid units: expected type str but received {type(unit)} ({unit}). Skipping - no units will be set.",
+            SpeckleWarning,
+        )
+        return
     unit = str.lower(unit)
     for name, alternates in UNITS_STRINGS.items():
         if unit in alternates:

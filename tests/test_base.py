@@ -77,6 +77,18 @@ def test_speckle_type_cannot_be_set(base: Base) -> None:
     assert base.speckle_type == "Base"
 
 
+def test_setting_units():
+    b = Base(units="foot")
+    assert b.units == "ft"
+
+    with pytest.raises(SpeckleException):
+        b.units = "big"
+
+    b.units = None  # invalid args are skipped
+    b.units = 7
+    assert b.units == "ft"
+
+
 def test_base_of_custom_speckle_type() -> None:
     b1 = Base.of_type("BirdHouse", name="Tweety's Crib")
     assert b1.speckle_type == "BirdHouse"

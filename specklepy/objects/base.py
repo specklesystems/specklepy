@@ -313,7 +313,9 @@ class Base(_RegisteringBase):
 
     @units.setter
     def units(self, value: str):
-        self._units = get_units_from_string(value)
+        units = get_units_from_string(value)
+        if units:
+            self._units = units
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
