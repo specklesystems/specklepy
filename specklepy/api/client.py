@@ -77,6 +77,8 @@ class SpeckleClient:
         # Check compatibility with the server
         try:
             serverInfo = self.server.get()
+            if isinstance(serverInfo, Exception):
+                raise serverInfo
             if not isinstance(serverInfo, ServerInfo):
                 raise Exception("Couldn't get ServerInfo")
         except Exception as ex:
