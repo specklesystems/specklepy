@@ -118,8 +118,8 @@ class StreamWrapper:
     commit_id: str = None
     object_id: str = None
     branch_name: str = None
-    client: SpeckleClient = None
-    account: Account = None
+    _client: SpeckleClient = None
+    _account: Account = None
 
     def __repr__(self):
         return f"StreamWrapper( server: {self.host}, stream_id: {self.stream_id}, type: {self.type} )"
@@ -179,15 +179,15 @@ class StreamWrapper:
         """
         Gets an account object for this server from the local accounts db (added via Speckle Manager or a json file)
         """
-        if self.account:
-            return self.account
+        if self._account:
+            return self._account
 
-        self.account = next(
+        self._account = next(
             (a for a in get_local_accounts() if self.host in a.serverInfo.url),
             None,
         )
 
-        return self.account
+        return self._account
 
     def get_client(self, token: str = None) -> SpeckleClient:
         """
@@ -200,22 +200,22 @@ class StreamWrapper:
         Returns:
             SpeckleClient -- authenticated with a corresponding local account or the provided token
         """
-        if self.client and token is None:
-            return self.client
+        if self._client and token is None:
+            return self._client
 
-        if not self.account:
+        if not self._account:
             self.get_account()
 
-        if not self.client:
-            self.client = SpeckleClient(host=self.host, use_ssl=self.use_ssl)
+        if not self._client:
+            self._client = SpeckleClient(host=self.host, use_ssl=self.use_ssl)
 
-        if self.account is None and token is None:
+        if self._account is None and token is None:
             warn(f"No local account found for server {self.host}", SpeckleWarning)
-            return self.client
+            return self._client
 
-        self.client.authenticate(self.account.token if self.account else token)
+        self._client.authenticate(self.account.token if self._account else token)
 
-        return self.client
+        return self._client
 
     def get_transport(self, token: str = None) -> ServerTransport:
         """
@@ -225,6 +225,6 @@ class StreamWrapper:
         Returns:
             ServerTransport -- constructed for this stream with a pre-authenticated client
         """
-        if not self.client or not self.client.me:
+        if not self._client or not self._client.me:
             self.get_client(token)
-        return ServerTransport(self.stream_id, self.client)
+        return ServerTransport(self.stream_id, self._client)
