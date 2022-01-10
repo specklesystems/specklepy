@@ -1,11 +1,15 @@
 import ujson
 import hashlib
 import re
-
 from uuid import uuid4
+from warnings import warn
 from typing import Any, Dict, List, Tuple
 from specklepy.objects.base import Base, DataChunk
-from specklepy.logging.exceptions import SerializationException, SpeckleException
+from specklepy.logging.exceptions import (
+    SerializationException,
+    SpeckleException,
+    SpeckleWarning,
+)
 from specklepy.transports.abstract_transport import AbstractTransport
 import specklepy.objects.geometry
 import specklepy.objects.other
@@ -15,6 +19,19 @@ PRIMITIVES = (int, float, str, bool)
 
 def hash_obj(obj: Any) -> str:
     return hashlib.sha256(ujson.dumps(obj).encode()).hexdigest()[:32]
+
+
+def safe_json_loads(obj: str, obj_id=None) -> Any:
+    try:
+        return ujson.loads(obj)
+    except ValueError as err:
+        import json
+
+        warn(
+            f"Failed to deserialise object (id: {obj_id}). This is likely a ujson big int error - falling back to json. \nError: {err}",
+            SpeckleWarning,
+        )
+        return json.loads(obj)
 
 
 class BaseObjectSerializer:
@@ -243,7 +260,7 @@ class BaseObjectSerializer:
         """
         if not obj_string:
             return None
-        obj = ujson.loads(obj_string)
+        obj = safe_json_loads(obj_string)
         return self.recompose_base(obj=obj)
 
     def recompose_base(self, obj: dict) -> Base:
@@ -259,7 +276,7 @@ class BaseObjectSerializer:
         if not obj:
             return
         if isinstance(obj, str):
-            obj = ujson.loads(obj)
+            obj = safe_json_loads(obj)
 
         if "speckle_type" in obj and obj["speckle_type"] == "reference":
             obj = self.get_child(obj=obj)
@@ -297,7 +314,7 @@ class BaseObjectSerializer:
                     raise SpeckleException(
                         f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
                     )
-                ref_obj = ujson.loads(ref_obj_str)
+                ref_obj = safe_json_loads(ref_obj_str, ref_hash)
                 base.__setattr__(prop, self.recompose_base(obj=ref_obj))
 
             # 3. handle all other cases (base objects, lists, and dicts)
@@ -355,4 +372,5 @@ class BaseObjectSerializer:
             raise SpeckleException(
                 f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
             )
-        return ujson.loads(ref_obj_str)
+
+        return safe_json_loads(ref_obj_str, ref_hash)
