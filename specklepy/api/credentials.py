@@ -213,7 +213,7 @@ class StreamWrapper:
             warn(f"No local account found for server {self.host}", SpeckleWarning)
             return self._client
 
-        self._client.authenticate(self.account.token if self._account else token)
+        self._client.authenticate(self._account.token if self._account else token)
 
         return self._client
 
