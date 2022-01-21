@@ -92,10 +92,15 @@ class BatchSender(object):
 
     def _bg_send_batch(self, session, batch):
         object_ids = [obj[0] for obj in batch]
-        server_has_object = session.post(
-            url=f"{self.server_url}/api/diff/{self.stream_id}",
-            data={"objects": json.dumps(object_ids)},
-        ).json()
+        try:
+            server_has_object = session.post(
+                url=f"{self.server_url}/api/diff/{self.stream_id}",
+                data={"objects": json.dumps(object_ids)},
+            ).json()
+        except Exception as ex:
+            raise SpeckleException(
+                f"Invalid credentials - cannot send objects to server {self.server_url}"
+            ) from ex
 
         new_object_ids = [x for x in object_ids if not server_has_object[x]]
         new_object_ids = set(new_object_ids)
