@@ -1,6 +1,10 @@
 import re
-from gql.client import SyncClientSession
-from specklepy.logging.exceptions import SpeckleException
+from warnings import warn
+from specklepy.logging.exceptions import (
+    GraphQLException,
+    SpeckleException,
+    SpeckleWarning,
+)
 from typing import Dict
 
 from specklepy.api import resources
@@ -14,9 +18,8 @@ from specklepy.api.resources import (
     subscriptions,
 )
 from specklepy.api.models import ServerInfo
-from gql import Client, gql
+from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
-from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
 
 
@@ -112,6 +115,13 @@ class SpeckleClient:
         self.wsclient = Client(transport=wstransport)
 
         self._init_resources()
+
+        if isinstance(self.user.get(), GraphQLException):
+            warn(
+                SpeckleWarning(
+                    f"Invalid token - could not authenticate Speckle Client for server {self.url}"
+                )
+            )
 
     def execute_query(self, query: str) -> Dict:
         return self.httpclient.execute(query)
