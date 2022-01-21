@@ -3,13 +3,13 @@ from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.objects.base import Base
 from specklepy.transports.server import ServerTransport
-from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
 
 def test_invalid_authentication():
     client = SpeckleClient()
 
-    with pytest.raises(SpeckleException):
+    with pytest.warns(SpeckleWarning):
         client.authenticate("fake token")
 
 
