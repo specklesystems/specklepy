@@ -36,7 +36,7 @@ services:
       dockerfile: Dockerfile
       context: .
       args:
-        VARIANT: 3.6
+        VARIANT: 3.9
         NODE_VERSION: lts/*
     volumes:
       # Mounts the project folder to '/workspace'. While this file is in .devcontainer,
