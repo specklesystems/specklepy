@@ -33,6 +33,7 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
 
     @classmethod
     def from_list(cls, args: List[float]) -> "Point":
+        """Create a new Point from a list of three floats representing the x, y, and z coordinates"""
         return cls(x=args[0], y=args[1], z=args[2])
 
     def to_list(self) -> List[Any]:
@@ -40,6 +41,7 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
 
     @classmethod
     def from_coords(cls, x: float = 0.0, y: float = 0.0, z: float = 0.0):
+        """Create a new Point from x, y, and z values"""
         pt = Point()
         pt.x, pt.y, pt.z = x, y, z
         return pt
@@ -216,6 +218,7 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 200
 
     @classmethod
     def from_points(cls, points: List[Point]):
+        """Create a new Polyline from a list of Points"""
         polyline = cls()
         polyline.units = points[0].units
         polyline.value = []
@@ -390,6 +393,28 @@ class Mesh(
     bbox: Box = None
     area: float = None
     volume: float = None
+
+    @classmethod
+    def create(
+        cls,
+        vertices: List[float],
+        faces: List[int],
+        colors: List[int] = None,
+        texture_coordinates: List[float] = None,
+    ) -> "Mesh":
+        """
+        Create a new Mesh from lists representing its vertices, faces,
+        colors (optional), and texture coordinates (optional).
+
+        This will initialise empty lists for colors and texture coordinates
+        if you do not provide any.
+        """
+        return cls(
+            vertices=vertices,
+            faces=faces,
+            colors=colors or [],
+            textureCoordinates=texture_coordinates or [],
+        )
 
 
 class Surface(Base, speckle_type=GEOMETRY + "Surface"):
