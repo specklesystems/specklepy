@@ -3,6 +3,7 @@ from typing import Callable
 
 import pytest
 from specklepy.api import operations
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.objects.encoding import CurveArray, ObjectArray
 from specklepy.objects.geometry import (
@@ -450,3 +451,15 @@ def test_serialized_brep_attributes(brep: Brep):
 
     for k in removed_keys:
         assert k not in serialized_dict.keys()
+
+
+def test_mesh_create():
+    vertices = [2, 1, 2, 4, 77.3, 5, 33, 4, 2]
+    faces = [1, 2, 3, 4, 5, 6, 7]
+    mesh = Mesh.create(vertices, faces)
+
+    with pytest.raises(SpeckleException):
+        bad_mesh = Mesh.create(vertices=7, faces=faces)
+
+    assert mesh.vertices == vertices
+    assert mesh.textureCoordinates == []
