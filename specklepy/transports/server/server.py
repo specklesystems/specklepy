@@ -1,12 +1,12 @@
 import json
 import time
-
 import requests
+from warnings import warn
 
 from typing import Any, Dict, List, Type
 
 from specklepy.api.client import SpeckleClient
-from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
 
 from .batch_sender import BatchSender
@@ -65,12 +65,15 @@ class ServerTransport(AbstractTransport):
             )
 
         if client:
-            if not client.me:
-                raise SpeckleException(
-                    "The provided SpeckleClient was not authenticated."
-                )
-            token = client.me["token"]
             url = client.url
+            if not client.me:
+                warn(
+                    SpeckleWarning(
+                        f"Unauthenticated Speckle Client provided to Server Transport for {self.url}. Receiving from private streams will fail."
+                    )
+                )
+            else:
+                token = client.me["token"]
 
         self.stream_id = stream_id
         self.url = url
