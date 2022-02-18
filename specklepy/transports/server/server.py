@@ -123,8 +123,7 @@ class ServerTransport(AbstractTransport):
     ) -> str:
         endpoint = f"{self.url}/objects/{self.stream_id}/{id}/single"
         r = self.session.get(endpoint)
-        if r.encoding is None:
-            r.encoding = "utf-8"
+        r.encoding = "utf-8"
 
         if r.status_code != 200:
             raise SpeckleException(
@@ -146,8 +145,7 @@ class ServerTransport(AbstractTransport):
         r = self.session.post(
             endpoint, data={"objects": json.dumps(new_children_ids)}, stream=True
         )
-        if r.encoding is None:
-            r.encoding = "utf-8"
+        r.encoding = "utf-8"
         lines = r.iter_lines(decode_unicode=True)
 
         # iter through returned objects saving them as we go
