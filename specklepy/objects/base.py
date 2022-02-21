@@ -405,4 +405,5 @@ class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
     data: List[Any] = None
 
     def __init__(self) -> None:
+        super().__init__()
         self.data = []
