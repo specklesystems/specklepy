@@ -1,6 +1,4 @@
-import json
 from typing import Any, List, Dict
-from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.abstract_transport import AbstractTransport
 
 

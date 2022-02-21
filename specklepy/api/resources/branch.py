@@ -1,7 +1,4 @@
-from specklepy.api.resources import stream
-from typing import List, Optional
 from gql import gql
-from pydantic.main import BaseModel
 from specklepy.api.resource import ResourceBase
 from specklepy.api.models import Branch
 

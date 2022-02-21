@@ -1,5 +1,5 @@
 from gql import gql
-from typing import Dict, List, Optional
+from typing import List
 from specklepy.logging import metrics
 from specklepy.api.models import Stream
 from specklepy.api.resource import ResourceBase

@@ -1,11 +1,10 @@
-import typing
 from typing import (
     Any,
-    Callable,
     ClassVar,
     Dict,
     List,
     Optional,
+    Union,
     Set,
     Type,
     get_type_hints,
@@ -259,7 +258,7 @@ class Base(_RegisteringBase):
             origin = getattr(t, "__origin__")
             t = (
                 tuple(getattr(sub_t, "__origin__", sub_t) for sub_t in t.__args__)
-                if origin is typing.Union
+                if origin is Union
                 else origin
             )
 

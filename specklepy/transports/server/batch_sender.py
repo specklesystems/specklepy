@@ -2,7 +2,6 @@ import json
 import logging
 import threading
 import queue
-import time
 import gzip
 
 import requests

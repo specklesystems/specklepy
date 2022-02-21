@@ -1,9 +1,9 @@
-from typing import Callable, Dict, List, Optional, Any
+from typing import Callable, Dict, List
 from functools import wraps
 from gql import gql
 from specklepy.api.resource import ResourceBase
 from specklepy.api.resources.stream import Stream
-from specklepy.logging.exceptions import GraphQLException, SpeckleException
+from specklepy.logging.exceptions import SpeckleException
 
 NAME = "subscribe"
 METHODS = [

@@ -1,9 +1,8 @@
 import json
-import time
 import requests
 from warnings import warn
 
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List
 
 from specklepy.api.client import SpeckleClient
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
