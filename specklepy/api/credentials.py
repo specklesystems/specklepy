@@ -49,8 +49,7 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
     json_acct_files = [file for file in os.listdir(json_path) if file.endswith(".json")]
 
     accounts = []
-    res = account_storage.get_all_objects()
-    if res:
+    if res := account_storage.get_all_objects():
         accounts.extend(Account.parse_raw(r[1]) for r in res)
     if json_acct_files:
         try:
@@ -75,7 +74,6 @@ def get_default_account(base_path: str = None) -> Account:
     Returns:
         Account -- the default account or None if no local accounts were found
     """
-    metrics.track(metrics.ACCOUNT_DEFAULT)
     accounts = get_local_accounts(base_path=base_path)
     if not accounts:
         return None
@@ -84,6 +82,8 @@ def get_default_account(base_path: str = None) -> Account:
     if not default:
         default = accounts[0]
         default.isDefault = True
+    metrics.initialise_tracker(default.userInfo.email, default.serverInfo.url)
+    metrics.track(metrics.ACCOUNT_DEFAULT)
 
     return default
 
@@ -139,7 +139,7 @@ class StreamWrapper:
             return "stream" if self.stream_id else "invalid"
 
     def __init__(self, url: str) -> None:
-        metrics.track("streamwrapper")
+        metrics.track("streamwrapper", self.get_account())
         self.stream_url = url
         parsed = urlparse(url)
         self.host = parsed.netloc

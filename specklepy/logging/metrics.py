@@ -1,9 +1,10 @@
 import os
+import sys
 import queue
+import hashlib
 import logging
 import requests
 import threading
-from specklepy.transports.sqlite import SQLiteTransport
 
 """
 Anonymous telemetry to help us understand how to make a better Speckle.
@@ -11,6 +12,7 @@ This really helps us to deliver a better open source project and product!
 """
 TRACK = True
 HOST_APP = "python"
+PLATFORMS = {"win32": "Windows", "cygwin": "Windows", "darwin": "Mac OS X"}
 
 LOG = logging.getLogger(__name__)
 METRICS_TRACKER = None
@@ -45,18 +47,14 @@ def set_host_app(host_app: str):
     HOST_APP = host_app
 
 
-def track(action: str):
+def track(action: str, email: str = None, server: str = None):
     if not TRACK:
         return
     try:
-        global METRICS_TRACKER
-        if not METRICS_TRACKER:
-            METRICS_TRACKER = MetricsTracker()
-
+        initialise_tracker(email, server)
         page_params = {
             "rec": 1,
             "idsite": METRICS_TRACKER.site_id,
-            "uid": METRICS_TRACKER.suuid,
             "action_name": action,
             "url": f"http://connectors/{HOST_APP}/{action}",
             "urlref": f"http://connectors/{HOST_APP}/{action}",
@@ -66,7 +64,6 @@ def track(action: str):
         event_params = {
             "rec": 1,
             "idsite": METRICS_TRACKER.site_id,
-            "uid": MetricsTracker.suuid,
             "_cvar": {"1": ["hostApplication", HOST_APP]},
             "e_c": HOST_APP,
             "e_a": action,
@@ -76,6 +73,17 @@ def track(action: str):
     except Exception as ex:
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
         LOG.error("Error queueing metrics request: " + str(ex))
+
+
+def initialise_tracker(email: str = None, server: str = None):
+    global METRICS_TRACKER
+    if not METRICS_TRACKER:
+        METRICS_TRACKER = MetricsTracker()
+
+    if email:
+        METRICS_TRACKER.set_last_user(email)
+    if server:
+        METRICS_TRACKER.set_last_server(server)
 
 
 class Singleton(type):
@@ -91,7 +99,9 @@ class MetricsTracker(metaclass=Singleton):
     matomo_url = "https://speckle.matomo.cloud/matomo.php"
     site_id = 2
     host_app = "python"
-    suuid = None
+    last_user = None
+    last_server = None
+    platform = None
     sending_thread = None
     queue = queue.Queue(1000)
 
@@ -99,16 +109,21 @@ class MetricsTracker(metaclass=Singleton):
         self.sending_thread = threading.Thread(
             target=self._send_tracking_requests, daemon=True
         )
-        self.set_suuid()
+        self.platform = PLATFORMS.get(sys.platform, "linux")
         self.sending_thread.start()
 
-    def set_suuid(self):
-        try:
-            file_path = os.path.join(SQLiteTransport.get_base_path("Speckle"), "suuid")
-            with open(file_path, "r") as file:
-                self.suuid = file.read()
-        except:
-            self.suuid = "unknown-suuid"
+    def set_last_user(self, email: str):
+        if not email:
+            return
+        self.last_user = "@" + self.hash(email)
+
+    def set_last_server(self, server: str):
+        if not server:
+            return
+        self.last_server = self.hash(server)
+
+    def hash(self, value: str):
+        return hashlib.md5(value.lower().encode("utf-8")).hexdigest().upper()
 
     def _send_tracking_requests(self):
         session = requests.Session()

@@ -66,7 +66,7 @@ class SpeckleClient:
         host = re.sub(r"((^\w+:|^)\/\/)|(\/$)", "", host)
 
         self.url = f"{http_protocol}://{host}"
-        self.graphql = self.url + "/graphql"
+        self.graphql = f"{self.url}/graphql"
         self.ws_url = f"{ws_protocol}://{host}/graphql"
         self.me = None
 
