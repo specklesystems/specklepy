@@ -3,7 +3,6 @@ import queue
 import logging
 import requests
 import threading
-from requests.sessions import session
 from specklepy.transports.sqlite import SQLiteTransport
 
 """

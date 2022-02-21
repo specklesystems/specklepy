@@ -213,10 +213,11 @@ class BaseObjectSerializer:
             try:
                 return obj.dict()
             except:
-                SerializationException(
-                    message=f"Failed to handle {type(obj)} in `BaseObjectSerializer.traverse_value`",
-                    object=obj,
+                warn(
+                    f"Failed to handle {type(obj)} in `BaseObjectSerializer.traverse_value`",
+                    SerializationException,
                 )
+
                 return str(obj)
 
     def detach_helper(self, ref_hash: str) -> Dict[str, str]:

@@ -1,6 +1,5 @@
 from enum import Enum
-import enum
-from typing import Any, List, Optional
+from typing import List
 
 from ..base import Base
 from ..geometry import *

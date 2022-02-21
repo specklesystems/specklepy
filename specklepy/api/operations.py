@@ -9,7 +9,7 @@ from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
 def send(
     base: Base,
-    transports: List[AbstractTransport] = [],
+    transports: List[AbstractTransport] = None,
     use_default_cache: bool = True,
 ):
     """Sends an object via the provided transports. Defaults to the local cache.
@@ -23,10 +23,13 @@ def send(
         str -- the object id of the sent object
     """
     metrics.track(metrics.SEND)
+
     if not transports and not use_default_cache:
         raise SpeckleException(
             message="You need to provide at least one transport: cannot send with an empty transport list and no default cache"
         )
+    if transports is None:
+        transports = []
     if use_default_cache:
         transports.insert(0, SQLiteTransport())
 
@@ -34,12 +37,12 @@ def send(
 
     for t in transports:
         t.begin_write()
-    hash, _ = serializer.write_json(base=base)
+    obj_hash, _ = serializer.write_json(base=base)
 
     for t in transports:
         t.end_write()
 
-    return hash
+    return obj_hash
 
 
 def receive(

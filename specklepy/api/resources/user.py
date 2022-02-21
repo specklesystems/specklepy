@@ -1,7 +1,6 @@
 from specklepy.logging.exceptions import SpeckleException
-from typing import List, Optional
+from typing import List
 from gql import gql
-from pydantic.main import BaseModel
 from specklepy.api.resource import ResourceBase
 from specklepy.api.models import User
 
