@@ -2,6 +2,7 @@ from typing import List
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.transports.sqlite import SQLiteTransport
+from specklepy.transports.server import ServerTransport
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
@@ -22,14 +23,18 @@ def send(
     Returns:
         str -- the object id of the sent object
     """
-    metrics.track(metrics.SEND)
 
     if not transports and not use_default_cache:
         raise SpeckleException(
             message="You need to provide at least one transport: cannot send with an empty transport list and no default cache"
         )
+
     if transports is None:
+        metrics.track(metrics.SEND)
         transports = []
+    else:
+        metrics.track(metrics.SEND, getattr(transports[0], "account", None))
+
     if use_default_cache:
         transports.insert(0, SQLiteTransport())
 
@@ -61,7 +66,7 @@ def receive(
     Returns:
         Base -- the base object
     """
-    metrics.track(metrics.RECEIVE)
+    metrics.track(metrics.RECEIVE, getattr(remote_transport, "account", None))
     if not local_transport:
         local_transport = SQLiteTransport()
 

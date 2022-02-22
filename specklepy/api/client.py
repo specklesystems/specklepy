@@ -41,9 +41,9 @@ class SpeckleClient:
     client = SpeckleClient(host="speckle.xyz") # or whatever your host is
     # client = SpeckleClient(host="localhost:3000", use_ssl=False) or use local server
 
-    # authenticate the client with a token (account has been added in Speckle Manager)
+    # authenticate the client with an account (account has been added in Speckle Manager)
     account = get_default_account()
-    client.authenticate(token=account.token)
+    client.authenticate_with_account(account)
 
     # create a new stream. this returns the stream id
     new_stream_id = client.stream.create(name="a shiny new stream")
@@ -154,25 +154,25 @@ class SpeckleClient:
 
     def _init_resources(self) -> None:
         self.stream = stream.Resource(
-            token=self.account.token, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.commit = commit.Resource(
-            token=self.account.token, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.branch = branch.Resource(
-            token=self.account.token, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.object = object.Resource(
-            token=self.account.token, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.server = server.Resource(
-            token=self.account.token, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.user = user.Resource(
-            token=self.account.token, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.subscribe = subscriptions.Resource(
-            token=self.account.token,
+            account=self.account,
             basepath=self.ws_url,
             client=self.wsclient,
         )
@@ -181,7 +181,7 @@ class SpeckleClient:
         try:
             attr = getattr(resources, name)
             return attr.Resource(
-                token=self.account.token, basepath=self.url, client=self.httpclient
+                account=self.account, basepath=self.url, client=self.httpclient
             )
         except:
             raise SpeckleException(

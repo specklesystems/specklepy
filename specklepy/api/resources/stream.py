@@ -19,9 +19,13 @@ METHODS = [
 class Resource(ResourceBase):
     """API Access class for streams"""
 
-    def __init__(self, token, basepath, client) -> None:
+    def __init__(self, account, basepath, client) -> None:
         super().__init__(
-            token=token, basepath=basepath, client=client, name=NAME, methods=METHODS
+            account=account,
+            basepath=basepath,
+            client=client,
+            name=NAME,
+            methods=METHODS,
         )
 
         self.schema = Stream
@@ -37,7 +41,7 @@ class Resource(ResourceBase):
         Returns:
             Stream -- the retrieved stream
         """
-        metrics.track(metrics.STREAM_GET)
+        metrics.track(metrics.STREAM_GET, self.account)
         query = gql(
             """
             query Stream($id: String!, $branch_limit: Int!, $commit_limit: Int!) {
@@ -93,7 +97,7 @@ class Resource(ResourceBase):
         Returns:
             List[Stream] -- A list of Stream objects
         """
-        metrics.track(metrics.STREAM_LIST)
+        metrics.track(metrics.STREAM_LIST, self.account)
         query = gql(
             """
             query User($stream_limit: Int!) {
@@ -151,7 +155,7 @@ class Resource(ResourceBase):
         Returns:
             id {str} -- the id of the newly created stream
         """
-        metrics.track(metrics.STREAM_CREATE)
+        metrics.track(metrics.STREAM_CREATE, self.account)
         query = gql(
             """
             mutation StreamCreate($stream: StreamCreateInput!) {
@@ -182,7 +186,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- whether the stream update was successful
         """
-        metrics.track(metrics.STREAM_UPDATE)
+        metrics.track(metrics.STREAM_UPDATE, self.account)
         query = gql(
             """
             mutation StreamUpdate($stream: StreamUpdateInput!) {
@@ -213,7 +217,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- whether the deletion was successful
         """
-        metrics.track(metrics.STREAM_DELETE)
+        metrics.track(metrics.STREAM_DELETE, self.account)
         query = gql(
             """
             mutation StreamDelete($id: String!) {
@@ -246,7 +250,7 @@ class Resource(ResourceBase):
         Returns:
             List[Stream] -- a list of Streams that match the search query
         """
-        metrics.track(metrics.STREAM_SEARCH)
+        metrics.track(metrics.STREAM_SEARCH, self.account)
         query = gql(
             """
             query StreamSearch($search_query: String!,$limit: Int!, $branch_limit:Int!, $commit_limit:Int!) {

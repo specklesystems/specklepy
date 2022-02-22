@@ -44,7 +44,6 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
     Returns:
         List[Account] -- list of all local accounts or an empty list if no accounts were found
     """
-    metrics.track(metrics.ACCOUNT_LIST)
     account_storage = SQLiteTransport(scope="Accounts", base_path=base_path)
     json_path = os.path.join(account_storage._base_path, "Accounts")
     os.makedirs(json_path, exist_ok=True)
@@ -65,6 +64,10 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
                 "Invalid json accounts could not be read. Please fix or remove them.",
                 ex,
             )
+    metrics.track(
+        metrics.ACCOUNT_LIST,
+        next((acc for acc in accounts if acc.isDefault), accounts[0]),
+    )
 
     return accounts
 
@@ -85,7 +88,7 @@ def get_default_account(base_path: str = None) -> Account:
     if not default:
         default = accounts[0]
         default.isDefault = True
-    metrics.initialise_tracker(default.userInfo.email, default.serverInfo.url)
+    metrics.initialise_tracker(default)
 
     return default
 

@@ -1,3 +1,4 @@
+from specklepy.api.credentials import Account
 from specklepy.transports.sqlite import SQLiteTransport
 from typing import Dict, List
 from gql.client import Client
@@ -10,13 +11,13 @@ from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 class ResourceBase(object):
     def __init__(
         self,
-        token: str,
+        account: Account,
         basepath: str,
         client: Client,
         name: str,
         methods: list,
     ) -> None:
-        self.token = token
+        self.account = account
         self.basepath = basepath
         self.client = client
         self.name = name

@@ -11,9 +11,13 @@ METHODS = ["get", "apps"]
 class Resource(ResourceBase):
     """API Access class for the server"""
 
-    def __init__(self, token, basepath, client) -> None:
+    def __init__(self, account, basepath, client) -> None:
         super().__init__(
-            token=token, basepath=basepath, client=client, name=NAME, methods=METHODS
+            account=account,
+            basepath=basepath,
+            client=client,
+            name=NAME,
+            methods=METHODS,
         )
 
     def get(self) -> ServerInfo:

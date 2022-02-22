@@ -1,4 +1,6 @@
+import json
 import os
+import socket
 import sys
 import queue
 import hashlib
@@ -18,8 +20,8 @@ LOG = logging.getLogger(__name__)
 METRICS_TRACKER = None
 
 # actions
-RECEIVE = "receive"
-SEND = "send"
+RECEIVE = "Receive"
+SEND = "Send"
 STREAM_CREATE = "stream/create"
 STREAM_GET = "stream/get"
 STREAM_UPDATE = "stream/update"
@@ -52,41 +54,41 @@ def set_host_app(host_app: str):
     HOST_APP = host_app
 
 
-def track(action: str, email: str = None, server: str = None):
+def track(action: str, account: "Account" = None, custom_props: dict = None):
     if not TRACK:
         return
     try:
-        initialise_tracker(email, server)
-        page_params = {
-            "rec": 1,
-            "action_name": action,
-            "url": f"http://connectors/{HOST_APP}/{action}",
-            "urlref": f"http://connectors/{HOST_APP}/{action}",
-            "_cvar": {"1": ["hostApplication", HOST_APP]},
-        }
-
+        initialise_tracker(account)
         event_params = {
-            "rec": 1,
-            "_cvar": {"1": ["hostApplication", HOST_APP]},
-            "e_c": HOST_APP,
-            "e_a": action,
+            "event": action,
+            "properties": {
+                "distinct_id": METRICS_TRACKER.last_user,
+                "server_id": METRICS_TRACKER.last_server,
+                "token": METRICS_TRACKER.analytics_token,
+                "hostApp": HOST_APP,
+                "$os": METRICS_TRACKER.platform,
+                # "ip": METRICS_TRACKER.user_ip,
+                "type": "action",
+            },
         }
+        if custom_props:
+            event_params["properties"].update(custom_props)
 
-        METRICS_TRACKER.queue.put_nowait([event_params, page_params])
+        METRICS_TRACKER.queue.put_nowait(event_params)
     except Exception as ex:
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
         LOG.error("Error queueing metrics request: " + str(ex))
 
 
-def initialise_tracker(email: str = None, server: str = None):
+def initialise_tracker(account: "Account" = None):
     global METRICS_TRACKER
     if not METRICS_TRACKER:
         METRICS_TRACKER = MetricsTracker()
 
-    if email:
-        METRICS_TRACKER.set_last_user(email)
-    if server:
-        METRICS_TRACKER.set_last_server(server)
+    if account and account.userInfo.email:
+        METRICS_TRACKER.set_last_user(account.userInfo.email)
+    if account and account.serverInfo.url:
+        METRICS_TRACKER.set_last_server(account.userInfo.email)
 
 
 class Singleton(type):
@@ -99,9 +101,9 @@ class Singleton(type):
 
 
 class MetricsTracker(metaclass=Singleton):
-    analytics_url = "https://analytics.speckle.systems"
+    analytics_url = "https://analytics.speckle.systems/track?ip=1"
     analytics_token = "acd87c5a50b56df91a795e999812a3a4"
-    host_app = "python"
+    user_ip = None
     last_user = None
     last_server = None
     platform = None
@@ -114,6 +116,7 @@ class MetricsTracker(metaclass=Singleton):
         )
         self.platform = PLATFORMS.get(sys.platform, "linux")
         self.sending_thread.start()
+        self.user_ip = socket.gethostbyname(socket.gethostname())
 
     def set_last_user(self, email: str):
         if not email:
@@ -131,11 +134,10 @@ class MetricsTracker(metaclass=Singleton):
     def _send_tracking_requests(self):
         session = requests.Session()
         while True:
-            params = self.queue.get()
+            event_params = [self.queue.get()]
 
             try:
-                session.post(self.analytics_url, params=params[0])
-                session.post(self.analytics_url, params=params[1])
+                session.post(self.analytics_url, json=event_params)
             except Exception as ex:
                 LOG.error("Error sending metrics request: " + str(ex))
 

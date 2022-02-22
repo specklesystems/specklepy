@@ -5,15 +5,19 @@ from specklepy.api.resource import ResourceBase
 from specklepy.api.models import User
 
 NAME = "user"
-METHODS = ["get"]
+METHODS = ["get", "search", "update"]
 
 
 class Resource(ResourceBase):
     """API Access class for users"""
 
-    def __init__(self, token, basepath, client) -> None:
+    def __init__(self, account, basepath, client) -> None:
         super().__init__(
-            token=token, basepath=basepath, client=client, name=NAME, methods=METHODS
+            account=account,
+            basepath=basepath,
+            client=client,
+            name=NAME,
+            methods=METHODS,
         )
         self.schema = User
 
