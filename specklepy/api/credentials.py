@@ -51,7 +51,8 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
     json_acct_files = [file for file in os.listdir(json_path) if file.endswith(".json")]
 
     accounts = []
-    if res := account_storage.get_all_objects():
+    res = account_storage.get_all_objects()
+    if res:
         accounts.extend(Account.parse_raw(r[1]) for r in res)
     if json_acct_files:
         try:
@@ -101,15 +102,16 @@ def get_account_from_token(token: str, server_url: str = None) -> Account:
     if not accounts:
         return Account.from_token(token, server_url)
 
-    if acct := next((acc for acc in accounts if acc.token == token), None):
+    acct = next((acc for acc in accounts if acc.token == token), None)
+    if acct:
         return acct
 
     if server_url:
         url = server_url.lower()
-        if acct := next(
-            (acc for acc in accounts if url in acc.serverInfo.url.lower()),
-            None,
-        ):
+        acct = next(
+            (acc for acc in accounts if url in acc.serverInfo.url.lower()), None
+        )
+        if acct:
             return acct
 
     return Account.from_token(token, server_url)
