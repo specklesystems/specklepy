@@ -29,9 +29,9 @@ def check_wsclient(function):
 class Resource(ResourceBase):
     """API Access class for subscriptions"""
 
-    def __init__(self, me, basepath, client) -> None:
+    def __init__(self, token, basepath, client) -> None:
         super().__init__(
-            me=me, basepath=basepath, client=client, name=NAME, methods=METHODS
+            token=token, basepath=basepath, client=client, name=NAME, methods=METHODS
         )
 
     @check_wsclient

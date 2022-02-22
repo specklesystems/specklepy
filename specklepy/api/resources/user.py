@@ -11,9 +11,9 @@ METHODS = ["get"]
 class Resource(ResourceBase):
     """API Access class for users"""
 
-    def __init__(self, me, basepath, client) -> None:
+    def __init__(self, token, basepath, client) -> None:
         super().__init__(
-            me=me, basepath=basepath, client=client, name=NAME, methods=METHODS
+            token=token, basepath=basepath, client=client, name=NAME, methods=METHODS
         )
         self.schema = User
 

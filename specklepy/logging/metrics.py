@@ -42,6 +42,11 @@ def disable():
     TRACK = False
 
 
+def enable():
+    global TRACK
+    TRACK = True
+
+
 def set_host_app(host_app: str):
     global HOST_APP
     HOST_APP = host_app
@@ -54,7 +59,6 @@ def track(action: str, email: str = None, server: str = None):
         initialise_tracker(email, server)
         page_params = {
             "rec": 1,
-            "idsite": METRICS_TRACKER.site_id,
             "action_name": action,
             "url": f"http://connectors/{HOST_APP}/{action}",
             "urlref": f"http://connectors/{HOST_APP}/{action}",
@@ -63,7 +67,6 @@ def track(action: str, email: str = None, server: str = None):
 
         event_params = {
             "rec": 1,
-            "idsite": METRICS_TRACKER.site_id,
             "_cvar": {"1": ["hostApplication", HOST_APP]},
             "e_c": HOST_APP,
             "e_a": action,
@@ -96,8 +99,8 @@ class Singleton(type):
 
 
 class MetricsTracker(metaclass=Singleton):
-    matomo_url = "https://speckle.matomo.cloud/matomo.php"
-    site_id = 2
+    analytics_url = "https://analytics.speckle.systems"
+    analytics_token = "acd87c5a50b56df91a795e999812a3a4"
     host_app = "python"
     last_user = None
     last_server = None
@@ -131,8 +134,8 @@ class MetricsTracker(metaclass=Singleton):
             params = self.queue.get()
 
             try:
-                session.post(self.matomo_url, params=params[0])
-                session.post(self.matomo_url, params=params[1])
+                session.post(self.analytics_url, params=params[0])
+                session.post(self.analytics_url, params=params[1])
             except Exception as ex:
                 LOG.error("Error sending metrics request: " + str(ex))
 

@@ -10,13 +10,13 @@ from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 class ResourceBase(object):
     def __init__(
         self,
-        me: Dict,
+        token: str,
         basepath: str,
         client: Client,
         name: str,
         methods: list,
     ) -> None:
-        self.me = me
+        self.token = token
         self.basepath = basepath
         self.client = client
         self.name = name

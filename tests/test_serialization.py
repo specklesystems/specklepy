@@ -55,7 +55,7 @@ class TestSerialization:
 
         # also try constructing server transport with token and url
         transport = ServerTransport(
-            stream_id=sample_stream.id, token=client.me["token"], url=client.url
+            stream_id=sample_stream.id, token=client.account.token, url=client.url
         )
         # use a fresh memory transport to force receiving from remote
         received = operations.receive(

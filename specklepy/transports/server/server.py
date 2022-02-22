@@ -5,6 +5,7 @@ from warnings import warn
 from typing import Any, Dict, List
 
 from specklepy.api.client import SpeckleClient
+from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
 
@@ -18,7 +19,8 @@ class ServerTransport(AbstractTransport):
 
     The `ServerTransport` can be authenticted two different ways:
         1. by providing a `SpeckleClient`
-        2. by providing a `token` and `url`
+        2. by providing an `Account`
+        3. by providing a `token` and `url`
 
     ```py
     from specklepy.api import operations
@@ -45,6 +47,7 @@ class ServerTransport(AbstractTransport):
     _name = "RemoteTransport"
     url: str = None
     stream_id: str = None
+    account: Account = None
     saved_obj_count: int = 0
     session: requests.Session = None
 
@@ -52,38 +55,43 @@ class ServerTransport(AbstractTransport):
         self,
         stream_id: str,
         client: SpeckleClient = None,
+        account: Account = None,
         token: str = None,
         url: str = None,
         **data: Any,
     ) -> None:
         super().__init__(**data)
-        # TODO: replace client with account or some other auth avenue
-        if client is None and token is None and url is None:
+        if client is None and account is None and token is None and url is None:
             raise SpeckleException(
                 "You must provide either a client or a token and url to construct a ServerTransport."
             )
 
-        if client:
+        if account:
+            self.account = account
+            url = account.serverInfo.url
+        elif client:
             url = client.url
-            if not client.me:
+            if not client.account.token:
                 warn(
                     SpeckleWarning(
                         f"Unauthenticated Speckle Client provided to Server Transport for {self.url}. Receiving from private streams will fail."
                     )
                 )
             else:
-                token = client.me["token"]
+                self.account = client.account
+        else:
+            self.account = get_account_from_token(token, url)
 
         self.stream_id = stream_id
         self.url = url
 
         self._batch_sender = BatchSender(
-            self.url, self.stream_id, token, max_batch_size_mb=1
+            self.url, self.stream_id, self.account.token, max_batch_size_mb=1
         )
 
         self.session = requests.Session()
         self.session.headers.update(
-            {"Authorization": f"Bearer {token}", "Accept": "text/plain"}
+            {"Authorization": f"Bearer {self.account.token}", "Accept": "text/plain"}
         )
 
     def begin_write(self) -> None:
