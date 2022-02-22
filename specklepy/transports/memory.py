@@ -26,10 +26,7 @@ class MemoryTransport(AbstractTransport):
         raise NotImplementedError
 
     def get_object(self, id: str) -> str or None:
-        if id in self.objects:
-            return self.objects[id]
-        else:
-            return None
+        return self.objects[id] if id in self.objects else None
 
     def has_objects(self, id_list: List[str]) -> Dict[str, bool]:
         return {id: (id in self.objects) for id in id_list}
