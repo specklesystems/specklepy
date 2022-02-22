@@ -73,7 +73,7 @@ def test_get_new_client_with_token():
 def test_get_transport_with_token():
     wrap = StreamWrapper("https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792")
     client = wrap.get_client()
-    assert not client.me  # unauthenticated bc no local accounts
+    assert not client.account.token  # unauthenticated bc no local accounts
 
     transport = wrap.get_transport(token="super-secret-token")
 

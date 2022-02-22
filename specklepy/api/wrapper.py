@@ -102,7 +102,7 @@ class StreamWrapper:
         """
         Gets an account object for this server from the local accounts db (added via Speckle Manager or a json file)
         """
-        if self._account:
+        if self._account and self._account.token:
             return self._account
 
         self._account = next(
@@ -112,6 +112,9 @@ class StreamWrapper:
 
         if not self._account:
             self._account = get_account_from_token(token, self.host)
+
+        if self._client:
+            self._client.authenticate_with_account(self._account)
 
         return self._account
 
@@ -129,17 +132,17 @@ class StreamWrapper:
         if self._client and token is None:
             return self._client
 
-        if not self._account:
+        if not self._account or not self._account.token:
             self.get_account(token)
 
         if not self._client:
             self._client = SpeckleClient(host=self.host, use_ssl=self.use_ssl)
 
-        if self._account is None and token is None:
+        if self._account.token is None and token is None:
             warn(f"No local account found for server {self.host}", SpeckleWarning)
             return self._client
 
-        if self._account:
+        if self._account.token:
             self._client.authenticate_with_account(self._account)
         else:
             self._client.authenticate_with_token(token)
@@ -156,4 +159,4 @@ class StreamWrapper:
         """
         if not self._account or not self._account.token:
             self.get_account(token)
-        return ServerTransport(self.stream_id, self._account)
+        return ServerTransport(self.stream_id, account=self._account)
