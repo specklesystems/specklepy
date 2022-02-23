@@ -10,9 +10,13 @@ METHODS = []
 class Resource(ResourceBase):
     """API Access class for objects"""
 
-    def __init__(self, me, basepath, client) -> None:
+    def __init__(self, account, basepath, client) -> None:
         super().__init__(
-            me=me, basepath=basepath, client=client, name=NAME, methods=METHODS
+            account=account,
+            basepath=basepath,
+            client=client,
+            name=NAME,
+            methods=METHODS,
         )
         self.schema = Base
 

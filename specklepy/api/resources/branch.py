@@ -1,6 +1,7 @@
 from gql import gql
 from specklepy.api.resource import ResourceBase
 from specklepy.api.models import Branch
+from specklepy.logging import metrics
 
 NAME = "branch"
 METHODS = ["create"]
@@ -9,9 +10,13 @@ METHODS = ["create"]
 class Resource(ResourceBase):
     """API Access class for branches"""
 
-    def __init__(self, me, basepath, client) -> None:
+    def __init__(self, account, basepath, client) -> None:
         super().__init__(
-            me=me, basepath=basepath, client=client, name=NAME, methods=METHODS
+            account=account,
+            basepath=basepath,
+            client=client,
+            name=NAME,
+            methods=METHODS,
         )
         self.schema = Branch
 
@@ -27,7 +32,7 @@ class Resource(ResourceBase):
         Returns:
             id {str} -- the newly created branch's id
         """
-
+        metrics.track(metrics.BRANCH, self.account, {"name": "create"})
         query = gql(
             """
             mutation BranchCreate($branch: BranchCreateInput!) {
@@ -58,7 +63,7 @@ class Resource(ResourceBase):
         Returns:
             Branch -- the fetched branch with its latest commits
         """
-
+        metrics.track(metrics.BRANCH, self.account, {"name": "get"})
         query = gql(
             """
             query BranchGet($stream_id: String!, $name: String!, $commits_limit: Int!) {
@@ -106,6 +111,7 @@ class Resource(ResourceBase):
         Returns:
             List[Branch] -- the branches on the stream
         """
+        metrics.track(metrics.BRANCH, self.account, {"name": "get"})
         query = gql(
             """
             query BranchesGet($stream_id: String!, $branches_limit: Int!, $commits_limit: Int!) {
@@ -160,6 +166,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if update is successfull
         """
+        metrics.track(metrics.BRANCH, self.account, {"name": "update"})
         query = gql(
             """
             mutation  BranchUpdate($branch: BranchUpdateInput!) {
@@ -193,7 +200,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if deletion is successful
         """
-
+        metrics.track(metrics.BRANCH, self.account, {"name": "delete"})
         query = gql(
             """
             mutation BranchDelete($branch: BranchDeleteInput!) {

@@ -1,3 +1,4 @@
+from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from typing import List
 from gql import gql
@@ -5,15 +6,19 @@ from specklepy.api.resource import ResourceBase
 from specklepy.api.models import User
 
 NAME = "user"
-METHODS = ["get"]
+METHODS = ["get", "search", "update"]
 
 
 class Resource(ResourceBase):
     """API Access class for users"""
 
-    def __init__(self, me, basepath, client) -> None:
+    def __init__(self, account, basepath, client) -> None:
         super().__init__(
-            me=me, basepath=basepath, client=client, name=NAME, methods=METHODS
+            account=account,
+            basepath=basepath,
+            client=client,
+            name=NAME,
+            methods=METHODS,
         )
         self.schema = User
 
@@ -26,6 +31,7 @@ class Resource(ResourceBase):
         Returns:
             User -- the retrieved user
         """
+        metrics.track(metrics.USER, self.account, {"name": "get"})
         query = gql(
             """
             query User($id: String) {
@@ -62,6 +68,7 @@ class Resource(ResourceBase):
                 message="User search query must be at least 3 characters"
             )
 
+        metrics.track(metrics.USER, self.account, {"name": "search"})
         query = gql(
             """
             query UserSearch($search_query: String!, $limit: Int!) {
@@ -98,6 +105,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if your profile was updated successfully
         """
+        metrics.track(metrics.USER, self.account, {"name": "update"})
         query = gql(
             """
             mutation UserUpdate($user: UserUpdateInput!) {

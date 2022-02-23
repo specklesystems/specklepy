@@ -1,5 +1,7 @@
 import re
 from warnings import warn
+from deprecated import deprecated
+from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.logging.exceptions import (
     GraphQLException,
     SpeckleException,
@@ -39,9 +41,9 @@ class SpeckleClient:
     client = SpeckleClient(host="speckle.xyz") # or whatever your host is
     # client = SpeckleClient(host="localhost:3000", use_ssl=False) or use local server
 
-    # authenticate the client with a token (account has been added in Speckle Manager)
+    # authenticate the client with an account (account has been added in Speckle Manager)
     account = get_default_account()
-    client.authenticate(token=account.token)
+    client.authenticate_with_account(account)
 
     # create a new stream. this returns the stream id
     new_stream_id = client.stream.create(name="a shiny new stream")
@@ -66,9 +68,9 @@ class SpeckleClient:
         host = re.sub(r"((^\w+:|^)\/\/)|(\/$)", "", host)
 
         self.url = f"{http_protocol}://{host}"
-        self.graphql = self.url + "/graphql"
+        self.graphql = f"{self.url}/graphql"
         self.ws_url = f"{ws_protocol}://{host}/graphql"
-        self.me = None
+        self.account = Account()
 
         self.httpclient = Client(
             transport=RequestsHTTPTransport(url=self.graphql, verify=True, retries=3)
@@ -88,10 +90,12 @@ class SpeckleClient:
             raise SpeckleException(f"{self.url} is not a compatible Speckle Server", ex)
 
     def __repr__(self):
-        return (
-            f"SpeckleClient( server: {self.url}, authenticated: {self.me is not None} )"
-        )
+        return f"SpeckleClient( server: {self.url}, authenticated: {self.account.token is not None} )"
 
+    @deprecated(
+        version="2.6.0",
+        reason="Renamed: please use `authenticate_with_account` or `authenticate_with_token` instead.",
+    )
     def authenticate(self, token: str) -> None:
         """Authenticate the client using a personal access token
         The token is saved in the client object and a synchronous GraphQL entrypoint is created
@@ -99,9 +103,31 @@ class SpeckleClient:
         Arguments:
             token {str} -- an api token
         """
-        self.me = {"token": token}
+        self.authenticate_with_token(token)
+        self._set_up_client()
+
+    def authenticate_with_token(self, token: str) -> None:
+        """Authenticate the client using a personal access token
+        The token is saved in the client object and a synchronous GraphQL entrypoint is created
+
+        Arguments:
+            token {str} -- an api token
+        """
+        self.account = get_account_from_token(token, self.url)
+        self._set_up_client()
+
+    def authenticate_with_account(self, account: Account) -> None:
+        """Authenticate the client using an Account object
+        The account is saved in the client object and a synchronous GraphQL entrypoint is created
+
+        Arguments:
+            account {Account} -- the account object which can be found with `get_default_account` or `get_local_accounts`
+        """
+        self.account = account
+
+    def _set_up_client(self) -> None:
         headers = {
-            "Authorization": f"Bearer {self.me['token']}",
+            "Authorization": f"Bearer {self.account.token}",
             "Content-Type": "application/json",
         }
         httptransport = RequestsHTTPTransport(
@@ -109,7 +135,7 @@ class SpeckleClient:
         )
         wstransport = WebsocketsTransport(
             url=self.ws_url,
-            init_payload={"Authorization": f"Bearer {self.me['token']}"},
+            init_payload={"Authorization": f"Bearer {self.account.token}"},
         )
         self.httpclient = Client(transport=httptransport)
         self.wsclient = Client(transport=wstransport)
@@ -119,7 +145,7 @@ class SpeckleClient:
         if isinstance(self.user.get(), GraphQLException):
             warn(
                 SpeckleWarning(
-                    f"Invalid token - could not authenticate Speckle Client for server {self.url}"
+                    f"Possibly invalid token - could not authenticate Speckle Client for server {self.url}"
                 )
             )
 
@@ -128,23 +154,25 @@ class SpeckleClient:
 
     def _init_resources(self) -> None:
         self.stream = stream.Resource(
-            me=self.me, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.commit = commit.Resource(
-            me=self.me, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.branch = branch.Resource(
-            me=self.me, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.object = object.Resource(
-            me=self.me, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
         self.server = server.Resource(
-            me=self.me, basepath=self.url, client=self.httpclient
+            account=self.account, basepath=self.url, client=self.httpclient
         )
-        self.user = user.Resource(me=self.me, basepath=self.url, client=self.httpclient)
+        self.user = user.Resource(
+            account=self.account, basepath=self.url, client=self.httpclient
+        )
         self.subscribe = subscriptions.Resource(
-            me=self.me,
+            account=self.account,
             basepath=self.ws_url,
             client=self.wsclient,
         )
@@ -152,7 +180,9 @@ class SpeckleClient:
     def __getattr__(self, name):
         try:
             attr = getattr(resources, name)
-            return attr.Resource(me=self.me, basepath=self.url, client=self.httpclient)
+            return attr.Resource(
+                account=self.account, basepath=self.url, client=self.httpclient
+            )
         except:
             raise SpeckleException(
                 f"Method {name} is not supported by the SpeckleClient class"
