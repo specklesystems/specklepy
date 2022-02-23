@@ -66,7 +66,10 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
             )
     metrics.track(
         metrics.ACCOUNT_LIST,
-        next((acc for acc in accounts if acc.isDefault), accounts[0]),
+        next(
+            (acc for acc in accounts if acc.isDefault),
+            accounts[0] if accounts else None,
+        ),
     )
 
     return accounts
