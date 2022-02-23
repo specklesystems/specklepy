@@ -65,7 +65,7 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
                 ex,
             )
     metrics.track(
-        metrics.ACCOUNT_LIST,
+        metrics.ACCOUNTS,
         next(
             (acc for acc in accounts if acc.isDefault),
             accounts[0] if accounts else None,
@@ -121,3 +121,11 @@ def get_account_from_token(token: str, server_url: str = None) -> Account:
             return acct
 
     return Account.from_token(token, server_url)
+
+
+class StreamWrapper:
+    def __init__(self, url: str = None) -> None:
+        raise SpeckleException(
+            message="The StreamWrapper has moved as of v2.6.0! Please import from specklepy.api.wrapper",
+            exception=DeprecationWarning,
+        )
