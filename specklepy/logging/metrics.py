@@ -67,7 +67,6 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
                 "token": METRICS_TRACKER.analytics_token,
                 "hostApp": HOST_APP,
                 "$os": METRICS_TRACKER.platform,
-                # "ip": METRICS_TRACKER.user_ip,
                 "type": "action",
             },
         }
