@@ -2,6 +2,7 @@ from typing import Optional, List
 from gql import gql
 from specklepy.api.resource import ResourceBase
 from specklepy.api.models import Commit
+from specklepy.logging import metrics
 
 
 NAME = "commit"
@@ -70,6 +71,7 @@ class Resource(ResourceBase):
         Returns:
             List[Commit] -- a list of the most recent commit objects
         """
+        metrics.track(metrics.COMMIT, self.account, {"name": "get"})
         query = gql(
             """
             query Commits($stream_id: String!, $limit: Int!) {
@@ -123,6 +125,7 @@ class Resource(ResourceBase):
         Returns:
             str -- the id of the created commit
         """
+        metrics.track(metrics.COMMIT, self.account, {"name": "create"})
         query = gql(
             """
             mutation CommitCreate ($commit: CommitCreateInput!){ commitCreate(commit: $commit)}
@@ -156,6 +159,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation succeeded
         """
+        metrics.track(metrics.COMMIT, self.account, {"name": "update"})
         query = gql(
             """
             mutation CommitUpdate($commit: CommitUpdateInput!){ commitUpdate(commit: $commit)}
@@ -180,6 +184,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation succeeded
         """
+        metrics.track(metrics.COMMIT, self.account, {"name": "delete"})
         query = gql(
             """
             mutation CommitDelete($commit: CommitDeleteInput!){ commitDelete(commit: $commit)}
@@ -201,6 +206,7 @@ class Resource(ResourceBase):
         """
         Mark a commit object a received by the source application.
         """
+        metrics.track(metrics.COMMIT, self.account, {"name": "received"})
         query = gql(
             """
             mutation CommitReceive($receivedInput:CommitReceivedInput!){

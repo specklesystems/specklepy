@@ -67,7 +67,7 @@ class StreamWrapper:
         self.host = parsed.netloc
         self.use_ssl = parsed.scheme == "https"
         segments = parsed.path.strip("/").split("/", 3)
-        metrics.track("streamwrapper", self.get_account())
+        metrics.track(metrics.STREAM_WRAPPER, self.get_account())
 
         if not segments or len(segments) < 2:
             raise SpeckleException(

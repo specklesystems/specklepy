@@ -1,3 +1,4 @@
+from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from typing import List
 from gql import gql
@@ -30,6 +31,7 @@ class Resource(ResourceBase):
         Returns:
             User -- the retrieved user
         """
+        metrics.track(metrics.USER, self.account, {"name": "get"})
         query = gql(
             """
             query User($id: String) {
@@ -66,6 +68,7 @@ class Resource(ResourceBase):
                 message="User search query must be at least 3 characters"
             )
 
+        metrics.track(metrics.USER, self.account, {"name": "search"})
         query = gql(
             """
             query UserSearch($search_query: String!, $limit: Int!) {
@@ -102,6 +105,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if your profile was updated successfully
         """
+        metrics.track(metrics.USER, self.account, {"name": "update"})
         query = gql(
             """
             mutation UserUpdate($user: UserUpdateInput!) {
