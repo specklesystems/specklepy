@@ -21,7 +21,7 @@ class StreamWrapper:
     local account for the server.
 
     ```py
-    from specklepy.api.credentials import StreamWrapper
+    from specklepy.api.wrapper import StreamWrapper
 
     # provide any stream, branch, commit, object, or globals url
     wrapper = StreamWrapper("https://speckle.xyz/streams/3073b96e86/commits/604bea8cc6")
