@@ -102,6 +102,8 @@ def base():
     base = Base()
     base.name = "my_base"
     base.units = "millimetres"
+    base.null_val = None
+    base.null_dict = {"a null val": None}
     base.vertices = [random.uniform(0, 10) for _ in range(1, 120)]
     base.test_bases = [Base(name=i) for i in range(1, 22)]
     base["@detach"] = Base(name="detached base")
