@@ -198,7 +198,7 @@ class BaseObjectSerializer:
 
         elif isinstance(obj, dict):
             for k, v in obj.items():
-                if isinstance(v, PRIMITIVES):
+                if isinstance(v, PRIMITIVES) or v is None:
                     continue
                 else:
                     obj[k] = self.traverse_value(v)
