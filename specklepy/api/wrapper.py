@@ -98,6 +98,10 @@ class StreamWrapper:
                 f"Cannot parse {url} into a stream wrapper class - no stream id found."
             )
 
+    @property
+    def server_url(self):
+        return f"{'https' if self.use_ssl else 'http'}://{self.host}"
+
     def get_account(self, token: str = None) -> Account:
         """
         Gets an account object for this server from the local accounts db (added via Speckle Manager or a json file)
@@ -111,7 +115,7 @@ class StreamWrapper:
         )
 
         if not self._account:
-            self._account = get_account_from_token(token, self.host)
+            self._account = get_account_from_token(token, self.server_url)
 
         if self._client:
             self._client.authenticate_with_account(self._account)
