@@ -124,6 +124,7 @@ class SpeckleClient:
             account {Account} -- the account object which can be found with `get_default_account` or `get_local_accounts`
         """
         self.account = account
+        self._set_up_client()
 
     def _set_up_client(self) -> None:
         headers = {
