@@ -632,7 +632,7 @@ class Brep(
     bbox: Box = None
     area: float = None
     volume: float = None
-    displayValue: Mesh = None
+    _displayValue: List[Mesh] = None
     Surfaces: List[Surface] = None
     Curve3D: List[Base] = None
     Curve2D: List[Base] = None
@@ -647,6 +647,18 @@ class Brep(
         for child in children:
             child._Brep = self
         return children
+
+    # set as prop for now for backwards compatibility
+    @property
+    def displayValue(self) -> List[Mesh]:
+        return self._displayValue
+
+    @displayValue.setter
+    def displayValue(self, value):
+        if isinstance(value, Mesh):
+            self._displayValue = [value]
+        elif isinstance(value, list):
+            self._displayValue = value
 
     @property
     def Edges(self) -> List[BrepEdge]:
