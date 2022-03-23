@@ -1,6 +1,7 @@
-from specklepy.logging.exceptions import SpeckleException
-from specklepy.api.models import User
 import pytest
+from specklepy.api.client import SpeckleClient
+from specklepy.api.models import Activity, ActivityCollection, User
+from specklepy.logging.exceptions import SpeckleException
 
 
 @pytest.mark.run(order=1)
@@ -43,3 +44,17 @@ class TestUser:
         assert isinstance(failed_update, SpeckleException)
         assert updated is True
         assert me.bio == bio
+
+    def test_user_activity(self, client: SpeckleClient, second_user_dict):
+        my_activity = client.user.activity(limit=10)
+        their_activity = client.user.activity(second_user_dict["id"])
+
+        assert isinstance(my_activity, ActivityCollection)
+        assert isinstance(my_activity.items[0], Activity)
+        assert my_activity.totalCount > 0
+        assert isinstance(their_activity, ActivityCollection)
+
+        older_activity = client.user.activity(before=my_activity.items[0].time)
+
+        assert isinstance(older_activity, ActivityCollection)
+        assert older_activity.totalCount < my_activity.totalCount

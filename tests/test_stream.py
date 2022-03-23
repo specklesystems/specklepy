@@ -1,5 +1,7 @@
 import pytest
-from specklepy.api.models import Stream
+from datetime import datetime
+from specklepy.api.models import ActivityCollection, Activity, Stream
+from specklepy.api.client import SpeckleClient
 from specklepy.logging.exceptions import GraphQLException
 
 
@@ -87,8 +89,21 @@ class TestStream:
 
         fetched_stream = client.stream.get(stream.id)
 
-        assert revoked == True
+        assert revoked is True
         assert len(fetched_stream.collaborators) == 1
+
+    def test_stream_activity(self, client: SpeckleClient, stream: Stream):
+        activity = client.stream.activity(stream.id)
+
+        older_activity = client.stream.activity(
+            stream.id, before=activity.items[0].time
+        )
+
+        assert isinstance(activity, ActivityCollection)
+        assert isinstance(older_activity, ActivityCollection)
+        assert older_activity.totalCount < activity.totalCount
+        assert activity.items is not None
+        assert isinstance(activity.items[0], Activity)
 
     def test_stream_delete(self, client, stream):
         deleted = client.stream.delete(stream.id)

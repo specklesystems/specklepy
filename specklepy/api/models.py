@@ -23,7 +23,7 @@ class Commit(BaseModel):
     authorId: Optional[str]
     authorAvatar: Optional[str]
     branchName: Optional[str]
-    createdAt: Optional[str]
+    createdAt: Optional[datetime]
     sourceApplication: Optional[str]
     referencedObject: Optional[str]
     totalChildrenCount: Optional[int]
@@ -38,7 +38,7 @@ class Commit(BaseModel):
 
 class Commits(BaseModel):
     totalCount: Optional[int]
-    cursor: Optional[Any]
+    cursor: Optional[datetime]
     items: List[Commit] = []
 
 
@@ -47,7 +47,7 @@ class Object(BaseModel):
     speckleType: Optional[str]
     applicationId: Optional[str]
     totalChildrenCount: Optional[int]
-    createdAt: Optional[str]
+    createdAt: Optional[datetime]
 
 
 class Branch(BaseModel):
@@ -68,8 +68,8 @@ class Stream(BaseModel):
     name: Optional[str]
     description: Optional[str]
     isPublic: Optional[bool]
-    createdAt: Optional[str]
-    updatedAt: Optional[str]
+    createdAt: Optional[datetime]
+    updatedAt: Optional[datetime]
     collaborators: List[Collaborator] = []
     branches: Optional[Branches]
     commit: Optional[Commit]
@@ -101,6 +101,35 @@ class User(BaseModel):
 
     def __repr__(self):
         return f"User( id: {self.id}, name: {self.name}, email: {self.email}, company: {self.company} )"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+
+class Activity(BaseModel):
+    actionType: Optional[str]
+    info: Optional[dict]
+    userId: Optional[str]
+    streamId: Optional[str]
+    resourceId: Optional[str]
+    resourceType: Optional[str]
+    message: Optional[str]
+    time: Optional[datetime]
+
+    def __repr__(self) -> str:
+        return f"Activity( streamId: {self.streamId}, actionType: {self.actionType}, message: {self.message}, userId: {self.userId} )"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+
+class ActivityCollection(BaseModel):
+    totalCount: Optional[int]
+    items: Optional[List[Activity]]
+    cursor: Optional[datetime]
+
+    def __repr__(self) -> str:
+        return f"ActivityCollection( totalCount: {self.totalCount}, items: {len(self.items) if self.items else 0}, cursor: {self.cursor.isoformat()} )"
 
     def __str__(self) -> str:
         return self.__repr__()

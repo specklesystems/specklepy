@@ -1,19 +1,14 @@
+from datetime import datetime, timezone
 from gql import gql
 from typing import List
 from specklepy.logging import metrics
-from specklepy.api.models import Stream
+from specklepy.api.models import ActivityCollection, Stream
 from specklepy.api.resource import ResourceBase
+from specklepy.logging.exceptions import SpeckleException
 
 
 NAME = "stream"
-METHODS = [
-    "list",
-    "create",
-    "get",
-    "update",
-    "delete",
-    "search",
-]
+METHODS = ["list", "create", "get", "update", "delete", "search", "activity"]
 
 
 class Resource(ResourceBase):
@@ -45,41 +40,41 @@ class Resource(ResourceBase):
         query = gql(
             """
             query Stream($id: String!, $branch_limit: Int!, $commit_limit: Int!) {
-              stream(id: $id) {
-                id
-                name
-                description
-                isPublic
-                createdAt
-                updatedAt
-                collaborators {
-                  id
-                  name
-                  role
-                  avatar
-                }
-                branches(limit: $branch_limit) {
-                  totalCount
-                  cursor
-                  items {
+                stream(id: $id) {
                     id
                     name
                     description
-                    commits(limit: $commit_limit) {
-                      totalCount
-                      cursor
-                      items {
+                    isPublic
+                    createdAt
+                    updatedAt
+                    collaborators {
                         id
-                        referencedObject
-                        message
-                        authorName
-                        authorId
-                        createdAt
-                      }
+                        name
+                        role
+                        avatar
                     }
-                  }
+                    branches(limit: $branch_limit) {
+                        totalCount
+                        cursor
+                        items {
+                            id
+                            name
+                            description
+                            commits(limit: $commit_limit) {
+                                totalCount
+                                cursor
+                                items {
+                                    id
+                                    referencedObject
+                                    message
+                                    authorName
+                                    authorId
+                                    createdAt
+                                }
+                              }
+                          }
+                      }
                 }
-              }
             }
           """
         )
@@ -101,34 +96,34 @@ class Resource(ResourceBase):
         query = gql(
             """
             query User($stream_limit: Int!) {
-              user {
-                id
-                email
-                name
-                bio
-                company
-                avatar
-                verified
-                profiles
-                role
-                streams(limit: $stream_limit) {
-                  totalCount
-                  cursor
-                  items {
+                user {
                     id
+                    email
                     name
-                    description
-                    isPublic
-                    createdAt
-                    updatedAt
-                    collaborators {
-                      id
-                      name
-                      role
-                    }
+                    bio
+                    company
+                    avatar
+                    verified
+                    profiles
+                    role
+                    streams(limit: $stream_limit) {
+                        totalCount
+                        cursor
+                        items {
+                            id
+                            name
+                            description
+                            isPublic
+                            createdAt
+                            updatedAt
+                            collaborators {
+                                id
+                                name
+                                role
+                            }
+                          }
+                      }
                   }
-                }
-              }
             }
           """
         )
@@ -190,7 +185,7 @@ class Resource(ResourceBase):
         query = gql(
             """
             mutation StreamUpdate($stream: StreamUpdateInput!) {
-              streamUpdate(stream: $stream)
+                streamUpdate(stream: $stream)
             }
         """
         )
@@ -221,9 +216,9 @@ class Resource(ResourceBase):
         query = gql(
             """
             mutation StreamDelete($id: String!) {
-              streamDelete(id: $id)
+                streamDelete(id: $id)
             }
-        """
+            """
         )
 
         params = {"id": id}
@@ -254,43 +249,43 @@ class Resource(ResourceBase):
         query = gql(
             """
             query StreamSearch($search_query: String!,$limit: Int!, $branch_limit:Int!, $commit_limit:Int!) {
-              streams(query: $search_query, limit: $limit) {
-                items {
-                  id
-                  name
-                  description
-                  isPublic
-                  createdAt
-                  updatedAt
-                  collaborators {
-                    id
-                    name
-                    role
-                    avatar
-                  }
-                  branches(limit: $branch_limit) {
-                    totalCount
-                    cursor
+                streams(query: $search_query, limit: $limit) {
                     items {
-                      id
-                      name
-                      description
-                      commits(limit: $commit_limit) {
-                        totalCount
-                        cursor
-                        items {
-                          id
-                          referencedObject
-                          message
-                          authorName
-                          authorId
-                          createdAt
+                        id
+                        name
+                        description
+                        isPublic
+                        createdAt
+                        updatedAt
+                        collaborators {
+                            id
+                            name
+                            role
+                            avatar
                         }
-                      }
+                        branches(limit: $branch_limit) {
+                            totalCount
+                            cursor
+                            items {
+                                id
+                                name
+                                description
+                                commits(limit: $commit_limit) {
+                                    totalCount
+                                    cursor
+                                    items {
+                                        id
+                                        referencedObject
+                                        message
+                                        authorName
+                                        authorId
+                                        createdAt
+                                    }
+                                }
+                            }
+                        }
                     }
-                  }
                 }
-              }
             }
           """
         )
@@ -367,4 +362,73 @@ class Resource(ResourceBase):
             params=params,
             return_type="streamRevokePermission",
             parse_response=False,
+        )
+
+    def activity(
+        self,
+        stream_id: str,
+        action_type: str = None,
+        limit: int = 20,
+        before: datetime = None,
+        after: datetime = None,
+        cursor: datetime = None,
+    ):
+        """
+        Get the activity from a given stream in an Activity collection. Step into the activity `items` for the list of activity.
+
+        Note: all timestamps arguments should be `datetime` of any tz as they will be converted to UTC ISO format strings
+
+        stream_id {str} -- the id of the stream to get activity from
+        action_type {str} -- filter results to a single action type (eg: `commit_create` or `commit_receive`)
+        limit {int} -- max number of Activity items to return
+        before {datetime} -- latest cutoff for activity (ie: return all activity _before_ this time)
+        after {datetime} -- oldest cutoff for activity (ie: return all activity _after_ this time)
+        cursor {datetime} -- timestamp cursor for pagination
+        """
+        query = gql(
+            """
+            query StreamActivity($stream_id: String!, $action_type: String, $before:DateTime, $after: DateTime, $cursor: DateTime, $limit: Int){
+                stream(id: $stream_id) {
+                    activity(actionType: $action_type, before: $before, after: $after, cursor: $cursor, limit: $limit) {
+                        totalCount
+                        cursor
+                        items {
+                            actionType
+                            info
+                            userId
+                            streamId
+                            resourceId
+                            resourceType
+                            message
+                            time
+                        }
+                    }
+                }
+            }
+            """
+        )
+        try:
+            params = {
+                "stream_id": stream_id,
+                "limit": limit,
+                "action_type": action_type,
+                "before": before.astimezone(timezone.utc).isoformat()
+                if before
+                else before,
+                "after": after.astimezone(timezone.utc).isoformat() if after else after,
+                "cursor": cursor.astimezone(timezone.utc).isoformat()
+                if cursor
+                else cursor,
+            }
+        except AttributeError as e:
+            raise SpeckleException(
+                "Could not get stream activity - `before`, `after`, and `cursor` must be in `datetime` format if provided",
+                ValueError,
+            ) from e
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type=["stream", "activity"],
+            schema=ActivityCollection,
         )
