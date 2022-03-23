@@ -2,6 +2,7 @@ import ujson
 import hashlib
 import re
 from uuid import uuid4
+from enum import Enum
 from warnings import warn
 from typing import Any, Dict, List, Tuple
 from specklepy.objects.base import Base, DataChunk
@@ -111,6 +112,11 @@ class BaseObjectSerializer:
                 object_builder[prop] = value
                 continue
 
+            # NOTE: for dynamic props, this won't be re-serialised as an enum but as an int
+            if isinstance(value, Enum):
+                object_builder[prop] = value.value
+                continue
+
             # 2. handle Base objects
             elif isinstance(value, Base):
                 child_obj = self.traverse_value(value, detach=detach)
@@ -182,6 +188,10 @@ class BaseObjectSerializer:
         if isinstance(obj, PRIMITIVES):
             return obj
 
+        # NOTE: for dynamic props, this won't be re-serialised as an enum but as an int
+        if isinstance(obj, Enum):
+            return obj.value
+
         elif isinstance(obj, (list, tuple, set)):
             if not detach:
                 return [self.traverse_value(o) for o in obj]
@@ -215,7 +225,7 @@ class BaseObjectSerializer:
             except:
                 warn(
                     f"Failed to handle {type(obj)} in `BaseObjectSerializer.traverse_value`",
-                    SerializationException,
+                    SpeckleWarning,
                 )
 
                 return str(obj)

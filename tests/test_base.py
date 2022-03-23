@@ -1,5 +1,6 @@
-from contextlib import ExitStack as does_not_raise
+from enum import Enum
 from typing import Dict, List, Optional
+from contextlib import ExitStack as does_not_raise
 
 import pytest
 from specklepy.api import operations
@@ -95,6 +96,12 @@ def test_base_of_custom_speckle_type() -> None:
     assert b1.name == "Tweety's Crib"
 
 
+class DietaryRestrictions(Enum):
+    VEGAN = 1
+    GLUTEN_FREE = 2
+    NUT_FREE = 3
+
+
 class FrozenYoghurt(Base):
     """Testing type checking"""
 
@@ -103,6 +110,7 @@ class FrozenYoghurt(Base):
     customer: str
     add_ons: Optional[Dict[str, float]]  # dict item types won't be checked
     price: float = 0.0
+    dietary: DietaryRestrictions
 
 
 def test_type_checking() -> None:
@@ -111,6 +119,7 @@ def test_type_checking() -> None:
     order.servings = 2
     order.price = "7"  # will get converted
     order.customer = "izzy"
+    order.dietary = DietaryRestrictions.VEGAN
 
     with pytest.raises(SpeckleException):
         order.flavours = "not a list"
@@ -118,6 +127,8 @@ def test_type_checking() -> None:
         order.servings = "five"
     with pytest.raises(SpeckleException):
         order.add_ons = ["sprinkles"]
+    with pytest.raises(SpeckleException):
+        order.dietary = "no nuts plz"
 
     order.add_ons = {"sprinkles": 0.2, "chocolate": 1.0}
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]

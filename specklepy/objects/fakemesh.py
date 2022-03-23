@@ -1,5 +1,6 @@
-from specklepy.objects.geometry import Point
+from enum import Enum
 from typing import List
+from specklepy.objects.geometry import Point
 
 from .base import Base
 
@@ -19,11 +20,19 @@ class FakeGeo(Base, chunkable={"dots": 50}, detachable={"pointslist"}):
     dots: List[int] = None
 
 
+class FakeDirection(Enum):
+    NORTH = 1
+    EAST = 2
+    SOUTH = 3
+    WEST = 4
+
+
 class FakeMesh(FakeGeo, chunkable=CHUNKABLE_PROPS, detachable=DETACHABLE):
     vertices: List[float] = None
     faces: List[int] = None
     colors: List[int] = None
     textureCoordinates: List[float] = None
+    cardinal_dir: FakeDirection = None
     test_bases: List[Base] = None
     detach_this: Base = None
     detached_list: List[Base] = None
