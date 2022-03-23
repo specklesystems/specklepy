@@ -96,7 +96,7 @@ class TestStream:
         activity = client.stream.activity(stream.id)
 
         older_activity = client.stream.activity(
-            stream.id, before=activity.items[0].time.isoformat()
+            stream.id, before=activity.items[0].time
         )
 
         assert isinstance(activity, ActivityCollection)

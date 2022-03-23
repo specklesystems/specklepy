@@ -1,8 +1,10 @@
+from datetime import datetime, timezone
 from gql import gql
 from typing import List
 from specklepy.logging import metrics
 from specklepy.api.models import ActivityCollection, Stream
 from specklepy.api.resource import ResourceBase
+from specklepy.logging.exceptions import SpeckleException
 
 
 NAME = "stream"
@@ -367,9 +369,9 @@ class Resource(ResourceBase):
         stream_id: str,
         action_type: str = None,
         limit: int = 20,
-        before: str = None,
-        after: str = None,
-        cursor: str = None,
+        before: datetime = None,
+        after: datetime = None,
+        cursor: datetime = None,
     ):
         """
         Get the activity from a given stream in an Activity collection. Step into the activity `items` for the list of activity.
@@ -378,9 +380,9 @@ class Resource(ResourceBase):
         stream_id {str} -- the id of the stream to get activity from
         action_type {str} -- filter results to a single action type (eg: `commit_create` or `commit_receive`)
         limit {int} -- max number of Activity items to return
-        before {str timestamp} -- latest cutoff for activity (ie: return all activity _before_ this time)
-        after {str timestamp} -- oldest cutoff for activity (ie: return all activity _after_ this time)
-        cursor {str timestamp} -- timestamp cursor for pagination
+        before {datetime} -- latest cutoff for activity (ie: return all activity _before_ this time)
+        after {datetime} -- oldest cutoff for activity (ie: return all activity _after_ this time)
+        cursor {datetime} -- timestamp cursor for pagination
         """
         query = gql(
             """
@@ -404,15 +406,24 @@ class Resource(ResourceBase):
             }
             """
         )
-
-        params = {
-            "stream_id": stream_id,
-            "limit": limit,
-            "action_type": action_type,
-            "before": before,
-            "after": after,
-            "cursor": cursor,
-        }
+        try:
+            params = {
+                "stream_id": stream_id,
+                "limit": limit,
+                "action_type": action_type,
+                "before": before.astimezone(timezone.utc).isoformat()
+                if before
+                else before,
+                "after": after.astimezone(timezone.utc).isoformat() if after else after,
+                "cursor": cursor.astimezone(timezone.utc).isoformat()
+                if cursor
+                else cursor,
+            }
+        except AttributeError as e:
+            raise SpeckleException(
+                "Could not get stream activity - `before`, `after`, and `cursor` must be in `datetime` format if provided",
+                ValueError,
+            ) from e
 
         return self.make_request(
             query=query,
