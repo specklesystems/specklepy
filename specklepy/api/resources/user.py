@@ -1,12 +1,13 @@
+from datetime import datetime, timezone
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from typing import List
 from gql import gql
 from specklepy.api.resource import ResourceBase
-from specklepy.api.models import User
+from specklepy.api.models import ActivityCollection, User
 
 NAME = "user"
-METHODS = ["get", "search", "update"]
+METHODS = ["get", "search", "update", "activity"]
 
 
 class Resource(ResourceBase):
@@ -124,4 +125,66 @@ class Resource(ResourceBase):
 
         return self.make_request(
             query=query, params=params, return_type="userUpdate", parse_response=False
+        )
+
+    def activity(
+        self,
+        user_id: str = None,
+        limit: int = 20,
+        action_type: str = None,
+        before: datetime = None,
+        after: datetime = None,
+        cursor: datetime = None,
+    ):
+        """
+        Get the activity from a given stream in an Activity collection. Step into the activity `items` for the list of activity.
+        If no id argument is provided, will return the current authenticated user's activity (as extracted from the authorization header).
+
+        Note: all timestamps arguments should be `datetime` of any tz as they will be converted to UTC ISO format strings
+
+        user_id {str} -- the id of the user to get the activity from
+        action_type {str} -- filter results to a single action type (eg: `commit_create` or `commit_receive`)
+        limit {int} -- max number of Activity items to return
+        before {datetime} -- latest cutoff for activity (ie: return all activity _before_ this time)
+        after {datetime} -- oldest cutoff for activity (ie: return all activity _after_ this time)
+        cursor {datetime} -- timestamp cursor for pagination
+        """
+
+        query = gql(
+            """
+            query UserActivity($user_id: String, $action_type: String, $before:DateTime, $after: DateTime, $cursor: DateTime, $limit: Int){
+                user(id: $user_id) {
+                    activity(actionType: $action_type, before: $before, after: $after, cursor: $cursor, limit: $limit) {
+                        totalCount
+                        cursor
+                        items {
+                            actionType
+                            info
+                            userId
+                            streamId
+                            resourceId
+                            resourceType
+                            message
+                            time
+                        }
+                    }
+                }
+            }
+            """
+        )
+
+        params = {
+            "user_id": user_id,
+            "limit": limit,
+            "action_type": action_type,
+            "before": before.astimezone(timezone.utc).isoformat() if before else before,
+            "after": after.astimezone(timezone.utc).isoformat() if after else after,
+            "cursor": cursor.astimezone(timezone.utc).isoformat() if cursor else cursor,
+        }
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type=["user", "activity"],
+            schema=ActivityCollection,
         )
