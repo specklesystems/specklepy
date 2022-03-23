@@ -375,7 +375,8 @@ class Resource(ResourceBase):
     ):
         """
         Get the activity from a given stream in an Activity collection. Step into the activity `items` for the list of activity.
-        Note: all timestamp strings are in UTC isoformat (eg: `datetime.now(timezone.utc).isoformat()`)
+
+        Note: all timestamps arguments should be `datetime` of any tz as they will be converted to UTC ISO format strings
 
         stream_id {str} -- the id of the stream to get activity from
         action_type {str} -- filter results to a single action type (eg: `commit_create` or `commit_receive`)
