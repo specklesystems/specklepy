@@ -9,6 +9,8 @@ from typing import (
     Type,
     get_type_hints,
 )
+
+from enum import EnumMeta
 from warnings import warn
 
 from specklepy.logging.exceptions import SpeckleException
@@ -253,6 +255,9 @@ class Base(_RegisteringBase):
 
         if value is None:
             return None
+
+        if isinstance(t, EnumMeta) and (value in t._value2member_map_):
+            return t(value)
 
         if t.__module__ == "typing":
             origin = getattr(t, "__origin__")

@@ -6,7 +6,7 @@ from specklepy.api.models import Stream
 from specklepy.api.client import SpeckleClient
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Point
-from specklepy.objects.fakemesh import FakeMesh
+from specklepy.objects.fakemesh import FakeDirection, FakeMesh
 from specklepy.logging import metrics
 
 metrics.disable()
@@ -81,9 +81,10 @@ def mesh():
     mesh = FakeMesh()
     mesh.name = "my_mesh"
     mesh.vertices = [random.uniform(0, 10) for _ in range(1, 210)]
-    mesh.faces = [i for i in range(1, 210)]
+    mesh.faces = list(range(1, 210))
     mesh["@(100)colours"] = [random.uniform(0, 10) for _ in range(1, 210)]
     mesh["@()default_chunk"] = [random.uniform(0, 10) for _ in range(1, 210)]
+    mesh.cardinal_dir = FakeDirection.WEST
     mesh.test_bases = [Base(name=f"test {i}") for i in range(1, 22)]
     mesh.detach_this = Base(name="predefined detached base")
     mesh["@detach"] = Base(name="detached base")
@@ -104,6 +105,8 @@ def base():
     base.units = "millimetres"
     base.null_val = None
     base.null_dict = {"a null val": None}
+    base.tuple = (1, 2, "3")
+    base.set = {1, 2, "3"}
     base.vertices = [random.uniform(0, 10) for _ in range(1, 120)]
     base.test_bases = [Base(name=i) for i in range(1, 22)]
     base["@detach"] = Base(name="detached base")
