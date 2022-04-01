@@ -10,6 +10,7 @@ from typing import (
     get_type_hints,
 )
 
+import contextlib
 from enum import EnumMeta
 from warnings import warn
 
@@ -250,7 +251,7 @@ class Base(_RegisteringBase):
         types = getattr(self, "_attr_types", {})
         t = types.get(name, None)
 
-        if t is None:
+        if t is None or t is Any:
             return value
 
         if value is None:
@@ -280,13 +281,11 @@ class Base(_RegisteringBase):
         if isinstance(t, tuple):
             t = t[0]
 
-        try:
+        with contextlib.suppress(ValueError):
             if t is float:
                 return float(value)
             if t is str and value:
                 return str(value)
-        except ValueError:
-            pass
 
         raise SpeckleException(
             f"Cannot set '{self.__class__.__name__}.{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
