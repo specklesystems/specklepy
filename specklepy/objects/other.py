@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 from specklepy.objects.geometry import Point, Vector
 from .base import Base
 
@@ -55,10 +55,11 @@ class Transform(
     def value(self, value: List[float]) -> None:
         try:
             value = [float(x) for x in value]
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as error:
             raise ValueError(
                 f"Could not create a Transform object with the requested value. Input must be a 16 element list of numbers. Value provided: {value}"
-            )
+            ) from error
+
         if len(value) != 16:
             raise ValueError(
                 f"Could not create a Transform object: input list should be 16 floats long, but was {len(value)} long"
@@ -197,3 +198,17 @@ class BlockInstance(
 ):
     blockDefinition: BlockDefinition = None
     transform: Transform = None
+
+
+# TODO: prob move this into a built elements module, but just trialling this for now
+class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter"):
+    name: str = None
+    value: Any = None
+    applicationUnitType: str = None  # eg UnitType UT_Length
+    applicationUnit: str = None  # DisplayUnitType eg DUT_MILLIMITERS
+    applicationInternalName: str = (
+        None  # BuiltInParameterName or GUID for shared parameter
+    )
+    isShared: bool = False
+    isReadOnly: bool = False
+    isTypeParameter: bool = False
