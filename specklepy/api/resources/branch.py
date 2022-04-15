@@ -164,7 +164,7 @@ class Resource(ResourceBase):
             description {str} -- optional: the updated branch description
 
         Returns:
-            bool -- True if update is successfull
+            bool -- True if update is successful
         """
         metrics.track(metrics.BRANCH, self.account, {"name": "update"})
         query = gql(

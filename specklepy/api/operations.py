@@ -72,7 +72,7 @@ def receive(
 
     serializer = BaseObjectSerializer(read_transport=local_transport)
 
-    # try local transport first. if the parent is there, we assume all the children are there and continue wth deserialisation using the local transport
+    # try local transport first. if the parent is there, we assume all the children are there and continue with deserialisation using the local transport
     obj_string = local_transport.get_object(obj_id)
     if obj_string:
         return serializer.read_json(obj_string=obj_string)
