@@ -293,9 +293,9 @@ class Curve(
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Curve":
-        point_count = args[7]
-        weights_count = args[8]
-        knots_count = args[9]
+        point_count = int(args[7])
+        weights_count = int(args[8])
+        knots_count = int(args[9])
 
         points_start = 10
         weights_start = 10 + point_count
@@ -303,7 +303,7 @@ class Curve(
         knots_end = knots_start + knots_count
 
         return cls(
-            degree=args[1],
+            degree=int(args[1]),
             periodic=bool(args[2]),
             rational=bool(args[3]),
             closed=bool(args[4]),
