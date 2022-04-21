@@ -74,7 +74,7 @@ class ObjectArray:
 
         index = 0
         while index < len(data):
-            item_length = data[index]
+            item_length = int(data[index])
             item_start = index + 1
             item_end = item_start + item_length
             item_data = data[item_start:item_end]
