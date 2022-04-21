@@ -143,7 +143,7 @@ class SpeckleClient:
 
         self._init_resources()
 
-        if isinstance(self.user.get(), GraphQLException):
+        if self.user.get() is None:
             warn(
                 SpeckleWarning(
                     f"Possibly invalid token - could not authenticate Speckle Client for server {self.url}"
