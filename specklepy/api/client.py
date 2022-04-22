@@ -2,8 +2,8 @@ import re
 from warnings import warn
 from deprecated import deprecated
 from specklepy.api.credentials import Account, get_account_from_token
+from specklepy.logging import metrics
 from specklepy.logging.exceptions import (
-    GraphQLException,
     SpeckleException,
     SpeckleWarning,
 )
@@ -57,6 +57,7 @@ class SpeckleClient:
     USE_SSL = True
 
     def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL) -> None:
+        metrics.track(metrics.CLIENT, custom_props={"name": "create"})
         ws_protocol = "ws"
         http_protocol = "http"
 
@@ -79,15 +80,17 @@ class SpeckleClient:
 
         self._init_resources()
 
-        # Check compatibility with the server
-        try:
-            serverInfo = self.server.get()
-            if isinstance(serverInfo, Exception):
-                raise serverInfo
-            if not isinstance(serverInfo, ServerInfo):
-                raise Exception("Couldn't get ServerInfo")
-        except Exception as ex:
-            raise SpeckleException(f"{self.url} is not a compatible Speckle Server", ex)
+        # ? Check compatibility with the server - i think we can skip this at this point? save a request
+        # try:
+        #     server_info = self.server.get()
+        #     if isinstance(server_info, Exception):
+        #         raise server_info
+        #     if not isinstance(server_info, ServerInfo):
+        #         raise Exception("Couldn't get ServerInfo")
+        # except Exception as ex:
+        #     raise SpeckleException(
+        #         f"{self.url} is not a compatible Speckle Server", ex
+        #     ) from ex
 
     def __repr__(self):
         return f"SpeckleClient( server: {self.url}, authenticated: {self.account.token is not None} )"
@@ -114,6 +117,7 @@ class SpeckleClient:
             token {str} -- an api token
         """
         self.account = get_account_from_token(token, self.url)
+        metrics.track(metrics.CLIENT, self.account, {"name": "authenticate with token"})
         self._set_up_client()
 
     def authenticate_with_account(self, account: Account) -> None:
@@ -123,10 +127,12 @@ class SpeckleClient:
         Arguments:
             account {Account} -- the account object which can be found with `get_default_account` or `get_local_accounts`
         """
+        metrics.track(metrics.CLIENT, account, {"name": "authenticate with account"})
         self.account = account
         self._set_up_client()
 
     def _set_up_client(self) -> None:
+        metrics.track(metrics.CLIENT, self.account, {"name": "set up client"})
         headers = {
             "Authorization": f"Bearer {self.account.token}",
             "Content-Type": "application/json",
