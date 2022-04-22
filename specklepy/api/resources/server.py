@@ -2,6 +2,7 @@ from typing import Dict, List
 from gql import gql
 from specklepy.api.models import ServerInfo
 from specklepy.api.resource import ResourceBase
+from specklepy.logging import metrics
 
 
 NAME = "server"
@@ -26,6 +27,7 @@ class Resource(ResourceBase):
         Returns:
             dict -- the server info in dictionary form
         """
+        metrics.track(metrics.SERVER, self.account, {"name": "get"})
         query = gql(
             """
             query Server {
@@ -65,6 +67,7 @@ class Resource(ResourceBase):
         Returns:
             dict -- a dictionary of apps registered on the server
         """
+        metrics.track(metrics.SERVER, self.account, {"name": "apps"})
         query = gql(
             """
             query Apps {
@@ -98,6 +101,7 @@ class Resource(ResourceBase):
         Returns:
             str -- the new API token. note: this is the only time you'll see the token!
         """
+        metrics.track(metrics.SERVER, self.account, {"name": "create_token"})
         query = gql(
             """
             mutation TokenCreate($token: ApiTokenCreateInput!) {
@@ -123,6 +127,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the token was successfully deleted
         """
+        metrics.track(metrics.SERVER, self.account, {"name": "revoke_token"})
         query = gql(
             """
             mutation TokenRevoke($token: String!) {

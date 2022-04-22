@@ -1,5 +1,3 @@
-import json
-import os
 import socket
 import sys
 import queue
@@ -14,6 +12,7 @@ This really helps us to deliver a better open source project and product!
 """
 TRACK = True
 HOST_APP = "python"
+HOST_APP_VERSION = f"python {'.'.join(map(str, sys.version_info[:3]))}"
 PLATFORMS = {"win32": "Windows", "cygwin": "Windows", "darwin": "Mac OS X"}
 
 LOG = logging.getLogger(__name__)
@@ -27,6 +26,8 @@ PERMISSION = "Permission Action"
 COMMIT = "Commit Action"
 BRANCH = "Branch Action"
 USER = "User Action"
+SERVER = "Server Action"
+CLIENT = "Speckle Client"
 STREAM_WRAPPER = "Stream Wrapper"
 
 ACCOUNTS = "Get Local Accounts"
@@ -45,9 +46,10 @@ def enable():
     TRACK = True
 
 
-def set_host_app(host_app: str):
+def set_host_app(host_app: str, host_app_version: str = None):
     global HOST_APP
     HOST_APP = host_app
+    HOST_APP_VERSION = host_app_version or HOST_APP_VERSION
 
 
 def track(action: str, account: "Account" = None, custom_props: dict = None):
@@ -62,6 +64,7 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
                 "server_id": METRICS_TRACKER.last_server,
                 "token": METRICS_TRACKER.analytics_token,
                 "hostApp": HOST_APP,
+                "hostAppVersion": HOST_APP_VERSION,
                 "$os": METRICS_TRACKER.platform,
                 "type": "action",
             },
