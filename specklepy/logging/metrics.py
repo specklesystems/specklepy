@@ -47,7 +47,7 @@ def enable():
 
 
 def set_host_app(host_app: str, host_app_version: str = None):
-    global HOST_APP
+    global HOST_APP, HOST_APP_VERSION
     HOST_APP = host_app
     HOST_APP_VERSION = host_app_version or HOST_APP_VERSION
 
