@@ -47,6 +47,8 @@ class Resource(ResourceBase):
                     isPublic
                     createdAt
                     updatedAt
+                    commentCount
+                    favoritesCount
                     collaborators {
                         id
                         name
@@ -65,11 +67,12 @@ class Resource(ResourceBase):
                                 cursor
                                 items {
                                     id
-                                    referencedObject
                                     message
-                                    authorName
                                     authorId
                                     createdAt
+                                    authorName
+                                    referencedObject
+                                    sourceApplication
                                 }
                               }
                           }
@@ -116,6 +119,8 @@ class Resource(ResourceBase):
                             isPublic
                             createdAt
                             updatedAt
+                            commentCount
+                            favoritesCount
                             collaborators {
                                 id
                                 name

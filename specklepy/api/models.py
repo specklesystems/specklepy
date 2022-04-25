@@ -74,6 +74,8 @@ class Stream(BaseModel):
     branches: Optional[Branches]
     commit: Optional[Commit]
     object: Optional[Object]
+    commentCount: Optional[int]
+    favoritesCount: Optional[int]
 
     def __repr__(self):
         return f"Stream( id: {self.id}, name: {self.name}, description: {self.description}, isPublic: {self.isPublic})"
