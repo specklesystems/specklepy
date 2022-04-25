@@ -327,6 +327,7 @@ class Resource(ResourceBase):
                     id
                     name
                     favoritedDate
+                    favoritesCount
                 }
             }
             """
