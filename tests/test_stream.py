@@ -69,6 +69,16 @@ class TestStream:
         assert len(search_results) == 1
         assert search_results[0].name == updated_stream.name
 
+    def test_stream_favorite(self, client, stream):
+        favorited = client.stream.favorite(stream.id)
+
+        assert isinstance(favorited, Stream)
+        assert favorited.favoritedDate is not None
+
+        unfavorited = client.stream.favorite(stream.id, False)
+        assert isinstance(favorited, Stream)
+        assert unfavorited.favoritedDate is None
+
     def test_stream_grant_permission(self, client, stream, second_user_dict):
         granted = client.stream.grant_permission(
             stream_id=stream.id,
