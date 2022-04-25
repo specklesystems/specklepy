@@ -43,10 +43,13 @@ class Resource(ResourceBase):
                 stream(id: $id) {
                     id
                     name
+                    role
                     description
                     isPublic
                     createdAt
                     updatedAt
+                    commentCount
+                    favoritesCount
                     collaborators {
                         id
                         name
@@ -65,11 +68,12 @@ class Resource(ResourceBase):
                                 cursor
                                 items {
                                     id
-                                    referencedObject
                                     message
-                                    authorName
                                     authorId
                                     createdAt
+                                    authorName
+                                    referencedObject
+                                    sourceApplication
                                 }
                               }
                           }
@@ -98,11 +102,11 @@ class Resource(ResourceBase):
             query User($stream_limit: Int!) {
                 user {
                     id
-                    email
-                    name
                     bio
-                    company
+                    name
+                    email
                     avatar
+                    company
                     verified
                     profiles
                     role
@@ -112,10 +116,13 @@ class Resource(ResourceBase):
                         items {
                             id
                             name
-                            description
+                            role
                             isPublic
                             createdAt
                             updatedAt
+                            description
+                            commentCount
+                            favoritesCount
                             collaborators {
                                 id
                                 name
@@ -253,6 +260,7 @@ class Resource(ResourceBase):
                     items {
                         id
                         name
+                        role
                         description
                         isPublic
                         createdAt
@@ -299,6 +307,38 @@ class Resource(ResourceBase):
 
         return self.make_request(
             query=query, params=params, return_type=["streams", "items"]
+        )
+
+    def favorite(self, stream_id: str, favorited: bool = True):
+        """Favorite or unfavorite the given stream.
+
+        Arguments:
+            stream_id {str} -- the id of the stream to favorite / unfavorite
+            favorited {bool} -- whether to favorite (True) or unfavorite (False) the stream
+
+        Returns:
+            Stream -- the stream with its `id`, `name`, and `favoritedDate`
+        """
+        metrics.track(metrics.STREAM, self.account, {"name": "favorite"})
+        query = gql(
+            """
+            mutation StreamFavorite($stream_id: String!, $favorited: Boolean!) {
+                streamFavorite(streamId: $stream_id, favorited: $favorited) {
+                    id
+                    name
+                    favoritedDate
+                }
+            }
+            """
+        )
+
+        params = {
+            "stream_id": stream_id,
+            "favorited": favorited,
+        }
+
+        return self.make_request(
+            query=query, params=params, return_type=["streamFavorite"]
         )
 
     def grant_permission(self, stream_id: str, user_id: str, role: str):

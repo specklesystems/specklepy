@@ -66,14 +66,18 @@ class Branches(BaseModel):
 class Stream(BaseModel):
     id: Optional[str]
     name: Optional[str]
-    description: Optional[str]
+    role: Optional[str]
     isPublic: Optional[bool]
+    description: Optional[str]
     createdAt: Optional[datetime]
     updatedAt: Optional[datetime]
     collaborators: List[Collaborator] = []
     branches: Optional[Branches]
     commit: Optional[Commit]
     object: Optional[Object]
+    commentCount: Optional[int]
+    favoritedDate: Optional[datetime]
+    favoritesCount: Optional[int]
 
     def __repr__(self):
         return f"Stream( id: {self.id}, name: {self.name}, description: {self.description}, isPublic: {self.isPublic})"
