@@ -14,7 +14,7 @@ homepage = "https://speckle.systems/"
 python = ">=3.7.0"
 pydantic = "^1.8.2"
 appdirs = "^1.4.4"
-gql = {version = ">=3.0.0b1", extras = ["all"], allow-prereleases = true}
+gql = {extras = ["requests", "websockets"], version = "^3.3.0"}
 ujson = "^5.3.0"
 Deprecated = "^1.2.13"
 
