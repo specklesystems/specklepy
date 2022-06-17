@@ -24,6 +24,8 @@ isort = "^5.7.0"
 pytest = "^6.2.2"
 pytest-ordering = "^0.6"
 pytest-cov = "^3.0.0"
+devtools = "^0.8.0"
+py-spy = "^0.3.12"
 
 
 [tool.black]

@@ -50,10 +50,10 @@ if __name__ == "__main__":
     )
     # support for dynamic attributes
     custom_sub.extra_extra = "what is this?"
-    debug(custom_sub.json())
+    debug(custom_sub)
 
     serialized = operations.serialize(custom_sub)
     deserialized = operations.deserialize(serialized)
     # the only difference should be between the two data is that the deserialized
     # instance id attribute is not None.
-    debug(deserialized.json())
+    debug(deserialized)

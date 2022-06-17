@@ -21,6 +21,7 @@ class SQLiteTransport(AbstractTransport):
     app_name: str = ""
     scope: str = ""
     saved_obj_count: int = 0
+    _object_cache: List = None
 
     def __init__(
         self,
@@ -123,18 +124,19 @@ class SQLiteTransport(AbstractTransport):
             id {str} -- the object id
             serialized_object {str} -- the full string representation of the object
         """
-        self.__check_connection()
-        try:
-            with closing(self.__connection.cursor()) as c:
-                c.execute(
-                    "INSERT OR IGNORE INTO objects(hash, content) VALUES(?,?)",
-                    (id, serialized_object),
-                )
-                self.__connection.commit()
-        except Exception as ex:
-            raise SpeckleException(
-                f"Could not save the object to the local db. Inner exception: {ex}", ex
-            )
+        # self.__check_connection()
+        # try:
+        #     with closing(self.__connection.cursor()) as c:
+        #         c.execute(
+        #             "INSERT OR IGNORE INTO objects(hash, content) VALUES(?,?)",
+        #             (id, serialized_object),
+        #         )
+        #         # self.__connection.commit()
+        # except Exception as ex:
+        #     raise SpeckleException(
+        #         f"Could not save the object to the local db. Inner exception: {ex}", ex
+        #     )
+        self._object_cache.append((id, serialized_object))
 
     def get_object(self, id: str) -> str or None:
         self.__check_connection()
@@ -156,10 +158,15 @@ class SQLiteTransport(AbstractTransport):
         return ret
 
     def begin_write(self):
+        self._object_cache = []
         self.saved_obj_count = 0
 
     def end_write(self):
-        pass
+        self.__connection.executemany(
+            "INSERT OR IGNORE INTO objects(hash, content) VALUES(?,?)",
+             self._object_cache,
+                )
+        self.__connection.commit()
 
     def copy_object_and_children(
         self, id: str, target_transport: AbstractTransport
