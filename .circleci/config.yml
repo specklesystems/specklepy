@@ -8,9 +8,9 @@ jobs:
   test:
     docker:
       - image: "cimg/python:<<parameters.tag>>"
-      - image: 'cimg/node:16.15'
-      - image: 'circleci/redis:6'
-      - image: 'cimg/postgres:12.8'
+      - image: "cimg/node:16.15"
+      - image: "circleci/redis:6"
+      - image: "cimg/postgres:12.8"
         environment:
           POSTGRES_DB: speckle2_test
           POSTGRES_PASSWORD: speckle
@@ -60,7 +60,7 @@ jobs:
 
 workflows:
   main:
-    jobs: 
+    jobs:
       - test:
           matrix:
             parameters:
@@ -70,7 +70,7 @@ workflows:
               only: /.*/
       - deploy:
           requires:
-            - test 
+            - test
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/
