@@ -11,7 +11,7 @@ homepage = "https://speckle.systems/"
 
 
 [tool.poetry.dependencies]
-python = ">=3.7.0"
+python = ">=3.7.0, <4.0"
 pydantic = "^1.8.2"
 appdirs = "^1.4.4"
 gql = {extras = ["requests", "websockets"], version = "^3.3.0"}
