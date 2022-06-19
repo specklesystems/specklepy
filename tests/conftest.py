@@ -61,7 +61,7 @@ def second_user_dict(host):
 @pytest.fixture(scope="session")
 def client(host, user_dict):
     client = SpeckleClient(host=host, use_ssl=False)
-    client.authenticate(user_dict["token"])
+    client.authenticate_with_token(user_dict["token"])
     return client
 
 
