@@ -61,7 +61,7 @@ jobs:
 
 workflows:
   main:
-    jobs: 
+    jobs:
       - test:
           matrix:
             parameters:
@@ -71,7 +71,7 @@ workflows:
               only: /.*/
       - deploy:
           requires:
-            - test 
+            - test
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/

@@ -14,7 +14,7 @@ homepage = "https://speckle.systems/"
 python = "^3.6.5"
 pydantic = "^1.8.2"
 appdirs = "^1.4.4"
-gql = {version = ">=3.0.0b1", extras = ["all"], allow-prereleases = true}
+gql = {extras = ["requests", "websockets"], version = "^3.3.0"}
 ujson = "^4.3.0"
 Deprecated = "^1.2.13"
 
@@ -25,7 +25,6 @@ pytest = "^6.2.2"
 pytest-ordering = "^0.6"
 pytest-cov = "^3.0.0"
 devtools = "^0.8.0"
-py-spy = "^0.3.12"
 
 
 [tool.black]
