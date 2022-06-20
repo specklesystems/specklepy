@@ -11,6 +11,9 @@ from specklepy.logging.exceptions import (
     SpeckleWarning,
 )
 from specklepy.transports.abstract_transport import AbstractTransport
+
+# import for serialization
+import specklepy.objects.geometry
 import specklepy.objects.other
 
 PRIMITIVES = (int, float, str, bool)
@@ -50,7 +53,17 @@ class BaseObjectSerializer:
     def write_json(self, base: Base):
         self.__reset_writer()
         self.detach_lineage = [True]
+
+        if self.write_transports:
+            for wt in self.write_transports:
+                wt.begin_write()
+
         hash, obj = self.traverse_base(base)
+
+        if self.write_transports:
+            print(">>> END WRITE")
+            for wt in self.write_transports:
+                wt.end_write()
         return hash, ujson.dumps(obj)
 
     def traverse_base(self, base: Base) -> Tuple[str, Dict]:
@@ -69,10 +82,6 @@ class BaseObjectSerializer:
         object_builder = {"id": "", "speckle_type": "Base", "totalChildrenCount": 0}
         object_builder.update(speckle_type=base.speckle_type)
         obj, props = base, base.get_serializable_attributes()
-
-        if self.write_transports:
-            for wt in self.write_transports:
-                wt.begin_write()
 
         while props:
             prop = props.pop(0)
@@ -175,11 +184,6 @@ class BaseObjectSerializer:
                 t.save_object(id=hash, serialized_object=ujson.dumps(object_builder))
 
         del self.lineage[-1]
-
-
-        if self.write_transports:
-            for wt in self.write_transports:
-                wt.end_write()
 
         return hash, object_builder
 

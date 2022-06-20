@@ -40,12 +40,7 @@ def send(
 
     serializer = BaseObjectSerializer(write_transports=transports)
 
-    for t in transports:
-        t.begin_write()
     obj_hash, _ = serializer.write_json(base=base)
-
-    for t in transports:
-        t.end_write()
 
     return obj_hash
 
