@@ -27,6 +27,7 @@ services:
       STRATEGY_LOCAL: "true"
       CANONICAL_URL: "http://localhost:3000"
       WAIT_HOSTS: localhost:5432, localhost:6379
+      DISABLE_FILE_UPLOADS: "true"
     # ports:
     #   - "3000:3000"
     network_mode: host
