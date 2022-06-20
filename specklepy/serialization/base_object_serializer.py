@@ -52,19 +52,16 @@ class BaseObjectSerializer:
         self.read_transport = read_transport
 
     def write_json(self, base: Base):
-        self.__reset_writer()
-        self.detach_lineage = [True]
+        """Serializes a given base object into a json string
+        Arguments:
+            base {Base} -- the base object to be decomposed and serialized
 
-        if self.write_transports:
-            for wt in self.write_transports:
-                wt.begin_write()
+        Returns:
+            (str, str) -- a tuple containing the hash (id) of the base object and the serialized object string
+        """
 
         hash, obj = self.traverse_base(base)
 
-        if self.write_transports:
-            print(">>> END WRITE")
-            for wt in self.write_transports:
-                wt.end_write()
         return hash, ujson.dumps(obj)
 
     def traverse_base(self, base: Base) -> Tuple[str, Dict]:
@@ -76,6 +73,21 @@ class BaseObjectSerializer:
         Returns:
             (str, dict) -- a tuple containing the hash (id) of the base object and the constructed serializable dictionary
         """
+        self.__reset_writer()
+
+        if self.write_transports:
+            for wt in self.write_transports:
+                wt.begin_write()
+
+        hash, obj = self._traverse_base(base)
+
+        if self.write_transports:
+            for wt in self.write_transports:
+                wt.end_write()
+
+        return hash, obj
+
+    def _traverse_base(self, base: Base) -> Tuple[str, Dict]:
         if not self.detach_lineage:
             self.detach_lineage = [True]
 
@@ -153,7 +165,7 @@ class BaseObjectSerializer:
                 chunk_refs = []
                 for c in chunks:
                     self.detach_lineage.append(detach)
-                    ref_hash, _ = self.traverse_base(c)
+                    ref_hash, _ = self._traverse_base(c)
                     ref_obj = self.detach_helper(ref_hash=ref_hash)
                     chunk_refs.append(ref_obj)
                 object_builder[prop] = chunk_refs
@@ -212,7 +224,7 @@ class BaseObjectSerializer:
             for o in obj:
                 if isinstance(o, Base):
                     self.detach_lineage.append(detach)
-                    hash, _ = self.traverse_base(o)
+                    hash, _ = self._traverse_base(o)
                     detached_list.append(self.detach_helper(ref_hash=hash))
                 else:
                     detached_list.append(self.traverse_value(o, detach))
@@ -228,7 +240,7 @@ class BaseObjectSerializer:
 
         elif isinstance(obj, Base):
             self.detach_lineage.append(detach)
-            _, base_obj = self.traverse_base(obj)
+            _, base_obj = self._traverse_base(obj)
             return base_obj
 
         else:
@@ -267,7 +279,7 @@ class BaseObjectSerializer:
 
     def __reset_writer(self) -> None:
         """Reinitializes the lineage, and other variables that get used during the json writing process"""
-        self.detach_lineage = []
+        self.detach_lineage = [True]
         self.lineage = []
         self.family_tree = {}
         self.closure_table = {}
