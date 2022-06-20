@@ -1,6 +1,7 @@
+import re
 import ujson
 import hashlib
-import re
+import warnings
 from uuid import uuid4
 from enum import Enum
 from warnings import warn
@@ -332,12 +333,15 @@ class BaseObjectSerializer:
             elif "referencedId" in value:
                 ref_hash = value["referencedId"]
                 ref_obj_str = self.read_transport.get_object(id=ref_hash)
-                if not ref_obj_str:
-                    raise SpeckleException(
-                        f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
+                if ref_obj_str:
+                    ref_obj = safe_json_loads(ref_obj_str, ref_hash)
+                    base.__setattr__(prop, self.recompose_base(obj=ref_obj))
+                else:
+                    warnings.warn(
+                        f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}",
+                        SpeckleWarning,
                     )
-                ref_obj = safe_json_loads(ref_obj_str, ref_hash)
-                base.__setattr__(prop, self.recompose_base(obj=ref_obj))
+                    base.__setattr__(prop, self.handle_value(value))
 
             # 3. handle all other cases (base objects, lists, and dicts)
             else:
@@ -391,8 +395,10 @@ class BaseObjectSerializer:
         ref_hash = obj["referencedId"]
         ref_obj_str = self.read_transport.get_object(id=ref_hash)
         if not ref_obj_str:
-            raise SpeckleException(
-                f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
+            warnings.warn(
+                f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}",
+                SpeckleWarning,
             )
+            return obj
 
         return safe_json_loads(ref_obj_str, ref_hash)
