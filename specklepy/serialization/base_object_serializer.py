@@ -1,17 +1,19 @@
+import re
 import ujson
 import hashlib
-import re
+import warnings
 from uuid import uuid4
 from enum import Enum
 from warnings import warn
 from typing import Any, Dict, List, Tuple
 from specklepy.objects.base import Base, DataChunk
 from specklepy.logging.exceptions import (
-    SerializationException,
     SpeckleException,
     SpeckleWarning,
 )
 from specklepy.transports.abstract_transport import AbstractTransport
+
+# import for serialization
 import specklepy.objects.geometry
 import specklepy.objects.other
 
@@ -50,9 +52,16 @@ class BaseObjectSerializer:
         self.read_transport = read_transport
 
     def write_json(self, base: Base):
-        self.__reset_writer()
-        self.detach_lineage = [True]
+        """Serializes a given base object into a json string
+        Arguments:
+            base {Base} -- the base object to be decomposed and serialized
+
+        Returns:
+            (str, str) -- a tuple containing the hash (id) of the base object and the serialized object string
+        """
+
         hash, obj = self.traverse_base(base)
+
         return hash, ujson.dumps(obj)
 
     def traverse_base(self, base: Base) -> Tuple[str, Dict]:
@@ -64,6 +73,21 @@ class BaseObjectSerializer:
         Returns:
             (str, dict) -- a tuple containing the hash (id) of the base object and the constructed serializable dictionary
         """
+        self.__reset_writer()
+
+        if self.write_transports:
+            for wt in self.write_transports:
+                wt.begin_write()
+
+        hash, obj = self._traverse_base(base)
+
+        if self.write_transports:
+            for wt in self.write_transports:
+                wt.end_write()
+
+        return hash, obj
+
+    def _traverse_base(self, base: Base) -> Tuple[str, Dict]:
         if not self.detach_lineage:
             self.detach_lineage = [True]
 
@@ -141,7 +165,7 @@ class BaseObjectSerializer:
                 chunk_refs = []
                 for c in chunks:
                     self.detach_lineage.append(detach)
-                    ref_hash, _ = self.traverse_base(c)
+                    ref_hash, _ = self._traverse_base(c)
                     ref_obj = self.detach_helper(ref_hash=ref_hash)
                     chunk_refs.append(ref_obj)
                 object_builder[prop] = chunk_refs
@@ -200,7 +224,7 @@ class BaseObjectSerializer:
             for o in obj:
                 if isinstance(o, Base):
                     self.detach_lineage.append(detach)
-                    hash, _ = self.traverse_base(o)
+                    hash, _ = self._traverse_base(o)
                     detached_list.append(self.detach_helper(ref_hash=hash))
                 else:
                     detached_list.append(self.traverse_value(o, detach))
@@ -216,7 +240,7 @@ class BaseObjectSerializer:
 
         elif isinstance(obj, Base):
             self.detach_lineage.append(detach)
-            _, base_obj = self.traverse_base(obj)
+            _, base_obj = self._traverse_base(obj)
             return base_obj
 
         else:
@@ -255,7 +279,7 @@ class BaseObjectSerializer:
 
     def __reset_writer(self) -> None:
         """Reinitializes the lineage, and other variables that get used during the json writing process"""
-        self.detach_lineage = []
+        self.detach_lineage = [True]
         self.lineage = []
         self.family_tree = {}
         self.closure_table = {}
@@ -321,12 +345,15 @@ class BaseObjectSerializer:
             elif "referencedId" in value:
                 ref_hash = value["referencedId"]
                 ref_obj_str = self.read_transport.get_object(id=ref_hash)
-                if not ref_obj_str:
-                    raise SpeckleException(
-                        f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
+                if ref_obj_str:
+                    ref_obj = safe_json_loads(ref_obj_str, ref_hash)
+                    base.__setattr__(prop, self.recompose_base(obj=ref_obj))
+                else:
+                    warnings.warn(
+                        f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}",
+                        SpeckleWarning,
                     )
-                ref_obj = safe_json_loads(ref_obj_str, ref_hash)
-                base.__setattr__(prop, self.recompose_base(obj=ref_obj))
+                    base.__setattr__(prop, self.handle_value(value))
 
             # 3. handle all other cases (base objects, lists, and dicts)
             else:
@@ -380,8 +407,10 @@ class BaseObjectSerializer:
         ref_hash = obj["referencedId"]
         ref_obj_str = self.read_transport.get_object(id=ref_hash)
         if not ref_obj_str:
-            raise SpeckleException(
-                f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}"
+            warnings.warn(
+                f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}",
+                SpeckleWarning,
             )
+            return obj
 
         return safe_json_loads(ref_obj_str, ref_hash)

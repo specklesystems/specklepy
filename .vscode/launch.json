@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+    
     {
       "name": "Python: Current File",
       "type": "python",
@@ -13,10 +14,13 @@
       "justMyCode": false
     },
     {
-      "name": "Python: Test debug config",
+      "name": "Pytest",
       "type": "python",
-      "request": "test",
+      "request": "launch",
+      "program": "poetry",
+      "args": ["run", "pytest"],
       "console": "integratedTerminal",
+      "justMyCode": true
     }
   ]
 }

@@ -1,16 +1,16 @@
 version: 2.1
 
 orbs:
-  python: circleci/python@1.3.2
+  python: circleci/python@2.0.3
   codecov: codecov/codecov@3.2.2
 
 jobs:
   test:
     docker:
       - image: "cimg/python:<<parameters.tag>>"
-      - image: 'cimg/node:14.18'
-      - image: 'circleci/redis:6'
-      - image: 'cimg/postgres:12.8'
+      - image: "cimg/node:16.15"
+      - image: "cimg/redis:6.2"
+      - image: "cimg/postgres:14.2"
         environment:
           POSTGRES_DB: speckle2_test
           POSTGRES_PASSWORD: speckle
@@ -27,6 +27,7 @@ jobs:
           STRATEGY_LOCAL: "true"
           CANONICAL_URL: "http://localhost:3000"
           WAIT_HOSTS: localhost:5432, localhost:6379
+          DISABLE_FILE_UPLOADS: "true"
     parameters:
       tag:
         default: "3.8"
@@ -51,7 +52,7 @@ jobs:
 
   deploy:
     docker:
-      - image: "circleci/python:3.8"
+      - image: "cimg/python:3.8"
     steps:
       - checkout
       - run: python patch_version.py $CIRCLE_TAG
@@ -60,7 +61,7 @@ jobs:
 
 workflows:
   main:
-    jobs: 
+    jobs:
       - test:
           matrix:
             parameters:
@@ -70,7 +71,7 @@ workflows:
               only: /.*/
       - deploy:
           requires:
-            - test 
+            - test
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)*/

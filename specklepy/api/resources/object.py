@@ -52,7 +52,9 @@ class Resource(ResourceBase):
         params = {"stream_id": stream_id, "object_id": object_id}
 
         return self.make_request(
-            query=query, params=params, return_type=["stream", "object", "data"]
+            query=query,
+            params=params,
+            return_type=["stream", "object", "data"],
         )
 
     def create(self, stream_id: str, objects: List[Dict]) -> str:
