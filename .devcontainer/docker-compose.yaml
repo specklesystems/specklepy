@@ -1,7 +1,7 @@
 version: "3.3"  # optional since v1.27.0
 services:
   postgres:
-    image: circleci/postgres:12
+    image: cimg/postgres:14.2
     environment:
       POSTGRES_DB: speckle2_test
       POSTGRES_PASSWORD: speckle
@@ -10,7 +10,7 @@ services:
       #   - "5432:5432"
     network_mode: host
   redis:
-    image: circleci/redis:6
+    image: cimg/redis:6.2
     # ports:
     #   - "6379:6379"
     network_mode: host

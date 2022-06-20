@@ -8,9 +8,9 @@ jobs:
   test:
     docker:
       - image: "cimg/python:<<parameters.tag>>"
-      - image: 'cimg/node:16.15'
-      - image: 'cimg/redis:6.2'
-      - image: 'cimg/postgres:14.2'
+      - image: "cimg/node:16.15"
+      - image: "cimg/redis:6.2"
+      - image: "cimg/postgres:14.2"
         environment:
           POSTGRES_DB: speckle2_test
           POSTGRES_PASSWORD: speckle
