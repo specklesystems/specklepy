@@ -81,7 +81,5 @@ class Resource(ResourceBase):
         params = {"object_input": {"streamId": stream_id, "objects": objects}}
 
         return self.make_request(
-            query=query,
-            params=params,
-            return_type="objectCreate",
+            query=query, params=params, return_type="objectCreate", parse_response=False
         )
