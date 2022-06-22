@@ -101,7 +101,6 @@ class Singleton(type):
 class MetricsTracker(metaclass=Singleton):
     analytics_url = "https://analytics.speckle.systems/track?ip=1"
     analytics_token = "acd87c5a50b56df91a795e999812a3a4"
-    user_ip = None
     last_user = None
     last_server = None
     platform = None
@@ -114,7 +113,6 @@ class MetricsTracker(metaclass=Singleton):
         )
         self.platform = PLATFORMS.get(sys.platform, "linux")
         self.sending_thread.start()
-        self.user_ip = socket.gethostbyname(socket.gethostname())
 
     def set_last_user(self, email: str):
         if not email:
