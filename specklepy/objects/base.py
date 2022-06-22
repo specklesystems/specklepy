@@ -142,7 +142,7 @@ class Base(_RegisteringBase):
     id: Optional[str] = None
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
-    _units: str = "m"
+    _units: str = None
     # dict of chunkable props and their max chunk size
     _chunkable: Dict[str, int] = {}
     _chunk_size_default: int = 1000

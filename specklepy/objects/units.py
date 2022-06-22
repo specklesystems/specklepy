@@ -16,6 +16,7 @@ UNITS_STRINGS = {
 }
 
 UNITS_ENCODINGS = {
+    None: 0,
     "none": 0,
     "mm": 1,
     "cm": 2,
@@ -58,7 +59,5 @@ def get_units_from_encoding(unit: int):
 def get_encoding_from_units(unit: str):
     try:
         return UNITS_ENCODINGS[unit]
-    except KeyError:
-        raise SpeckleException(
-            message=f"No encoding exists for unit {unit}. Please enter a valid unit to encode (eg {UNITS_ENCODINGS})."
-        )
+    except KeyError as e:
+        raise SpeckleException(message=f"No encoding exists for unit {unit}. Please enter a valid unit to encode (eg {UNITS_ENCODINGS}).") from e
