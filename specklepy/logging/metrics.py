@@ -1,10 +1,13 @@
-import socket
 import sys
 import queue
 import hashlib
+import getpass
 import logging
 import requests
 import threading
+import platform
+import contextlib
+
 
 """
 Anonymous telemetry to help us understand how to make a better Speckle.
@@ -12,7 +15,7 @@ This really helps us to deliver a better open source project and product!
 """
 TRACK = True
 HOST_APP = "python"
-HOST_APP_VERSION = f"python {'.'.join(map(str, sys.version_info[:3]))}"
+HOST_APP_VERSION = f"python {'.'.join(map(str, sys.version_info[:2]))}"
 PLATFORMS = {"win32": "Windows", "cygwin": "Windows", "darwin": "Mac OS X"}
 
 LOG = logging.getLogger(__name__)
@@ -75,8 +78,7 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
         METRICS_TRACKER.queue.put_nowait(event_params)
     except Exception as ex:
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
-        LOG.error("Error queueing metrics request: " + str(ex))
-
+        LOG.error(f"Error queueing metrics request: {str(ex)}")
 
 def initialise_tracker(account: "Account" = None):
     global METRICS_TRACKER
@@ -101,7 +103,7 @@ class Singleton(type):
 class MetricsTracker(metaclass=Singleton):
     analytics_url = "https://analytics.speckle.systems/track?ip=1"
     analytics_token = "acd87c5a50b56df91a795e999812a3a4"
-    last_user = None
+    last_user = ""
     last_server = None
     platform = None
     sending_thread = None
@@ -113,11 +115,15 @@ class MetricsTracker(metaclass=Singleton):
         )
         self.platform = PLATFORMS.get(sys.platform, "linux")
         self.sending_thread.start()
+        with contextlib.suppress(Exception):
+            node, user = platform.node(), getpass.getuser()
+            if node and user:
+                self.last_user = f"@{self.hash(f'{node}-{user}')}"
 
     def set_last_user(self, email: str):
         if not email:
             return
-        self.last_user = "@" + self.hash(email)
+        self.last_user = f"@{self.hash(email)}"
 
     def set_last_server(self, server: str):
         if not server:
@@ -135,6 +141,6 @@ class MetricsTracker(metaclass=Singleton):
             try:
                 session.post(self.analytics_url, json=event_params)
             except Exception as ex:
-                LOG.error("Error sending metrics request: " + str(ex))
+                LOG.error(f"Error sending metrics request: {str(ex)}")
 
             self.queue.task_done()
