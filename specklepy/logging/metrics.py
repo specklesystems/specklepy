@@ -8,7 +8,7 @@ import threading
 import platform
 import contextlib
 
-platform.uname()
+
 """
 Anonymous telemetry to help us understand how to make a better Speckle.
 This really helps us to deliver a better open source project and product!
@@ -80,14 +80,16 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
         LOG.error(f"Error queueing metrics request: {str(ex)}")
 
-def merge_ids(old_id: str, new_id: str):
+def alias_ids(old_id: str, new_id: str):
     if not TRACK:
         return
     try:
         event_params = {
-            "event": "$merge",
+            "event": "$create_alias",
             "properties": {
-                "$distinct_ids": [old_id, new_id]
+                "distinct_id": old_id,
+                "alias": new_id,
+                "token": METRICS_TRACKER.analytics_token,
             },
         }
 
@@ -118,7 +120,7 @@ class Singleton(type):
 
 class MetricsTracker(metaclass=Singleton):
     analytics_url = "https://analytics.speckle.systems/track?ip=1"
-    analytics_merge_url = "https://api.mixpanel.com/import?strict=1"
+    alias_ids_url = "https://api.mixpanel.com/track#identity-create-alias?strict=1"
     analytics_token = "acd87c5a50b56df91a795e999812a3a4"
     last_user = ""
     last_server = None
@@ -143,7 +145,7 @@ class MetricsTracker(metaclass=Singleton):
             return
         new_id = f"@{self.hash(email)}"
         if self.tracked and self.last_user and new_id != self.last_user:
-            merge_ids(self.last_user, new_id)
+            alias_ids(self.last_user, new_id)
         self.last_user = new_id
 
     def set_last_server(self, server: str):
@@ -159,7 +161,7 @@ class MetricsTracker(metaclass=Singleton):
         while True:
             event_params = [self.queue.get()]
 
-            post_url = self.analytics_merge_url if event_params['event'] == "$merge" else self.analytics_url
+            post_url = self.alias_ids_url if event_params[0]['event'] == "$create_alias" else self.analytics_url
 
             try:
                 session.post(post_url, json=event_params)
