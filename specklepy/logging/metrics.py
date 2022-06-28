@@ -76,6 +76,7 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
             event_params["properties"].update(custom_props)
 
         METRICS_TRACKER.queue.put_nowait(event_params)
+        METRICS_TRACKER.tracked = True
     except Exception as ex:
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
         LOG.error(f"Error queueing metrics request: {str(ex)}")
@@ -165,7 +166,6 @@ class MetricsTracker(metaclass=Singleton):
 
             try:
                 session.post(post_url, json=event_params)
-                self.tracked = True
             except Exception as ex:
                 LOG.error(f"Error sending metrics request: {str(ex)}")
 
