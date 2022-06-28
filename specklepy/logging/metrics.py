@@ -76,28 +76,9 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
             event_params["properties"].update(custom_props)
 
         METRICS_TRACKER.queue.put_nowait(event_params)
-        METRICS_TRACKER.tracked = True
     except Exception as ex:
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
         LOG.error(f"Error queueing metrics request: {str(ex)}")
-
-def alias_ids(old_id: str, new_id: str):
-    if not TRACK:
-        return
-    try:
-        event_params = {
-            "event": "$create_alias",
-            "properties": {
-                "distinct_id": old_id,
-                "alias": new_id,
-                "token": METRICS_TRACKER.analytics_token,
-            },
-        }
-
-        METRICS_TRACKER.queue.put_nowait(event_params)
-    except Exception as ex:
-        LOG.error(f"Error queueing metrics request: {str(ex)}")
-
 
 def initialise_tracker(account: "Account" = None):
     global METRICS_TRACKER
@@ -121,14 +102,12 @@ class Singleton(type):
 
 class MetricsTracker(metaclass=Singleton):
     analytics_url = "https://analytics.speckle.systems/track?ip=1"
-    alias_ids_url = "https://api.mixpanel.com/track#identity-create-alias?strict=1"
     analytics_token = "acd87c5a50b56df91a795e999812a3a4"
     last_user = ""
     last_server = None
     platform = None
     sending_thread = None
     queue = queue.Queue(1000)
-    tracked = False
 
     def __init__(self) -> None:
         self.sending_thread = threading.Thread(
@@ -144,10 +123,7 @@ class MetricsTracker(metaclass=Singleton):
     def set_last_user(self, email: str):
         if not email:
             return
-        new_id = f"@{self.hash(email)}"
-        if self.tracked and self.last_user and new_id != self.last_user:
-            alias_ids(self.last_user, new_id)
-        self.last_user = new_id
+        self.last_user = f"@{self.hash(email)}"
 
     def set_last_server(self, server: str):
         if not server:
@@ -162,10 +138,8 @@ class MetricsTracker(metaclass=Singleton):
         while True:
             event_params = [self.queue.get()]
 
-            post_url = self.alias_ids_url if event_params[0]['event'] == "$create_alias" else self.analytics_url
-
             try:
-                session.post(post_url, json=event_params)
+                session.post(self.analytics_url, json=event_params)
             except Exception as ex:
                 LOG.error(f"Error sending metrics request: {str(ex)}")
 
