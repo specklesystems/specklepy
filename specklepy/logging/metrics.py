@@ -1,18 +1,21 @@
-import socket
 import sys
 import queue
 import hashlib
+import getpass
 import logging
 import requests
 import threading
+import platform
+import contextlib
 
+platform.uname()
 """
 Anonymous telemetry to help us understand how to make a better Speckle.
 This really helps us to deliver a better open source project and product!
 """
 TRACK = True
 HOST_APP = "python"
-HOST_APP_VERSION = f"python {'.'.join(map(str, sys.version_info[:3]))}"
+HOST_APP_VERSION = f"python {'.'.join(map(str, sys.version_info[:2]))}"
 PLATFORMS = {"win32": "Windows", "cygwin": "Windows", "darwin": "Mac OS X"}
 
 LOG = logging.getLogger(__name__)
@@ -75,7 +78,22 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
         METRICS_TRACKER.queue.put_nowait(event_params)
     except Exception as ex:
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
-        LOG.error("Error queueing metrics request: " + str(ex))
+        LOG.error(f"Error queueing metrics request: {str(ex)}")
+
+def merge_ids(old_id: str, new_id: str):
+    if not TRACK:
+        return
+    try:
+        event_params = {
+            "event": "$merge",
+            "properties": {
+                "$distinct_ids": [old_id, new_id]
+            },
+        }
+
+        METRICS_TRACKER.queue.put_nowait(event_params)
+    except Exception as ex:
+        LOG.error(f"Error queueing metrics request: {str(ex)}")
 
 
 def initialise_tracker(account: "Account" = None):
@@ -100,12 +118,14 @@ class Singleton(type):
 
 class MetricsTracker(metaclass=Singleton):
     analytics_url = "https://analytics.speckle.systems/track?ip=1"
+    analytics_merge_url = "https://api.mixpanel.com/import?strict=1"
     analytics_token = "acd87c5a50b56df91a795e999812a3a4"
-    last_user = None
+    last_user = ""
     last_server = None
     platform = None
     sending_thread = None
     queue = queue.Queue(1000)
+    tracked = False
 
     def __init__(self) -> None:
         self.sending_thread = threading.Thread(
@@ -113,11 +133,18 @@ class MetricsTracker(metaclass=Singleton):
         )
         self.platform = PLATFORMS.get(sys.platform, "linux")
         self.sending_thread.start()
+        with contextlib.suppress(Exception):
+            node, user = platform.node(), getpass.getuser()
+            if node and user:
+                self.last_user = f"@{self.hash(f'{node}-{user}')}"
 
     def set_last_user(self, email: str):
         if not email:
             return
-        self.last_user = "@" + self.hash(email)
+        new_id = f"@{self.hash(email)}"
+        if self.tracked and self.last_user and new_id != self.last_user:
+            merge_ids(self.last_user, new_id)
+        self.last_user = new_id
 
     def set_last_server(self, server: str):
         if not server:
@@ -132,9 +159,12 @@ class MetricsTracker(metaclass=Singleton):
         while True:
             event_params = [self.queue.get()]
 
+            post_url = self.analytics_merge_url if event_params['event'] == "$merge" else self.analytics_url
+
             try:
-                session.post(self.analytics_url, json=event_params)
+                session.post(post_url, json=event_params)
+                self.tracked = True
             except Exception as ex:
-                LOG.error("Error sending metrics request: " + str(ex))
+                LOG.error(f"Error sending metrics request: {str(ex)}")
 
             self.queue.task_done()
