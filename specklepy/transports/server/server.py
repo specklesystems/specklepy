@@ -156,29 +156,13 @@ class ServerTransport(AbstractTransport):
         lines = r.iter_lines(decode_unicode=True)
 
         # iter through returned objects saving them as we go
+        target_transport.begin_write()
         for line in lines:
             if line:
                 hash, obj = line.split("\t")
                 target_transport.save_object(hash, obj)
 
         target_transport.save_object(id, root_obj_serialized)
+        target_transport.end_write()
 
         return root_obj_serialized
-
-    # async def stream_res(self, endpoint: str) -> str:
-    #     data = b""
-    #     async with aiohttp.ClientSession() as session:
-    #         session.headers.update(
-    #             {
-    #                 "Authorization": f"{self.session.headers['Authorization']}",
-    #                 "Accept": "text/plain",
-    #             }
-    #         )
-    #         async with session.get(endpoint) as res:
-    #             while True:
-    #                 chunk = await res.content.read(self.chunk_size)
-    #                 if not chunk:
-    #                     break
-    #                 data += chunk
-
-    #     return data.decode("utf-8")
