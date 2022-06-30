@@ -156,12 +156,16 @@ class ServerTransport(AbstractTransport):
         lines = r.iter_lines(decode_unicode=True)
 
         # iter through returned objects saving them as we go
+        target_transport.begin_write()
+        
         for line in lines:
             if line:
                 hash, obj = line.split("\t")
                 target_transport.save_object(hash, obj)
 
         target_transport.save_object(id, root_obj_serialized)
+
+        target_transport.end_write()
 
         return root_obj_serialized
 
