@@ -331,7 +331,7 @@ class Base(_RegisteringBase):
 
     def get_serializable_attributes(self) -> List[str]:
         """Get the attributes that should be serialized"""
-        return list(set(self.get_member_names()) - self._serialize_ignore)
+        return sorted(list(set(self.get_member_names()) - self._serialize_ignore))
 
     def get_typed_member_names(self) -> List[str]:
         """Get all of the names of the defined (typed) properties of this object"""
