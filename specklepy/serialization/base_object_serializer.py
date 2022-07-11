@@ -45,10 +45,8 @@ class BaseObjectSerializer:
     family_tree: Dict[str, Dict[str, int]] = {}
     closure_table: Dict[str, Dict[str, int]] = {}
 
-    def __init__(
-        self, write_transports: List[AbstractTransport] = [], read_transport=None
-    ) -> None:
-        self.write_transports = write_transports
+    def __init__(self, write_transports: List[AbstractTransport] = None, read_transport=None) -> None:
+        self.write_transports = write_transports or []
         self.read_transport = read_transport
 
     def write_json(self, base: Base):
@@ -57,12 +55,12 @@ class BaseObjectSerializer:
             base {Base} -- the base object to be decomposed and serialized
 
         Returns:
-            (str, str) -- a tuple containing the hash (id) of the base object and the serialized object string
+            (str, str) -- a tuple containing the object id of the base object and the serialized object string
         """
 
-        hash, obj = self.traverse_base(base)
+        obj_id, obj = self.traverse_base(base)
 
-        return hash, ujson.dumps(obj)
+        return obj_id, ujson.dumps(obj)
 
     def traverse_base(self, base: Base) -> Tuple[str, Dict]:
         """Decomposes the given base object and builds a serializable dictionary
@@ -71,7 +69,7 @@ class BaseObjectSerializer:
             base {Base} -- the base object to be decomposed and serialized
 
         Returns:
-            (str, dict) -- a tuple containing the hash (id) of the base object and the constructed serializable dictionary
+            (str, dict) -- a tuple containing the object id of the base object and the constructed serializable dictionary
         """
         self.__reset_writer()
 
@@ -79,13 +77,13 @@ class BaseObjectSerializer:
             for wt in self.write_transports:
                 wt.begin_write()
 
-        hash, obj = self._traverse_base(base)
+        obj_id, obj = self._traverse_base(base)
 
         if self.write_transports:
             for wt in self.write_transports:
                 wt.end_write()
 
-        return hash, obj
+        return obj_id, obj
 
     def _traverse_base(self, base: Base) -> Tuple[str, Dict]:
         if not self.detach_lineage:
@@ -110,11 +108,6 @@ class BaseObjectSerializer:
             if prop == "id":
                 continue
 
-            # allow serialisation of nulls
-            if value is None:
-                object_builder[prop] = value
-                continue
-
             # only bother with chunking and detaching if there is a write transport
             if self.write_transports:
                 dynamic_chunk_match = prop.startswith("@") and re.match(
@@ -131,8 +124,8 @@ class BaseObjectSerializer:
                     prop.startswith("@") or prop in base._detachable or chunkable
                 )
 
-            # 1. handle primitives (ints, floats, strings, and bools)
-            if isinstance(value, PRIMITIVES):
+            # 1. handle None and primitives (ints, floats, strings, and bools)
+            if value is None or isinstance(value, PRIMITIVES):
                 object_builder[prop] = value
                 continue
 
@@ -145,8 +138,8 @@ class BaseObjectSerializer:
             elif isinstance(value, Base):
                 child_obj = self.traverse_value(value, detach=detach)
                 if detach and self.write_transports:
-                    ref_hash = child_obj["id"]
-                    object_builder[prop] = self.detach_helper(ref_hash=ref_hash)
+                    ref_id = child_obj["id"]
+                    object_builder[prop] = self.detach_helper(ref_id=ref_id)
                 else:
                     object_builder[prop] = child_obj
 
@@ -165,8 +158,8 @@ class BaseObjectSerializer:
                 chunk_refs = []
                 for c in chunks:
                     self.detach_lineage.append(detach)
-                    ref_hash, _ = self._traverse_base(c)
-                    ref_obj = self.detach_helper(ref_hash=ref_hash)
+                    ref_id, _ = self._traverse_base(c)
+                    ref_obj = self.detach_helper(ref_id=ref_id)
                     chunk_refs.append(ref_obj)
                 object_builder[prop] = chunk_refs
 
@@ -185,20 +178,20 @@ class BaseObjectSerializer:
             }
         object_builder["totalChildrenCount"] = len(closure)
 
-        hash = hash_obj(object_builder)
+        obj_id = hash_obj(object_builder)
 
-        object_builder["id"] = hash
+        object_builder["id"] = obj_id
         if closure:
-            object_builder["__closure"] = self.closure_table[hash] = closure
+            object_builder["__closure"] = self.closure_table[obj_id] = closure
 
         # write detached or root objects to transports
         if detached and self.write_transports:
             for t in self.write_transports:
-                t.save_object(id=hash, serialized_object=ujson.dumps(object_builder))
+                t.save_object(id=obj_id, serialized_object=ujson.dumps(object_builder))
 
         del self.lineage[-1]
 
-        return hash, object_builder
+        return obj_id, object_builder
 
     def traverse_value(self, obj: Any, detach: bool = False) -> Any:
         """Decomposes a given object and constructs a serializable object or dictionary
@@ -224,8 +217,8 @@ class BaseObjectSerializer:
             for o in obj:
                 if isinstance(o, Base):
                     self.detach_lineage.append(detach)
-                    hash, _ = self._traverse_base(o)
-                    detached_list.append(self.detach_helper(ref_hash=hash))
+                    ref_id, _ = self._traverse_base(o)
+                    detached_list.append(self.detach_helper(ref_id=ref_id))
                 else:
                     detached_list.append(self.traverse_value(o, detach))
             return detached_list
@@ -254,11 +247,11 @@ class BaseObjectSerializer:
 
                 return str(obj)
 
-    def detach_helper(self, ref_hash: str) -> Dict[str, str]:
+    def detach_helper(self, ref_id: str) -> Dict[str, str]:
         """Helper to keep track of detached objects and their depth in the family tree and create reference objects to place in the parent object
 
         Arguments:
-            ref_hash {str} -- the hash of the fully traversed object
+            ref_id {str} -- the id of the fully traversed object
 
         Returns:
             dict -- a reference object to be inserted into the given object's parent
@@ -267,13 +260,13 @@ class BaseObjectSerializer:
         for parent in self.lineage:
             if parent not in self.family_tree:
                 self.family_tree[parent] = {}
-            if ref_hash not in self.family_tree[parent] or self.family_tree[parent][
-                ref_hash
+            if ref_id not in self.family_tree[parent] or self.family_tree[parent][
+                ref_id
             ] > len(self.detach_lineage):
-                self.family_tree[parent][ref_hash] = len(self.detach_lineage)
+                self.family_tree[parent][ref_id] = len(self.detach_lineage)
 
         return {
-            "referencedId": ref_hash,
+            "referencedId": ref_id,
             "speckle_type": "reference",
         }
 
@@ -343,14 +336,14 @@ class BaseObjectSerializer:
 
             # 2. handle referenced child objects
             elif "referencedId" in value:
-                ref_hash = value["referencedId"]
-                ref_obj_str = self.read_transport.get_object(id=ref_hash)
+                ref_id = value["referencedId"]
+                ref_obj_str = self.read_transport.get_object(id=ref_id)
                 if ref_obj_str:
-                    ref_obj = safe_json_loads(ref_obj_str, ref_hash)
+                    ref_obj = safe_json_loads(ref_obj_str, ref_id)
                     base.__setattr__(prop, self.recompose_base(obj=ref_obj))
                 else:
                     warnings.warn(
-                        f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}",
+                        f"Could not find the referenced child object of id `{ref_id}` in the given read transport: {self.read_transport.name}",
                         SpeckleWarning,
                     )
                     base.__setattr__(prop, self.handle_value(value))
@@ -404,13 +397,13 @@ class BaseObjectSerializer:
             return obj
 
     def get_child(self, obj: Dict):
-        ref_hash = obj["referencedId"]
-        ref_obj_str = self.read_transport.get_object(id=ref_hash)
+        ref_id = obj["referencedId"]
+        ref_obj_str = self.read_transport.get_object(id=ref_id)
         if not ref_obj_str:
             warnings.warn(
-                f"Could not find the referenced child object of id `{ref_hash}` in the given read transport: {self.read_transport.name}",
+                f"Could not find the referenced child object of id `{ref_id}` in the given read transport: {self.read_transport.name}",
                 SpeckleWarning,
             )
             return obj
 
-        return safe_json_loads(ref_obj_str, ref_hash)
+        return safe_json_loads(ref_obj_str, ref_id)
