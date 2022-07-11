@@ -40,14 +40,20 @@ def safe_json_loads(obj: str, obj_id=None) -> Any:
 class BaseObjectSerializer:
     read_transport: AbstractTransport
     write_transports: List[AbstractTransport]
-    detach_lineage: List[bool] = []  # tracks depth and whether or not to detach
-    lineage: List[str] = []  # keeps track of hash chain through the object tree
-    family_tree: Dict[str, Dict[str, int]] = {}
-    closure_table: Dict[str, Dict[str, int]] = {}
+    detach_lineage: List[bool]  # tracks depth and whether or not to detach
+    lineage: List[str]  # keeps track of hash chain through the object tree
+    family_tree: Dict[str, Dict[str, int]]
+    closure_table: Dict[str, Dict[str, int]]
+    deserialized: Dict[str, Base]   # holds deserialized objects so objects with same id return the same instance
 
     def __init__(self, write_transports: List[AbstractTransport] = None, read_transport=None) -> None:
         self.write_transports = write_transports or []
         self.read_transport = read_transport
+        self.detach_lineage = []
+        self.lineage = []
+        self.family_tree = {}
+        self.closure_table = {}
+        self.deserialized = {}
 
     def write_json(self, base: Base):
         """Serializes a given base object into a json string
@@ -288,6 +294,8 @@ class BaseObjectSerializer:
         """
         if not obj_string:
             return None
+        
+        self.deserialized = {}
         obj = safe_json_loads(obj_string)
         return self.recompose_base(obj=obj)
 
@@ -305,6 +313,9 @@ class BaseObjectSerializer:
             return
         if isinstance(obj, str):
             obj = safe_json_loads(obj)
+
+        if "id" in obj and obj["id"] in self.deserialized:
+            return self.deserialized["id"]
 
         if "speckle_type" in obj and obj["speckle_type"] == "reference":
             obj = self.get_child(obj=obj)
@@ -351,6 +362,8 @@ class BaseObjectSerializer:
             # 3. handle all other cases (base objects, lists, and dicts)
             else:
                 base.__setattr__(prop, self.handle_value(value))
+
+        self.deserialized[base["id"]] = base
 
         return base
 
