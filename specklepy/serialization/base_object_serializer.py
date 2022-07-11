@@ -315,7 +315,7 @@ class BaseObjectSerializer:
             obj = safe_json_loads(obj)
 
         if "id" in obj and obj["id"] in self.deserialized:
-            return self.deserialized["id"]
+            return self.deserialized[obj["id"]]
 
         if "speckle_type" in obj and obj["speckle_type"] == "reference":
             obj = self.get_child(obj=obj)
