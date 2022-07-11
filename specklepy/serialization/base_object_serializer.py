@@ -363,8 +363,8 @@ class BaseObjectSerializer:
             else:
                 base.__setattr__(prop, self.handle_value(value))
 
-        if "id" in base:
-            self.deserialized[base["id"]] = base
+        if "id" in obj:
+            self.deserialized[obj["id"]] = base
 
         return base
 
