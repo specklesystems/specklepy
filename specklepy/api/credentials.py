@@ -51,6 +51,8 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
 
     accounts = []
     res = account_storage.get_all_objects()
+    account_storage.close()
+
     if res:
         accounts.extend(Account.parse_raw(r[1]) for r in res)
     if json_acct_files:
@@ -60,10 +62,8 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
                 for json_file in json_acct_files
             )
         except Exception as ex:
-            raise SpeckleException(
-                "Invalid json accounts could not be read. Please fix or remove them.",
-                ex,
-            )
+            raise SpeckleException("Invalid json accounts could not be read. Please fix or remove them.", ex) from ex
+
     metrics.track(
         metrics.ACCOUNTS,
         next(
