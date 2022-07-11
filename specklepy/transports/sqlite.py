@@ -188,4 +188,4 @@ class SQLiteTransport(AbstractTransport):
             self.__connection = sqlite3.connect(self._root_path)
 
     def __del__(self):
-        self.__connection.close()
+        self.close()
