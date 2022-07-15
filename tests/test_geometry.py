@@ -13,8 +13,9 @@ from specklepy.objects.geometry import (
     BrepEdge,
     BrepFace,
     BrepLoop,
+    BrepLoopType,
     BrepTrim,
-    BrepTrimTypeEnum,
+    BrepTrimType,
     Circle,
     Curve,
     Ellipse,
@@ -236,7 +237,7 @@ def brep_edge(interval):
 
 @pytest.fixture()
 def brep_loop():
-    return BrepLoop(FaceIndex=5, TrimIndices=[3, 4, 5], Type="unknown")
+    return BrepLoop(FaceIndex=5, TrimIndices=[3, 4, 5], Type=BrepLoopType.Unknown)
 
 
 @pytest.fixture()
@@ -249,7 +250,7 @@ def brep_trim():
         LoopIndex=4,
         CurveIndex=7,
         IsoStatus=6,
-        TrimType="Mated",
+        TrimType=BrepTrimType.Mated,
         IsReversed=False,
         # These attributes are not handled in C#
         # Domain=None,
@@ -425,7 +426,7 @@ def test_trims_value_serialization():
         LoopIndex=0,
         CurveIndex=0,
         IsoStatus=1,
-        TrimType=BrepTrimTypeEnum.Boundary,
+        TrimType=BrepTrimType.Boundary,
         IsReversed=False,
     ).get_id()
 
@@ -437,7 +438,7 @@ def test_trims_value_serialization():
         LoopIndex=0,
         CurveIndex=1,
         IsoStatus=2,
-        TrimType=BrepTrimTypeEnum.Boundary,
+        TrimType=BrepTrimType.Boundary,
         IsReversed=True,
     ).get_id()
 

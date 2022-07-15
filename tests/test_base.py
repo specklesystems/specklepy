@@ -149,5 +149,4 @@ def test_cached_deserialization() -> None:
     serialized = operations.serialize(root)
     deserialized = operations.deserialize(serialized)
 
-
     assert deserialized["a"]["@material"] is deserialized["b"]["@material"]
