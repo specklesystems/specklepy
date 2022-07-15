@@ -489,11 +489,11 @@ class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
 
     @property
     def _outer_loop(self):
-        return self._Brep.Loops[self.OuterLoopIndex] # pylint: disable=no-member
+        return self._Brep.Loops[self.OuterLoopIndex]  # pylint: disable=no-member
 
     @property
     def _surface(self):
-        return self._Brep.Surfaces[self.SurfaceIndex] # pylint: disable=no-member
+        return self._Brep.Surfaces[self.SurfaceIndex]  # pylint: disable=no-member
 
     @property
     def _loops(self):
@@ -508,7 +508,7 @@ class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
             SurfaceIndex=args[0],
             OuterLoopIndex=args[1],
             OrientationReversed=args[2] == 1,
-            LoopIndices=args[3:]
+            LoopIndices=args[3:],
         )
 
     def to_list(self) -> List[Any]:
@@ -517,8 +517,8 @@ class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
             self.SurfaceIndex,
             self.OuterLoopIndex,
             int(self.OuterLoopIndex),
-            *self.LoopIndices
-            ]
+            *self.LoopIndices,
+        ]
         encoded[0] = len(encoded) - 1
         return encoded
 
@@ -554,7 +554,11 @@ class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
     def from_list(cls, args: List[Any], brep: "Brep" = None) -> "BrepEdge":
         domain_start = args[4]
         domain_end = args[5]
-        domain = Interval(start=domain_start, end=domain_end) if None not in (domain_start, domain_end) else None
+        domain = (
+            Interval(start=domain_start, end=domain_end)
+            if None not in (domain_start, domain_end)
+            else None
+        )
         return cls(
             _Brep=brep,
             Curve3dIndex=int(args[0]),
@@ -562,21 +566,23 @@ class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
             StartIndex=int(args[1]),
             EndIndex=int(args[2]),
             ProxyCurveIsReversed=bool(args[3]),
-            Domain=domain
+            Domain=domain,
         )
 
     def to_list(self) -> List[Any]:
-        encoded = [0,
-        self.Curve3dIndex,
-        self.StartIndex,
-        self.EndIndex,
-        int(self.ProxyCurveIsReversed),
-        self.Domain.start,
-        self.Domain.end,
-        *self.TrimIndices,
+        encoded = [
+            0,
+            self.Curve3dIndex,
+            self.StartIndex,
+            self.EndIndex,
+            int(self.ProxyCurveIsReversed),
+            self.Domain.start,
+            self.Domain.end,
+            *self.TrimIndices,
         ]
         encoded[0] = len(encoded) - 1
         return encoded
+
 
 class BrepLoopType(int, Enum):
     Unknown = 0
@@ -585,6 +591,7 @@ class BrepLoopType(int, Enum):
     Slit = 3
     CurveOnSurface = 4
     PointOnSurface = 5
+
 
 class BrepLoop(Base, speckle_type=GEOMETRY + "BrepLoop"):
     _Brep: "Brep" = None
@@ -608,17 +615,19 @@ class BrepLoop(Base, speckle_type=GEOMETRY + "BrepLoop"):
             _Brep=brep,
             FaceIndex=args[0],
             Type=BrepLoopType(args[1]),
-            TrimIndices=args[2:]
+            TrimIndices=args[2:],
         )
 
     def to_list(self) -> List[int]:
         encoded = [
+            0,
             self.FaceIndex,
             self.Type.value,
             *self.TrimIndices,
         ]
         encoded[0] = len(encoded) - 1
         return encoded
+
 
 class BrepTrimType(int, Enum):
     Unknown = 0
@@ -647,12 +656,12 @@ class BrepTrim(Base, speckle_type=GEOMETRY + "BrepTrim"):
     @property
     def _face(self):
         if self._Brep:
-            return self._Brep.Faces[self.FaceIndex] # pylint: disable=no-member
+            return self._Brep.Faces[self.FaceIndex]  # pylint: disable=no-member
 
     @property
     def _loop(self):
         if self._Brep:
-            return self._Brep.Loops[self.LoopIndex] # pylint: disable=no-member
+            return self._Brep.Loops[self.LoopIndex]  # pylint: disable=no-member
 
     @property
     def _edge(self):
@@ -663,7 +672,7 @@ class BrepTrim(Base, speckle_type=GEOMETRY + "BrepTrim"):
     @property
     def _curve_2d(self):
         if self._Brep:
-            return self._Brep.Curve2D[self.CurveIndex] # pylint: disable=no-member
+            return self._Brep.Curve2D[self.CurveIndex]  # pylint: disable=no-member
 
     @classmethod
     def from_list(cls, args: List[Any], brep: "Brep" = None) -> "BrepTrim":
@@ -681,15 +690,16 @@ class BrepTrim(Base, speckle_type=GEOMETRY + "BrepTrim"):
         )
 
     def to_list(self) -> List[Any]:
-        return [self.EdgeIndex,
-        self.StartIndex,
-        self.EndIndex,
-        self.FaceIndex,
-        self.LoopIndex,
-        self.CurveIndex,
-        self.IsoStatus,
-        self.TrimType.value,
-        int(self.IsReversed)
+        return [
+            self.EdgeIndex,
+            self.StartIndex,
+            self.EndIndex,
+            self.FaceIndex,
+            self.LoopIndex,
+            self.CurveIndex,
+            self.IsoStatus,
+            self.TrimType.value,
+            int(self.IsReversed),
         ]
 
 
@@ -707,7 +717,16 @@ class Brep(
         "TrimsValue": 62500,
     },
     detachable={"displayValue"},
-    serialize_ignore={"Surfaces", "Curve3D", "Curve2D", "Vertices", "Trims", "Edges", "Loops", "Faces"},
+    serialize_ignore={
+        "Surfaces",
+        "Curve3D",
+        "Curve2D",
+        "Vertices",
+        "Trims",
+        "Edges",
+        "Loops",
+        "Faces",
+    },
 ):
     provenance: str = None
     bbox: Box = None
@@ -763,7 +782,9 @@ class Brep(
         index = 0
         while index < len(value):
             item_count = value[index]
-            self.Edges.append(BrepEdge.from_list(value[index + 1 : index + item_count], self))
+            self.Edges.append(
+                BrepEdge.from_list(value[index + 1 : index + item_count + 1], self)
+            )
             index += item_count + 1
 
     @property
@@ -784,7 +805,9 @@ class Brep(
         index = 0
         while index < len(value):
             item_count = value[index]
-            self.Loops.append(BrepLoop.from_list(value[index + 1 : index + item_count], self))
+            self.Loops.append(
+                BrepLoop.from_list(value[index + 1 : index + item_count + 1], self)
+            )
             index += item_count + 1
 
     @property
@@ -805,12 +828,18 @@ class Brep(
         index = 0
         while index < len(value):
             item_count = value[index]
-            self.Faces.append(BrepFace.from_list(value[index + 1 : index + item_count], self))
+            self.Faces.append(
+                BrepFace.from_list(value[index + 1 : index + item_count + 1], self)
+            )
             index += item_count + 1
 
     @property
     def SurfacesValue(self) -> List[float]:
-        return None if self.Surfaces is None else ObjectArray.from_objects(self.Surfaces).data
+        return (
+            None
+            if self.Surfaces is None
+            else ObjectArray.from_objects(self.Surfaces).data
+        )
 
     @SurfacesValue.setter
     def SurfacesValue(self, value: List[float]):
@@ -821,7 +850,9 @@ class Brep(
 
     @property
     def Curve3DValues(self) -> List[float]:
-        return None if self.Curve3D is None else CurveArray.from_curves(self.Curve3D).data
+        return (
+            None if self.Curve3D is None else CurveArray.from_curves(self.Curve3D).data
+        )
 
     @Curve3DValues.setter
     def Curve3DValues(self, value: List[float]):
@@ -831,7 +862,9 @@ class Brep(
 
     @property
     def Curve2DValues(self) -> List[Base]:
-        return None if self.Curve2D is None else CurveArray.from_curves(self.Curve2D).data
+        return (
+            None if self.Curve2D is None else CurveArray.from_curves(self.Curve2D).data
+        )
 
     @Curve2DValues.setter
     def Curve2DValues(self, value: List[float]):
@@ -877,8 +910,9 @@ class Brep(
         if not value:
             return
 
-        self.Trims = [BrepTrim.from_list(value[i : i + 9], self) for i in range(0, len(value), 9)]
-
+        self.Trims = [
+            BrepTrim.from_list(value[i : i + 9], self) for i in range(0, len(value), 9)
+        ]
 
 
 BrepEdge.update_forward_refs()

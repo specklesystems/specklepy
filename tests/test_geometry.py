@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 import json
 from typing import Callable
 
@@ -353,8 +354,8 @@ def test_to_and_from_list(object_name: str, geometry_objects_dict):
 
 def test_brep_surfaces_value_serialization(surface):
     brep = Brep()
-    assert brep.Surfaces == None
-    assert brep.SurfacesValue == None
+    assert brep.Surfaces is None
+    assert brep.SurfacesValue is None
     brep.Surfaces = [surface, surface]
     assert brep.SurfacesValue == ObjectArray.from_objects([surface, surface]).data
 
@@ -365,8 +366,8 @@ def test_brep_surfaces_value_serialization(surface):
 
 def test_brep_curve2d_values_serialization(curve, polyline, circle):
     brep = Brep()
-    assert brep.Curve2D == None
-    assert brep.Curve2DValues == None
+    assert brep.Curve2D is None
+    assert brep.Curve2DValues is None
     brep.Curve2D = [curve, polyline]
     assert brep.Curve2DValues == CurveArray.from_curves([curve, polyline]).data
 
@@ -377,8 +378,8 @@ def test_brep_curve2d_values_serialization(curve, polyline, circle):
 
 def test_brep_curve3d_values_serialization(curve, polyline, circle):
     brep = Brep()
-    assert brep.Curve3D == None
-    assert brep.Curve3DValues == None
+    assert brep.Curve3D is None
+    assert brep.Curve3DValues is None
     brep.Curve3D = [curve, polyline]
     assert brep.Curve3DValues == CurveArray.from_curves([curve, polyline]).data
 
@@ -442,49 +443,66 @@ def test_trims_value_serialization():
         IsReversed=True,
     ).get_id()
 
+
 def test_loops_value_serialization():
     brep = Brep()
     brep.LoopsValue = [6, 0, 1, 0, 1, 2, 3]
 
     assert brep == brep.Loops[0]._Brep
-    assert brep.Loops[0].get_id() == BrepLoop(
-        FaceIndex=0,
-        Type=BrepLoopType(1),
-        TrimIndices=[0,1,2,3]
+    assert (
+        brep.Loops[0].get_id()
+        == BrepLoop(
+            FaceIndex=0, Type=BrepLoopType(1), TrimIndices=[0, 1, 2, 3]
         ).get_id()
+    )
+
 
 def test_edges_value_serialization():
     brep = Brep()
     brep.EdgesValue = [8, 0, 0, 1, 0, -8.13345756858629, 8.13345756858629, 1, 3]
 
     assert brep == brep.Edges[0]._Brep
-    assert brep.Edges[0].get_id() == BrepEdge(
-        Curve3dIndex=0,
-        StartIndex=0,
-        EndIndex=1,
-        ProxyCurveIsReversed=False,
-        Domain=Interval(start=-8.13345756858629, end=8.13345756858629),
-        TrimIndices=[1,3]
+    assert (
+        brep.Edges[0].get_id()
+        == BrepEdge(
+            Curve3dIndex=0,
+            StartIndex=0,
+            EndIndex=1,
+            ProxyCurveIsReversed=False,
+            Domain=Interval(start=-8.13345756858629, end=8.13345756858629),
+            TrimIndices=[1, 3],
         ).get_id()
+    )
+
 
 def test_faces_value_serialization():
     brep = Brep()
     brep.FacesValue = [4, 0, 0, 1, 0]
 
     assert brep == brep.Faces[0]._Brep
-    assert brep.Faces[0].get_id() == BrepFace(
-        SurfaceIndex=0,
-        OuterLoopIndex=0,
-        OrientationReversed=True,
-        LoopIndices=[0]
+    assert (
+        brep.Faces[0].get_id()
+        == BrepFace(
+            SurfaceIndex=0, OuterLoopIndex=0, OrientationReversed=True, LoopIndices=[0]
         ).get_id()
+    )
+
 
 def test_serialized_brep_attributes(brep: Brep):
     transport = MemoryTransport()
     serialized = operations.serialize(brep, [transport])
     serialized_dict = json.loads(serialized)
 
-    removed_keys = ["Surfaces", "Curve3D", "Curve2D", "Vertices", "Trims", "Loops", "Edges", "Faces"]
+    removed_keys = [
+        "Surfaces",
+        "Curve3D",
+        "Curve2D",
+        "Vertices",
+        "Trims",
+        "Loops",
+        "Edges",
+        "Faces",
+    ]
 
     for k in removed_keys:
         assert k not in serialized_dict.keys()
