@@ -442,13 +442,33 @@ def test_trims_value_serialization():
         IsReversed=True,
     ).get_id()
 
+def test_loops_value_serialization():
+    brep = Brep()
+    brep.LoopsValue = [6, 0, 1, 0, 1, 2, 3]
+
+    assert brep == brep.Loops[0]._Brep
+    assert brep.Loops[0].get_id() == BrepLoop(FaceIndex=0, Type=BrepLoopType(1), TrimIndices=[0,1,2,3]).get_id()
+
+def test_edges_value_serialization():
+    brep = Brep()
+    brep.EdgesValue = [8, 0, 0, 1, 0, -8.13345756858629, 8.13345756858629, 1, 3]
+
+    assert brep == brep.Edges[0]._Brep
+    assert brep.Edges[0].get_id() == BrepEdge(Curve3dIndex=0, StartIndex=0, EndIndex=1, ProxyCurveIsReversed=False, Domain=Interval(start=-8.13345756858629, end=8.13345756858629), TrimIndices=[1,3]).get_id()
+
+def test_faces_value_serialization():
+    brep = Brep()
+    brep.FacesValue = [4, 0, 0, 1, 0]
+
+    assert brep == brep.Faces[0]._Brep
+    assert brep.Faces[0].get_id() == BrepFace(SurfaceIndex=0, OuterLoopIndex=0, OrientationReversed=True, LoopIndices=[0]).get_id()
 
 def test_serialized_brep_attributes(brep: Brep):
     transport = MemoryTransport()
     serialized = operations.serialize(brep, [transport])
     serialized_dict = json.loads(serialized)
 
-    removed_keys = ["Surfaces", "Curve3D", "Curve2D", "Vertices", "Trims"]
+    removed_keys = ["Surfaces", "Curve3D", "Curve2D", "Vertices", "Trims", "Loops", "Edges", "Faces"]
 
     for k in removed_keys:
         assert k not in serialized_dict.keys()
