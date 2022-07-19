@@ -64,19 +64,19 @@ class Plane(Base, speckle_type=GEOMETRY + "Plane"):
     @classmethod
     def from_list(cls, args: List[Any]) -> "Plane":
         return cls(
-            origin=Point.from_list(args[0:3]),
+            origin=Point.from_list(args[:3]),
             normal=Vector.from_list(args[3:6]),
             xdir=Vector.from_list(args[6:9]),
             ydir=Vector.from_list(args[9:12]),
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.extend(self.origin.to_list())
-        encoded.extend(self.normal.to_list())
-        encoded.extend(self.xdir.to_list())
-        encoded.extend(self.ydir.to_list())
-        return encoded
+        return [
+            *self.origin.to_list(),
+            *self.normal.to_list(),
+            *self.xdir.to_list(),
+            *self.ydir.to_list(),
+        ]
 
 
 class Box(Base, speckle_type=GEOMETRY + "Box"):
@@ -98,17 +98,17 @@ class Line(Base, speckle_type=GEOMETRY + "Line"):
     @classmethod
     def from_list(cls, args: List[Any]) -> "Line":
         return cls(
-            start=Point.from_list(args[0:3]),
+            start=Point.from_list(args[:3]),
             end=Point.from_list(args[3:6]),
             domain=Interval.from_list(args[6:9]),
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.extend(self.start.to_list())
-        encoded.extend(self.end.to_list())
-        encoded.extend(self.domain.to_list())
-        return encoded
+        return [
+            *self.start.to_list(),
+            *self.end.to_list(),
+            *self.domain.to_list()
+        ]
 
 
 class Arc(Base, speckle_type=GEOMETRY + "Arc"):
@@ -138,16 +138,16 @@ class Arc(Base, speckle_type=GEOMETRY + "Arc"):
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.append(CurveTypeEncoding.Arc.value)
-        encoded.append(self.radius)
-        encoded.append(self.startAngle)
-        encoded.append(self.endAngle)
-        encoded.append(self.angleRadians)
-        encoded.extend(self.domain.to_list())
-        encoded.extend(self.plane.to_list())
-        encoded.append(get_encoding_from_units(self.units))
-        return encoded
+        return [
+            CurveTypeEncoding.Arc.value,
+            self.radius,
+            self.startAngle,
+            self.endAngle,
+            self.angleRadians,
+            *self.domain.to_list(),
+            *self.plane.to_list(),
+            get_encoding_from_units(self.units),
+        ]
 
 
 class Circle(Base, speckle_type=GEOMETRY + "Circle"):
@@ -168,13 +168,13 @@ class Circle(Base, speckle_type=GEOMETRY + "Circle"):
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.append(CurveTypeEncoding.Circle.value)
-        encoded.append(self.radius),
-        encoded.extend(self.domain.to_list())
-        encoded.extend(self.plane.to_list())
-        encoded.append(get_encoding_from_units(self.units))
-        return encoded
+        return [
+            CurveTypeEncoding.Circle.value,
+            self.radius,
+            *self.domain.to_list(),
+            *self.plane.to_list(),
+            get_encoding_from_units(self.units),
+        ]
 
 
 class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
@@ -198,14 +198,14 @@ class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.append(CurveTypeEncoding.Ellipse.value)
-        encoded.append(self.firstRadius)
-        encoded.append(self.secondRadius)
-        encoded.extend(self.domain.to_list())
-        encoded.extend(self.plane.to_list())
-        encoded.append(get_encoding_from_units(self.units))
-        return encoded
+        return [
+            CurveTypeEncoding.Ellipse.value,
+            self.firstRadius,
+            self.secondRadius,
+            *self.domain.to_list(),
+            *self.plane.to_list(),
+            get_encoding_from_units(self.units)
+        ]
 
 
 class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 20000}):
@@ -237,14 +237,14 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 200
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.append(CurveTypeEncoding.Polyline.value)
-        encoded.append(int(self.closed))
-        encoded.extend(self.domain.to_list())
-        encoded.append(len(self.value))
-        encoded.extend(self.value)
-        encoded.append(get_encoding_from_units(self.units))
-        return encoded
+        return [
+            CurveTypeEncoding.Polyline.value,
+            int(self.closed),
+            *self.domain.to_list(),
+            len(self.value),
+            *self.value,
+            get_encoding_from_units(self.units)
+        ]
 
     def as_points(self) -> List[Point]:
         """Converts the `value` attribute to a list of Points"""
@@ -315,21 +315,21 @@ class Curve(
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.append(CurveTypeEncoding.Curve.value)
-        encoded.append(self.degree)
-        encoded.append(int(self.periodic))
-        encoded.append(int(self.rational))
-        encoded.append(int(self.closed))
-        encoded.extend(self.domain.to_list())
-        encoded.append(len(self.points))
-        encoded.append(len(self.weights))
-        encoded.append(len(self.knots))
-        encoded.extend(self.points)
-        encoded.extend(self.weights)
-        encoded.extend(self.knots)
-        encoded.append(get_encoding_from_units(self.units))
-        return encoded
+        return [
+            CurveTypeEncoding.Curve.value,
+            self.degree,
+            int(self.periodic),
+            int(self.rational),
+            int(self.closed),
+            *self.domain.to_list(),
+            len(self.points),
+            len(self.weights),
+            len(self.knots),
+            *self.points,
+            *self.weights,
+            *self.knots,
+            get_encoding_from_units(self.units),
+        ]
 
 
 class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
@@ -352,15 +352,14 @@ class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.append(CurveTypeEncoding.Polycurve.value)
-        encoded.append(int(self.closed))
-        encoded.extend(self.domain.to_list())
         curve_array = CurveArray.from_curves(self.segments)
-        encoded.extend(curve_array.data)
-        encoded.append(get_encoding_from_units(self.units))
-        return encoded
-
+        return [
+            CurveTypeEncoding.Polycurve.value,
+            int(self.closed),
+            *self.domain.to_list(),
+            *curve_array.data,
+            get_encoding_from_units(self.units),
+        ]
 
 class Extrusion(Base, speckle_type=GEOMETRY + "Extrusion"):
     capped: bool = None
@@ -460,24 +459,24 @@ class Surface(Base, speckle_type=GEOMETRY + "Surface"):
         )
 
     def to_list(self) -> List[Any]:
-        encoded = []
-        encoded.append(self.degreeU)
-        encoded.append(self.degreeV)
-        encoded.append(self.countU)
-        encoded.append(self.countV)
-        encoded.append(int(self.rational))
-        encoded.append(int(self.closedU))
-        encoded.append(int(self.closedV))
-        encoded.extend(self.domainU.to_list())
-        encoded.extend(self.domainV.to_list())
-        encoded.append(len(self.pointData))
-        encoded.append(len(self.knotsU))
-        encoded.append(len(self.knotsV))
-        encoded.extend(self.pointData)
-        encoded.extend(self.knotsU)
-        encoded.extend(self.knotsV)
-        encoded.append(get_encoding_from_units(self.units))
-        return encoded
+        return [
+            self.degreeU,
+            self.degreeV,
+            self.countU,
+            self.countV,
+            int(self.rational),
+            int(self.closedU),
+            int(self.closedV),
+            *self.domainU.to_list(),
+            *self.domainV.to_list(),
+            len(self.pointData),
+            len(self.knotsU),
+            len(self.knotsV),
+            *self.pointData,
+            *self.knotsU,
+            *self.knotsV,
+            get_encoding_from_units(self.units),
+        ]
 
 
 class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
@@ -749,7 +748,7 @@ class Brep(
             return children
 
         for child in children:
-            child._Brep = self
+            child._Brep = self # pylint: disable=protected-access
         return children
 
     # set as prop for now for backwards compatibility
