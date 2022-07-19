@@ -406,7 +406,7 @@ def test_trims_value_serialization():
         0,
         1,
         1,
-        1,
+        0,
         1,
         0,
         0,
@@ -415,7 +415,7 @@ def test_trims_value_serialization():
         1,
         2,
         1,
-        0,
+        1,
     ]
 
     assert brep.Trims[0].get_id() == BrepTrim(
