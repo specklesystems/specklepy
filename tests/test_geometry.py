@@ -1,6 +1,5 @@
 # pylint: disable=redefined-outer-name
 import json
-from typing import Callable
 
 import pytest
 from specklepy.api import operations
@@ -340,16 +339,16 @@ def geometry_objects_dict(
     ],
 )
 def test_to_and_from_list(object_name: str, geometry_objects_dict):
-    object = geometry_objects_dict[object_name]
-    assert hasattr(object, "to_list")
-    assert hasattr(object, "from_list")
+    obj = geometry_objects_dict[object_name]
+    assert hasattr(obj, "to_list")
+    assert hasattr(obj, "from_list")
 
-    chunks = object.to_list()
+    chunks = obj.to_list()
     assert isinstance(chunks, list)
 
-    object_class = object.__class__
+    object_class = obj.__class__
     decoded_object: Base = object_class.from_list(chunks)
-    assert decoded_object.get_id() == object.get_id()
+    assert decoded_object.get_id() == obj.get_id()
 
 
 def test_brep_surfaces_value_serialization(surface):
@@ -391,9 +390,9 @@ def test_brep_curve3d_values_serialization(curve, polyline, circle):
 def test_brep_vertices_values_serialization():
     brep = Brep()
     brep.VerticesValue = [1, 1, 1, 1, 2, 2, 2, 3, 3, 3]
-    brep.Vertices[0].get_id() == Point(x=1, y=1, z=1, _units="mm").get_id()
-    brep.Vertices[1].get_id() == Point(x=2, y=2, z=2, _units="mm").get_id()
-    brep.Vertices[2].get_id() == Point(x=3, y=3, z=3, _units="mm").get_id()
+    assert brep.Vertices[0].get_id() == Point(x=1, y=1, z=1, _units="mm").get_id()
+    assert brep.Vertices[1].get_id() == Point(x=2, y=2, z=2, _units="mm").get_id()
+    assert brep.Vertices[2].get_id() == Point(x=3, y=3, z=3, _units="mm").get_id()
 
 
 def test_trims_value_serialization():
@@ -419,7 +418,7 @@ def test_trims_value_serialization():
         0,
     ]
 
-    brep.Trims[0].get_id() == BrepTrim(
+    assert brep.Trims[0].get_id() == BrepTrim(
         EdgeIndex=0,
         StartIndex=0,
         EndIndex=0,
@@ -431,7 +430,7 @@ def test_trims_value_serialization():
         IsReversed=False,
     ).get_id()
 
-    brep.Trims[1].get_id() == BrepTrim(
+    assert brep.Trims[1].get_id() == BrepTrim(
         EdgeIndex=1,
         StartIndex=0,
         EndIndex=0,
@@ -448,7 +447,7 @@ def test_loops_value_serialization():
     brep = Brep()
     brep.LoopsValue = [6, 0, 1, 0, 1, 2, 3]
 
-    assert brep == brep.Loops[0]._Brep
+    assert brep == brep.Loops[0]._Brep # pylint: disable=protected-access
     assert (
         brep.Loops[0].get_id()
         == BrepLoop(
@@ -461,7 +460,7 @@ def test_edges_value_serialization():
     brep = Brep()
     brep.EdgesValue = [8, 0, 0, 1, 0, -8.13345756858629, 8.13345756858629, 1, 3]
 
-    assert brep == brep.Edges[0]._Brep
+    assert brep == brep.Edges[0]._Brep  # pylint: disable=protected-access
     assert (
         brep.Edges[0].get_id()
         == BrepEdge(
@@ -479,7 +478,7 @@ def test_faces_value_serialization():
     brep = Brep()
     brep.FacesValue = [4, 0, 0, 1, 0]
 
-    assert brep == brep.Faces[0]._Brep
+    assert brep == brep.Faces[0]._Brep # pylint: disable=protected-access
     assert (
         brep.Faces[0].get_id()
         == BrepFace(
@@ -514,7 +513,7 @@ def test_mesh_create():
     mesh = Mesh.create(vertices, faces)
 
     with pytest.raises(SpeckleException):
-        bad_mesh = Mesh.create(vertices=7, faces=faces)
+        bad_mesh = Mesh.create(vertices=7, faces=faces) # pylint: disable=unused-variable
 
     assert mesh.vertices == vertices
     assert mesh.textureCoordinates == []
