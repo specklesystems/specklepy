@@ -523,15 +523,12 @@ class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
         )
 
     def to_list(self) -> List[Any]:
-        encoded = [
-            0,
+        return [
             self.SurfaceIndex,
             self.OuterLoopIndex,
             int(self.OuterLoopIndex),
             *self.LoopIndices,
         ]
-        encoded[0] = len(encoded) - 1
-        return encoded
 
 
 class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
@@ -581,8 +578,7 @@ class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
         )
 
     def to_list(self) -> List[Any]:
-        encoded = [
-            0,
+        return [
             self.Curve3dIndex,
             self.StartIndex,
             self.EndIndex,
@@ -591,8 +587,7 @@ class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
             self.Domain.end,
             *self.TrimIndices,
         ]
-        encoded[0] = len(encoded) - 1
-        return encoded
+
 
 
 class BrepLoopType(int, Enum):
