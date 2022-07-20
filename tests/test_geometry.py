@@ -49,12 +49,7 @@ def vector():
 
 @pytest.fixture()
 def plane(point, vector):
-    return Plane(
-        origin=point,
-        normal=vector,
-        xdir=vector,
-        ydir=vector,
-    )
+    return Plane(origin=point, normal=vector, xdir=vector, ydir=vector, units="m")
 
 
 @pytest.fixture()
@@ -75,6 +70,7 @@ def line(point, interval):
         start=point,
         end=point,
         domain=interval,
+        units="none"
         # These attributes are not handled in C#
         # bbox=None,
         # length=None
