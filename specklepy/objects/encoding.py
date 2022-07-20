@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Callable, List, Type
+from typing import Any, Callable, List, Type, Dict
 
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
@@ -43,8 +43,8 @@ def curve_from_list(args: List[float]):
 
 
 class ObjectArray:
-    def __init__(self) -> None:
-        self.data = []
+    def __init__(self, data: list = None) -> None:
+        self.data = data or []
 
     @classmethod
     def from_objects(cls, objects: List[Base]) -> "ObjectArray":
@@ -60,18 +60,17 @@ class ObjectArray:
                     "All objects in chunk should have the same speckle_type. "
                     f"Found {speckle_type} and {obj.speckle_type}"
                 )
-            data_list.encode_object(object=obj)
+            data_list.encode_object(obj=obj)
 
         return data_list
 
     @staticmethod
     def decode_data(
-        data: List[Any], decoder: Callable[[List[Any]], Base]
+        data: List[Any], decoder: Callable[[List[Any]], Base], **kwargs: Dict[str, Any]
     ) -> List[Base]:
         bases = []
         if not data:
             return bases
-
         index = 0
         while index < len(data):
             item_length = int(data[index])
@@ -79,19 +78,16 @@ class ObjectArray:
             item_end = item_start + item_length
             item_data = data[item_start:item_end]
             index = item_end
-            # TODO: investigate what's going on w this fail
-            try:
-                decoded_data = decoder(item_data)
-                bases.append(decoded_data)
-            except ValueError:
-                continue
+            decoded_data = decoder(item_data, **kwargs)
+            bases.append(decoded_data)
+
         return bases
 
-    def decode(self, decoder: Callable[[List[Any]], Any]):
-        return self.decode_data(data=self.data, decoder=decoder)
+    def decode(self, decoder: Callable[[List[Any]], Any], **kwargs: Dict[str, Any]):
+        return self.decode_data(data=self.data, decoder=decoder, **kwargs)
 
-    def encode_object(self, object: Base):
-        encoded = object.to_list()
+    def encode_object(self, obj: Base):
+        encoded = obj.to_list()
         encoded.insert(0, len(encoded))
         self.data.extend(encoded)
 
