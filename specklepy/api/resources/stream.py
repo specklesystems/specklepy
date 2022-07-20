@@ -353,6 +353,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation was successful
         """
+        # TODO: for next server version, change to `streamUpdatePermission`
         metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
         query = gql(
             """

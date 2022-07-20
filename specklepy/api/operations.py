@@ -29,6 +29,9 @@ def send(
             message="You need to provide at least one transport: cannot send with an empty transport list and no default cache"
         )
 
+    if isinstance(transports, AbstractTransport):
+        transports = [transports]
+
     if transports is None:
         metrics.track(metrics.SEND)
         transports = []

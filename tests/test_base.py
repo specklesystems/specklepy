@@ -134,3 +134,19 @@ def test_type_checking() -> None:
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
 
     assert order.price == 7.0
+
+
+def test_cached_deserialization() -> None:
+    material = Base(color="blue", opacity=.5)
+
+    a = Base(name="a")
+    a["@material"] = material
+    b = Base(name="b")
+    b["@material"] = material
+
+    root = Base(a=a, b=b)
+
+    serialized = operations.serialize(root)
+    deserialized = operations.deserialize(serialized)
+
+    assert deserialized["a"]["@material"] is deserialized["b"]["@material"]
