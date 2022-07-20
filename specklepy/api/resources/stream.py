@@ -356,8 +356,8 @@ class Resource(ResourceBase):
         metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
         query = gql(
             """
-            mutation StreamGrantPermission($permission_params: StreamGrantPermissionInput !) {
-                streamGrantPermission(permissionParams: $permission_params)
+            mutation streamUpdatePermission($permission_params: StreamUpdatePermissionInput!) {
+                streamUpdatePermission(permissionParams: $permission_params)
             }
             """
         )
@@ -373,7 +373,7 @@ class Resource(ResourceBase):
         return self.make_request(
             query=query,
             params=params,
-            return_type="streamGrantPermission",
+            return_type="streamUpdatePermission",
             parse_response=False,
         )
 
