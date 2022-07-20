@@ -353,11 +353,12 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation was successful
         """
+        # TODO: for next server version, change to `streamUpdatePermission`
         metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
         query = gql(
             """
-            mutation streamUpdatePermission($permission_params: StreamUpdatePermissionInput!) {
-                streamUpdatePermission(permissionParams: $permission_params)
+            mutation StreamGrantPermission($permission_params: StreamGrantPermissionInput !) {
+                streamGrantPermission(permissionParams: $permission_params)
             }
             """
         )
@@ -373,7 +374,7 @@ class Resource(ResourceBase):
         return self.make_request(
             query=query,
             params=params,
-            return_type="streamUpdatePermission",
+            return_type="streamGrantPermission",
             parse_response=False,
         )
 
