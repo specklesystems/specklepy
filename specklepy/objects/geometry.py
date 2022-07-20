@@ -103,6 +103,7 @@ class Line(Base, speckle_type=GEOMETRY + "Line"):
             start=Point.from_list(args[1:4]),
             end=Point.from_list(args[4:7]),
             domain=Interval.from_list(args[7:10]),
+            units=get_units_from_encoding(args[-1]),
         )
 
     def to_list(self) -> List[Any]:
@@ -518,7 +519,7 @@ class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
             _Brep=brep,
             SurfaceIndex=args[0],
             OuterLoopIndex=args[1],
-            OrientationReversed=args[2] == 1,
+            OrientationReversed=bool(args[2]),
             LoopIndices=args[3:],
         )
 
@@ -526,7 +527,7 @@ class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
         return [
             self.SurfaceIndex,
             self.OuterLoopIndex,
-            int(self.OuterLoopIndex),
+            int(self.OrientationReversed),
             *self.LoopIndices,
         ]
 
@@ -823,8 +824,7 @@ class Brep(
 
     @Curve3DValues.setter
     def Curve3DValues(self, value: List[float]):
-        crv_array = CurveArray()
-        crv_array.data = value
+        crv_array = CurveArray(value)
         self.Curve3D = crv_array.to_curves()
 
     @property
@@ -835,8 +835,7 @@ class Brep(
 
     @Curve2DValues.setter
     def Curve2DValues(self, value: List[float]):
-        crv_array = CurveArray()
-        crv_array.data = value
+        crv_array = CurveArray(value)
         self.Curve2D = crv_array.to_curves()
 
     @property

@@ -124,8 +124,7 @@ class CurveArray(ObjectArray):
 
     @classmethod
     def _curve_decoder(cls, data: List[float]) -> Base:
-        crv_array = cls()
-        crv_array.data = data
+        crv_array = cls(data)
         return crv_array.to_curve()
 
     def to_curves(self) -> List[Base]:
