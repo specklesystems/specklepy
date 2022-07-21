@@ -6,16 +6,12 @@ services:
       POSTGRES_DB: speckle2_test
       POSTGRES_PASSWORD: speckle
       POSTGRES_USER: speckle
-      # ports:
-      #   - "5432:5432"
     network_mode: host
   redis:
     image: cimg/redis:6.2
-    # ports:
-    #   - "6379:6379"
     network_mode: host
   speckle-server:
-    image: speckle/speckle-server
+    image: speckle/speckle-server:latest
     command: ["bash", "-c", "/wait && node bin/www"]
     environment:
       POSTGRES_URL: "localhost"
@@ -28,8 +24,6 @@ services:
       CANONICAL_URL: "http://localhost:3000"
       WAIT_HOSTS: localhost:5432, localhost:6379
       DISABLE_FILE_UPLOADS: "true"
-    # ports:
-    #   - "3000:3000"
     network_mode: host
 
   specklepy:
