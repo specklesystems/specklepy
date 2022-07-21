@@ -33,6 +33,14 @@ class GraphQLException(SpeckleException):
         return f"GraphQLException: {self.message}"
 
 
+class UnsupportedException(SpeckleException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message=message)
+
+    def __str__(self) -> str:
+        return f"UnsupportedException: {self.message}"
+
+
 class SpeckleWarning(Warning):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
