@@ -12,12 +12,13 @@ NAME = "user"
 class Resource(ResourceBase):
     """API Access class for users"""
 
-    def __init__(self, account, basepath, client) -> None:
+    def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,
             basepath=basepath,
             client=client,
             name=NAME,
+            server_version=server_version,
         )
         self.schema = User
 

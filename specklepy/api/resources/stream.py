@@ -13,7 +13,7 @@ NAME = "stream"
 class Resource(ResourceBase):
     """API Access class for streams"""
 
-    def __init__(self, account, basepath, client) -> None:
+    def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,
             basepath=basepath,
