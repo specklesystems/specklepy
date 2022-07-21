@@ -1,8 +1,10 @@
-from typing import Dict, List
+import re
+from typing import Dict, List, Tuple
 from gql import gql
 from specklepy.api.models import ServerInfo
 from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
+from specklepy.logging.exceptions import GraphQLException
 
 
 NAME = "server"
@@ -59,6 +61,39 @@ class Resource(ResourceBase):
 
         return self.make_request(
             query=query, return_type="serverInfo", schema=ServerInfo
+        )
+
+    def version(self) -> Tuple[int]:
+        """Get the server version
+
+        Returns:
+            Tuple(int) -- the server version
+        """
+        # not tracking as it will be called along with other mutations / queries as a check
+        query = gql(
+            """
+            query Server {
+                serverInfo {
+                    version
+                }
+            }
+            """
+        )
+
+        ver = self.make_request(
+            query=query, return_type=["serverInfo", "version"], parse_response=False
+        )
+        if isinstance(ver, Exception):
+            raise GraphQLException(
+                f"Could not get server version for {self.basepath}", ver
+            )
+
+        # pylint: disable=consider-using-generator; (list comp is faster)
+        return tuple(
+            [
+                int(segment) if segment.isdigit() else segment
+                for segment in re.split(r"\.|-", ver)
+            ]
         )
 
     def apps(self) -> Dict:
