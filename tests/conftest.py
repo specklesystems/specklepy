@@ -66,6 +66,13 @@ def client(host, user_dict):
 
 
 @pytest.fixture(scope="session")
+def second_client(host, second_user_dict):
+    client = SpeckleClient(host=host, use_ssl=False)
+    client.authenticate_with_token(second_user_dict["token"])
+    return client
+
+
+@pytest.fixture(scope="session")
 def sample_stream(client):
     stream = Stream(
         name="a sample stream for testing",

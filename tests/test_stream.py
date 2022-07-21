@@ -1,8 +1,18 @@
 import pytest
 from datetime import datetime
-from specklepy.api.models import ActivityCollection, Activity, Stream
+from specklepy.api.models import (
+    ActivityCollection,
+    Activity,
+    PendingStreamCollaborator,
+    Stream,
+    User,
+)
 from specklepy.api.client import SpeckleClient
-from specklepy.logging.exceptions import GraphQLException
+from specklepy.logging.exceptions import (
+    GraphQLException,
+    SpeckleException,
+    UnsupportedException,
+)
 
 
 @pytest.mark.run(order=2)
@@ -24,6 +34,10 @@ class TestStream:
             description="an updated stream description for testing",
             isPublic=False,
         )
+
+    @pytest.fixture(scope="module")
+    def second_user(self, second_client: SpeckleClient):
+        return second_client.user.get()
 
     def test_stream_create(self, client, stream, updated_stream):
         stream.id = updated_stream.id = client.stream.create(
@@ -79,28 +93,116 @@ class TestStream:
         assert isinstance(favorited, Stream)
         assert unfavorited.favoritedDate is None
 
-    def test_stream_grant_permission(self, client, stream, second_user_dict):
-        granted = client.stream.grant_permission(
+    def test_stream_grant_permission(self, client, stream, second_user):
+        # deprecated as of Speckle Server 2.6.4
+        with pytest.raises(UnsupportedException):
+            client.stream.grant_permission(
+                stream_id=stream.id,
+                user_id=second_user.id,
+                role="stream:contributor",
+            )
+
+    def test_stream_invite(
+        self, client: SpeckleClient, stream: Stream, second_user_dict: dict
+    ):
+        invited = client.stream.invite(
             stream_id=stream.id,
-            user_id=second_user_dict["id"],
-            role="stream:contributor",
+            email=second_user_dict["email"],
+            message="welcome to my stream!",
         )
 
-        fetched_stream = client.stream.get(stream.id)
+        assert invited is True
 
-        assert granted is True
-        assert len(fetched_stream.collaborators) == 2
-        assert fetched_stream.collaborators[0].name == second_user_dict["name"]
+        # fail if no email or id
+        with pytest.raises(SpeckleException):
+            client.stream.invite(stream_id=stream.id)
 
-    def test_stream_revoke_permission(self, client, stream, second_user_dict):
+    def test_stream_invite_get(self, second_client: SpeckleClient, stream: Stream):
+        invites = second_client.stream.get_all_pending_invites()
+
+        assert isinstance(invites, list)
+        assert isinstance(invites[0], PendingStreamCollaborator)
+        assert len(invites) == 1
+
+        invite = second_client.stream.get_pending_invite(stream_id=stream.id)
+        assert isinstance(invite, PendingStreamCollaborator)
+
+    def test_stream_invite_use(self, second_client: SpeckleClient, stream: Stream):
+        invite: PendingStreamCollaborator = (
+            second_client.stream.get_all_pending_invites()[0]
+        )
+
+        accepted = second_client.stream.invite_use(
+            stream_id=stream.id, invite_id=invite.inviteId
+        )
+
+        assert accepted is True
+
+    def test_stream_update_permission(
+        self, client: SpeckleClient, stream: Stream, second_user: User
+    ):
+        updated = client.stream.update_permission(
+            stream_id=stream.id, user_id=second_user.id, role="stream:owner"
+        )
+
+        assert updated is True
+
+    def test_stream_revoke_permission(self, client, stream, second_user):
         revoked = client.stream.revoke_permission(
-            stream_id=stream.id, user_id=second_user_dict["id"]
+            stream_id=stream.id, user_id=second_user.id
         )
 
         fetched_stream = client.stream.get(stream.id)
 
         assert revoked is True
         assert len(fetched_stream.collaborators) == 1
+
+    def test_stream_invite_cancel(
+        self,
+        client: SpeckleClient,
+        second_client: SpeckleClient,
+        stream: Stream,
+        second_user: User,
+    ):
+        invited = client.stream.invite(
+            stream_id=stream.id,
+            user_id=second_user.id,
+            message="welcome to my stream!",
+        )
+        assert invited is True
+
+        invites = second_client.stream.get_all_pending_invites()
+
+        cancelled = client.stream.invite_cancel(
+            invite_id=invites[0].inviteId, stream_id=stream.id
+        )
+
+        assert cancelled is True
+
+    def test_stream_invite_batch(
+        self, client: SpeckleClient, stream: Stream, second_user: User
+    ):
+        # TODO: this is failing because i don't have the right _server_ role? double check w web team
+        # invited = client.stream.invite_batch(
+        #     stream_id=stream.id,
+        #     emails=["userA@speckle.xyz", "userB@speckle.xyz"],
+        #     user_ids=[second_user.id],
+        #     message="yeehaw 🤠",
+        # )
+
+        # assert invited is True
+
+        # invited_only_email = client.stream.invite_batch(
+        #     stream_id=stream.id,
+        #     emails=["userC@speckle.xyz"],
+        #     message="yeehaw 🤠",
+        # )
+
+        # assert invited_only_email is True
+
+        # fail if no emails or user ids
+        with pytest.raises(SpeckleException):
+            client.stream.invite_batch(stream_id=stream.id)
 
     def test_stream_activity(self, client: SpeckleClient, stream: Stream):
         activity = client.stream.activity(stream.id)
