@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 from gql import gql
 from specklepy.api.models import ServerInfo
 from specklepy.api.resource import ResourceBase
@@ -8,7 +8,6 @@ from specklepy.logging.exceptions import GraphQLException
 
 
 NAME = "server"
-METHODS = ["get", "apps"]
 
 
 class Resource(ResourceBase):
@@ -20,7 +19,6 @@ class Resource(ResourceBase):
             basepath=basepath,
             client=client,
             name=NAME,
-            methods=METHODS,
         )
 
     def get(self) -> ServerInfo:
@@ -63,12 +61,12 @@ class Resource(ResourceBase):
             query=query, return_type="serverInfo", schema=ServerInfo
         )
 
-    def version(self) -> Tuple[int]:
+    def version(self) -> Tuple[Any, ...]:
         """Get the server version
 
         Returns:
-            Tuple(int) -- the server version in the format (major, minor, patch, (tag, build))
-                          eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
+            tuple -- the server version in the format (major, minor, patch, (tag, build))
+                     eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
         """
         # not tracking as it will be called along with other mutations / queries as a check
         query = gql(
@@ -80,13 +78,12 @@ class Resource(ResourceBase):
             }
             """
         )
-
         ver = self.make_request(
             query=query, return_type=["serverInfo", "version"], parse_response=False
         )
         if isinstance(ver, Exception):
             raise GraphQLException(
-                f"Could not get server version for {self.basepath}", ver
+                f"Could not get server version for {self.basepath}", [ver]
             )
 
         # pylint: disable=consider-using-generator; (list comp is faster)

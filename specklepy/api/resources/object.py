@@ -4,7 +4,6 @@ from specklepy.api.resource import ResourceBase
 from specklepy.objects.base import Base
 
 NAME = "object"
-METHODS = []
 
 
 class Resource(ResourceBase):
@@ -16,7 +15,6 @@ class Resource(ResourceBase):
             basepath=basepath,
             client=client,
             name=NAME,
-            methods=METHODS,
         )
         self.schema = Base
 

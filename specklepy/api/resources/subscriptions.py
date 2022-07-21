@@ -1,16 +1,12 @@
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Union
 from functools import wraps
 from gql import gql
+from graphql import DocumentNode
 from specklepy.api.resource import ResourceBase
 from specklepy.api.resources.stream import Stream
 from specklepy.logging.exceptions import SpeckleException
 
 NAME = "subscribe"
-METHODS = [
-    "stream_added",
-    "stream_updated",
-    "stream_removed",
-]
 
 
 def check_wsclient(function):
@@ -35,7 +31,6 @@ class Resource(ResourceBase):
             basepath=basepath,
             client=client,
             name=NAME,
-            methods=METHODS,
         )
 
     @check_wsclient
@@ -109,15 +104,15 @@ class Resource(ResourceBase):
     @check_wsclient
     async def subscribe(
         self,
-        query: gql,
+        query: DocumentNode,
         params: Dict = None,
         callback: Callable = None,
-        return_type: str or List = None,
+        return_type: Union[str, List] = None,
         schema=None,
         parse_response: bool = True,
     ):
         # if self.client.transport.websocket is None:
-        #     TODO: add multiple subs to the same ws connection
+        # TODO: add multiple subs to the same ws connection
         async with self.client as session:
             async for res in session.subscribe(query, variable_values=params):
                 res = self._step_into_response(response=res, return_type=return_type)

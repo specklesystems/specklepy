@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
-from gql import gql
 from typing import List
+from gql import gql
 from specklepy.logging import metrics
 from specklepy.api.models import ActivityCollection, Stream
 from specklepy.api.resource import ResourceBase
@@ -8,7 +8,6 @@ from specklepy.logging.exceptions import SpeckleException
 
 
 NAME = "stream"
-METHODS = ["list", "create", "get", "update", "delete", "search", "activity"]
 
 
 class Resource(ResourceBase):
@@ -20,7 +19,6 @@ class Resource(ResourceBase):
             basepath=basepath,
             client=client,
             name=NAME,
-            methods=METHODS,
         )
 
         self.schema = Stream

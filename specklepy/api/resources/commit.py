@@ -6,7 +6,6 @@ from specklepy.logging import metrics
 
 
 NAME = "commit"
-METHODS = []
 
 
 class Resource(ResourceBase):
@@ -18,7 +17,6 @@ class Resource(ResourceBase):
             basepath=basepath,
             client=client,
             name=NAME,
-            methods=METHODS,
         )
         self.schema = Commit
 

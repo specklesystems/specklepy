@@ -3,10 +3,10 @@
 #   timestamp: 2020-11-17T14:33:13+00:00
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 
-from pydantic import BaseModel
+from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 
 class Collaborator(BaseModel):
@@ -133,7 +133,7 @@ class ActivityCollection(BaseModel):
     cursor: Optional[datetime]
 
     def __repr__(self) -> str:
-        return f"ActivityCollection( totalCount: {self.totalCount}, items: {len(self.items) if self.items else 0}, cursor: {self.cursor.isoformat()} )"
+        return f"ActivityCollection( totalCount: {self.totalCount}, items: {len(self.items) if self.items else 0}, cursor: {self.cursor.isoformat() if self.cursor else None} )"
 
     def __str__(self) -> str:
         return self.__repr__()

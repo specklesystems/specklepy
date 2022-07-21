@@ -1,13 +1,12 @@
+from typing import List, Union
 from datetime import datetime, timezone
+from gql import gql
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
-from typing import List
-from gql import gql
 from specklepy.api.resource import ResourceBase
 from specklepy.api.models import ActivityCollection, User
 
 NAME = "user"
-METHODS = ["get", "search", "update", "activity"]
 
 
 class Resource(ResourceBase):
@@ -19,7 +18,6 @@ class Resource(ResourceBase):
             basepath=basepath,
             client=client,
             name=NAME,
-            methods=METHODS,
         )
         self.schema = User
 
@@ -55,7 +53,9 @@ class Resource(ResourceBase):
 
         return self.make_request(query=query, params=params, return_type="user")
 
-    def search(self, search_query: str, limit: int = 25) -> List[User]:
+    def search(
+        self, search_query: str, limit: int = 25
+    ) -> Union[List[User], SpeckleException]:
         """Searches for user by name or email. The search query must be at least 3 characters long
 
         Arguments:
