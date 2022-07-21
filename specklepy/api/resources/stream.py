@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
+from deprecated import deprecated
 from gql import gql
 from specklepy.logging import metrics
-from specklepy.api.models import ActivityCollection, Stream
+from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, Stream
 from specklepy.api.resource import ResourceBase
-from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import UnsupportedException, SpeckleException
 
 
 NAME = "stream"
@@ -19,6 +20,7 @@ class Resource(ResourceBase):
             basepath=basepath,
             client=client,
             name=NAME,
+            server_version=server_version,
         )
 
         self.schema = Stream
@@ -340,8 +342,17 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["streamFavorite"]
         )
 
+    @deprecated(
+        version="2.6.4",
+        reason=(
+            "As of Speckle Server v2.6.4, this method is deprecated. "
+            "Users need to be invited and accept the invite before being added to a stream"
+        ),
+    )
     def grant_permission(self, stream_id: str, user_id: str, role: str):
         """Grant permissions to a user on a given stream
+
+        Valid for Speckle Server version < 2.6.4
 
         Arguments:
             stream_id {str} -- the id of the stream to grant permissions to
@@ -351,8 +362,16 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation was successful
         """
-        # TODO: for next server version, change to `streamUpdatePermission`
         metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
+        if self.server_version and self.server_version >= (2, 6, 4):
+            raise UnsupportedException(
+                (
+                    "Server mutation `grant_permission` is no longer supported as of Speckle Server v2.6.4. "
+                    "Please use the new `update_permission` method to change an existing user's permission "
+                    "or use the `invite` method to invite a user to a stream."
+                )
+            )
+
         query = gql(
             """
             mutation StreamGrantPermission($permission_params: StreamGrantPermissionInput !) {
@@ -373,6 +392,324 @@ class Resource(ResourceBase):
             query=query,
             params=params,
             return_type="streamGrantPermission",
+            parse_response=False,
+        )
+
+    def _check_invites_supported(self):
+        """Invites are only supported for Speckle Server >= 2.6.4.
+        Use this check to guard against making unsupported requests on older servers.
+        """
+        if self.server_version and self.server_version < (2, 6, 4):
+            raise UnsupportedException(
+                (
+                    "Stream invites are only supported as of Speckle Server v2.6.4. "
+                    "Please update your Speckle Server to use this method or use the `grant_permission` flow instead."
+                )
+            )
+
+    def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
+        """Get all of the active user's pending stream invites
+
+        Requires Speckle Server version >= 2.6.4
+
+        Returns:
+            List[PendingStreamCollaborator] -- a list of pending invites for the current user
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        self._check_invites_supported()
+
+        query = gql(
+            """
+            query StreamInvites {
+                streamInvites{
+                    id
+                    inviteId
+                    streamId
+                    streamName
+                    title
+                    role
+                    invitedBy {
+                        id
+                        name
+                        company
+                        avatar
+                    }
+                }
+            }
+            """
+        )
+
+        return self.make_request(
+            query=query,
+            return_type="streamInvites",
+            schema=PendingStreamCollaborator,
+        )
+
+    def get_pending_invite(
+        self, stream_id: str, invite_id: str = None
+    ) -> Optional[PendingStreamCollaborator]:
+        """Get a particular pending invite for a given stream.
+        If no invite_id is provided, any valid invite will be returned
+
+        Requires Speckle Server version >= 2.6.4
+
+        Arguments:
+            stream_id {str} -- the id of the stream to look for invites on
+            invite_id {str} -- the id of the invite to look for (optional)
+
+        Returns:
+            PendingStreamCollaborator -- the invite for the given stream (or None if it isn't found)
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        self._check_invites_supported()
+
+        query = gql(
+            """
+            query StreamInvite($streamId: String!, $inviteId: String) {
+                streamInvite(streamId: $streamId, inviteId: $inviteId) {
+                    id
+                    inviteId
+                    streamId
+                    streamName
+                    title
+                    role
+                    invitedBy {
+                        id
+                        name
+                        company
+                        avatar
+                    }
+                }
+            }
+            """
+        )
+
+        params = {"streamId": stream_id}
+        if invite_id:
+            params["inviteId"] = invite_id
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamInvite",
+            schema=PendingStreamCollaborator,
+        )
+
+    def invite(
+        self,
+        stream_id: str,
+        email: str = None,
+        user_id: str = None,
+        message: str = None,
+    ):
+        """Invite someone to a stream using either their email or user id
+
+        Requires Speckle Server version >= 2.6.4
+
+        Arguments:
+            stream_id {str} -- the id of the stream to invite the user to
+            email {str} -- the email of the user to invite (use this OR `user_id`)
+            user_id {str} -- the id of the user to invite (use this OR `email`)
+            message {str} -- a message to send along with this invite to the specified user
+
+        Returns:
+            bool -- True if the operation was successful
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "create"})
+        self._check_invites_supported()
+
+        if email is None and user_id is None:
+            raise SpeckleException(
+                "You must provide either an email or a user id to use the `stream.invite` method"
+            )
+
+        query = gql(
+            """
+            mutation StreamInviteCreate($input: StreamInviteCreateInput!) {
+                streamInviteCreate(input: $input)
+            }
+            """
+        )
+
+        params = {
+            "email": email,
+            "userId": user_id,
+            "streamId": stream_id,
+            "message": message,
+        }
+        params = {"input": {k: v for k, v in params.items() if v is not None}}
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamInviteCreate",
+            parse_response=False,
+        )
+
+    def invite_batch(
+        self,
+        stream_id: str,
+        emails: List[str] = None,
+        user_ids: List[None] = None,
+        message: str = None,
+    ) -> bool:
+        """Invite a batch of users to a specified stream.
+
+        Requires Speckle Server version >= 2.6.4
+
+        Arguments:
+            stream_id {str} -- the id of the stream to invite the user to
+            emails {List[str]} -- the email of the user to invite (use this and/or `user_ids`)
+            user_id {List[str]} -- the id of the user to invite (use this and/or `emails`)
+            message {str} -- a message to send along with this invite to the specified user
+
+        Returns:
+            bool -- True if the operation was successful
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "batch create"})
+        self._check_invites_supported()
+        if emails is None and user_ids is None:
+            raise SpeckleException(
+                "You must provide either an email or a user id to use the `stream.invite` method"
+            )
+
+        query = gql(
+            """
+            mutation StreamInviteBatchCreate($input: [StreamInviteCreateInput!]!) {
+                streamInviteBatchCreate(input: $input)
+            }
+            """
+        )
+
+        email_invites = [
+            {"streamId": stream_id, "message": message, "email": email}
+            for email in emails
+            if emails is not None
+        ]
+
+        user_invites = [
+            {"streamId": stream_id, "message": message, "userId": user_id}
+            for user_id in user_ids
+            if user_ids is not None
+        ]
+
+        params = {"input": [*email_invites, *user_invites]}
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamInviteBatchCreate",
+            parse_response=False,
+        )
+
+    def invite_cancel(self, stream_id: str, invite_id: str) -> bool:
+        """Cancel an existing stream invite
+
+        Requires Speckle Server version >= 2.6.4
+
+        Arguments:
+            stream_id {str} -- the id of the stream invite
+            invite_id {str} -- the id of the invite to use
+
+        Returns:
+            bool -- true if the operation was successful
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "cancel"})
+        self._check_invites_supported()
+
+        query = gql(
+            """
+            mutation StreamInviteCancel($streamId: String!, $inviteId: String!) {
+                streamInviteCancel(streamId: $streamId, inviteId: $inviteId)
+            }
+            """
+        )
+
+        params = {"streamId": stream_id, "inviteId": invite_id}
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamInviteCancel",
+            parse_response=False,
+        )
+
+    def invite_use(self, stream_id: str, invite_id: str, accept: bool = True) -> bool:
+        """Accept or decline a stream invite
+
+        Requires Speckle Server version >= 2.6.4
+
+        Arguments:
+            stream_id {str} -- the id of the stream for which the user has a pending invite
+            invite_id {str} -- the id of the invite to use
+            accept {bool} -- whether or not to accept the invite (defaults to True)
+
+        Returns:
+            bool -- true if the operation was successful
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "use"})
+        self._check_invites_supported()
+
+        query = gql(
+            """
+            mutation StreamInviteUse($accept: Boolean!, $streamId: String!, $inviteId: String!) {
+                streamInviteUse(accept: $accept, streamId: $streamId, inviteId: $inviteId)
+            }
+            """
+        )
+
+        params = {"streamId": stream_id, "inviteId": invite_id, "accept": accept}
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamInviteUse",
+            parse_response=False,
+        )
+
+    def update_permission(self, stream_id: str, user_id: str, role: str):
+        """Updates permissions for a user on a given stream
+
+        Valid for Speckle Server >=2.6.4
+
+        Arguments:
+            stream_id {str} -- the id of the stream to grant permissions to
+            user_id {str} -- the id of the user to grant permissions for
+            role {str} -- the role to grant the user
+
+        Returns:
+            bool -- True if the operation was successful
+        """
+        metrics.track(
+            metrics.PERMISSION, self.account, {"name": "update", "role": role}
+        )
+        if self.server_version and self.server_version < (2, 6, 4):
+            raise UnsupportedException(
+                (
+                    "Server mutation `update_permission` is only supported as of Speckle Server v2.6.4. "
+                    "Please update your Speckle Server to use this method or use the `grant_permission` method instead."
+                )
+            )
+        query = gql(
+            """
+            mutation StreamUpdatePermission($permission_params: StreamUpdatePermissionInput !) {
+                streamUpdatePermission(permissionParams: $permission_params)
+            }
+            """
+        )
+
+        params = {
+            "permission_params": {
+                "streamId": stream_id,
+                "userId": user_id,
+                "role": role,
+            }
+        }
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamUpdatePermission",
             parse_response=False,
         )
 
