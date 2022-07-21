@@ -1,7 +1,7 @@
 from graphql import DocumentNode
 from specklepy.api.credentials import Account
 from specklepy.transports.sqlite import SQLiteTransport
-from typing import Any, Dict, List, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 from gql.client import Client
 from gql.transport.exceptions import TransportQueryError
 from specklepy.logging.exceptions import GraphQLException, SpeckleException
@@ -15,12 +15,14 @@ class ResourceBase(object):
         basepath: str,
         client: Client,
         name: str,
+        server_version: Optional[Tuple[Any, ...]] = None,
     ) -> None:
         self.account = account
         self.basepath = basepath
         self.client = client
         self.name = name
-        self.schema: Union[Type, None] = None
+        self.server_version = server_version
+        self.schema: Optional[Type] = None
 
     def _step_into_response(self, response: dict, return_type: Union[str, List, None]):
         """Step into the dict to get the relevant data"""
@@ -33,8 +35,10 @@ class ResourceBase(object):
                 response = response[key]
             return response
 
-    def _parse_response(self, response: Union[dict, list], schema=None):
+    def _parse_response(self, response: Union[dict, list, None], schema=None):
         """Try to create a class instance from the response"""
+        if response is None:
+            return None
         if isinstance(response, list):
             return [self._parse_response(response=r, schema=schema) for r in response]
         if schema:
