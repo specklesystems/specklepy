@@ -18,7 +18,14 @@ class TestServer:
 
         assert isinstance(server, ServerInfo)
 
-    def test_server_apps(self, client):
+    def test_server_version(self, client: SpeckleClient):
+        version = client.server.version()
+
+        assert isinstance(version, tuple)
+        assert isinstance(version[0], int)
+        assert len(version) >= 3
+
+    def test_server_apps(self, client: SpeckleClient):
         apps = client.server.apps()
 
         assert isinstance(apps, list)
