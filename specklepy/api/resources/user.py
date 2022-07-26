@@ -1,25 +1,24 @@
+from typing import List, Optional, Union
 from datetime import datetime, timezone
+from gql import gql
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
-from typing import List
-from gql import gql
 from specklepy.api.resource import ResourceBase
-from specklepy.api.models import ActivityCollection, User
+from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
 
 NAME = "user"
-METHODS = ["get", "search", "update", "activity"]
 
 
 class Resource(ResourceBase):
     """API Access class for users"""
 
-    def __init__(self, account, basepath, client) -> None:
+    def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,
             basepath=basepath,
             client=client,
             name=NAME,
-            methods=METHODS,
+            server_version=server_version,
         )
         self.schema = User
 
@@ -55,7 +54,9 @@ class Resource(ResourceBase):
 
         return self.make_request(query=query, params=params, return_type="user")
 
-    def search(self, search_query: str, limit: int = 25) -> List[User]:
+    def search(
+        self, search_query: str, limit: int = 25
+    ) -> Union[List[User], SpeckleException]:
         """Searches for user by name or email. The search query must be at least 3 characters long
 
         Arguments:
@@ -187,4 +188,93 @@ class Resource(ResourceBase):
             params=params,
             return_type=["user", "activity"],
             schema=ActivityCollection,
+        )
+
+    def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
+        """Get all of the active user's pending stream invites
+
+        Requires Speckle Server version >= 2.6.4
+
+        Returns:
+            List[PendingStreamCollaborator] -- a list of pending invites for the current user
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        self._check_invites_supported()
+
+        query = gql(
+            """
+            query StreamInvites {
+                streamInvites{
+                    id
+                    token
+                    inviteId
+                    streamId
+                    streamName
+                    title
+                    role
+                    invitedBy {
+                        id
+                        name
+                        company
+                        avatar
+                    }
+                }
+            }
+            """
+        )
+
+        return self.make_request(
+            query=query,
+            return_type="streamInvites",
+            schema=PendingStreamCollaborator,
+        )
+
+    def get_pending_invite(
+        self, stream_id: str, token: str = None
+    ) -> Optional[PendingStreamCollaborator]:
+        """Get a particular pending invite for the active user on a given stream.
+        If no invite_id is provided, any valid invite will be returned.
+
+        Requires Speckle Server version >= 2.6.4
+
+        Arguments:
+            stream_id {str} -- the id of the stream to look for invites on
+            token {str} -- the token of the invite to look for (optional)
+
+        Returns:
+            PendingStreamCollaborator -- the invite for the given stream (or None if it isn't found)
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        self._check_invites_supported()
+
+        query = gql(
+            """
+            query StreamInvite($streamId: String!, $token: String) {
+                streamInvite(streamId: $streamId, token: $token) {
+                    id
+                    token
+                    streamId
+                    streamName
+                    title
+                    role
+                    invitedBy {
+                        id
+                        name
+                        company
+                        avatar
+                    }
+                }
+            }
+            """
+        )
+
+        params = {"streamId": stream_id}
+        if token:
+            params["token"] = token
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamInvite",
+            schema=PendingStreamCollaborator,
         )

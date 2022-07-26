@@ -26,6 +26,7 @@ RECEIVE = "Receive"
 SEND = "Send"
 STREAM = "Stream Action"
 PERMISSION = "Permission Action"
+INVITE = "Invite Action"
 COMMIT = "Commit Action"
 BRANCH = "Branch Action"
 USER = "User Action"
@@ -79,6 +80,7 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
     except Exception as ex:
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
         LOG.error(f"Error queueing metrics request: {str(ex)}")
+
 
 def initialise_tracker(account: "Account" = None):
     global METRICS_TRACKER

@@ -160,8 +160,25 @@ class SpeckleClient:
         return self.httpclient.execute(query)
 
     def _init_resources(self) -> None:
-        self.stream = stream.Resource(
+        self.server = server.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
+        )
+        server_version = None
+        try:
+            server_version = self.server.version()
+        except:
+            pass
+        self.user = user.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.stream = stream.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
         )
         self.commit = commit.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
@@ -170,12 +187,6 @@ class SpeckleClient:
             account=self.account, basepath=self.url, client=self.httpclient
         )
         self.object = object.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.server = server.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.user = user.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
         self.subscribe = subscriptions.Resource(

@@ -4,7 +4,6 @@ from specklepy.api.models import Branch
 from specklepy.logging import metrics
 
 NAME = "branch"
-METHODS = ["create"]
 
 
 class Resource(ResourceBase):
@@ -16,7 +15,6 @@ class Resource(ResourceBase):
             basepath=basepath,
             client=client,
             name=NAME,
-            methods=METHODS,
         )
         self.schema = Branch
 

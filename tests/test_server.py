@@ -1,5 +1,6 @@
 import pytest
 from specklepy.api.models import ServerInfo
+from specklepy.api.client import SpeckleClient
 
 
 class TestServer:
@@ -12,12 +13,19 @@ class TestServer:
             "lifespan": 9001,
         }
 
-    def test_server_get(self, client):
+    def test_server_get(self, client: SpeckleClient):
         server = client.server.get()
 
         assert isinstance(server, ServerInfo)
 
-    def test_server_apps(self, client):
+    def test_server_version(self, client: SpeckleClient):
+        version = client.server.version()
+
+        assert isinstance(version, tuple)
+        assert isinstance(version[0], int)
+        assert len(version) >= 3
+
+    def test_server_apps(self, client: SpeckleClient):
         apps = client.server.apps()
 
         assert isinstance(apps, list)

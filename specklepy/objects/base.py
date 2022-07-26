@@ -92,12 +92,19 @@ class _RegisteringBase:
     speckle_type: ClassVar[str]
     _type_registry: ClassVar[Dict[str, "Base"]] = {}
     _attr_types: ClassVar[Dict[str, Type]] = {}
+    # dict of chunkable props and their max chunk size
+    _chunkable: Dict[str, int] = {}
+    _chunk_size_default: int = 1000
+    _detachable: Set[str] = set()  # list of defined detachable props
+    _serialize_ignore: Set[str] = set()
 
     class Config:
         validate_assignment = True
 
     @classmethod
-    def get_registered_type(cls, speckle_type: str) -> Optional[Type["Base"]]:
+    def get_registered_type(
+        cls, speckle_type: str
+    ) -> Union["Base", Type["Base"], None]:
         """Get the registered type from the protected mapping via the `speckle_type`"""
         return cls._type_registry.get(speckle_type, None)
 
@@ -142,12 +149,7 @@ class Base(_RegisteringBase):
     id: Optional[str] = None
     totalChildrenCount: Optional[int] = None
     applicationId: Optional[str] = None
-    _units: str = None
-    # dict of chunkable props and their max chunk size
-    _chunkable: Dict[str, int] = {}
-    _chunk_size_default: int = 1000
-    _detachable: Set[str] = set()  # list of defined detachable props
-    _serialize_ignore: Set[str] = set()
+    _units: Union[str, None] = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -378,6 +380,7 @@ class Base(_RegisteringBase):
         )
 
     def _handle_object_count(self, obj: Any, parsed: List) -> int:
+        # pylint: disable=isinstance-second-argument-not-valid-type
         count = 0
         if obj is None:
             return count
@@ -406,7 +409,7 @@ Base.update_forward_refs()
 
 
 class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
-    data: List[Any] = None
+    data: Union[List[Any], None] = None
 
     def __init__(self) -> None:
         super().__init__()

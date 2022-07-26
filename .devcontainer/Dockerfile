@@ -1,11 +1,11 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/python-3/.devcontainer/base.Dockerfile
+# See here for image contents: https://github.com/microsoft/vscode-dev-containers/blob/main/containers/python-3/.devcontainer/base.Dockerfile
 
 # [Choice] Python version: 3, 3.9, 3.8, 3.7, 3.6
-ARG VARIANT="3.9"
-FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
+ARG VARIANT="3.10"
+FROM mcr.microsoft.com/vscode/devcontainers/python:${VARIANT}
 
 # [Choice] Node.js version: none, lts/*, 16, 14, 12, 10
-ARG NODE_VERSION="none"
+ARG NODE_VERSION="16"
 RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
 # [Optional] If your pip requirements rarely change, uncomment this section to add them to the image.

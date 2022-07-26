@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from contextlib import ExitStack as does_not_raise
 
 import pytest
@@ -111,6 +111,7 @@ class FrozenYoghurt(Base):
     add_ons: Optional[Dict[str, float]]  # dict item types won't be checked
     price: float = 0.0
     dietary: DietaryRestrictions
+    tag: Union[int, str]
 
 
 def test_type_checking() -> None:
@@ -120,6 +121,8 @@ def test_type_checking() -> None:
     order.price = "7"  # will get converted
     order.customer = "izzy"
     order.dietary = DietaryRestrictions.VEGAN
+    order.tag = "preorder"
+    order.tag = 4411
 
     with pytest.raises(SpeckleException):
         order.flavours = "not a list"
@@ -129,6 +132,8 @@ def test_type_checking() -> None:
         order.add_ons = ["sprinkles"]
     with pytest.raises(SpeckleException):
         order.dietary = "no nuts plz"
+    with pytest.raises(SpeckleException):
+        order.tag = ["tag01", "tag02"]
 
     order.add_ons = {"sprinkles": 0.2, "chocolate": 1.0}
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
@@ -137,7 +142,7 @@ def test_type_checking() -> None:
 
 
 def test_cached_deserialization() -> None:
-    material = Base(color="blue", opacity=.5)
+    material = Base(color="blue", opacity=0.5)
 
     a = Base(name="a")
     a["@material"] = material

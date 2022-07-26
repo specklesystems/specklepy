@@ -1,8 +1,9 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 
 class SpeckleException(Exception):
     def __init__(self, message: str, exception: Exception = None) -> None:
+        super().__init__()
         self.message = message
         self.exception = exception
 
@@ -11,23 +12,33 @@ class SpeckleException(Exception):
 
 
 class SerializationException(SpeckleException):
-    def __init__(self, message: str, object: Any, exception: Exception = None) -> None:
-        super().__init__(message=message)
-        self.object = object
-        self.unhandled_type = type(object)
+    def __init__(self, message: str, obj: Any, exception: Exception = None) -> None:
+        super().__init__(message=message, exception=exception)
+        self.obj = obj
+        self.unhandled_type = type(obj)
 
     def __str__(self) -> str:
         return f"SpeckleException: Could not serialize object of type {self.unhandled_type}"
 
 
 class GraphQLException(SpeckleException):
-    def __init__(self, message: str, errors: List, data=None) -> None:
+    def __init__(
+        self, message: str, errors: Optional[List[Any]] = None, data=None
+    ) -> None:
         super().__init__(message=message)
         self.errors = errors
         self.data = data
 
     def __str__(self) -> str:
         return f"GraphQLException: {self.message}"
+
+
+class UnsupportedException(SpeckleException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message=message)
+
+    def __str__(self) -> str:
+        return f"UnsupportedException: {self.message}"
 
 
 class SpeckleWarning(Warning):

@@ -1,6 +1,5 @@
 from pathlib import Path
 import sys
-import inspect
 import pkgutil
 from importlib import import_module
 

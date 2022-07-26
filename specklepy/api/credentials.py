@@ -1,5 +1,5 @@
 import os
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 from typing import List, Optional
 from specklepy.logging import metrics
 from specklepy.api.models import ServerInfo
@@ -16,11 +16,11 @@ class UserInfo(BaseModel):
 
 class Account(BaseModel):
     isDefault: bool = False
-    token: str = None
-    refreshToken: str = None
+    token: Optional[str] = None
+    refreshToken: Optional[str] = None
     serverInfo: ServerInfo = Field(default_factory=ServerInfo)
     userInfo: UserInfo = Field(default_factory=UserInfo)
-    id: str = None
+    id: Optional[str] = None
 
     def __repr__(self) -> str:
         return f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url}, isDefault: {self.isDefault})"
@@ -45,11 +45,12 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
         List[Account] -- list of all local accounts or an empty list if no accounts were found
     """
     account_storage = SQLiteTransport(scope="Accounts", base_path=base_path)
+    # pylint: disable=protected-access
     json_path = os.path.join(account_storage._base_path, "Accounts")
     os.makedirs(json_path, exist_ok=True)
     json_acct_files = [file for file in os.listdir(json_path) if file.endswith(".json")]
 
-    accounts = []
+    accounts: List[Account] = []
     res = account_storage.get_all_objects()
     account_storage.close()
 
@@ -62,7 +63,10 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
                 for json_file in json_acct_files
             )
         except Exception as ex:
-            raise SpeckleException("Invalid json accounts could not be read. Please fix or remove them.", ex) from ex
+            raise SpeckleException(
+                "Invalid json accounts could not be read. Please fix or remove them.",
+                ex,
+            ) from ex
 
     metrics.track(
         metrics.ACCOUNTS,

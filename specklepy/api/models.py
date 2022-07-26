@@ -3,10 +3,10 @@
 #   timestamp: 2020-11-17T14:33:13+00:00
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 
-from pydantic import BaseModel
+from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 
 class Collaborator(BaseModel):
@@ -110,6 +110,24 @@ class User(BaseModel):
         return self.__repr__()
 
 
+class PendingStreamCollaborator(BaseModel):
+    id: Optional[str]
+    inviteId: Optional[str]
+    streamId: Optional[str]
+    streamName: Optional[str]
+    title: Optional[str]
+    role: Optional[str]
+    invitedBy: Optional[User]
+    user: Optional[User]
+    token: Optional[str]
+
+    def __repr__(self):
+        return f"PendingStreamCollaborator( inviteId: {self.inviteId}, streamId: {self.streamId}, role: {self.role}, title: {self.title}, invitedBy: {self.user.name if self.user else None})"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+
 class Activity(BaseModel):
     actionType: Optional[str]
     info: Optional[dict]
@@ -133,7 +151,7 @@ class ActivityCollection(BaseModel):
     cursor: Optional[datetime]
 
     def __repr__(self) -> str:
-        return f"ActivityCollection( totalCount: {self.totalCount}, items: {len(self.items) if self.items else 0}, cursor: {self.cursor.isoformat()} )"
+        return f"ActivityCollection( totalCount: {self.totalCount}, items: {len(self.items) if self.items else 0}, cursor: {self.cursor.isoformat() if self.cursor else None} )"
 
     def __str__(self) -> str:
         return self.__repr__()
