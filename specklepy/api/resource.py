@@ -4,7 +4,11 @@ from specklepy.transports.sqlite import SQLiteTransport
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 from gql.client import Client
 from gql.transport.exceptions import TransportQueryError
-from specklepy.logging.exceptions import GraphQLException, SpeckleException
+from specklepy.logging.exceptions import (
+    GraphQLException,
+    SpeckleException,
+    UnsupportedException,
+)
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
 
@@ -82,3 +86,29 @@ class ResourceBase(object):
             return self._parse_response(response=response, schema=schema)
         else:
             return response
+
+    def _check_server_version_at_least(
+        self, target_version: Tuple[Any, ...], unsupported_message: str = None
+    ):
+        """Use this check to guard against making unsupported requests on older servers.
+
+        Arguments:
+            target_version {tuple} -- the minimum server version in the format (major, minor, patch, (tag, build))
+                                      eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
+        """
+        if not unsupported_message:
+            unsupported_message = f"The client method used is not supported on Speckle Server versios prior to v{'.'.join(target_version)}"
+        if self.server_version and self.server_version < target_version:
+            raise UnsupportedException(unsupported_message)
+
+    def _check_invites_supported(self):
+        """Invites are only supported for Speckle Server >= 2.6.4.
+        Use this check to guard against making unsupported requests on older servers.
+        """
+        self._check_server_version_at_least(
+            (2, 6, 4),
+            (
+                "Stream invites are only supported as of Speckle Server v2.6.4. "
+                "Please update your Speckle Server to use this method or use the `grant_permission` flow instead."
+            ),
+        )

@@ -1,10 +1,10 @@
-from typing import List, Union
+from typing import List, Optional, Union
 from datetime import datetime, timezone
 from gql import gql
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.api.resource import ResourceBase
-from specklepy.api.models import ActivityCollection, User
+from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
 
 NAME = "user"
 
@@ -188,4 +188,93 @@ class Resource(ResourceBase):
             params=params,
             return_type=["user", "activity"],
             schema=ActivityCollection,
+        )
+
+    def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
+        """Get all of the active user's pending stream invites
+
+        Requires Speckle Server version >= 2.6.4
+
+        Returns:
+            List[PendingStreamCollaborator] -- a list of pending invites for the current user
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        self._check_invites_supported()
+
+        query = gql(
+            """
+            query StreamInvites {
+                streamInvites{
+                    id
+                    token
+                    inviteId
+                    streamId
+                    streamName
+                    title
+                    role
+                    invitedBy {
+                        id
+                        name
+                        company
+                        avatar
+                    }
+                }
+            }
+            """
+        )
+
+        return self.make_request(
+            query=query,
+            return_type="streamInvites",
+            schema=PendingStreamCollaborator,
+        )
+
+    def get_pending_invite(
+        self, stream_id: str, token: str = None
+    ) -> Optional[PendingStreamCollaborator]:
+        """Get a particular pending invite for the active user on a given stream.
+        If no invite_id is provided, any valid invite will be returned.
+
+        Requires Speckle Server version >= 2.6.4
+
+        Arguments:
+            stream_id {str} -- the id of the stream to look for invites on
+            token {str} -- the token of the invite to look for (optional)
+
+        Returns:
+            PendingStreamCollaborator -- the invite for the given stream (or None if it isn't found)
+        """
+        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        self._check_invites_supported()
+
+        query = gql(
+            """
+            query StreamInvite($streamId: String!, $token: String) {
+                streamInvite(streamId: $streamId, token: $token) {
+                    id
+                    token
+                    streamId
+                    streamName
+                    title
+                    role
+                    invitedBy {
+                        id
+                        name
+                        company
+                        avatar
+                    }
+                }
+            }
+            """
+        )
+
+        params = {"streamId": stream_id}
+        if token:
+            params["token"] = token
+
+        return self.make_request(
+            query=query,
+            params=params,
+            return_type="streamInvite",
+            schema=PendingStreamCollaborator,
         )

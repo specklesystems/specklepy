@@ -108,6 +108,7 @@ class TestStream:
         invited = client.stream.invite(
             stream_id=stream.id,
             email=second_user_dict["email"],
+            role="stream:reviewer",
             message="welcome to my stream!",
         )
 
@@ -117,23 +118,26 @@ class TestStream:
         with pytest.raises(SpeckleException):
             client.stream.invite(stream_id=stream.id)
 
-    def test_stream_invite_get(self, second_client: SpeckleClient, stream: Stream):
-        invites = second_client.stream.get_all_pending_invites()
+    def test_stream_invite_get_all_for_user(
+        self, second_client: SpeckleClient, stream: Stream
+    ):
+        # NOTE: these are user queries, but testing here to contain the flow
+        invites = second_client.user.get_all_pending_invites()
 
         assert isinstance(invites, list)
         assert isinstance(invites[0], PendingStreamCollaborator)
         assert len(invites) == 1
 
-        invite = second_client.stream.get_pending_invite(stream_id=stream.id)
+        invite = second_client.user.get_pending_invite(stream_id=stream.id)
         assert isinstance(invite, PendingStreamCollaborator)
 
     def test_stream_invite_use(self, second_client: SpeckleClient, stream: Stream):
         invite: PendingStreamCollaborator = (
-            second_client.stream.get_all_pending_invites()[0]
+            second_client.user.get_all_pending_invites()[0]
         )
 
         accepted = second_client.stream.invite_use(
-            stream_id=stream.id, invite_id=invite.inviteId
+            stream_id=stream.id, token=invite.token
         )
 
         assert accepted is True
@@ -142,7 +146,7 @@ class TestStream:
         self, client: SpeckleClient, stream: Stream, second_user: User
     ):
         updated = client.stream.update_permission(
-            stream_id=stream.id, user_id=second_user.id, role="stream:owner"
+            stream_id=stream.id, user_id=second_user.id, role="stream:contributor"
         )
 
         assert updated is True
@@ -160,7 +164,6 @@ class TestStream:
     def test_stream_invite_cancel(
         self,
         client: SpeckleClient,
-        second_client: SpeckleClient,
         stream: Stream,
         second_user: User,
     ):
@@ -171,7 +174,7 @@ class TestStream:
         )
         assert invited is True
 
-        invites = second_client.stream.get_all_pending_invites()
+        invites = client.stream.get_all_pending_invites(stream_id=stream.id)
 
         cancelled = client.stream.invite_cancel(
             invite_id=invites[0].inviteId, stream_id=stream.id
@@ -182,7 +185,7 @@ class TestStream:
     def test_stream_invite_batch(
         self, client: SpeckleClient, stream: Stream, second_user: User
     ):
-        # TODO: this is failing because i don't have the right _server_ role? double check w web team
+        # NOTE: only works for server admins
         # invited = client.stream.invite_batch(
         #     stream_id=stream.id,
         #     emails=["userA@speckle.xyz", "userB@speckle.xyz"],

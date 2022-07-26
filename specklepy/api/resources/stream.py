@@ -395,103 +395,58 @@ class Resource(ResourceBase):
             parse_response=False,
         )
 
-    def _check_invites_supported(self):
-        """Invites are only supported for Speckle Server >= 2.6.4.
-        Use this check to guard against making unsupported requests on older servers.
-        """
-        if self.server_version and self.server_version < (2, 6, 4):
-            raise UnsupportedException(
-                (
-                    "Stream invites are only supported as of Speckle Server v2.6.4. "
-                    "Please update your Speckle Server to use this method or use the `grant_permission` flow instead."
-                )
-            )
-
-    def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
-        """Get all of the active user's pending stream invites
-
-        Requires Speckle Server version >= 2.6.4
-
-        Returns:
-            List[PendingStreamCollaborator] -- a list of pending invites for the current user
-        """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            query StreamInvites {
-                streamInvites{
-                    id
-                    inviteId
-                    streamId
-                    streamName
-                    title
-                    role
-                    invitedBy {
-                        id
-                        name
-                        company
-                        avatar
-                    }
-                }
-            }
-            """
-        )
-
-        return self.make_request(
-            query=query,
-            return_type="streamInvites",
-            schema=PendingStreamCollaborator,
-        )
-
-    def get_pending_invite(
-        self, stream_id: str, invite_id: str = None
-    ) -> Optional[PendingStreamCollaborator]:
-        """Get a particular pending invite for a given stream.
-        If no invite_id is provided, any valid invite will be returned
+    def get_all_pending_invites(
+        self, stream_id: str
+    ) -> List[PendingStreamCollaborator]:
+        """Get all of the pending invites on a stream.
+        You must be a `stream:owner` to query this.
 
         Requires Speckle Server version >= 2.6.4
 
         Arguments:
-            stream_id {str} -- the id of the stream to look for invites on
-            invite_id {str} -- the id of the invite to look for (optional)
+            stream_id {str} -- the stream id from which to get the pending invites
 
         Returns:
-            PendingStreamCollaborator -- the invite for the given stream (or None if it isn't found)
+            List[PendingStreamCollaborator] -- a list of pending invites for the specified stream
         """
         metrics.track(metrics.INVITE, self.account, {"name": "get"})
         self._check_invites_supported()
 
         query = gql(
             """
-            query StreamInvite($streamId: String!, $inviteId: String) {
-                streamInvite(streamId: $streamId, inviteId: $inviteId) {
-                    id
-                    inviteId
-                    streamId
-                    streamName
-                    title
-                    role
-                    invitedBy {
+            query StreamInvites($streamId: String!) {
+                stream(id: $streamId){
+                    pendingCollaborators {
                         id
-                        name
-                        company
-                        avatar
+                        token
+                        inviteId
+                        streamId
+                        streamName
+                        title
+                        role
+                        invitedBy{
+                            id
+                            name
+                            company
+                            avatar
+                        }
+                        user {
+                            id
+                            name
+                            company
+                            avatar
+                        }
                     }
                 }
             }
             """
         )
-
         params = {"streamId": stream_id}
-        if invite_id:
-            params["inviteId"] = invite_id
 
         return self.make_request(
             query=query,
             params=params,
-            return_type="streamInvite",
+            return_type=["stream", "pendingCollaborators"],
             schema=PendingStreamCollaborator,
         )
 
@@ -500,6 +455,7 @@ class Resource(ResourceBase):
         stream_id: str,
         email: str = None,
         user_id: str = None,
+        role: str = "stream:contributor",  # should default be reviewer?
         message: str = None,
     ):
         """Invite someone to a stream using either their email or user id
@@ -510,6 +466,7 @@ class Resource(ResourceBase):
             stream_id {str} -- the id of the stream to invite the user to
             email {str} -- the email of the user to invite (use this OR `user_id`)
             user_id {str} -- the id of the user to invite (use this OR `email`)
+            role {str} -- the role to assing to the user (defaults to `stream:contributor`)
             message {str} -- a message to send along with this invite to the specified user
 
         Returns:
@@ -536,6 +493,7 @@ class Resource(ResourceBase):
             "userId": user_id,
             "streamId": stream_id,
             "message": message,
+            "role": role,
         }
         params = {"input": {k: v for k, v in params.items() if v is not None}}
 
@@ -634,14 +592,14 @@ class Resource(ResourceBase):
             parse_response=False,
         )
 
-    def invite_use(self, stream_id: str, invite_id: str, accept: bool = True) -> bool:
+    def invite_use(self, stream_id: str, token: str, accept: bool = True) -> bool:
         """Accept or decline a stream invite
 
         Requires Speckle Server version >= 2.6.4
 
         Arguments:
             stream_id {str} -- the id of the stream for which the user has a pending invite
-            invite_id {str} -- the id of the invite to use
+            token {str} -- the token of the invite to use
             accept {bool} -- whether or not to accept the invite (defaults to True)
 
         Returns:
@@ -652,13 +610,13 @@ class Resource(ResourceBase):
 
         query = gql(
             """
-            mutation StreamInviteUse($accept: Boolean!, $streamId: String!, $inviteId: String!) {
-                streamInviteUse(accept: $accept, streamId: $streamId, inviteId: $inviteId)
+            mutation StreamInviteUse($accept: Boolean!, $streamId: String!, $token: String!) {
+                streamInviteUse(accept: $accept, streamId: $streamId, token: $token)
             }
             """
         )
 
-        params = {"streamId": stream_id, "inviteId": invite_id, "accept": accept}
+        params = {"streamId": stream_id, "token": token, "accept": accept}
 
         return self.make_request(
             query=query,

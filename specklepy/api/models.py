@@ -119,6 +119,7 @@ class PendingStreamCollaborator(BaseModel):
     role: Optional[str]
     invitedBy: Optional[User]
     user: Optional[User]
+    token: Optional[str]
 
     def __repr__(self):
         return f"PendingStreamCollaborator( inviteId: {self.inviteId}, streamId: {self.streamId}, role: {self.role}, title: {self.title}, invitedBy: {self.user.name if self.user else None})"
