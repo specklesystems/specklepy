@@ -79,7 +79,7 @@ def track(action: str, account: "Account" = None, custom_props: dict = None):
         METRICS_TRACKER.queue.put_nowait(event_params)
     except Exception as ex:
         # wrapping this whole thing in a try except as we never want a failure here to annoy users!
-        LOG.error(f"Error queueing metrics request: {str(ex)}")
+        LOG.debug(f"Error queueing metrics request: {str(ex)}")
 
 
 def initialise_tracker(account: "Account" = None):
