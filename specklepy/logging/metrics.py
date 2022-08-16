@@ -143,6 +143,6 @@ class MetricsTracker(metaclass=Singleton):
             try:
                 session.post(self.analytics_url, json=event_params)
             except Exception as ex:
-                LOG.error(f"Error sending metrics request: {str(ex)}")
+                LOG.debug(f"Error sending metrics request: {str(ex)}")
 
             self.queue.task_done()
