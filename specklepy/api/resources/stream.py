@@ -466,7 +466,7 @@ class Resource(ResourceBase):
             stream_id {str} -- the id of the stream to invite the user to
             email {str} -- the email of the user to invite (use this OR `user_id`)
             user_id {str} -- the id of the user to invite (use this OR `email`)
-            role {str} -- the role to assing to the user (defaults to `stream:contributor`)
+            role {str} -- the role to assign to the user (defaults to `stream:contributor`)
             message {str} -- a message to send along with this invite to the specified user
 
         Returns:
