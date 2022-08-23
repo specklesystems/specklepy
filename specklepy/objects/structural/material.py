@@ -42,8 +42,8 @@ class Concrete(Material, speckle_type=STRUCTURAL_MATERIALS + ".Concrete"):
     compressiveStrength: float = 0.0
     tensileStrength: float = 0.0
     flexuralStrength: float = 0.0
-    maxCompressiveStrength: float = 0.0
-    maxTensileStrength: float = 0.0
+    maxCompressiveStrain: float = 0.0
+    maxTensileStrain: float = 0.0
     maxAggregateSize: float = 0.0
     lightweight: bool = None
 
