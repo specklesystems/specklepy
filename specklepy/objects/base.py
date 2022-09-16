@@ -318,8 +318,8 @@ class Base(_RegisteringBase):
 
     @units.setter
     def units(self, value: str):
-        units = get_units_from_string(value)
-        if units:
+        units, valid_units = get_units_from_string(value)
+        if valid_units:
             self._units = units
 
     def get_member_names(self) -> List[str]:

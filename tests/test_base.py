@@ -85,9 +85,11 @@ def test_setting_units():
     with pytest.raises(SpeckleException):
         b.units = "big"
 
-    b.units = None  # invalid args are skipped
-    b.units = 7
+    b.units = 7  # invalid args are skipped
     assert b.units == "ft"
+
+    b.units = None  # None should be a valid arg
+    assert b.units == None
 
 
 def test_base_of_custom_speckle_type() -> None:

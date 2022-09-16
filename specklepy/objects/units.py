@@ -1,3 +1,4 @@
+from typing import Union, Tuple
 from warnings import warn
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
@@ -29,17 +30,19 @@ UNITS_ENCODINGS = {
 }
 
 
-def get_units_from_string(unit: str):
+def get_units_from_string(unit: Union[str, None]) -> Tuple[Union[str, None], bool]:
+    if unit is None:
+        return None, True
     if not isinstance(unit, str):
         warn(
             f"Invalid units: expected type str but received {type(unit)} ({unit}). Skipping - no units will be set.",
             SpeckleWarning,
         )
-        return
+        return None, False
     unit = str.lower(unit)
     for name, alternates in UNITS_STRINGS.items():
         if unit in alternates:
-            return name
+            return name, True
 
     raise SpeckleException(
         message=f"Could not understand what unit {unit} is referring to. Please enter a valid unit (eg {UNITS})."
