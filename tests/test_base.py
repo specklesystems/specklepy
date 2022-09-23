@@ -1,11 +1,13 @@
+from codecs import ascii_encode
 from enum import Enum
 from typing import Dict, List, Optional, Union
 from contextlib import ExitStack as does_not_raise
 
 import pytest
 from specklepy.api import operations
-from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from specklepy.objects.base import Base, DataChunk
+from specklepy.objects.units import Units
 
 
 @pytest.mark.parametrize(
@@ -82,13 +84,21 @@ def test_setting_units():
     b = Base(units="foot")
     assert b.units == "ft"
 
-    with pytest.raises(SpeckleException):
+    with pytest.raises(SpeckleInvalidUnitException):
         b.units = "big"
 
-    b.units = None  # invalid args are skipped
-    b.units = 7
+    with pytest.raises(SpeckleInvalidUnitException):
+        b.units = 7  # invalid args are skipped
     assert b.units == "ft"
 
+    b.units = None  # None should be a valid arg
+    assert b.units == None
+
+    b.units = Units.none
+    assert b.units == "none"
+
+    b.units = Units.cm
+    assert b.units == Units.cm.value
 
 def test_base_of_custom_speckle_type() -> None:
     b1 = Base.of_type("BirdHouse", name="Tweety's Crib")
