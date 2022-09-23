@@ -5,6 +5,7 @@ import pytest
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
+from specklepy.objects.units import Units
 from specklepy.objects.encoding import CurveArray, ObjectArray
 from specklepy.objects.geometry import (
     Arc,
@@ -386,9 +387,9 @@ def test_brep_curve3d_values_serialization(curve, polyline, circle):
 def test_brep_vertices_values_serialization():
     brep = Brep()
     brep.VerticesValue = [1, 1, 1, 1, 2, 2, 2, 3, 3, 3]
-    assert brep.Vertices[0].get_id() == Point(x=1, y=1, z=1, _units="mm").get_id()
-    assert brep.Vertices[1].get_id() == Point(x=2, y=2, z=2, _units="mm").get_id()
-    assert brep.Vertices[2].get_id() == Point(x=3, y=3, z=3, _units="mm").get_id()
+    assert brep.Vertices[0].get_id() == Point(x=1, y=1, z=1, _units=Units.mm).get_id()
+    assert brep.Vertices[1].get_id() == Point(x=2, y=2, z=2, _units=Units.mm).get_id()
+    assert brep.Vertices[2].get_id() == Point(x=3, y=3, z=3, _units=Units.mm).get_id()
 
 
 def test_trims_value_serialization():

@@ -22,8 +22,11 @@ class TestServer:
         version = client.server.version()
 
         assert isinstance(version, tuple)
-        assert isinstance(version[0], int)
-        assert len(version) >= 3
+        if len(version) == 1:
+            assert version[0] == 'dev'
+        else:
+            assert isinstance(version[0], int)
+            assert len(version) >= 3
 
     def test_server_apps(self, client: SpeckleClient):
         apps = client.server.apps()

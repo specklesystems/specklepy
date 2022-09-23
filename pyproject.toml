@@ -26,6 +26,7 @@ pytest-ordering = "^0.6"
 pytest-cov = "^3.0.0"
 devtools = "^0.8.0"
 pylint = "^2.14.4"
+mypy = "^0.971"
 
 
 [tool.black]

@@ -77,7 +77,7 @@ class Plane(Base, speckle_type=GEOMETRY + "Plane"):
             *self.normal.to_list(),
             *self.xdir.to_list(),
             *self.ydir.to_list(),
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
 
@@ -113,7 +113,7 @@ class Line(Base, speckle_type=GEOMETRY + "Line"):
             *self.start.to_list(),
             *self.end.to_list(),
             *domain,
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
 
@@ -158,7 +158,7 @@ class Arc(Base, speckle_type=GEOMETRY + "Arc"):
             *self.startPoint.to_list(),
             *self.midPoint.to_list(),
             *self.endPoint.to_list(),
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
 
@@ -185,7 +185,7 @@ class Circle(Base, speckle_type=GEOMETRY + "Circle"):
             self.radius,
             *self.domain.to_list(),
             *self.plane.to_list(),
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
 
@@ -216,7 +216,7 @@ class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
             self.secondRadius,
             *self.domain.to_list(),
             *self.plane.to_list(),
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
 
@@ -255,7 +255,7 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 200
             *self.domain.to_list(),
             len(self.value),
             *self.value,
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
     def as_points(self) -> List[Point]:
@@ -340,7 +340,7 @@ class Curve(
             *self.points,
             *self.weights,
             *self.knots,
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
 
@@ -370,7 +370,7 @@ class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
             *self.domain.to_list(),
             len(curve_array),
             *curve_array,
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
 
@@ -488,7 +488,7 @@ class Surface(Base, speckle_type=GEOMETRY + "Surface"):
             *self.pointData,
             *self.knotsU,
             *self.knotsV,
-            get_encoding_from_units(self.units),
+            get_encoding_from_units(self._units),
         ]
 
 
@@ -842,7 +842,7 @@ class Brep(
     def VerticesValue(self) -> List[Point]:
         if self.Vertices is None:
             return None
-        encoded_unit = get_encoding_from_units(self.Vertices[0].units)
+        encoded_unit = get_encoding_from_units(self.Vertices[0]._units)
         values = [encoded_unit]
         for vertex in self.Vertices:
             values.extend(vertex.to_list())

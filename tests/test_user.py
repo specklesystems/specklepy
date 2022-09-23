@@ -29,7 +29,8 @@ class TestUser:
 
         assert isinstance(fetched_user, User)
         assert fetched_user.name == second_user_dict["name"]
-        assert fetched_user.email == second_user_dict["email"]
+        # changed in the server, now you cannot get emails of other users
+        assert fetched_user.email == None
 
         second_user_dict["id"] = fetched_user.id
 
