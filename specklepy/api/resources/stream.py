@@ -366,9 +366,8 @@ class Resource(ResourceBase):
         # we're checking for the actual version info, and if the version is 'dev' we treat it
         # as an up to date instance
         if self.server_version and (
-            self.server_version == ('dev',) or 
-            self.server_version >= (2, 6, 4)
-            ) :
+            self.server_version == ("dev",) or self.server_version >= (2, 6, 4)
+        ):
             raise UnsupportedException(
                 (
                     "Server mutation `grant_permission` is no longer supported as of Speckle Server v2.6.4. "
@@ -647,9 +646,8 @@ class Resource(ResourceBase):
             metrics.PERMISSION, self.account, {"name": "update", "role": role}
         )
         if self.server_version and (
-            self.server_version != ('dev',) and 
-            self.server_version < (2, 6, 4)
-            ) :
+            self.server_version != ("dev",) and self.server_version < (2, 6, 4)
+        ):
             raise UnsupportedException(
                 (
                     "Server mutation `update_permission` is only supported as of Speckle Server v2.6.4. "

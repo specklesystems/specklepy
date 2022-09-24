@@ -1,22 +1,23 @@
-from typing import Literal
-from warnings import warn
-from specklepy.logging.exceptions import SpeckleException, SpeckleWarning, SpeckleInvalidUnitException
+from typing import Literal, Union
+from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from enum import Enum
+
 
 class Units(Enum):
     mm = "mm"
-    cm="cm"
-    m="m"
-    km="km"
-    inches="in"
-    feet="ft"
-    yards="yd"
-    miles="mi"
-    none="none"
+    cm = "cm"
+    m = "m"
+    km = "km"
+    inches = "in"
+    feet = "ft"
+    yards = "yd"
+    miles = "mi"
+    none = "none"
+
 
 # UNITS = ["mm", "cm", "m", "in", "ft", "yd", "mi"]
 
-UNIT_TYPES=Literal["mm", "cm", "m", "in", "ft", "yd", "mi", "none"]
+UNIT_TYPES = Literal["mm", "cm", "m", "in", "ft", "yd", "mi", "none"]
 
 UNITS_STRINGS = {
     Units.mm: ["mm", "mil", "millimeters", "millimetres"],
@@ -64,8 +65,10 @@ def get_units_from_encoding(unit: int):
     )
 
 
-def get_encoding_from_units(unit: Units | None):
+def get_encoding_from_units(unit: Union[Units, None]):
     try:
         return UNITS_ENCODINGS[unit]
     except KeyError as e:
-        raise SpeckleException(message=f"No encoding exists for unit {unit}. Please enter a valid unit to encode (eg {UNITS_ENCODINGS}).") from e
+        raise SpeckleException(
+            message=f"No encoding exists for unit {unit}. Please enter a valid unit to encode (eg {UNITS_ENCODINGS})."
+        ) from e

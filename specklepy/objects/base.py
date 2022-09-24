@@ -146,10 +146,10 @@ class _RegisteringBase:
 
 
 class Base(_RegisteringBase):
-    id: Optional[str] = None
-    totalChildrenCount: Optional[int] = None
-    applicationId: Optional[str] = None
-    _units: Units | None = None
+    id: Union[str, None] = None
+    totalChildrenCount: Union[int, None] = None
+    applicationId: Union[str, None] = None
+    _units: Union[Units, None] = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -313,13 +313,13 @@ class Base(_RegisteringBase):
         self._detachable = self._detachable.union(names)
 
     @property
-    def units(self) -> str | None:
+    def units(self) -> Union[str, None]:
         if self._units:
             return self._units.value
         return None
 
     @units.setter
-    def units(self, value: str | Units | None):
+    def units(self, value: Union[str, Units, None]):
         if value == None:
             units = value
         elif isinstance(value, Units):

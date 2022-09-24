@@ -5,12 +5,15 @@ from specklepy.api import operations
 import string
 import random
 
+
 class Sub(Base):
     bar: List[str]
+
 
 def random_string():
     letters = string.ascii_lowercase
     return "".join(random.choice(letters) for _ in range(10))
+
 
 def create_object(child_count: int) -> Base:
     foo = Base()

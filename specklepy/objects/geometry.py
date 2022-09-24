@@ -590,7 +590,6 @@ class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
         ]
 
 
-
 class BrepLoopType(int, Enum):
     Unknown = 0
     Outer = 1

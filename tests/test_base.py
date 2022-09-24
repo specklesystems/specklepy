@@ -100,6 +100,7 @@ def test_setting_units():
     b.units = Units.cm
     assert b.units == Units.cm.value
 
+
 def test_base_of_custom_speckle_type() -> None:
     b1 = Base.of_type("BirdHouse", name="Tweety's Crib")
     assert b1.speckle_type == "BirdHouse"

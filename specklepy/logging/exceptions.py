@@ -15,9 +15,9 @@ class SpeckleInvalidUnitException(SpeckleException):
     def __init__(self, invalid_unit: Any) -> None:
 
         super().__init__(
-            message = f"Invalid units: expected type str but received {type(invalid_unit)} ({invalid_unit}).",
-            exception = None
-            )
+            message=f"Invalid units: expected type str but received {type(invalid_unit)} ({invalid_unit}).",
+            exception=None,
+        )
 
 
 class SerializationException(SpeckleException):

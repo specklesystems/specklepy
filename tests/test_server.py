@@ -23,7 +23,7 @@ class TestServer:
 
         assert isinstance(version, tuple)
         if len(version) == 1:
-            assert version[0] == 'dev'
+            assert version[0] == "dev"
         else:
             assert isinstance(version[0], int)
             assert len(version) >= 3

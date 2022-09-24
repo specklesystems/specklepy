@@ -44,9 +44,13 @@ class BaseObjectSerializer:
     lineage: List[str]  # keeps track of hash chain through the object tree
     family_tree: Dict[str, Dict[str, int]]
     closure_table: Dict[str, Dict[str, int]]
-    deserialized: Dict[str, Base]   # holds deserialized objects so objects with same id return the same instance
+    deserialized: Dict[
+        str, Base
+    ]  # holds deserialized objects so objects with same id return the same instance
 
-    def __init__(self, write_transports: List[AbstractTransport] = None, read_transport=None) -> None:
+    def __init__(
+        self, write_transports: List[AbstractTransport] = None, read_transport=None
+    ) -> None:
         self.write_transports = write_transports or []
         self.read_transport = read_transport
         self.detach_lineage = []
@@ -294,7 +298,7 @@ class BaseObjectSerializer:
         """
         if not obj_string:
             return None
-        
+
         self.deserialized = {}
         obj = safe_json_loads(obj_string)
         return self.recompose_base(obj=obj)
