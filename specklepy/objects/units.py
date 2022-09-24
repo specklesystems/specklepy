@@ -15,10 +15,6 @@ class Units(Enum):
     none = "none"
 
 
-# UNITS = ["mm", "cm", "m", "in", "ft", "yd", "mi"]
-
-UNIT_TYPES = Literal["mm", "cm", "m", "in", "ft", "yd", "mi", "none"]
-
 UNITS_STRINGS = {
     Units.mm: ["mm", "mil", "millimeters", "millimetres"],
     Units.cm: ["cm", "centimetre", "centimeter", "centimetres", "centimeters"],
