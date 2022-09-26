@@ -1,5 +1,9 @@
-import pytest
+import json
 from specklepy.api.wrapper import StreamWrapper
+from specklepy.transports.sqlite import SQLiteTransport
+from specklepy.paths import accounts_path
+from pathlib import Path
+import pytest
 
 
 def test_parse_stream():
@@ -79,3 +83,31 @@ def test_get_transport_with_token():
 
     assert transport is not None
     assert client.account.token == "super-secret-token"
+
+
+@pytest.fixture
+def user_path() -> Path:
+    path = accounts_path().joinpath("test_acc.json")
+    path.unlink(missing_ok=True)
+    path.parent.absolute().mkdir(exist_ok=True)
+    yield path
+    path.unlink()
+
+
+def test_wrapper_url_match(user_path) -> None:
+    """
+    The stream wrapper should only recognize exact url matches for the account
+    definitions and not match for subdomains.
+    """
+    account = {
+        "token": "foobar",
+        "serverInfo": {"name": "foo", "url": "http://foo.bar.baz", "company": "Foo"},
+        "userInfo": {"id": "bla", "name": "A rando tester", "email": "rando@tester.me"},
+    }
+
+    user_path.write_text(json.dumps(account))
+    wrap = StreamWrapper("http://bar.baz/streams/bogus")
+
+    account = wrap.get_account()
+
+    assert account.userInfo.email is None

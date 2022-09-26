@@ -110,7 +110,11 @@ class StreamWrapper:
             return self._account
 
         self._account = next(
-            (a for a in get_local_accounts() if self.host in a.serverInfo.url),
+            (
+                a
+                for a in get_local_accounts()
+                if self.host == urlparse(a.serverInfo.url).netloc
+            ),
             None,
         )
 
