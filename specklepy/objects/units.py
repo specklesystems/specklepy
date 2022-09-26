@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Union
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from enum import Enum
 
