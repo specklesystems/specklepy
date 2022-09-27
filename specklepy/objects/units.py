@@ -1,49 +1,54 @@
-from warnings import warn
-from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
+from typing import Union
+from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
+from enum import Enum
 
-UNITS = ["mm", "cm", "m", "in", "ft", "yd", "mi"]
+
+class Units(Enum):
+    mm = "mm"
+    cm = "cm"
+    m = "m"
+    km = "km"
+    inches = "in"
+    feet = "ft"
+    yards = "yd"
+    miles = "mi"
+    none = "none"
+
 
 UNITS_STRINGS = {
-    "mm": ["mm", "mil", "millimeters", "millimetres"],
-    "cm": ["cm", "centimetre", "centimeter", "centimetres", "centimeters"],
-    "m": ["m", "meter", "meters", "metre", "metres"],
-    "km": ["km", "kilometer", "kilometre", "kilometers", "kilometres"],
-    "in": ["in", "inch", "inches"],
-    "ft": ["ft", "foot", "feet"],
-    "yd": ["yd", "yard", "yards"],
-    "mi": ["mi", "mile", "miles"],
-    "none": ["none", "null"],
+    Units.mm: ["mm", "mil", "millimeters", "millimetres"],
+    Units.cm: ["cm", "centimetre", "centimeter", "centimetres", "centimeters"],
+    Units.m: ["m", "meter", "meters", "metre", "metres"],
+    Units.km: ["km", "kilometer", "kilometre", "kilometers", "kilometres"],
+    Units.inches: ["in", "inch", "inches"],
+    Units.feet: ["ft", "foot", "feet"],
+    Units.yards: ["yd", "yard", "yards"],
+    Units.miles: ["mi", "mile", "miles"],
+    Units.none: ["none", "null"],
 }
 
 UNITS_ENCODINGS = {
-    "none": 0,
+    Units.none: 0,
     None: 0,
-    "mm": 1,
-    "cm": 2,
-    "m": 3,
-    "km": 4,
-    "in": 5,
-    "ft": 6,
-    "yd": 7,
-    "mi": 8,
+    Units.mm: 1,
+    Units.cm: 2,
+    Units.m: 3,
+    Units.km: 4,
+    Units.inches: 5,
+    Units.feet: 6,
+    Units.yards: 7,
+    Units.miles: 8,
 }
 
 
-def get_units_from_string(unit: str):
+def get_units_from_string(unit: str) -> Units:
     if not isinstance(unit, str):
-        warn(
-            f"Invalid units: expected type str but received {type(unit)} ({unit}). Skipping - no units will be set.",
-            SpeckleWarning,
-        )
-        return
+        raise SpeckleInvalidUnitException(unit)
     unit = str.lower(unit)
     for name, alternates in UNITS_STRINGS.items():
         if unit in alternates:
             return name
-
-    raise SpeckleException(
-        message=f"Could not understand what unit {unit} is referring to. Please enter a valid unit (eg {UNITS})."
-    )
+    raise SpeckleInvalidUnitException(unit)
 
 
 def get_units_from_encoding(unit: int):
@@ -56,8 +61,10 @@ def get_units_from_encoding(unit: int):
     )
 
 
-def get_encoding_from_units(unit: str):
+def get_encoding_from_units(unit: Union[Units, None]):
     try:
         return UNITS_ENCODINGS[unit]
     except KeyError as e:
-        raise SpeckleException(message=f"No encoding exists for unit {unit}. Please enter a valid unit to encode (eg {UNITS_ENCODINGS}).") from e
+        raise SpeckleException(
+            message=f"No encoding exists for unit {unit}. Please enter a valid unit to encode (eg {UNITS_ENCODINGS})."
+        ) from e

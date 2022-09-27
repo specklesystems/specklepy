@@ -14,8 +14,8 @@ import contextlib
 from enum import EnumMeta
 from warnings import warn
 
-from specklepy.logging.exceptions import SpeckleException
-from specklepy.objects.units import get_units_from_string
+from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
+from specklepy.objects.units import get_units_from_string, Units
 from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)
@@ -146,10 +146,10 @@ class _RegisteringBase:
 
 
 class Base(_RegisteringBase):
-    id: Optional[str] = None
-    totalChildrenCount: Optional[int] = None
-    applicationId: Optional[str] = None
-    _units: Union[str, None] = None
+    id: Union[str, None] = None
+    totalChildrenCount: Union[int, None] = None
+    applicationId: Union[str, None] = None
+    _units: Union[Units, None] = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -313,14 +313,23 @@ class Base(_RegisteringBase):
         self._detachable = self._detachable.union(names)
 
     @property
-    def units(self):
-        return self._units
+    def units(self) -> Union[str, None]:
+        if self._units:
+            return self._units.value
+        return None
 
     @units.setter
-    def units(self, value: str):
-        units = get_units_from_string(value)
-        if units:
-            self._units = units
+    def units(self, value: Union[str, Units, None]):
+        if value == None:
+            units = value
+        elif isinstance(value, Units):
+            units: Units = value
+        else:
+            units = get_units_from_string(value)
+        self._units = units
+        # except SpeckleInvalidUnitException as ex:
+        #     warn(f"Units are reset to None. Reason {ex.message}")
+        #     self._units = None
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""

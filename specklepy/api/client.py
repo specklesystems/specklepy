@@ -137,7 +137,7 @@ class SpeckleClient:
             "Authorization": f"Bearer {self.account.token}",
             "Content-Type": "application/json",
             "apollographql-client-name": metrics.HOST_APP,
-            "apollographql-client-version": metrics.HOST_APP_VERSION
+            "apollographql-client-version": metrics.HOST_APP_VERSION,
         }
         httptransport = RequestsHTTPTransport(
             url=self.graphql, headers=headers, verify=True, retries=3

@@ -91,7 +91,7 @@ class TestSerialization:
         assert deserialised == {"foo": "bar"}
 
     def test_big_int(self):
-        big_int = '{"big": ' + str(2 ** 64) + "}"
+        big_int = '{"big": ' + str(2**64) + "}"
         deserialised = operations.deserialize(big_int)
 
-        assert deserialised == {"big": 2 ** 64}
+        assert deserialised == {"big": 2**64}

@@ -98,6 +98,9 @@ class ResourceBase(object):
         """
         if not unsupported_message:
             unsupported_message = f"The client method used is not supported on Speckle Server versions prior to v{'.'.join(target_version)}"
+        # if version is dev, it should be supported... (or not)
+        if self.server_version == ("dev",):
+            return
         if self.server_version and self.server_version < target_version:
             raise UnsupportedException(unsupported_message)
 
