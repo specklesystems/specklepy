@@ -8,6 +8,7 @@ from appdirs import user_data_dir
 from contextlib import closing
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.paths import base_path
 
 
 class SQLiteTransport(AbstractTransport):
@@ -56,21 +57,23 @@ class SQLiteTransport(AbstractTransport):
 
     @staticmethod
     def get_base_path(app_name):
-        # from appdirs https://github.com/ActiveState/appdirs/blob/master/appdirs.py
-        # default mac path is not the one we use (we use unix path), so using special case for this
-        system = sys.platform
-        if system.startswith("java"):
-            import platform
+        # # from appdirs https://github.com/ActiveState/appdirs/blob/master/appdirs.py
+        # # default mac path is not the one we use (we use unix path), so using special case for this
+        # system = sys.platform
+        # if system.startswith("java"):
+        #     import platform
 
-            os_name = platform.java_ver()[3][0]
-            if os_name.startswith("Mac"):
-                system = "darwin"
+        #     os_name = platform.java_ver()[3][0]
+        #     if os_name.startswith("Mac"):
+        #         system = "darwin"
 
-        if system != "darwin":
-            return user_data_dir(appname=app_name, appauthor=False, roaming=True)
+        # if system != "darwin":
+        #     return user_data_dir(appname=app_name, appauthor=False, roaming=True)
 
-        path = os.path.expanduser("~/.config/")
-        return os.path.join(path, app_name)
+        # path = os.path.expanduser("~/.config/")
+        # return os.path.join(path, app_name)
+
+        return str(base_path(app_name))
 
     def save_object_from_transport(
         self, id: str, source_transport: AbstractTransport
