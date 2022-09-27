@@ -88,7 +88,15 @@ def test_get_transport_with_token():
 @pytest.fixture
 def user_path() -> Path:
     path = accounts_path().joinpath("test_acc.json")
-    path.unlink(missing_ok=True)
+    # hey, py37 doesn't support the missing_ok argument
+    try:
+        path.unlink()
+    except:
+        pass
+    try:
+        path.unlink(missing_ok=True)
+    except:
+        pass
     path.parent.absolute().mkdir(exist_ok=True)
     yield path
     path.unlink()
