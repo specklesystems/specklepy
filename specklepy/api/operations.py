@@ -2,7 +2,6 @@ from typing import List
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.transports.sqlite import SQLiteTransport
-from specklepy.transports.server import ServerTransport
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
@@ -53,6 +52,16 @@ def receive(
     remote_transport: AbstractTransport = None,
     local_transport: AbstractTransport = None,
 ) -> Base:
+    metrics.track(metrics.RECEIVE, getattr(remote_transport, "account", None))
+    return _untracked_receive(obj_id, remote_transport, local_transport)
+
+
+def _untracked_receive(
+    obj_id: str,
+    remote_transport: AbstractTransport = None,
+    local_transport: AbstractTransport = None,
+) -> Base:
+
     """Receives an object from a transport.
 
     Arguments:
@@ -64,13 +73,12 @@ def receive(
     Returns:
         Base -- the base object
     """
-    metrics.track(metrics.RECEIVE, getattr(remote_transport, "account", None))
     if not local_transport:
         local_transport = SQLiteTransport()
 
     serializer = BaseObjectSerializer(read_transport=local_transport)
 
-    # try local transport first. if the parent is there, we assume all the children are there and continue with deserialisation using the local transport
+    # try local transport first. if the parent is there, we assume all the children are there and continue with deserialization using the local transport
     obj_string = local_transport.get_object(obj_id)
     if obj_string:
         return serializer.read_json(obj_string=obj_string)
@@ -124,3 +132,6 @@ def deserialize(obj_string: str, read_transport: AbstractTransport = None) -> Ba
     serializer = BaseObjectSerializer(read_transport=read_transport)
 
     return serializer.read_json(obj_string=obj_string)
+
+
+__all__ = [receive.__name__, send.__name__, serialize.__name__, deserialize.__name__]
