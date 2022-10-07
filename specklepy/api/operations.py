@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.transports.sqlite import SQLiteTransport
@@ -9,7 +9,7 @@ from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
 def send(
     base: Base,
-    transports: List[AbstractTransport] = None,
+    transports: Optional[List[AbstractTransport]] = None,
     use_default_cache: bool = True,
 ):
     """Sends an object via the provided transports. Defaults to the local cache.
@@ -49,8 +49,8 @@ def send(
 
 def receive(
     obj_id: str,
-    remote_transport: AbstractTransport = None,
-    local_transport: AbstractTransport = None,
+    remote_transport: Optional[AbstractTransport] = None,
+    local_transport: Optional[AbstractTransport] = None,
 ) -> Base:
     metrics.track(metrics.RECEIVE, getattr(remote_transport, "account", None))
     return _untracked_receive(obj_id, remote_transport, local_transport)
@@ -58,8 +58,8 @@ def receive(
 
 def _untracked_receive(
     obj_id: str,
-    remote_transport: AbstractTransport = None,
-    local_transport: AbstractTransport = None,
+    remote_transport: Optional[AbstractTransport] = None,
+    local_transport: Optional[AbstractTransport] = None,
 ) -> Base:
 
     """Receives an object from a transport.
@@ -113,7 +113,9 @@ def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str
     return serializer.write_json(base)[1]
 
 
-def deserialize(obj_string: str, read_transport: AbstractTransport = None) -> Base:
+def deserialize(
+    obj_string: str, read_transport: Optional[AbstractTransport] = None
+) -> Base:
     """
     Deserialize a string object into a Base object. If the object contains referenced child objects that are not stored in the local db, a read transport needs to be provided in order to recompose the base with the children objects.
 
@@ -134,4 +136,4 @@ def deserialize(obj_string: str, read_transport: AbstractTransport = None) -> Ba
     return serializer.read_json(obj_string=obj_string)
 
 
-__all__ = [receive.__name__, send.__name__, serialize.__name__, deserialize.__name__]
+__all__ = ["receive", "send", "serialize", "deserialize"]
