@@ -9,7 +9,7 @@ from specklepy.objects.geometry import Point
 from specklepy.objects.fakemesh import FakeMesh
 
 
-@pytest.mark.run(order=3)
+@pytest.mark.run(order=5)
 class TestSerialization:
     def test_serialize(self, base):
         serialized = operations.serialize(base)
