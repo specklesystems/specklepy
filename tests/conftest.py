@@ -30,7 +30,8 @@ def seed_user(host):
         url=f"http://{host}/auth/local/register?challenge=pyspeckletests",
         data=user_dict,
     )
-    print(r.url)
+    if not r.ok:
+        raise Exception(f"Cannot seed user: {r.reason}")
     access_code = r.url.split("access_code=")[1]
 
     r_tokens = requests.post(
