@@ -3,6 +3,7 @@ import queue
 import hashlib
 import getpass
 import logging
+from typing import Optional
 import requests
 import threading
 import platform
@@ -30,6 +31,7 @@ INVITE = "Invite Action"
 COMMIT = "Commit Action"
 BRANCH = "Branch Action"
 USER = "User Action"
+OTHER_USER = "Other User Action"
 SERVER = "Server Action"
 CLIENT = "Speckle Client"
 STREAM_WRAPPER = "Stream Wrapper"
@@ -50,13 +52,13 @@ def enable():
     TRACK = True
 
 
-def set_host_app(host_app: str, host_app_version: str = None):
+def set_host_app(host_app: str, host_app_version: Optional[str] = None):
     global HOST_APP, HOST_APP_VERSION
     HOST_APP = host_app
     HOST_APP_VERSION = host_app_version or HOST_APP_VERSION
 
 
-def track(action: str, account: "Account" = None, custom_props: dict = None):
+def track(action: str, account: "Account" = None, custom_props: Optional[dict] = None):
     if not TRACK:
         return
     try:

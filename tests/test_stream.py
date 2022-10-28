@@ -15,7 +15,7 @@ from specklepy.logging.exceptions import (
 )
 
 
-@pytest.mark.run(order=2)
+@pytest.mark.run(order=3)
 class TestStream:
     @pytest.fixture(scope="session")
     def stream(self):

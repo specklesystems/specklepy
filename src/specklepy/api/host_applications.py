@@ -39,6 +39,7 @@ class HostApplication:
     def get_version(self, version: HostAppVersion) -> str:
         return f"{name.replace(' ', '')}{str(version).strip('v')}"
 
+
 RHINO = HostApplication("Rhino", "rhino")
 GRASSHOPPER = HostApplication("Grasshopper", "grasshopper")
 REVIT = HostApplication("Revit", "revit")
@@ -99,16 +100,17 @@ _app_name_host_app_mapping = {
     "archicad": ARCHICAD,
     "topsolid": TOPSOLID,
     "python": PYTHON,
-    "net": NET
+    "net": NET,
 }
+
 
 def get_host_app_from_string(app_name: str) -> HostApplication:
     app_name = app_name.lower().replace(" ", "")
     for partial_app_name, host_app in _app_name_host_app_mapping.items():
-        if (partial_app_name in app_name):
+        if partial_app_name in app_name:
             return host_app
     return HostApplication(app_name, app_name)
-    
+
 
 if __name__ == "__main__":
     print(HostAppVersion.v)

@@ -18,8 +18,9 @@ from specklepy.api.resources import (
     server,
     user,
     subscriptions,
+    other_user,
+    active_user
 )
-from specklepy.api.models import ServerInfo
 from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
@@ -171,6 +172,18 @@ class SpeckleClient:
         except:
             pass
         self.user = user.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.other_user = other_user.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.active_user = active_user.Resource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

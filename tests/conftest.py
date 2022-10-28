@@ -29,9 +29,14 @@ def seed_user(host):
     r = requests.post(
         url=f"http://{host}/auth/local/register?challenge=pyspeckletests",
         data=user_dict,
+        # do not follow redirects here, they lead to the frontend, which might not be 
+        # running in a test environment
+        # causing the response to not be OK in the end
+        allow_redirects=False
     )
-    print(r.url)
-    access_code = r.url.split("access_code=")[1]
+    if not r.ok:
+        raise Exception(f"Cannot seed user: {r.reason}")
+    access_code = r.text.split("access_code=")[1]
 
     r_tokens = requests.post(
         url=f"http://{host}/auth/token",
