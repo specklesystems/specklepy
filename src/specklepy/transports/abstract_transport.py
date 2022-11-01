@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict
 from pydantic import BaseModel
-from pydantic.main import Extra
+from pydantic.config import Extra
 
 #  __________________
 # |                  |

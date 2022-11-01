@@ -1,10 +1,6 @@
 import os
-import sys
-import time
-import sched
 import sqlite3
-from typing import Any, List, Dict, Tuple
-from appdirs import user_data_dir
+from typing import Any, List, Dict, Optional, Tuple
 from contextlib import closing
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.logging.exceptions import SpeckleException
@@ -25,8 +21,8 @@ class SQLiteTransport(AbstractTransport):
 
     def __init__(
         self,
-        base_path: str = None,
-        app_name: str = None,
+        base_path: Optional[str] = None,
+        app_name: Optional[str] = None,
         scope: str = None,
         max_batch_size_mb: float = 10.0,
         **data: Any,

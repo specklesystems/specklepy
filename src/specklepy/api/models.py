@@ -166,13 +166,13 @@ class ActivityCollection(BaseModel):
 
 
 class ServerInfo(BaseModel):
-    name: Optional[str]
-    company: Optional[str]
-    url: Optional[str]
-    description: Optional[str]
-    adminContact: Optional[str]
-    canonicalUrl: Optional[str]
-    roles: Optional[List[dict]]
-    scopes: Optional[List[dict]]
-    authStrategies: Optional[List[dict]]
-    version: Optional[str]
+    name: Optional[str] = None
+    company: Optional[str] = None
+    url: Optional[str] = None
+    description: Optional[str] = None
+    adminContact: Optional[str] = None
+    canonicalUrl: Optional[str] = None
+    roles: Optional[List[dict]] = None
+    scopes: Optional[List[dict]] = None
+    authStrategies: Optional[List[dict]] = None
+    version: Optional[str] = None
