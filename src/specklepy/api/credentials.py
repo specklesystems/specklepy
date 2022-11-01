@@ -5,13 +5,14 @@ from specklepy.logging import metrics
 from specklepy.api.models import ServerInfo
 from specklepy.transports.sqlite import SQLiteTransport
 from specklepy.logging.exceptions import SpeckleException
+from specklepy import paths
 
 
 class UserInfo(BaseModel):
-    name: Optional[str]
-    email: Optional[str]
-    company: Optional[str]
-    id: Optional[str]
+    name: Optional[str] = None
+    email: Optional[str] = None
+    company: Optional[str] = None
+    id: Optional[str] = None
 
 
 class Account(BaseModel):
@@ -35,7 +36,7 @@ class Account(BaseModel):
         return acct
 
 
-def get_local_accounts(base_path: str = None) -> List[Account]:
+def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
     """Gets all the accounts present in this environment
 
     Arguments:
@@ -44,18 +45,30 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
     Returns:
         List[Account] -- list of all local accounts or an empty list if no accounts were found
     """
-    account_storage = SQLiteTransport(scope="Accounts", base_path=base_path)
-    # pylint: disable=protected-access
-    json_path = os.path.join(account_storage._base_path, "Accounts")
-    os.makedirs(json_path, exist_ok=True)
-    json_acct_files = [file for file in os.listdir(json_path) if file.endswith(".json")]
-
     accounts: List[Account] = []
-    res = account_storage.get_all_objects()
-    account_storage.close()
+    try:
+        account_storage = SQLiteTransport(scope="Accounts", base_path=base_path)
+        res = account_storage.get_all_objects()
+        account_storage.close()
+        if res:
+            accounts.extend(Account.parse_raw(r[1]) for r in res)
+    except SpeckleException:
+        # cannot open SQLiteTransport, probably because of the lack
+        # of disk write permissions
+        pass
 
-    if res:
-        accounts.extend(Account.parse_raw(r[1]) for r in res)
+    json_acct_files = []
+    json_path = paths.accounts_path()
+    try:
+        os.makedirs(json_path, exist_ok=True)
+        json_acct_files.extend(
+            file for file in os.listdir(json_path) if file.endswith(".json")
+        )
+    
+    except Exception:
+        # cannot find or get the json account paths
+        pass
+
     if json_acct_files:
         try:
             accounts.extend(
@@ -79,7 +92,7 @@ def get_local_accounts(base_path: str = None) -> List[Account]:
     return accounts
 
 
-def get_default_account(base_path: str = None) -> Account:
+def get_default_account(base_path: Optional[str] = None) -> Optional[Account]:
     """Gets this environment's default account if any. If there is no default, the first found will be returned and set as default.
     Arguments:
         base_path {str} -- custom base path if you are not using the system default
