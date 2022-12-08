@@ -106,19 +106,19 @@ class SectionProfile(Base, speckle_type=STRUCTURAL_PROPERTY + ".SectionProfile")
 
 class Property1D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property1D"):
     memberType: MemberType = None
-    Material: Material = None
-    SectionProfile: SectionProfile = None
-    BaseReferencePoint: BaseReferencePoint = None
+    material : Material = None
+    profile: SectionProfile = None
+    referencePoint : BaseReferencePoint = None
     offsetY: float = 0.0
     offsetZ: float = 0.0
 
 
 class Property2D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property2D"):
-    PropertyType2D: PropertyType2D = None
+    type: PropertyType2D = None
     thickness: float = 0.0
-    Material: Material = None
-    axis: Axis = None
-    referenceSurface: ReferenceSurface = None
+    material: Material = None
+    orientationAxis : Axis = None
+    refSurface : ReferenceSurface = None
     zOffset: float = 0.0
     modifierInPlane: float = 0.0
     modifierBending: float = 0.0
@@ -127,9 +127,9 @@ class Property2D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property2D"):
 
 
 class Property3D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property3D"):
-    PropertyType3D: PropertyType3D = None
-    Material: Material = None
-    axis: Axis = None
+    type: PropertyType3D = None
+    material: Material = None
+    orientationAxis: Axis = None
 
 
 class PropertyDamper(Property, speckle_type=STRUCTURAL_PROPERTY + ".PropertyDamper"):

@@ -4,7 +4,7 @@ from specklepy.api.models import Commit, Stream
 from specklepy.transports.server.server import ServerTransport
 
 
-@pytest.mark.run(order=4)
+@pytest.mark.run(order=6)
 class TestCommit:
     @pytest.fixture(scope="module")
     def commit(self):
