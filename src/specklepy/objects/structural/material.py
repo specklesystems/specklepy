@@ -1,6 +1,7 @@
 from enum import Enum
+from typing import Optional
 
-from ..base import Base
+from specklepy.objects.base import Base
 
 
 STRUCTURAL_MATERIALS = "Objects.Structural.Materials"
@@ -21,12 +22,14 @@ class MaterialType(int, Enum):
     Other = 11
 
 
-class Material(Base, speckle_type=STRUCTURAL_MATERIALS):
-    name: str = None
-    grade: str = None
-    materialType: MaterialType = None
-    designCode: str = None
-    codeYear: str = None
+class StructuralMaterial(
+    Base, speckle_type=STRUCTURAL_MATERIALS + ".StructuralMaterial"
+):
+    name: Optional[str] = None
+    grade: Optional[str] = None
+    materialType: Optional[MaterialType] = None
+    designCode: Optional[str] = None
+    codeYear: Optional[str] = None
     strength: float = 0.0
     elasticModulus: float = 0.0
     poissonsRatio: float = 0.0
@@ -38,22 +41,22 @@ class Material(Base, speckle_type=STRUCTURAL_MATERIALS):
     materialSafetyFactor: float = 0.0
 
 
-class Concrete(Material, speckle_type=STRUCTURAL_MATERIALS + ".Concrete"):
+class Concrete(StructuralMaterial, speckle_type=STRUCTURAL_MATERIALS + ".Concrete"):
     compressiveStrength: float = 0.0
     tensileStrength: float = 0.0
     flexuralStrength: float = 0.0
     maxCompressiveStrain: float = 0.0
     maxTensileStrain: float = 0.0
     maxAggregateSize: float = 0.0
-    lightweight: bool = None
+    lightweight: Optional[bool] = None
 
 
-class Steel(Material, speckle_type=STRUCTURAL_MATERIALS + ".Steel"):
+class Steel(StructuralMaterial, speckle_type=STRUCTURAL_MATERIALS + ".Steel"):
     yieldStrength: float = 0.0
     ultimateStrength: float = 0.0
     maxStrain: float = 0.0
     strainHardeningModulus: float = 0.0
 
 
-class Timber(Material, speckle_type=STRUCTURAL_MATERIALS + ".Timber"):
-    species: str = None
+class Timber(StructuralMaterial, speckle_type=STRUCTURAL_MATERIALS + ".Timber"):
+    species: Optional[str] = None

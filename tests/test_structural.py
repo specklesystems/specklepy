@@ -1,18 +1,10 @@
-import json
-from typing import Callable
-
 import pytest
-from specklepy.api import operations
-from specklepy.logging.exceptions import SpeckleException
-from specklepy.objects.base import Base
-from specklepy.objects.encoding import CurveArray, ObjectArray
 from specklepy.objects.geometry import (
     Line,
     Mesh,
     Point,
     Vector,
 )
-from specklepy.transports.memory import MemoryTransport
 from specklepy.objects.structural.geometry import (
     Node,
     Element1D,
@@ -29,7 +21,7 @@ from specklepy.objects.structural.properties import (
     ShapeType,
 )
 from specklepy.objects.structural.material import (
-    Material,
+    StructuralMaterial,
 )
 from specklepy.objects.structural.analysis import Model
 
@@ -82,7 +74,7 @@ def node(restraint, point):
 
 @pytest.fixture()
 def material():
-    return Material(name="TestMaterial")
+    return StructuralMaterial(name="TestMaterial")
 
 
 @pytest.fixture()
