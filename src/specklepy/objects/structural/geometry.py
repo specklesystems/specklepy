@@ -1,10 +1,17 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
-from ..base import Base
-from ..geometry import *
-from .properties import *
-from .axis import Axis
+from specklepy.objects.base import Base
+from specklepy.objects.geometry import Line, Mesh, Plane, Point, Vector
+from specklepy.objects.structural.properties import (
+    Property1D,
+    Property2D,
+    Property3D,
+    PropertyDamper,
+    PropertyMass,
+    PropertySpring,
+)
+from specklepy.objects.structural.axis import Axis
 
 STRUCTURAL_GEOMETRY = "Objects.Structural.Geometry"
 
@@ -41,68 +48,68 @@ class ElementType3D(int, Enum):
 
 
 class Restraint(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Restraint"):
-    code: str = None
+    code: Optional[str] = None
     stiffnessX: float = 0.0
     stiffnessY: float = 0.0
     stiffnessZ: float = 0.0
     stiffnessXX: float = 0.0
     stiffnessYY: float = 0.0
     stiffnessZZ: float = 0.0
-    units: str = None
+    units: Optional[str] = None
 
 
 class Node(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Node"):
-    name: str = None
-    basePoint: Point = None
-    constraintAxis: Axis = None
-    restraint: Restraint = None
-    springProperty: PropertySpring = None
-    massProperty: PropertyMass = None
-    damperProperty: PropertyDamper = None
-    units: str = None
+    name: Optional[str] = None
+    basePoint: Optional[Point] = None
+    constraintAxis: Optional[Axis] = None
+    restraint: Optional[Restraint] = None
+    springProperty: Optional[PropertySpring] = None
+    massProperty: Optional[PropertyMass] = None
+    damperProperty: Optional[PropertyDamper] = None
+    units: Optional[str] = None
 
 
 class Element1D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element1D"):
-    name: str = None
-    baseLine: Line = None
-    property: Property1D = None
-    type: ElementType1D = None
-    end1Releases: Restraint = None
-    end2Releases: Restraint = None
-    end1Offset: Vector = None
-    end2Offset: Vector = None
-    orientationNode: Node = None
+    name: Optional[str] = None
+    baseLine: Optional[Line] = None
+    property: Optional[Property1D] = None
+    type: Optional[ElementType1D] = None
+    end1Releases: Optional[Restraint] = None
+    end2Releases: Optional[Restraint] = None
+    end1Offset: Optional[Vector] = None
+    end2Offset: Optional[Vector] = None
+    orientationNode: Optional[Node] = None
     orinetationAngle: float = 0.0
-    localAxis: Plane = None
-    parent: Base = None
-    end1Node: Node = Node
-    end2Node: Node = Node
-    topology: List = None
-    displayMesh: Mesh = None
-    units: str = None
+    localAxis: Optional[Plane] = None
+    parent: Optional[Base] = None
+    end1Node: Optional[Node] = None
+    end2Node: Optional[Node] = None
+    topology: Optional[List] = None
+    displayMesh: Optional[Mesh] = None
+    units: Optional[str] = None
 
 
 class Element2D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element2D"):
-    name: str = None
-    property: Property2D = None
-    type: ElementType2D = None
+    name: Optional[str] = None
+    property: Optional[Property2D] = None
+    type: Optional[ElementType2D] = None
     offset: float = 0.0
     orientationAngle: float = 0.0
-    parent: Base = None
-    topology: List = None
-    displayMesh: Mesh = None
-    units: str = None
+    parent: Optional[Base] = None
+    topology: Optional[List] = None
+    displayMesh: Optional[Mesh] = None
+    units: Optional[str] = None
 
 
 class Element3D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element3D"):
-    name: str = None
-    baseMesh: Mesh = None
-    property: Property3D = None
-    type: ElementType3D = None
+    name: Optional[str] = None
+    baseMesh: Optional[Mesh] = None
+    property: Optional[Property3D] = None
+    type: Optional[ElementType3D] = None
     orientationAngle: float = 0.0
-    parent: Base = None
+    parent: Optional[Base] = None
     topology: List
-    units: str = None
+    units: Optional[str] = None
 
 
 # class Storey needs ependency on built elements first

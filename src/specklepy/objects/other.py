@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from specklepy.objects.geometry import Point, Vector
 from .base import Base
 
@@ -25,7 +25,7 @@ IDENTITY_TRANSFORM = [
 
 
 class RenderMaterial(Base, speckle_type=OTHER + "RenderMaterial"):
-    name: str = None
+    name: Optional[str] = None
     opacity: float = 1
     metalness: float = 0
     roughness: float = 1
@@ -44,7 +44,7 @@ class Transform(
     The 4th column defines translation, where the last value is a divisor (usually equal to 1).
     """
 
-    _value: List[float] = None
+    _value: Optional[List[float]] = None
 
     @property
     def value(self) -> List[float]:
@@ -188,27 +188,27 @@ class Transform(
 class BlockDefinition(
     Base, speckle_type=OTHER + "BlockDefinition", detachable={"geometry"}
 ):
-    name: str = None
-    basePoint: Point = None
-    geometry: List[Base] = None
+    name: Optional[str] = None
+    basePoint: Optional[Point] = None
+    geometry: Optional[List[Base]] = None
 
 
 class BlockInstance(
     Base, speckle_type=OTHER + "BlockInstance", detachable={"blockDefinition"}
 ):
-    blockDefinition: BlockDefinition = None
-    transform: Transform = None
+    blockDefinition: Optional[BlockDefinition] = None
+    transform: Optional[Transform] = None
 
 
 # TODO: prob move this into a built elements module, but just trialling this for now
 class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter"):
-    name: str = None
+    name: Optional[str] = None
     value: Any = None
-    applicationUnitType: str = None  # eg UnitType UT_Length
-    applicationUnit: str = None  # DisplayUnitType eg DUT_MILLIMITERS
-    applicationInternalName: str = (
-        None  # BuiltInParameterName or GUID for shared parameter
-    )
+    applicationUnitType: Optional[str] = None  # eg UnitType UT_Length
+    applicationUnit: Optional[str] = None  # DisplayUnitType eg DUT_MILLIMITERS
+    applicationInternalName: Optional[
+        str
+    ] = None  # BuiltInParameterName or GUID for shared parameter
     isShared: bool = False
     isReadOnly: bool = False
     isTypeParameter: bool = False

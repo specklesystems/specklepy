@@ -1,8 +1,9 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
-from ..base import Base
-from .geometry import *
+from specklepy.objects.base import Base
+from specklepy.objects.geometry import Vector
+from specklepy.objects.structural.axis import Axis
 
 STRUCTURAL_LOADING = "Objects.Structural.Loading."
 
@@ -89,56 +90,56 @@ class CombinationType(int, Enum):
 
 
 class LoadCase(Base, speckle_type=STRUCTURAL_LOADING + "LoadCase"):
-    name: str = None
-    loadType: LoadType = None
-    group: str = None
-    actionType: ActionType = None
-    description: str = None
+    name: Optional[str] = None
+    loadType: Optional[LoadType] = None
+    group: Optional[str] = None
+    actionType: Optional[ActionType] = None
+    description: Optional[str] = None
 
 
 class Load(Base, speckle_type=STRUCTURAL_LOADING + "Load"):
-    name: str = None
-    units: str = None
-    loadCase: LoadCase = None
+    name: Optional[str] = None
+    units: Optional[str] = None
+    loadCase: Optional[LoadCase] = None
 
 
 class LoadBeam(Load, speckle_type=STRUCTURAL_LOADING + "LoadBeam"):
-    elements: List = None
-    loadType: BeamLoadType = None
-    direction: LoadDirection = None
-    loadAxis: Axis = None
-    loadAxisType: LoadAxisType = None
-    isProjected: bool = None
-    values: List = None
-    positions: List = None
+    elements: Optional[List] = None
+    loadType: Optional[BeamLoadType] = None
+    direction: Optional[LoadDirection] = None
+    loadAxis: Optional[Axis] = None
+    loadAxisType: Optional[LoadAxisType] = None
+    isProjected: Optional[bool] = None
+    values: Optional[List] = None
+    positions: Optional[List] = None
 
 
 class LoadCombinations(Base, speckle_type=STRUCTURAL_LOADING + "LoadCombination"):
-    name: str = None
+    name: Optional[str] = None
     loadCases: List
     loadFactors: List
     combinationType: CombinationType
 
 
 class LoadFace(Load, speckle_type=STRUCTURAL_LOADING + "LoadFace"):
-    elements: List = None
-    loadType: FaceLoadType = None
-    direction: LoadDirection2D = None
-    loadAxis: Axis = None
-    loadAxisType: LoadAxisType = None
-    isProjected: bool = None
-    values: List = None
-    positions: List = None
+    elements: Optional[List] = None
+    loadType: Optional[FaceLoadType] = None
+    direction: Optional[LoadDirection2D] = None
+    loadAxis: Optional[Axis] = None
+    loadAxisType: Optional[LoadAxisType] = None
+    isProjected: Optional[bool] = None
+    values: Optional[List] = None
+    positions: Optional[List] = None
 
 
 class LoadGravity(Load, speckle_type=STRUCTURAL_LOADING + "LoadGravity"):
-    elements: List = None
-    nodes: List = None
-    gravityFactors: Vector = None
+    elements: Optional[List] = None
+    nodes: Optional[List] = None
+    gravityFactors: Optional[Vector] = None
 
 
 class LoadNode(Load, speckle_type=STRUCTURAL_LOADING + "LoadNode"):
-    nodes: List = None
-    loadAxis: Axis = None
-    direction: LoadDirection = None
+    nodes: Optional[List] = None
+    loadAxis: Optional[Axis] = None
+    direction: Optional[LoadDirection] = None
     value: float = 0.0

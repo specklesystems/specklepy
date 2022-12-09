@@ -59,7 +59,7 @@ class PropertyType3D(int, Enum):
 class ShapeType(int, Enum):
     Rectangular = 0
     Circular = 1
-    I = 2
+    I = 2  # noqa: E741
     Tee = 3
     Angle = 4
     Channel = 5

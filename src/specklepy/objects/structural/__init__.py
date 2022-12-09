@@ -1,20 +1,101 @@
 """Builtin Speckle object kit."""
 
-from specklepy.objects.structural.analysis import *
-from specklepy.objects.structural.properties import *
-from specklepy.objects.structural.material import *
-from specklepy.objects.structural.geometry import *
-from specklepy.objects.structural.loading import *
+from specklepy.objects.structural.analysis import (
+    Model,
+    ModelInfo,
+    ModelSettings,
+    ModelUnits,
+)
 from specklepy.objects.structural.axis import Axis
+from specklepy.objects.structural.geometry import (
+    ElementType1D,
+    ElementType2D,
+    ElementType3D,
+    Node,
+    Restraint,
+    Element1D,
+    Element2D,
+    Element3D,
+)
+from specklepy.objects.structural.loading import (
+    Load,
+    LoadType,
+    ActionType,
+    BeamLoadType,
+    FaceLoadType,
+    LoadDirection,
+    LoadDirection2D,
+    LoadAxisType,
+    CombinationType,
+    LoadCase,
+    LoadBeam,
+    LoadCombinations,
+    LoadFace,
+    LoadGravity,
+    LoadNode,
+)
+from specklepy.objects.structural.material import (
+    MaterialType,
+    StructuralMaterial,
+    Concrete,
+    Steel,
+    Timber,
+)
+
+from specklepy.objects.structural.properties import (
+    MemberType,
+    BaseReferencePoint,
+    ReferenceSurface,
+    PropertyType2D,
+    PropertyType3D,
+    ShapeType,
+    PropertyTypeSpring,
+    PropertyTypeDamper,
+    Property,
+    SectionProfile,
+    Property1D,
+    Property2D,
+    Property3D,
+    PropertyDamper,
+    PropertyMass,
+    PropertySpring,
+    ReferenceSurfaceEnum,
+    shapeType,
+)
+
+from specklepy.objects.structural.results import (
+    Result,
+    Result1D,
+    ResultSet1D,
+    Result2D,
+    ResultSet2D,
+    Result3D,
+    ResultSet3D,
+    ResultGlobal,
+    ResultSetNode,
+    ResultNode,
+    ResultSetAll,
+)
 
 __all__ = [
     "Element1D",
     "Element2D",
     "Element3D",
+    "ElementType1D",
+    "ElementType2D",
+    "ElementType3D",
     "Axis",
     "Node",
     "Restraint",
     "Load",
+    "LoadType",
+    "ActionType",
+    "BeamLoadType",
+    "FaceLoadType",
+    "LoadDirection",
+    "LoadDirection2D",
+    "LoadAxisType",
+    "CombinationType",
     "LoadBeam",
     "LoadCase",
     "LoadCombinations",
@@ -25,8 +106,9 @@ __all__ = [
     "ModelInfo",
     "ModelSettings",
     "ModelUnits",
+    "MaterialType",
     "Concrete",
-    "Material",
+    "StructuralMaterial",
     "Steel",
     "Timber",
     "Property",
@@ -37,4 +119,25 @@ __all__ = [
     "PropertyMass",
     "PropertySpring",
     "SectionProfile",
+    "MemberType",
+    "BaseReferencePoint",
+    "ReferenceSurface",
+    "PropertyType2D",
+    "PropertyType3D",
+    "ShapeType",
+    "PropertyTypeSpring",
+    "PropertyTypeDamper",
+    "ReferenceSurfaceEnum",
+    "shapeType",
+    "Result",
+    "Result1D",
+    "ResultSet1D",
+    "Result2D",
+    "ResultSet2D",
+    "Result3D",
+    "ResultSet3D",
+    "ResultGlobal",
+    "ResultSetNode",
+    "ResultNode",
+    "ResultSetAll",
 ]

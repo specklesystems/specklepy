@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Callable, List, Type, Dict
+from typing import Any, Callable, List, Optional, Type, Dict
 
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
@@ -43,7 +43,7 @@ def curve_from_list(args: List[float]):
 
 
 class ObjectArray:
-    def __init__(self, data: list = None) -> None:
+    def __init__(self, data: Optional[list] = None) -> None:
         self.data = data or []
 
     @classmethod

@@ -3,6 +3,14 @@ from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitExc
 from enum import Enum
 
 
+__all__ = [
+    "Units",
+    "get_encoding_from_units",
+    "get_units_from_encoding",
+    "get_units_from_string",
+]
+
+
 class Units(Enum):
     mm = "mm"
     cm = "cm"
