@@ -1,13 +1,15 @@
-import uuid
 import random
+import uuid
+
 import pytest
 import requests
-from specklepy.api.models import Stream
+
 from specklepy.api.client import SpeckleClient
-from specklepy.objects.base import Base
-from specklepy.objects.geometry import Point
-from specklepy.objects.fakemesh import FakeDirection, FakeMesh
+from specklepy.api.models import Stream
 from specklepy.logging import metrics
+from specklepy.objects.base import Base
+from specklepy.objects.fakemesh import FakeDirection, FakeMesh
+from specklepy.objects.geometry import Point
 
 metrics.disable()
 

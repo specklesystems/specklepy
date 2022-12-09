@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Callable, List, Optional, Type, Dict
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base

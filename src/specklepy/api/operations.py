@@ -1,10 +1,11 @@
 from typing import List, Optional
+
 from specklepy.logging import metrics
-from specklepy.objects.base import Base
-from specklepy.transports.sqlite import SQLiteTransport
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.transports.abstract_transport import AbstractTransport
+from specklepy.objects.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.transports.abstract_transport import AbstractTransport
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 def send(

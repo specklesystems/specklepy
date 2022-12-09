@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List, Optional
+
 from specklepy.objects.geometry import Point
 
 from .base import Base

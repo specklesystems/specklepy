@@ -1,5 +1,7 @@
 from typing import Any, List, Optional
+
 from specklepy.objects.geometry import Point, Vector
+
 from .base import Base
 
 OTHER = "Objects.Other."

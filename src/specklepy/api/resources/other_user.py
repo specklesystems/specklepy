@@ -1,13 +1,12 @@
-from typing import List, Optional, Union
 from datetime import datetime, timezone
+from typing import List, Optional, Union
+
 from gql import gql
+
+from specklepy.api.models import ActivityCollection, LimitedUser
+from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.api.resource import ResourceBase
-from specklepy.api.models import (
-    ActivityCollection,
-    LimitedUser,
-)
 
 NAME = "other_user"
 

@@ -1,7 +1,9 @@
-from typing import Callable, Dict, List, Union
 from functools import wraps
+from typing import Callable, Dict, List, Union
+
 from gql import gql
 from graphql import DocumentNode
+
 from specklepy.api.resource import ResourceBase
 from specklepy.api.resources.stream import Stream
 from specklepy.logging.exceptions import SpeckleException

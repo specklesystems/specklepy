@@ -1,21 +1,19 @@
-import re
-import ujson
 import hashlib
+import re
 import warnings
-from uuid import uuid4
 from enum import Enum
-from warnings import warn
 from typing import Any, Dict, List, Tuple
-from specklepy.objects.base import Base, DataChunk
-from specklepy.logging.exceptions import (
-    SpeckleException,
-    SpeckleWarning,
-)
-from specklepy.transports.abstract_transport import AbstractTransport
+from uuid import uuid4
+from warnings import warn
+
+import ujson
 
 # import for serialization
 import specklepy.objects.geometry
 import specklepy.objects.other
+from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
+from specklepy.objects.base import Base, DataChunk
+from specklepy.transports.abstract_transport import AbstractTransport
 
 PRIMITIVES = (int, float, str, bool)
 

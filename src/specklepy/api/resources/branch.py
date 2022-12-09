@@ -1,6 +1,7 @@
 from gql import gql
-from specklepy.api.resource import ResourceBase
+
 from specklepy.api.models import Branch
+from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 
 NAME = "branch"

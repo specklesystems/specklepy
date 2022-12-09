@@ -1,10 +1,11 @@
+import gzip
 import json
 import logging
-import threading
 import queue
-import gzip
+import threading
 
 import requests
+
 from specklepy.logging.exceptions import SpeckleException
 
 LOG = logging.getLogger(__name__)

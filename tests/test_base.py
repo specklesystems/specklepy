@@ -1,8 +1,9 @@
+from contextlib import ExitStack as does_not_raise
 from enum import Enum
 from typing import Dict, List, Optional, Union
-from contextlib import ExitStack as does_not_raise
 
 import pytest
+
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from specklepy.objects.base import Base

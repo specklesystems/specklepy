@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 from typing import List, Optional
+
 from deprecated import deprecated
 from gql import gql
-from specklepy.logging import metrics
+
 from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, Stream
 from specklepy.api.resource import ResourceBase
-from specklepy.logging.exceptions import UnsupportedException, SpeckleException
-
+from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException, UnsupportedException
 
 NAME = "stream"
 

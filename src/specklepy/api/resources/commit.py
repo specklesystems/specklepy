@@ -1,9 +1,10 @@
-from typing import Optional, List
-from gql import gql
-from specklepy.api.resource import ResourceBase
-from specklepy.api.models import Commit
-from specklepy.logging import metrics
+from typing import List, Optional
 
+from gql import gql
+
+from specklepy.api.models import Commit
+from specklepy.api.resource import ResourceBase
+from specklepy.logging import metrics
 
 NAME = "commit"
 

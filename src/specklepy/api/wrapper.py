@@ -1,14 +1,15 @@
+from urllib.parse import unquote, urlparse
 from warnings import warn
-from urllib.parse import urlparse, unquote
+
+from specklepy.api.client import SpeckleClient
 from specklepy.api.credentials import (
     Account,
     get_account_from_token,
     get_local_accounts,
 )
 from specklepy.logging import metrics
-from specklepy.api.client import SpeckleClient
-from specklepy.transports.server.server import ServerTransport
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
+from specklepy.transports.server.server import ServerTransport
 
 
 class StreamWrapper:

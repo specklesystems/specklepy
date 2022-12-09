@@ -1,11 +1,12 @@
-from typing import List, Optional
 from datetime import datetime, timezone
+from typing import List, Optional
+
 from gql import gql
+
+from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
+from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.api.resource import ResourceBase
-from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
-
 
 NAME = "active_user"
 

@@ -1,12 +1,14 @@
 import json
+
 import pytest
+
 from specklepy.api import operations
-from specklepy.transports.server import ServerTransport
-from specklepy.transports.memory import MemoryTransport
-from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.objects import Base
-from specklepy.objects.geometry import Point
 from specklepy.objects.fakemesh import FakeMesh
+from specklepy.objects.geometry import Point
+from specklepy.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.transports.memory import MemoryTransport
+from specklepy.transports.server import ServerTransport
 
 
 @pytest.mark.run(order=5)

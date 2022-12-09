@@ -1,12 +1,14 @@
 from typing import List
+
 import pytest
+
 from specklepy.api import operations
 from specklepy.objects.geometry import Point, Vector
 from specklepy.objects.other import (
-    Transform,
-    BlockInstance,
-    BlockDefinition,
     IDENTITY_TRANSFORM,
+    BlockDefinition,
+    BlockInstance,
+    Transform,
 )
 
 

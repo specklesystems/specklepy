@@ -1,13 +1,15 @@
-import pytest
 from datetime import datetime
+
+import pytest
+
+from specklepy.api.client import SpeckleClient
 from specklepy.api.models import (
-    ActivityCollection,
     Activity,
+    ActivityCollection,
     PendingStreamCollaborator,
     Stream,
     User,
 )
-from specklepy.api.client import SpeckleClient
 from specklepy.logging.exceptions import (
     GraphQLException,
     SpeckleException,

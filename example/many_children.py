@@ -1,12 +1,13 @@
-from typing import List
-from specklepy.objects import Base
-from specklepy.api import operations
-from specklepy.transports.sqlite import SQLiteTransport
+import os
+import random
+import string
 import time
 from pathlib import Path
-import os
-import string
-import random
+from typing import List
+
+from specklepy.api import operations
+from specklepy.objects import Base
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 class Sub(Base):

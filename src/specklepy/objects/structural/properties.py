@@ -2,9 +2,8 @@ from enum import Enum
 from typing import Optional
 
 from specklepy.objects.base import Base
-from specklepy.objects.structural.material import StructuralMaterial
 from specklepy.objects.structural.axis import Axis
-
+from specklepy.objects.structural.material import StructuralMaterial
 
 STRUCTURAL_PROPERTY = "Objectives.Structural.Properties"
 

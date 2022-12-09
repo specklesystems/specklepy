@@ -3,7 +3,6 @@ from typing import Optional
 
 from specklepy.objects.base import Base
 
-
 STRUCTURAL_MATERIALS = "Objects.Structural.Materials"
 
 

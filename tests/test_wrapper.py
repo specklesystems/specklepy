@@ -1,9 +1,11 @@
 import json
-from specklepy.api.wrapper import StreamWrapper
-from specklepy.transports.sqlite import SQLiteTransport
-from specklepy.paths import accounts_path
 from pathlib import Path
+
 import pytest
+
+from specklepy.api.wrapper import StreamWrapper
+from specklepy.paths import accounts_path
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 def test_parse_stream():

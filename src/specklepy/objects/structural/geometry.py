@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Line, Mesh, Plane, Point, Vector
+from specklepy.objects.structural.axis import Axis
 from specklepy.objects.structural.properties import (
     Property1D,
     Property2D,
@@ -11,7 +12,6 @@ from specklepy.objects.structural.properties import (
     PropertyMass,
     PropertySpring,
 )
-from specklepy.objects.structural.axis import Axis
 
 STRUCTURAL_GEOMETRY = "Objects.Structural.Geometry"
 

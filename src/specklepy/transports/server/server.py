@@ -1,8 +1,8 @@
 import json
-import requests
+from typing import Any, Dict, List
 from warnings import warn
 
-from typing import Any, Dict, List
+import requests
 
 from specklepy.api.client import SpeckleClient
 from specklepy.api.credentials import Account, get_account_from_token

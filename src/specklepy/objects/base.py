@@ -1,21 +1,10 @@
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    List,
-    Optional,
-    Union,
-    Set,
-    Type,
-    get_type_hints,
-)
-
 import contextlib
 from enum import EnumMeta
+from typing import Any, ClassVar, Dict, List, Optional, Set, Type, Union, get_type_hints
 from warnings import warn
 
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.objects.units import get_units_from_string, Units
+from specklepy.objects.units import Units, get_units_from_string
 from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)

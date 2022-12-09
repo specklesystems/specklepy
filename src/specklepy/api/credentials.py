@@ -1,11 +1,13 @@
 import os
-from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 from typing import List, Optional
-from specklepy.logging import metrics
-from specklepy.api.models import ServerInfo
-from specklepy.transports.sqlite import SQLiteTransport
-from specklepy.logging.exceptions import SpeckleException
+
+from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
+
 from specklepy import paths
+from specklepy.api.models import ServerInfo
+from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 class UserInfo(BaseModel):
