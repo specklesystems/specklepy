@@ -14,7 +14,7 @@ import contextlib
 from enum import EnumMeta
 from warnings import warn
 
-from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.units import get_units_from_string, Units
 from specklepy.transports.memory import MemoryTransport
 
@@ -90,7 +90,8 @@ class _RegisteringBase:
     """
 
     speckle_type: ClassVar[str]
-    _type_registry: ClassVar[Dict[str, "Base"]] = {}
+    _speckle_type_override: ClassVar[Optional[str]] = None
+    _type_registry: ClassVar[Dict[str, Type["Base"]]] = {}
     _attr_types: ClassVar[Dict[str, Type]] = {}
     # dict of chunkable props and their max chunk size
     _chunkable: Dict[str, int] = {}
@@ -98,22 +99,40 @@ class _RegisteringBase:
     _detachable: Set[str] = set()  # list of defined detachable props
     _serialize_ignore: Set[str] = set()
 
-    class Config:
-        validate_assignment = True
-
     @classmethod
-    def get_registered_type(
-        cls, speckle_type: str
-    ) -> Union["Base", Type["Base"], None]:
+    def get_registered_type(cls, speckle_type: str) -> Optional[Type["Base"]]:
         """Get the registered type from the protected mapping via the `speckle_type`"""
         return cls._type_registry.get(speckle_type, None)
 
+    @classmethod
+    def _determine_speckle_type(cls) -> str:
+        """
+        This method brings the speckle_type construction in par with peckle-sharp/Core.
+
+        The implementation differs, because in Core the basis of the speckle_type if
+        type.FullName, which includes the dotnet namespace name too.
+        Copying that behavior is hard in python, where the concept of namespaces
+        means something entirely different.
+
+        So we enabled a speckle_type override mechanism, that enables 
+        """
+        base_name = "Base"
+        if cls.__name__ == base_name:
+            return base_name
+
+        bases = [
+            b._speckle_type_override if b._speckle_type_override else b.__name__
+            for b in reversed(cls.mro())
+            if issubclass(b, Base) and b.__name__ != base_name
+        ]
+        return ":".join(bases)
+
     def __init_subclass__(
         cls,
-        speckle_type: str = None,
-        chunkable: Dict[str, int] = None,
-        detachable: Set[str] = None,
-        serialize_ignore: Set[str] = None,
+        speckle_type: Optional[str] = None,
+        chunkable: Optional[Dict[str, int]] = None,
+        detachable: Optional[Set[str]] = None,
+        serialize_ignore: Optional[Set[str]] = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -123,13 +142,14 @@ class _RegisteringBase:
         initialization. This is reused to register each subclassing type into a class
         level dictionary.
         """
-        if speckle_type in cls._type_registry:
+        cls._speckle_type_override = speckle_type
+        cls.speckle_type = cls._determine_speckle_type()
+        if cls.speckle_type in cls._type_registry:
             raise ValueError(
                 f"The speckle_type: {speckle_type} is already registered for type: "
-                f"{cls._type_registry[speckle_type].__name__}. "
+                f"{cls._type_registry[cls.speckle_type].__name__}. "
                 f"Please choose a different type name."
             )
-        cls.speckle_type = speckle_type or cls.__name__
         cls._type_registry[cls.speckle_type] = cls  # type: ignore
         try:
             cls._attr_types = get_type_hints(cls)
@@ -423,3 +443,4 @@ class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
     def __init__(self) -> None:
         super().__init__()
         self.data = []
+
