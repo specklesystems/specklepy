@@ -378,7 +378,7 @@ class Base(_RegisteringBase):
 
         raise SpeckleException(
             f"Cannot set '{self.__class__.__name__}.{name}':"
-            f"it expects type '{t.__name__ if t else None}',"
+            f"it expects type '{str(t)}',"
             f"but received type '{type(value).__name__}'"
         )
 
