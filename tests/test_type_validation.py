@@ -42,10 +42,12 @@ class FakeIntEnum(IntEnum):
         (FakeIntEnum, FakeIntEnum.one.value, True, FakeIntEnum.one),
         (FakeIntEnum, FakeIntEnum.one, True, FakeIntEnum.one),
         (FakeIntEnum, 2, False, 2),
-        (FakeIntEnum, 123., False, 123.),
+        (FakeIntEnum, 123.0, False, 123.0),
         (Base, test_base, True, test_base),
         (Base, 123, False, 123),
         (Optional[int], 1, True, 1),
+        # this is just silly...
+        (Optional[int], [1, 2, 3], True, [1, 2, 3]),
         (Optional[int], None, True, None),
         (Optional[FakeEnum], None, True, None),
         (Optional[FakeEnum], FakeEnum.bar, True, FakeEnum.bar),

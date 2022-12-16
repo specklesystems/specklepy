@@ -181,6 +181,8 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
 
     # after fixing the None t above, this should be
     # if t is Any:
+    # if t is None:
+
     if t is None or t is Any:
         return True, value
 
@@ -219,6 +221,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
                 if valid_key and valid_value:
                     return True, value
                 return False, value
+
         if origin is list:
             if not isinstance(value, list):
                 return False, value
