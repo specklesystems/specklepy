@@ -3,6 +3,7 @@ from typing import Any, List, Optional
 
 from specklepy.objects.base import Base
 from specklepy.objects.encoding import CurveArray, CurveTypeEncoding, ObjectArray
+from specklepy.objects.primitive import Interval
 from specklepy.objects.units import get_encoding_from_units, get_units_from_encoding
 
 GEOMETRY = "Objects.Geometry."
