@@ -1,4 +1,5 @@
 from typing import Any, List
+
 from specklepy.objects.base import Base
 
 NAMESPACE = "Objects.Primitive"

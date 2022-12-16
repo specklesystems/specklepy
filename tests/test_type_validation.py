@@ -1,6 +1,8 @@
 from enum import Enum, IntEnum
-import pytest
 from typing import Any, Dict, List, Optional, Tuple
+
+import pytest
+
 from specklepy.objects.base import Base, _validate_type
 from specklepy.objects.primitive import Interval
 
