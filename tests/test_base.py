@@ -152,6 +152,7 @@ def test_type_checking() -> None:
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
 
     assert order.price == 7.0
+    assert order.dietary == DietaryRestrictions.VEGAN
 
 
 def test_cached_deserialization() -> None:

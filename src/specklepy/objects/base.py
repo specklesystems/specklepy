@@ -1,6 +1,18 @@
 import contextlib
-from enum import EnumMeta
-from typing import Any, ClassVar, Dict, List, Optional, Set, Type, Union, get_type_hints
+from enum import Enum
+from inspect import isclass
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    get_type_hints,
+)
 from warnings import warn
 
 from specklepy.logging.exceptions import SpeckleException
@@ -103,7 +115,7 @@ class _RegisteringBase:
         Copying that behavior is hard in python, where the concept of namespaces
         means something entirely different.
 
-        So we enabled a speckle_type override mechanism, that enables 
+        So we enabled a speckle_type override mechanism, that enables
         """
         base_name = "Base"
         if cls.__name__ == base_name:
@@ -152,6 +164,99 @@ class _RegisteringBase:
         if serialize_ignore:
             cls._serialize_ignore = cls._serialize_ignore.union(serialize_ignore)
         super().__init_subclass__(**kwargs)
+
+
+# T = TypeVar("T")
+
+# how i wish the code below would be correct, but we're also parsing into floats
+# and converting into strings if the original type is string, but the value isn't
+# def _validate_type(t: type, value: T) -> Tuple[bool, T]:
+
+
+def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
+    # this should be reworked. Its only ok to return null for Optionals...
+    # if t is None and value is None:
+    if value is None:
+        return True, value
+
+    # after fixing the None t above, this should be
+    # if t is Any:
+    if t is None or t is Any:
+        return True, value
+
+    if isclass(t) and issubclass(t, Enum):
+        if isinstance(value, t):
+            return True, value
+        if value in t._value2member_map_:
+            return True, t(value)
+
+    if getattr(t, "__module__", None) == "typing":
+        origin = getattr(t, "__origin__")
+        # below is what in nicer for >= py38
+        # origin = get_origin(t)
+
+        # recursive validation for Unions on both types preferring the fist type
+        if origin is Union:
+            t_1, t_2 = t.__args__  # type: ignore
+            # below is what in nicer for >= py38
+            # t_1, t_2 = get_args(t)
+            t_1_success, t_1_value = _validate_type(t_1, value)
+            if t_1_success:
+                return True, t_1_value
+            return _validate_type(t_2, value)
+        if origin is dict:
+            if not isinstance(value, dict):
+                return False, value
+            if value == {}:
+                return True, value
+            t_key, t_value = t.__args__  # type: ignore
+            # we're only checking the first item, but the for loop and return after
+            # evaluating the first item is the fastest way
+            for dict_key, dict_value in value.items():
+                valid_key, _ = _validate_type(t_key, dict_key)
+                valid_value, _ = _validate_type(t_value, dict_value)
+
+                if valid_key and valid_value:
+                    return True, value
+                return False, value
+        if origin is list:
+            if not isinstance(value, list):
+                return False, value
+            if value == []:
+                return True, value
+            t_items = t.__args__[0]  # type: ignore
+            first_item_valid, _ = _validate_type(t_items, value[0])
+            if first_item_valid:
+                return True, value
+            return False, value
+
+        if origin is tuple:
+            if not isinstance(value, tuple):
+                return False, value
+            args = t.__args__  # type: ignore
+            # we're not checking for empty tuple, cause tuple lengths must match
+            if len(args) != len(value):
+                return False, value
+            values = []
+            for t_item, v_item in zip(args, value):
+                item_valid, item_value = _validate_type(t_item, v_item)
+                if not item_valid:
+                    return False, value
+                values.append(item_value)
+            return True, tuple(values)
+
+    if isinstance(value, t):
+        return True, value
+
+    with contextlib.suppress(ValueError):
+        if t is float and value:
+            return True, float(value)
+        # TODO: dafuq, i had to add this not list check
+        # but it would also fail for objects and other complex values
+        if t is str and value and not isinstance(value, list):
+            return True, str(value)
+
+    return False, value
 
 
 class Base(_RegisteringBase):
@@ -251,55 +356,27 @@ class Base(_RegisteringBase):
                 "Invalid Name: Base member names cannot contain characters '.' or '/'",
             )
 
-    def _type_check(self, name: str, value: Any):
+    def _type_check(self, name: str, value: Any) -> Any:
         """
         Lightweight type checking of values before setting them
 
-        NOTE: Does not check subscripted types within generics as the performance hit of checking
-        each item within a given collection isn't worth it. Eg if you have a type Dict[str, float],
+        NOTE: Does not check subscripted types within generics as the performance hit
+        of checking each item within a given collection isn't worth it.
+        Eg if you have a type Dict[str, float],
         we will only check if the value you're trying to set is a dict.
         """
         types = getattr(self, "_attr_types", {})
         t = types.get(name, None)
 
-        if t is None or t is Any:
-            return value
+        valid, checked_value = _validate_type(t, value)
 
-        if value is None:
-            return None
-
-        if isinstance(t, EnumMeta) and (value in t._value2member_map_):
-            return t(value)
-
-        if t.__module__ == "typing":
-            origin = getattr(t, "__origin__")
-            t = (
-                tuple(getattr(sub_t, "__origin__", sub_t) for sub_t in t.__args__)
-                if origin is Union
-                else origin
-            )
-
-            if not isinstance(t, (type, tuple)):
-                warn(
-                    f"Unrecognised type '{t}' provided for attribute '{name}'. Type will not been validated."
-                )
-                return value
-        if isinstance(value, t):
-            return value
-
-        # to be friendly, we'll parse ints and strs into floats, but not the other way around
-        # (to avoid unexpected rounding)
-        if isinstance(t, tuple):
-            t = t[0]
-
-        with contextlib.suppress(ValueError):
-            if t is float:
-                return float(value)
-            if t is str and value:
-                return str(value)
+        if valid:
+            return checked_value
 
         raise SpeckleException(
-            f"Cannot set '{self.__class__.__name__}.{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
+            f"Cannot set '{self.__class__.__name__}.{name}':"
+            f"it expects type '{t.__name__ if t else None}',"
+            f"but received type '{type(value).__name__}'"
         )
 
     def add_chunkable_attrs(self, **kwargs: int) -> None:
@@ -432,4 +509,3 @@ class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
     def __init__(self) -> None:
         super().__init__()
         self.data = []
-
