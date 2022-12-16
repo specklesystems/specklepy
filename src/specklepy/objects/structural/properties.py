@@ -100,7 +100,6 @@ class SectionProfile(Base, speckle_type=STRUCTURAL_PROPERTY + ".SectionProfile")
     J: float = 0.0
     Ky: float = 0.0
     weight: float = 0.0
-    units: Optional[str] = None
 
 
 class Property1D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property1D"):

@@ -55,7 +55,6 @@ class Restraint(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Restraint"):
     stiffnessXX: float = 0.0
     stiffnessYY: float = 0.0
     stiffnessZZ: float = 0.0
-    units: Optional[str] = None
 
 
 class Node(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Node"):
@@ -66,7 +65,6 @@ class Node(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Node"):
     springProperty: Optional[PropertySpring] = None
     massProperty: Optional[PropertyMass] = None
     damperProperty: Optional[PropertyDamper] = None
-    units: Optional[str] = None
 
 
 class Element1D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element1D"):
@@ -86,7 +84,6 @@ class Element1D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element1D"):
     end2Node: Optional[Node] = None
     topology: Optional[List] = None
     displayMesh: Optional[Mesh] = None
-    units: Optional[str] = None
 
 
 class Element2D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element2D"):
@@ -98,7 +95,6 @@ class Element2D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element2D"):
     parent: Optional[Base] = None
     topology: Optional[List] = None
     displayMesh: Optional[Mesh] = None
-    units: Optional[str] = None
 
 
 class Element3D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element3D"):
@@ -109,7 +105,6 @@ class Element3D(Base, speckle_type=STRUCTURAL_GEOMETRY + ".Element3D"):
     orientationAngle: float = 0.0
     parent: Optional[Base] = None
     topology: List
-    units: Optional[str] = None
 
 
 # class Storey needs ependency on built elements first

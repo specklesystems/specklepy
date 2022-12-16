@@ -67,7 +67,6 @@ class DisplayStyle(Base, speckle_type=OTHER + "DisplayStyle"):
     color: int = -2894893  # light gray arbg
     linetype: Optional[str] = None
     lineweight: float = 0
-    units: Optional[str] = None
 
 
 class Transform(

@@ -99,7 +99,6 @@ class LoadCase(Base, speckle_type=STRUCTURAL_LOADING + "LoadCase"):
 
 class Load(Base, speckle_type=STRUCTURAL_LOADING + "Load"):
     name: Optional[str] = None
-    units: Optional[str] = None
     loadCase: Optional[LoadCase] = None
 
 

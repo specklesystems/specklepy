@@ -45,7 +45,6 @@ class Vector(Base, speckle_type=GEOMETRY + "Vector"):
     y: float = 0.0
     z: float = 0.0
     applicationId: Optional[str] = None
-    units: Optional[str] = None
 
     def __repr__(self) -> str:
         return (
@@ -151,7 +150,6 @@ class Arc(Base, speckle_type=GEOMETRY + "Arc"):
     bbox: Optional[Box] = None
     area: Optional[float] = None
     length: Optional[float] = None
-    units: Optional[str] = None
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Arc":
@@ -319,7 +317,6 @@ class Spiral(Base, speckle_type=GEOMETRY + "Spiral", detachable={"displayValue"}
     bbox: Optional[Box] = None
     length: Optional[float] = None
     domain: Optional[Interval] = None
-    units: Optional[str] = None
 
 
 class Curve(

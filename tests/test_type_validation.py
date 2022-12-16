@@ -2,6 +2,7 @@ from enum import Enum, IntEnum
 import pytest
 from typing import Any, Dict, List, Optional, Tuple
 from specklepy.objects.base import Base, _validate_type
+from specklepy.objects.primitive import Interval
 
 test_base = Base()
 
@@ -26,6 +27,7 @@ class FakeIntEnum(IntEnum):
             True,
             "{'foo': 'bar'}",
         ),
+        (float, 1, True, 1),
         # why are we allowing this??? We're lying to our users and ourselves too.
         (str, None, True, None),
         (bool, None, True, None),
@@ -47,7 +49,7 @@ class FakeIntEnum(IntEnum):
         (Base, 123, False, 123),
         (Optional[int], 1, True, 1),
         # this is just silly...
-        (Optional[int], [1, 2, 3], True, [1, 2, 3]),
+        (Optional[int], [1, 2, 3], False, [1, 2, 3]),
         (Optional[int], None, True, None),
         (Optional[FakeEnum], None, True, None),
         (Optional[FakeEnum], FakeEnum.bar, True, FakeEnum.bar),
@@ -77,3 +79,8 @@ def test_validate_type(
     input_type: type, value: Any, is_valid: bool, return_value: Any
 ) -> None:
     assert (is_valid, return_value) == _validate_type(input_type, value)
+
+
+def test_intervar_type():
+    i = Interval(start=5, end=10)
+    assert i
