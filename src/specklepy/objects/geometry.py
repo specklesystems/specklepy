@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum, auto
 from typing import Any, List, Optional
 
 from specklepy.objects.base import Base
@@ -6,21 +6,6 @@ from specklepy.objects.encoding import CurveArray, CurveTypeEncoding, ObjectArra
 from specklepy.objects.units import get_encoding_from_units, get_units_from_encoding
 
 GEOMETRY = "Objects.Geometry."
-
-
-class Interval(Base, speckle_type="Objects.Primitive.Interval"):
-    start: float = 0.0
-    end: float = 0.0
-
-    def length(self):
-        return abs(self.start - self.end)
-
-    @classmethod
-    def from_list(cls, args: List[Any]) -> "Interval":
-        return cls(start=args[0], end=args[1])
-
-    def to_list(self) -> List[Any]:
-        return [self.start, self.end]
 
 
 class Point(Base, speckle_type=GEOMETRY + "Point"):
@@ -47,8 +32,43 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
         return pt
 
 
-class Vector(Point, speckle_type=GEOMETRY + "Vector"):
-    pass
+class Pointcloud(Base, speckle_type=GEOMETRY + "Pointcloud"):
+    points: Optional[List[float]] = None
+    colors: Optional[List[int]] = None
+    sizes: Optional[List[float]] = None
+    bbox: Optional["Box"] = None
+
+
+class Vector(Base, speckle_type=GEOMETRY + "Vector"):
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
+    applicationId: Optional[str] = None
+    units: Optional[str] = None
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__} "
+            "(x: {self.x}, y: {self.y}, z: {self.z}, id: {self.id}, "
+            "speckle_type: {self.speckle_type})"
+        )
+
+    @classmethod
+    def from_list(cls, args: List[float]) -> "Vector":
+        """
+        Create from a list of three floats representing the x, y, and z coordinates.
+        """
+        return cls(x=args[0], y=args[1], z=args[2])
+
+    def to_list(self) -> List[float]:
+        return [self.x, self.y, self.z]
+
+    @classmethod
+    def from_coords(cls, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> "Vector":
+        """Create a new Point from x, y, and z values"""
+        v = Vector()
+        v.x, v.y, v.z = x, y, z
+        return v
 
 
 class ControlPoint(Point, speckle_type=GEOMETRY + "ControlPoint"):
@@ -83,9 +103,9 @@ class Plane(Base, speckle_type=GEOMETRY + "Plane"):
 
 class Box(Base, speckle_type=GEOMETRY + "Box"):
     basePlane: Plane = Plane()
+    xSize: Interval = Interval()
     ySize: Interval = Interval()
     zSize: Interval = Interval()
-    xSize: Interval = Interval()
     area: Optional[float] = None
     volume: Optional[float] = None
 
@@ -130,6 +150,7 @@ class Arc(Base, speckle_type=GEOMETRY + "Arc"):
     bbox: Optional[Box] = None
     area: Optional[float] = None
     length: Optional[float] = None
+    units: Optional[str] = None
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Arc":
@@ -221,12 +242,12 @@ class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
 
 
 class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 20000}):
-    value: List[float] = None
+    value: Optional[List[float]] = None
     closed: Optional[bool] = None
     domain: Optional[Interval] = None
     bbox: Optional[Box] = None
-    area: float = None
-    length: float = None
+    area: Optional[float] = None
+    length: Optional[float] = None
 
     @classmethod
     def from_points(cls, points: List[Point]):
@@ -270,6 +291,34 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 200
         return [
             Point(x=v, y=next(values), z=next(values), units=self.units) for v in values
         ]
+
+
+class SpiralType(Enum):
+    Biquadratic = (0,)
+    BiquadraticParabola = (1,)
+    Bloss = (2,)
+    Clothoid = (3,)
+    Cosine = (4,)
+    Cubic = (5,)
+    CubicParabola = (6,)
+    Radioid = (7,)
+    Sinusoid = (8,)
+    Unknown = 9
+
+
+class Spiral(Base, speckle_type=GEOMETRY + "Spiral", detachable={"displayValue"}):
+    startPoint: Optional[Point] = None
+    endPoint: Optional[Point]
+    plane: Optional[Plane]
+    turns: Optional[int]
+    pitchAxis: Optional[Vector] = Vector()
+    pitch: float = 0
+    spiralType: Optional[SpiralType] = None
+    displayValue: Optional[Polyline] = None
+    bbox: Optional[Box] = None
+    length: Optional[float] = None
+    domain: Optional[Interval] = None
+    units: Optional[str] = None
 
 
 class Curve(

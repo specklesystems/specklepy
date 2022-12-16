@@ -26,6 +26,21 @@ IDENTITY_TRANSFORM = [
 ]
 
 
+class Material(Base, speckle_type=OTHER + "Material"):
+    """Generic class for materials containing generic parameters."""
+
+    name: Optional[str] = None
+
+
+class RevitMaterial(Material, speckle_type="Objects.Other.Revit." + "RevitMaterial"):
+    materialCategory: Optional[str] = None
+    materialClass: Optional[str] = None
+    shininess: Optional[int] = None
+    smoothness: Optional[int] = None
+    transparency: Optional[int] = None
+    parameters: Optional[Base] = None
+
+
 class RenderMaterial(Base, speckle_type=OTHER + "RenderMaterial"):
     name: Optional[str] = None
     opacity: float = 1
@@ -33,6 +48,26 @@ class RenderMaterial(Base, speckle_type=OTHER + "RenderMaterial"):
     roughness: float = 1
     diffuse: int = -2894893  # light gray arbg
     emissive: int = -16777216  # black arbg
+
+
+class MaterialQuantity(Base, speckle_type=OTHER + "MaterialQuantity"):
+    material: Optional[Material] = None
+    volume: Optional[float] = None
+    area: Optional[float] = None
+
+
+class DisplayStyle(Base, speckle_type=OTHER + "DisplayStyle"):
+    """
+    Minimal display style class.
+    Developed primarily for display styles in Rhino and AutoCAD.
+    Rhino object attributes uses OpenNURBS definition for linetypes and lineweights.
+    """
+
+    name: Optional[str] = None
+    color: int = -2894893  # light gray arbg
+    linetype: Optional[str] = None
+    lineweight: float = 0
+    units: Optional[str] = None
 
 
 class Transform(

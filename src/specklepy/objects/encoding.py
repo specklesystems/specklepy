@@ -68,7 +68,7 @@ class ObjectArray:
     def decode_data(
         data: List[Any], decoder: Callable[[List[Any]], Base], **kwargs: Dict[str, Any]
     ) -> List[Base]:
-        bases = []
+        bases: List[Base] = []
         if not data:
             return bases
         index = 0
