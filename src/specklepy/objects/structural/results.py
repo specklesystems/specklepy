@@ -170,4 +170,3 @@ class ResultSetAll(Base, speckle_type=None):
     resultSet3D: Optional[ResultSet3D] = None
     resultsGlobal: Optional[ResultGlobal] = None
     resultsNode: Optional[ResultSetNode] = None
-

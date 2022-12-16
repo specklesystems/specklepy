@@ -29,6 +29,7 @@ def test_empty_prop_names(invalid_prop_name: str) -> None:
 class FakeModel(Base):
     """Just a test class type."""
 
+
 class FakeSub(FakeModel):
     """Just a test class type."""
 

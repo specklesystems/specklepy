@@ -19,7 +19,9 @@ class TestUser:
 
     def test_user_search(self, client, second_user_dict):
         with pytest.deprecated_call():
-            search_results = client.user.search(search_query=second_user_dict["name"][:5])
+            search_results = client.user.search(
+                search_query=second_user_dict["name"][:5]
+            )
 
             assert isinstance(search_results, list)
             assert isinstance(search_results[0], User)
@@ -49,7 +51,6 @@ class TestUser:
         with pytest.deprecated_call():
             updated = client.user.update(bio=bio)
             assert updated is True
-
 
         with pytest.deprecated_call():
             me = client.user.get()

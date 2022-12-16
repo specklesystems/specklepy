@@ -66,7 +66,7 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
         json_acct_files.extend(
             file for file in os.listdir(json_path) if file.endswith(".json")
         )
-    
+
     except Exception:
         # cannot find or get the json account paths
         pass
