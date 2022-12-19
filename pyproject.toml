@@ -31,6 +31,7 @@ devtools = "^0.8.0"
 pylint = "^2.14.4"
 mypy = "^0.982"
 pre-commit = "^2.20.0"
+commitizen = "^2.38.0"
 
 [tool.black]
 exclude = '''
@@ -52,6 +53,10 @@ line-length = 88
 target-version = ["py37", "py38", "py39", "py310"]
 
 
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "2.9.2"
+tag_format = "$version"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
