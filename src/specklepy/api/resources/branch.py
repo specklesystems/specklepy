@@ -87,7 +87,7 @@ class Resource(ResourceBase):
                               createdAt
                             }
                         }
-                    }                      
+                    }
                 }
             }
             """
