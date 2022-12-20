@@ -13,11 +13,11 @@ from specklepy.objects.units import Units
 @pytest.mark.parametrize(
     "invalid_prop_name",
     [
-        (""),
-        ("@"),
-        ("@@wow"),
-        ("this.is.bad"),
-        ("super/bad"),
+        "",
+        "@",
+        "@@wow",
+        "this.is.bad",
+        "super/bad",
     ],
 )
 def test_empty_prop_names(invalid_prop_name: str) -> None:
@@ -95,7 +95,7 @@ def test_setting_units():
     assert b.units == "ft"
 
     b.units = None  # None should be a valid arg
-    assert b.units == None
+    assert b.units is None
 
     b.units = Units.none
     assert b.units == "none"

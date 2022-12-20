@@ -6,7 +6,6 @@ from specklepy.api import operations
 from specklepy.objects import Base
 from specklepy.objects.fakemesh import FakeMesh
 from specklepy.objects.geometry import Point
-from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
 

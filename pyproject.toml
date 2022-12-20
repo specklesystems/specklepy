@@ -32,6 +32,9 @@ pylint = "^2.14.4"
 mypy = "^0.982"
 pre-commit = "^2.20.0"
 commitizen = "^2.38.0"
+ruff = "^0.0.187"
+types-deprecated = "^1.2.9"
+types-ujson = "^5.6.0.0"
 
 [tool.black]
 exclude = '''
@@ -50,7 +53,7 @@ exclude = '''
 '''
 include = '\.pyi?$'
 line-length = 88
-target-version = ["py37", "py38", "py39", "py310"]
+target-version = ["py37", "py38", "py39", "py310", "py311"]
 
 
 [tool.commitizen]

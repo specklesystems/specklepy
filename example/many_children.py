@@ -27,7 +27,6 @@ def clean_db():
 
 
 def one_pass(clean: bool, randomize: bool, child_count: int):
-
     foo = Base()
     for i in range(child_count):
         stuff = random_string() if randomize else "stuff"

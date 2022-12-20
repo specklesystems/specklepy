@@ -61,21 +61,28 @@ class Resource(ResourceBase):
         """
         Not advised - generally, you want to use `operations.send()`.
 
-        Create a new object on a stream. To send a base object, you can prepare it by running it through the
-        `BaseObjectSerializer.traverse_base()` function to get a valid (serialisable) object to send.
+        Create a new object on a stream.
+        To send a base object, you can prepare it by running it through the
+        `BaseObjectSerializer.traverse_base()` function to get a valid (serialisable)
+        object to send.
 
-        NOTE: this does not create a commit - you can create one with `SpeckleClient.commit.create`. Dynamic fields will be located in the 'data' dict of the received `Base` object
+        NOTE: this does not create a commit - you can create one with
+        `SpeckleClient.commit.create`.
+        Dynamic fields will be located in the 'data' dict of the received `Base` object
 
         Arguments:
             stream_id {str} -- the id of the stream you want to send the object to
-            objects {List[Dict]} -- a list of base dictionary objects (NOTE: must be json serialisable)
+            objects {List[Dict]}
+            -- a list of base dictionary objects (NOTE: must be json serialisable)
 
         Returns:
             str -- the id of the object
         """
         query = gql(
             """
-          mutation ObjectCreate($object_input: ObjectCreateInput!) { objectCreate(objectInput: $object_input) }
+          mutation ObjectCreate($object_input: ObjectCreateInput!) {
+            objectCreate(objectInput: $object_input)
+        }
           """
         )
         params = {"object_input": {"streamId": stream_id, "objects": objects}}

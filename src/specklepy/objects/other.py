@@ -77,7 +77,8 @@ class Transform(
     """The 4x4 transformation matrix
 
     The 3x3 sub-matrix determines scaling.
-    The 4th column defines translation, where the last value is a divisor (usually equal to 1).
+    The 4th column defines translation,
+    where the last value is a divisor (usually equal to 1).
     """
 
     _value: Optional[List[float]] = None
@@ -93,12 +94,14 @@ class Transform(
             value = [float(x) for x in value]
         except (ValueError, TypeError) as error:
             raise ValueError(
-                f"Could not create a Transform object with the requested value. Input must be a 16 element list of numbers. Value provided: {value}"
+                "Could not create a Transform object with the requested value. Input"
+                f" must be a 16 element list of numbers. Value provided: {value}"
             ) from error
 
         if len(value) != 16:
             raise ValueError(
-                f"Could not create a Transform object: input list should be 16 floats long, but was {len(value)} long"
+                "Could not create a Transform object: input list should be 16 floats"
+                f" long, but was {len(value)} long"
             )
 
         self._value = value
@@ -163,14 +166,16 @@ class Transform(
         """Transform a list of speckle Points
 
         Arguments:
-            points {List[float]} -- a flat list of floats representing points to transform
+            points {List[float]}
+            -- a flat list of floats representing points to transform
 
         Returns:
             List[float] -- a new transformed list
         """
         if len(points_value) % 3 != 0:
             raise ValueError(
-                "Cannot apply transform as the points list is malformed: expected length to be multiple of 3"
+                "Cannot apply transform as the points list is malformed: expected"
+                " length to be multiple of 3"
             )
         transformed = []
         for i in range(0, len(points_value), 3):
@@ -207,11 +212,13 @@ class Transform(
         ][:3]
 
     @classmethod
-    def from_list(cls, value: List[float] = None) -> "Transform":
-        """Returns a Transform object from a list of 16 numbers. If no value is provided, an identity transform will be returned.
+    def from_list(cls, value: Optional[List[float]] = None) -> "Transform":
+        """Returns a Transform object from a list of 16 numbers.
+        If no value is provided, an identity transform will be returned.
 
         Arguments:
-            value {List[float]} -- the matrix as a flat list of 16 numbers (defaults to the identity transform)
+            value {List[float]} -- the matrix as a flat list of 16 numbers
+            (defaults to the identity transform)
 
         Returns:
             Transform -- a complete transform object

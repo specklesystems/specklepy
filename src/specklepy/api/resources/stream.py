@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List
 
 from deprecated import deprecated
 from gql import gql
@@ -346,8 +346,8 @@ class Resource(ResourceBase):
     @deprecated(
         version="2.6.4",
         reason=(
-            "As of Speckle Server v2.6.4, this method is deprecated. "
-            "Users need to be invited and accept the invite before being added to a stream"
+            "As of Speckle Server v2.6.4, this method is deprecated. Users need to be"
+            " invited and accept the invite before being added to a stream"
         ),
     )
     def grant_permission(self, stream_id: str, user_id: str, role: str):
@@ -370,11 +370,10 @@ class Resource(ResourceBase):
             self.server_version == ("dev",) or self.server_version >= (2, 6, 4)
         ):
             raise UnsupportedException(
-                (
-                    "Server mutation `grant_permission` is no longer supported as of Speckle Server v2.6.4. "
-                    "Please use the new `update_permission` method to change an existing user's permission "
-                    "or use the `invite` method to invite a user to a stream."
-                )
+                "Server mutation `grant_permission` is no longer supported as of"
+                " Speckle Server v2.6.4. Please use the new `update_permission` method"
+                " to change an existing user's permission or use the `invite` method to"
+                " invite a user to a stream."
             )
 
         query = gql(
@@ -482,7 +481,8 @@ class Resource(ResourceBase):
 
         if email is None and user_id is None:
             raise SpeckleException(
-                "You must provide either an email or a user id to use the `stream.invite` method"
+                "You must provide either an email or a user id to use the"
+                " `stream.invite` method"
             )
 
         query = gql(
@@ -533,7 +533,8 @@ class Resource(ResourceBase):
         self._check_invites_supported()
         if emails is None and user_ids is None:
             raise SpeckleException(
-                "You must provide either an email or a user id to use the `stream.invite` method"
+                "You must provide either an email or a user id to use the"
+                " `stream.invite` method"
             )
 
         query = gql(
@@ -650,10 +651,9 @@ class Resource(ResourceBase):
             self.server_version != ("dev",) and self.server_version < (2, 6, 4)
         ):
             raise UnsupportedException(
-                (
-                    "Server mutation `update_permission` is only supported as of Speckle Server v2.6.4. "
-                    "Please update your Speckle Server to use this method or use the `grant_permission` method instead."
-                )
+                "Server mutation `update_permission` is only supported as of Speckle"
+                " Server v2.6.4. Please update your Speckle Server to use this method"
+                " or use the `grant_permission` method instead."
             )
         query = gql(
             """
@@ -764,7 +764,8 @@ class Resource(ResourceBase):
             }
         except AttributeError as e:
             raise SpeckleException(
-                "Could not get stream activity - `before`, `after`, and `cursor` must be in `datetime` format if provided",
+                "Could not get stream activity - `before`, `after`, and `cursor` must"
+                " be in `datetime` format if provided",
                 ValueError,
             ) from e
 

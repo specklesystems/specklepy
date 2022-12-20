@@ -149,7 +149,7 @@ class _RegisteringBase:
             raise ValueError(
                 f"The speckle_type: {speckle_type} is already registered for type: "
                 f"{cls._type_registry[cls.speckle_type].__name__}. "
-                f"Please choose a different type name."
+                "Please choose a different type name."
             )
         cls._type_registry[cls.speckle_type] = cls  # type: ignore
         try:
@@ -334,11 +334,14 @@ class Base(_RegisteringBase):
     @classmethod
     def update_forward_refs(cls) -> None:
         """
-        Attempts to populate the internal defined types dict for type checking sometime after defining the class.
-        This is already done when defining the class, but can be called again if references to undefined types were
+        Attempts to populate the internal defined types dict for type checking
+        sometime after defining the class.
+        This is already done when defining the class, but can be called
+        again if references to undefined types were
         included.
 
-        See `objects.geometry` for an example of how this is used with the Brep class definitions
+        See `objects.geometry` for an example of how this is used with
+        the Brep class definitions.
         """
         try:
             cls._attr_types = get_type_hints(cls)
@@ -387,7 +390,8 @@ class Base(_RegisteringBase):
         Mark defined attributes as chunkable for serialisation
 
         Arguments:
-            kwargs {int} -- the name of the attribute as the keyword and the chunk size as the arg
+            kwargs {int} -- the name of the attribute as the keyword
+            and the chunk size as the arg
         """
         chunkable = {k: v for k, v in kwargs.items() if isinstance(v, int)}
         self._chunkable = dict(self._chunkable, **chunkable)
@@ -397,7 +401,7 @@ class Base(_RegisteringBase):
         Mark defined attributes as detachable for serialisation
 
         Arguments:
-            names {Set[str]} -- the names of the attributes to detach as a set of strings
+            names {Set[str]} -- the names of the attributes to detach as a set of string
         """
         self._detachable = self._detachable.union(names)
 
@@ -409,7 +413,7 @@ class Base(_RegisteringBase):
 
     @units.setter
     def units(self, value: Union[str, Units, None]):
-        if value == None:
+        if value is None:
             units = value
         elif isinstance(value, Units):
             units: Units = value
@@ -448,13 +452,17 @@ class Base(_RegisteringBase):
 
     def get_id(self, decompose: bool = False) -> str:
         """
-        Gets the id (a unique hash) of this object. ⚠️ This method fully serializes the object which,
-        in the case of large objects (with many sub-objects), has a tangible cost. Avoid using it!
+        Gets the id (a unique hash) of this object.
+        ⚠️ This method fully serializes the object which,
+        in the case of large objects (with many sub-objects), has a tangible cost.
+        Avoid using it!
 
-        Note: the hash of a decomposed object differs from that of a non-decomposed object
+        Note: the hash of a decomposed object differs from that of a
+        non-decomposed object
 
         Arguments:
-            decompose {bool} -- if True, will decompose the object in the process of hashing it
+            decompose {bool} -- if True, will decompose the object in
+            the process of hashing it
 
         Returns:
             str -- the hash (id) of the fully serialized object

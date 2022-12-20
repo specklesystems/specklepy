@@ -25,7 +25,6 @@ def create_object(child_count: int) -> Base:
 
 
 if __name__ == "__main__":
-
     stream_url = "http://hyperion:3000/streams/2372b54c35"
 
     child_count = 10

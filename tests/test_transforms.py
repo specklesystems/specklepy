@@ -4,12 +4,7 @@ import pytest
 
 from specklepy.api import operations
 from specklepy.objects.geometry import Point, Vector
-from specklepy.objects.other import (
-    IDENTITY_TRANSFORM,
-    BlockDefinition,
-    BlockInstance,
-    Transform,
-)
+from specklepy.objects.other import Transform
 
 
 @pytest.fixture()
@@ -81,7 +76,7 @@ def test_point_transform(point: Point, transform: Transform):
 def test_points_transform(points: List[Point], transform: Transform):
     new_points = transform.apply_to_points(points)
 
-    for (i, new_point) in enumerate(new_points):
+    for i, new_point in enumerate(new_points):
         assert new_point.x == points[i].x + 1
         assert new_point.y == points[i].y + 2
         assert new_point.z == points[i].z * 0.5

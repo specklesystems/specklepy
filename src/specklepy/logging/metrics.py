@@ -58,7 +58,11 @@ def set_host_app(host_app: str, host_app_version: Optional[str] = None):
     HOST_APP_VERSION = host_app_version or HOST_APP_VERSION
 
 
-def track(action: str, account: "Account" = None, custom_props: Optional[dict] = None):
+def track(
+    action: str,
+    account: Optional["Account"] = None,
+    custom_props: Optional[dict] = None,
+):
     if not TRACK:
         return
     try:
@@ -84,7 +88,7 @@ def track(action: str, account: "Account" = None, custom_props: Optional[dict] =
         LOG.debug(f"Error queueing metrics request: {str(ex)}")
 
 
-def initialise_tracker(account: "Account" = None):
+def initialise_tracker(account: Optional["Account"] = None):
     global METRICS_TRACKER
     if not METRICS_TRACKER:
         METRICS_TRACKER = MetricsTracker()

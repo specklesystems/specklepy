@@ -38,7 +38,6 @@ class ReferenceSurface(int, Enum):
 
 
 class PropertyType2D(int, Enum):
-
     Stress = 0
     Fabric = 1
     Plate = 2

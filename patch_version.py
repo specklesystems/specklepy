@@ -9,7 +9,7 @@ def patch(tag):
         lines = f.readlines()
 
         if "version" not in lines[2]:
-            raise Exception(f"Invalid pyproject.toml. Could not patch version.")
+            raise Exception("Invalid pyproject.toml. Could not patch version.")
 
         lines[2] = f'version = "{tag}"\n'
         with open("pyproject.toml", "w") as file:

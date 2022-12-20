@@ -1,1 +1,1 @@
-from .server import ServerTransport
+from specklepy.transports.server.server import ServerTransport

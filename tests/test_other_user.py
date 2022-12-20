@@ -2,7 +2,6 @@ import pytest
 
 from specklepy.api.client import SpeckleClient
 from specklepy.api.models import Activity, ActivityCollection, LimitedUser
-from specklepy.logging.exceptions import SpeckleException
 
 
 @pytest.mark.run(order=4)

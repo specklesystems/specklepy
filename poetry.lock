@@ -1173,6 +1173,32 @@ files = [
 requests = ">=2.0.1,<3.0.0"
 
 [[package]]
+name = "ruff"
+version = "0.0.187"
+description = "An extremely fast Python linter, written in Rust."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "ruff-0.0.187-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:d90cbd30c585a9551695af09c91c07542a4bfebe9870f8ca4de5d9ac34478665"},
+    {file = "ruff-0.0.187-py3-none-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:bca4d85f182c7452f5b607e99c03a0957126bfb260815b824f7fabde519708d8"},
+    {file = "ruff-0.0.187-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c498a7e183c2cd58e8cc0bed93d88e44305365a93132463911680d20d158ae8a"},
+    {file = "ruff-0.0.187-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:eb525861aae5b005e92c7f32dff8382bbd13a2da5a06b950a11ba879bb9fef15"},
+    {file = "ruff-0.0.187-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:41cfed788d5f8bd618710432583b0f61195769919e8bc1a77f080d5db2ebbb93"},
+    {file = "ruff-0.0.187-py3-none-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:25a9f74ee9b9472b750c7f0e25551b6f3b298a62126d0386bc9bdda1fed00c35"},
+    {file = "ruff-0.0.187-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:24d0e61041abd2811cf841b43572fed1d0343e96704aedfac388f03dc2f1f53e"},
+    {file = "ruff-0.0.187-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:88722ddbeec8614c9a5fd90eac3aa13372ede98559c36ef95581a26954a85fb5"},
+    {file = "ruff-0.0.187-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c9032f221d28897852c5de173cd6890185f4c86a93eca4ed0c215076e8f0f626"},
+    {file = "ruff-0.0.187-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:11833a0e80ff9d244d11c16cc4d1283e84cf0ac47f2440d88093ee3076687fcb"},
+    {file = "ruff-0.0.187-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:debcd3740da13b786656fcf23caa1a328c678b19ab822243bd00a25efb00ab7b"},
+    {file = "ruff-0.0.187-py3-none-musllinux_1_2_i686.whl", hash = "sha256:51f4bf4940a57b4e04254f2823a0e4de52595987c65e0c9ed7b4546c5362f60e"},
+    {file = "ruff-0.0.187-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:ab7e50ba517f3bfaaadaba3f9e68e0a95ff04abab5c480f05015a156f58f16d3"},
+    {file = "ruff-0.0.187-py3-none-win32.whl", hash = "sha256:25e55cc000ca6fe83df6d25080adec86acb3a39cd623ed9ff122ccede02ab6ba"},
+    {file = "ruff-0.0.187-py3-none-win_amd64.whl", hash = "sha256:a81acd2b111b267cda09c507ad72a7ca47fa6f47e1ec240e594eef37db1bdf8d"},
+    {file = "ruff-0.0.187.tar.gz", hash = "sha256:d209efb6cb4f03b31c76d7be770cb387cbdf0592c604f0d0639c1a6f742db04c"},
+]
+
+[[package]]
 name = "setuptools"
 version = "65.6.3"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -1284,6 +1310,30 @@ files = [
     {file = "typed_ast-1.5.4-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:98f80dee3c03455e92796b58b98ff6ca0b2a6f652120c263efdba4d6c5e58f72"},
     {file = "typed_ast-1.5.4-cp39-cp39-win_amd64.whl", hash = "sha256:0fdbcf2fef0ca421a3f5912555804296f0b0960f0418c440f5d6d3abb549f3e1"},
     {file = "typed_ast-1.5.4.tar.gz", hash = "sha256:39e21ceb7388e4bb37f4c679d72707ed46c2fbf2a5609b8b8ebc4b067d977df2"},
+]
+
+[[package]]
+name = "types-deprecated"
+version = "1.2.9"
+description = "Typing stubs for Deprecated"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-Deprecated-1.2.9.tar.gz", hash = "sha256:e04ce58929509865359e91dcc38720123262b4cd68fa2a8a90312d50390bb6fa"},
+    {file = "types_Deprecated-1.2.9-py3-none-any.whl", hash = "sha256:53d05621e1d75de537f5a57d93508c8df17e37c07ee60b9fb09d39e1b7586c1e"},
+]
+
+[[package]]
+name = "types-ujson"
+version = "5.6.0.0"
+description = "Typing stubs for ujson"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-ujson-5.6.0.0.tar.gz", hash = "sha256:1a20cf7946772756736582612e0da5656d2dbeccd24be4c1e97d1e66b072b97e"},
+    {file = "types_ujson-5.6.0.0-py3-none-any.whl", hash = "sha256:010b221260c24a915c6e713a83f366b91390766850ec110304de5b20c86b4b11"},
 ]
 
 [[package]]
@@ -1670,4 +1720,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7.2, <4.0"
-content-hash = "fba4eaa4891e1f626c0d6a04a919985d90a8d0a8bbf334d2846e2a16da28304c"
+content-hash = "18bc7c2f98f551538bf1dfca42a0c3c352e98f2c0a7a59619b8fd16bd2c13e39"

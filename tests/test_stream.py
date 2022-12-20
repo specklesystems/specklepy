@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import pytest
 
 from specklepy.api.client import SpeckleClient

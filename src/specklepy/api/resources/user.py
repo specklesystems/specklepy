@@ -12,7 +12,10 @@ from specklepy.logging.exceptions import SpeckleException
 NAME = "user"
 
 DEPRECATION_VERSION = "2.9.0"
-DEPRECATION_TEXT = "The user resource is deprecated, please use the active_user or other_user resources"
+DEPRECATION_TEXT = (
+    "The user resource is deprecated, please use the active_user or other_user"
+    " resources"
+)
 
 
 class Resource(ResourceBase):
@@ -137,7 +140,9 @@ class Resource(ResourceBase):
 
         if not params["user"]:
             return SpeckleException(
-                message="You must provide at least one field to update your user profile"
+                message=(
+                    "You must provide at least one field to update your user profile"
+                )
             )
 
         return self.make_request(
