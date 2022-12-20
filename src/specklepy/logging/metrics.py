@@ -60,7 +60,7 @@ def set_host_app(host_app: str, host_app_version: Optional[str] = None):
 
 def track(
     action: str,
-    account,
+    account=None,
     custom_props: Optional[dict] = None,
 ):
     if not TRACK:
