@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 
 from deprecated import deprecated
 from gql import gql
@@ -153,7 +153,8 @@ class Resource(ResourceBase):
         Arguments:
             name {str} -- the name of the string
             description {str} -- a short description of the stream
-            is_public {bool} -- whether or not the stream can be viewed by anyone with the id
+            is_public {bool}
+                -- whether or not the stream can be viewed by anyone with the id
 
         Returns:
             id {str} -- the id of the newly created stream
@@ -176,7 +177,11 @@ class Resource(ResourceBase):
         )
 
     def update(
-        self, id: str, name: str = None, description: str = None, is_public: bool = None
+        self,
+        id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        is_public: Optional[bool] = None,
     ) -> bool:
         """Update an existing stream
 
@@ -184,7 +189,8 @@ class Resource(ResourceBase):
             id {str} -- the id of the stream to be updated
             name {str} -- the name of the string
             description {str} -- a short description of the stream
-            is_public {bool} -- whether or not the stream can be viewed by anyone with the id
+            is_public {bool}
+                -- whether or not the stream can be viewed by anyone with the id
 
         Returns:
             bool -- whether the stream update was successful
@@ -256,7 +262,12 @@ class Resource(ResourceBase):
         metrics.track(metrics.STREAM, self.account, {"name": "search"})
         query = gql(
             """
-            query StreamSearch($search_query: String!,$limit: Int!, $branch_limit:Int!, $commit_limit:Int!) {
+            query StreamSearch(
+                $search_query: String!,
+                $limit: Int!,
+                $branch_limit:Int!,
+                $commit_limit:Int!
+            ) {
                 streams(query: $search_query, limit: $limit) {
                     items {
                         id
@@ -315,7 +326,8 @@ class Resource(ResourceBase):
 
         Arguments:
             stream_id {str} -- the id of the stream to favorite / unfavorite
-            favorited {bool} -- whether to favorite (True) or unfavorite (False) the stream
+            favorited {bool}
+                -- whether to favorite (True) or unfavorite (False) the stream
 
         Returns:
             Stream -- the stream with its `id`, `name`, and `favoritedDate`
@@ -378,7 +390,9 @@ class Resource(ResourceBase):
 
         query = gql(
             """
-            mutation StreamGrantPermission($permission_params: StreamGrantPermissionInput !) {
+            mutation StreamGrantPermission(
+                $permission_params: StreamGrantPermissionInput !
+                ) {
                 streamGrantPermission(permissionParams: $permission_params)
             }
             """
@@ -411,7 +425,8 @@ class Resource(ResourceBase):
             stream_id {str} -- the stream id from which to get the pending invites
 
         Returns:
-            List[PendingStreamCollaborator] -- a list of pending invites for the specified stream
+            List[PendingStreamCollaborator]
+                -- a list of pending invites for the specified stream
         """
         metrics.track(metrics.INVITE, self.account, {"name": "get"})
         self._check_invites_supported()
@@ -457,10 +472,10 @@ class Resource(ResourceBase):
     def invite(
         self,
         stream_id: str,
-        email: str = None,
-        user_id: str = None,
+        email: Optional[str] = None,
+        user_id: Optional[str] = None,
         role: str = "stream:contributor",  # should default be reviewer?
-        message: str = None,
+        message: Optional[str] = None,
     ):
         """Invite someone to a stream using either their email or user id
 
@@ -470,8 +485,10 @@ class Resource(ResourceBase):
             stream_id {str} -- the id of the stream to invite the user to
             email {str} -- the email of the user to invite (use this OR `user_id`)
             user_id {str} -- the id of the user to invite (use this OR `email`)
-            role {str} -- the role to assign to the user (defaults to `stream:contributor`)
-            message {str} -- a message to send along with this invite to the specified user
+            role {str}
+                -- the role to assign to the user (defaults to `stream:contributor`)
+            message {str}
+                -- a message to send along with this invite to the specified user
 
         Returns:
             bool -- True if the operation was successful
@@ -512,9 +529,9 @@ class Resource(ResourceBase):
     def invite_batch(
         self,
         stream_id: str,
-        emails: List[str] = None,
-        user_ids: List[None] = None,
-        message: str = None,
+        emails: Optional[List[str]] = None,
+        user_ids: Optional[List[None]] = None,
+        message: Optional[str] = None,
     ) -> bool:
         """Invite a batch of users to a specified stream.
 
@@ -522,9 +539,12 @@ class Resource(ResourceBase):
 
         Arguments:
             stream_id {str} -- the id of the stream to invite the user to
-            emails {List[str]} -- the email of the user to invite (use this and/or `user_ids`)
-            user_id {List[str]} -- the id of the user to invite (use this and/or `emails`)
-            message {str} -- a message to send along with this invite to the specified user
+            emails {List[str]}
+                -- the email of the user to invite (use this and/or `user_ids`)
+            user_id {List[str]}
+                -- the id of the user to invite (use this and/or `emails`)
+            message {str}
+                -- a message to send along with this invite to the specified user
 
         Returns:
             bool -- True if the operation was successful
@@ -604,7 +624,8 @@ class Resource(ResourceBase):
         Requires Speckle Server version >= 2.6.4
 
         Arguments:
-            stream_id {str} -- the id of the stream for which the user has a pending invite
+            stream_id {str}
+                -- the id of the stream for which the user has a pending invite
             token {str} -- the token of the invite to use
             accept {bool} -- whether or not to accept the invite (defaults to True)
 
@@ -616,7 +637,11 @@ class Resource(ResourceBase):
 
         query = gql(
             """
-            mutation StreamInviteUse($accept: Boolean!, $streamId: String!, $token: String!) {
+            mutation StreamInviteUse(
+                $accept: Boolean!,
+                $streamId: String!,
+                $token: String!
+                ) {
                 streamInviteUse(accept: $accept, streamId: $streamId, token: $token)
             }
             """
@@ -657,7 +682,9 @@ class Resource(ResourceBase):
             )
         query = gql(
             """
-            mutation StreamUpdatePermission($permission_params: StreamUpdatePermissionInput !) {
+            mutation StreamUpdatePermission(
+                $permission_params: StreamUpdatePermissionInput!
+                ) {
                 streamUpdatePermission(permissionParams: $permission_params)
             }
             """
@@ -691,7 +718,9 @@ class Resource(ResourceBase):
         metrics.track(metrics.PERMISSION, self.account, {"name": "revoke"})
         query = gql(
             """
-            mutation StreamRevokePermission($permission_params: StreamRevokePermissionInput !) {
+            mutation StreamRevokePermission(
+                $permission_params: StreamRevokePermissionInput!
+                ) {
                 streamRevokePermission(permissionParams: $permission_params)
             }
             """
@@ -709,29 +738,48 @@ class Resource(ResourceBase):
     def activity(
         self,
         stream_id: str,
-        action_type: str = None,
+        action_type: Optional[str] = None,
         limit: int = 20,
-        before: datetime = None,
-        after: datetime = None,
-        cursor: datetime = None,
+        before: Optional[datetime] = None,
+        after: Optional[datetime] = None,
+        cursor: Optional[datetime] = None,
     ):
         """
-        Get the activity from a given stream in an Activity collection. Step into the activity `items` for the list of activity.
+        Get the activity from a given stream in an Activity collection.
+        Step into the activity `items` for the list of activity.
 
-        Note: all timestamps arguments should be `datetime` of any tz as they will be converted to UTC ISO format strings
+        Note: all timestamps arguments should be `datetime` of any tz
+            as they will be converted to UTC ISO format strings
 
         stream_id {str} -- the id of the stream to get activity from
-        action_type {str} -- filter results to a single action type (eg: `commit_create` or `commit_receive`)
+        action_type {str}
+            -- filter results to a single action type
+            (eg: `commit_create` or `commit_receive`)
         limit {int} -- max number of Activity items to return
-        before {datetime} -- latest cutoff for activity (ie: return all activity _before_ this time)
-        after {datetime} -- oldest cutoff for activity (ie: return all activity _after_ this time)
+        before {datetime}
+            -- latest cutoff for activity (ie: return all activity _before_ this time)
+        after {datetime}
+            -- oldest cutoff for activity (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
         query = gql(
             """
-            query StreamActivity($stream_id: String!, $action_type: String, $before:DateTime, $after: DateTime, $cursor: DateTime, $limit: Int){
+            query StreamActivity(
+                $stream_id: String!,
+                $action_type: String,
+                $before:DateTime,
+                $after: DateTime,
+                $cursor: DateTime,
+                $limit: Int
+                ){
                 stream(id: $stream_id) {
-                    activity(actionType: $action_type, before: $before, after: $after, cursor: $cursor, limit: $limit) {
+                    activity(
+                        actionType: $action_type,
+                        before: $before,
+                        after: $after,
+                        cursor: $cursor,
+                        limit: $limit
+                        ) {
                         totalCount
                         cursor
                         items {
@@ -766,7 +814,7 @@ class Resource(ResourceBase):
             raise SpeckleException(
                 "Could not get stream activity - `before`, `after`, and `cursor` must"
                 " be in `datetime` format if provided",
-                ValueError,
+                ValueError(),
             ) from e
 
         return self.make_request(
