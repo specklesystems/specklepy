@@ -26,10 +26,13 @@ from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
 class SpeckleClient:
     """
-    The `SpeckleClient` is your entry point for interacting with your Speckle Server's GraphQL API.
-    You'll need to have access to a server to use it, or you can use our public server `speckle.xyz`.
+    The `SpeckleClient` is your entry point for interacting with
+    your Speckle Server's GraphQL API.
+    You'll need to have access to a server to use it,
+    or you can use our public server `speckle.xyz`.
 
-    To authenticate the client, you'll need to have downloaded the [Speckle Manager](https://speckle.guide/#speckle-manager)
+    To authenticate the client, you'll need to have downloaded
+    the [Speckle Manager](https://speckle.guide/#speckle-manager)
     and added your account.
 
     ```py
@@ -92,15 +95,22 @@ class SpeckleClient:
         #     ) from ex
 
     def __repr__(self):
-        return f"SpeckleClient( server: {self.url}, authenticated: {self.account.token is not None} )"
+        return (
+            f"SpeckleClient( server: {self.url}, authenticated:"
+            f" {self.account.token is not None} )"
+        )
 
     @deprecated(
         version="2.6.0",
-        reason="Renamed: please use `authenticate_with_account` or `authenticate_with_token` instead.",
+        reason=(
+            "Renamed: please use `authenticate_with_account` or"
+            " `authenticate_with_token` instead."
+        ),
     )
     def authenticate(self, token: str) -> None:
         """Authenticate the client using a personal access token
-        The token is saved in the client object and a synchronous GraphQL entrypoint is created
+        The token is saved in the client object and a synchronous GraphQL
+        entrypoint is created
 
         Arguments:
             token {str} -- an api token
@@ -109,8 +119,10 @@ class SpeckleClient:
         self._set_up_client()
 
     def authenticate_with_token(self, token: str) -> None:
-        """Authenticate the client using a personal access token
-        The token is saved in the client object and a synchronous GraphQL entrypoint is created
+        """
+        Authenticate the client using a personal access token.
+        The token is saved in the client object and a synchronous GraphQL
+        entrypoint is created
 
         Arguments:
             token {str} -- an api token
@@ -121,10 +133,12 @@ class SpeckleClient:
 
     def authenticate_with_account(self, account: Account) -> None:
         """Authenticate the client using an Account object
-        The account is saved in the client object and a synchronous GraphQL entrypoint is created
+        The account is saved in the client object and a synchronous GraphQL
+        entrypoint is created
 
         Arguments:
-            account {Account} -- the account object which can be found with `get_default_account` or `get_local_accounts`
+            account {Account} -- the account object which can be found with
+            `get_default_account` or `get_local_accounts`
         """
         metrics.track(metrics.CLIENT, account, {"name": "authenticate with account"})
         self.account = account
@@ -153,7 +167,8 @@ class SpeckleClient:
         if self.user.get() is None:
             warn(
                 SpeckleWarning(
-                    f"Possibly invalid token - could not authenticate Speckle Client for server {self.url}"
+                    "Possibly invalid token - could not authenticate Speckle Client"
+                    f" for server {self.url}"
                 )
             )
 
@@ -167,7 +182,7 @@ class SpeckleClient:
         server_version = None
         try:
             server_version = self.server.version()
-        except:
+        except Exception:
             pass
         self.user = user.Resource(
             account=self.account,
@@ -214,7 +229,7 @@ class SpeckleClient:
             return attr.Resource(
                 account=self.account, basepath=self.url, client=self.httpclient
             )
-        except:
+        except AttributeError:
             raise SpeckleException(
                 f"Method {name} is not supported by the SpeckleClient class"
             )

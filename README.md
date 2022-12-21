@@ -34,7 +34,7 @@ What is Speckle? Check our ![YouTube Video Views](https://img.shields.io/youtube
 Give Speckle a try in no time by:
 
 - [![speckle XYZ](https://img.shields.io/badge/https://-speckle.xyz-0069ff?style=flat-square&logo=hackthebox&logoColor=white)](https://speckle.xyz) ⇒ creating an account at our public server
-- [![create a droplet](https://img.shields.io/badge/Create%20a%20Droplet-0069ff?style=flat-square&logo=digitalocean&logoColor=white)](https://marketplace.digitalocean.com/apps/speckle-server?refcode=947a2b5d7dc1) ⇒ deploying an instance in 1 click 
+- [![create a droplet](https://img.shields.io/badge/Create%20a%20Droplet-0069ff?style=flat-square&logo=digitalocean&logoColor=white)](https://marketplace.digitalocean.com/apps/speckle-server?refcode=947a2b5d7dc1) ⇒ deploying an instance in 1 click
 
 ### Resources
 
@@ -47,7 +47,7 @@ Give Speckle a try in no time by:
 
 ## Usage
 
-Send and receive data from a Speckle Server with `operations`, interact with the Speckle API with the `SpeckleClient`, create and extend your own custom Speckle Objects with `Base`, and more! 
+Send and receive data from a Speckle Server with `operations`, interact with the Speckle API with the `SpeckleClient`, create and extend your own custom Speckle Objects with `Base`, and more!
 
 Head to the [**📚 specklepy docs**](https://speckle.guide/dev/python.html) for more information and usage examples.
 
@@ -64,6 +64,12 @@ If this is your first time using poetry and you're used to creating your venvs w
 To execute any python script run `$ poetry run python my_script.py`
 
 > Alternatively you may roll your own virtual-env with either venv, virtualenv, pyenv-virtualenv etc. Poetry will play along an recognize if it is invoked from inside a virtual environment.
+
+### Style guide
+
+All our repo  wide styling linting and other rules are checked and enforced by `pre-commit`, which is included in the dev dependencies.
+It is recommended to set up `pre-commit` after installing the dependencies by running `$ pre-commit install`.
+Commiting code that doesn't adhere to the given rules, will fail the checks in our CI system.
 
 ### Local Data Paths
 
@@ -82,7 +88,7 @@ The Speckle Community hangs out on [the forum](https://discourse.speckle.works),
 
 ## Security
 
-For any security vulnerabilities or concerns, please contact us directly at security[at]speckle.systems. 
+For any security vulnerabilities or concerns, please contact us directly at security[at]speckle.systems.
 
 ## License
 

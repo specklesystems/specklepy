@@ -116,9 +116,13 @@ class Resource(ResourceBase):
         Arguments:
             stream_id {str} -- the stream you want to commit to
             object_id {str} -- the hash of your commit object
-            branch_name {str} -- the name of the branch to commit to (defaults to "main")
-            message {str} -- optional: a message to give more information about the commit
-            source_application{str} -- optional: the application from which the commit was created (defaults to "python")
+            branch_name {str}
+                -- the name of the branch to commit to (defaults to "main")
+            message {str}
+                -- optional: a message to give more information about the commit
+            source_application{str}
+                -- optional: the application from which the commit was created
+                (defaults to "python")
             parents {List[str]} -- optional: the id of the parent commits
 
         Returns:
@@ -127,7 +131,8 @@ class Resource(ResourceBase):
         metrics.track(metrics.COMMIT, self.account, {"name": "create"})
         query = gql(
             """
-            mutation CommitCreate ($commit: CommitCreateInput!){ commitCreate(commit: $commit)}
+            mutation CommitCreate ($commit: CommitCreateInput!)
+                { commitCreate(commit: $commit)}
             """
         )
         params = {
@@ -151,7 +156,8 @@ class Resource(ResourceBase):
         Update a commit
 
         Arguments:
-            stream_id {str} -- the id of the stream that contains the commit you'd like to update
+            stream_id {str}
+                -- the id of the stream that contains the commit you'd like to update
             commit_id {str} -- the id of the commit you'd like to update
             message {str} -- the updated commit message
 
@@ -161,7 +167,8 @@ class Resource(ResourceBase):
         metrics.track(metrics.COMMIT, self.account, {"name": "update"})
         query = gql(
             """
-            mutation CommitUpdate($commit: CommitUpdateInput!){ commitUpdate(commit: $commit)}
+            mutation CommitUpdate($commit: CommitUpdateInput!)
+                { commitUpdate(commit: $commit)}
             """
         )
         params = {
@@ -177,7 +184,8 @@ class Resource(ResourceBase):
         Delete a commit
 
         Arguments:
-            stream_id {str} -- the id of the stream that contains the commit you'd like to delete
+            stream_id {str}
+                -- the id of the stream that contains the commit you'd like to delete
             commit_id {str} -- the id of the commit you'd like to delete
 
         Returns:
@@ -186,7 +194,8 @@ class Resource(ResourceBase):
         metrics.track(metrics.COMMIT, self.account, {"name": "delete"})
         query = gql(
             """
-            mutation CommitDelete($commit: CommitDeleteInput!){ commitDelete(commit: $commit)}
+            mutation CommitDelete($commit: CommitDeleteInput!)
+                { commitDelete(commit: $commit)}
             """
         )
         params = {"commit": {"streamId": stream_id, "id": commit_id}}

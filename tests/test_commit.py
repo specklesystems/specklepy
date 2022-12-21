@@ -85,4 +85,4 @@ class TestCommit:
             message="testing received",
         )
 
-        assert commit_marked_received == True
+        assert commit_marked_received is True

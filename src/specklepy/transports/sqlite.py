@@ -10,21 +10,21 @@ from specklepy.transports.abstract_transport import AbstractTransport
 
 class SQLiteTransport(AbstractTransport):
     _name = "SQLite"
-    _base_path: str = None
-    _root_path: str = None
-    __connection: sqlite3.Connection = None
+    _base_path: Optional[str] = None
+    _root_path: Optional[str] = None
+    __connection: Optional[sqlite3.Connection] = None
     app_name: str = ""
     scope: str = ""
     saved_obj_count: int = 0
-    max_size: int = None
-    _current_batch: List[Tuple[str, str]] = None
-    _current_batch_size: int = None
+    max_size: Optional[int] = None
+    _current_batch: Optional[List[Tuple[str, str]]] = None
+    _current_batch_size: Optional[int] = None
 
     def __init__(
         self,
         base_path: Optional[str] = None,
         app_name: Optional[str] = None,
-        scope: str = None,
+        scope: Optional[str] = None,
         max_batch_size_mb: float = 10.0,
         **data: Any,
     ) -> None:
@@ -45,7 +45,9 @@ class SQLiteTransport(AbstractTransport):
             self.__initialise()
         except Exception as ex:
             raise SpeckleException(
-                f"SQLiteTransport could not initialise {self.scope}.db at {self._base_path}. Either provide a different `base_path` or use an alternative transport.",
+                f"SQLiteTransport could not initialise {self.scope}.db at"
+                f" {self._base_path}. Either provide a different `base_path` or use an"
+                " alternative transport.",
                 ex,
             )
 
@@ -79,14 +81,16 @@ class SQLiteTransport(AbstractTransport):
 
         Arguments:
             id {str} -- the object id
-            source_transport {AbstractTransport) -- the transport through which the object can be found
+            source_transport {AbstractTransport)
+            -- the transport through which the object can be found
         """
         serialized_object = source_transport.get_object(id)
         self.save_object(id, serialized_object)
 
     def save_object(self, id: str, serialized_object: str) -> None:
         """
-        Adds an object to the current batch to be written to the db. If the current batch is full,
+        Adds an object to the current batch to be written to the db.
+        If the current batch is full,
         the batch is written to the db and the current batch is reset.
 
         Arguments:
@@ -118,7 +122,8 @@ class SQLiteTransport(AbstractTransport):
                 self.__connection.commit()
         except Exception as ex:
             raise SpeckleException(
-                f"Could not save the batch of objects to the local db. Inner exception: {ex}",
+                "Could not save the batch of objects to the local db. Inner exception:"
+                f" {ex}",
                 ex,
             )
 
@@ -157,7 +162,10 @@ class SQLiteTransport(AbstractTransport):
         raise NotImplementedError
 
     def get_all_objects(self):
-        """Returns all the objects in the store. NOTE: do not use for large collections!"""
+        """
+        Returns all the objects in the store.
+        NOTE: do not use for large collections!
+        """
         self.__check_connection()
         with closing(self.__connection.cursor()) as c:
             rows = c.execute("SELECT * FROM objects").fetchall()

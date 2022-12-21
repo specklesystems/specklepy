@@ -1,4 +1,4 @@
-from enum import Enum, IntEnum, auto
+from enum import Enum
 from typing import Any, List, Optional
 
 from specklepy.objects.base import Base
@@ -15,11 +15,17 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
     z: float = 0.0
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, id: {self.id}, speckle_type: {self.speckle_type})"
+        return (
+            f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, id:"
+            f" {self.id}, speckle_type: {self.speckle_type})"
+        )
 
     @classmethod
     def from_list(cls, args: List[float]) -> "Point":
-        """Create a new Point from a list of three floats representing the x, y, and z coordinates"""
+        """
+        Create a new Point from a list of three floats
+        representing the x, y, and z coordinates
+        """
         return cls(x=args[0], y=args[1], z=args[2])
 
     def to_list(self) -> List[Any]:

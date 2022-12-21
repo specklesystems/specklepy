@@ -1,3 +1,5 @@
+from devtools import debug
+
 from specklepy.api import operations
 from specklepy.objects.geometry import Base
 from specklepy.objects.units import Units
@@ -13,7 +15,6 @@ base = Base()
 for prop, value in dct.items():
     base.__setattr__(prop, value)
 
-from devtools import debug
 
 debug(base)
 debug(base.units)

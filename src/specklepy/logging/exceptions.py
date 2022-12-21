@@ -13,9 +13,11 @@ class SpeckleException(Exception):
 
 class SpeckleInvalidUnitException(SpeckleException):
     def __init__(self, invalid_unit: Any) -> None:
-
         super().__init__(
-            message=f"Invalid units: expected type str but received {type(invalid_unit)} ({invalid_unit}).",
+            message=(
+                "Invalid units: expected type str but received"
+                f" {type(invalid_unit)} ({invalid_unit})."
+            ),
             exception=None,
         )
 
@@ -27,7 +29,10 @@ class SerializationException(SpeckleException):
         self.unhandled_type = type(obj)
 
     def __str__(self) -> str:
-        return f"SpeckleException: Could not serialize object of type {self.unhandled_type}"
+        return (
+            "SpeckleException: Could not serialize object of type"
+            f" {self.unhandled_type}"
+        )
 
 
 class GraphQLException(SpeckleException):

@@ -9,7 +9,6 @@ STRUCTURAL_LOADING = "Objects.Structural.Loading."
 
 
 class LoadType(int, Enum):
-
     none = 0
     Dead = 1
     SuperDead = 2
@@ -32,7 +31,6 @@ class LoadType(int, Enum):
 
 
 class ActionType(int, Enum):
-
     none = 0
     Permanent = 1
     Variable = 2
@@ -40,7 +38,6 @@ class ActionType(int, Enum):
 
 
 class BeamLoadType(int, Enum):
-
     Point = 0
     Uniform = 1
     Linear = 2
@@ -49,21 +46,18 @@ class BeamLoadType(int, Enum):
 
 
 class FaceLoadType(int, Enum):
-
     Constant = 0
     Variable = 1
     Point = 2
 
 
 class LoadDirection2D(int, Enum):
-
     X = 0
     Y = 1
     Z = 2
 
 
 class LoadDirection(int, Enum):
-
     X = 0
     Y = 1
     Z = 2
@@ -81,7 +75,6 @@ class LoadAxisType(int, Enum):
 
 
 class CombinationType(int, Enum):
-
     LinearAdd = 0
     Envelope = 1
     AbsoluteAdd = 2

@@ -14,11 +14,15 @@ from specklepy.transports.server.server import ServerTransport
 
 class StreamWrapper:
     """
-    The `StreamWrapper` gives you some handy helpers to deal with urls and get authenticated clients and transports.
+    The `StreamWrapper` gives you some handy helpers to deal with urls and
+    get authenticated clients and transports.
 
-    Construct a `StreamWrapper` with a stream, branch, commit, or object URL. The corresponding ids will be stored
-    in the wrapper. If you have local accounts on the machine, you can use the `get_account` and `get_client` methods
-    to get a local account for the server. You can also pass a token into `get_client` if you don't have a corresponding
+    Construct a `StreamWrapper` with a stream, branch, commit, or object URL.
+    The corresponding ids will be stored
+    in the wrapper. If you have local accounts on the machine,
+    you can use the `get_account` and `get_client` methods
+    to get a local account for the server. You can also pass a token into `get_client`
+    if you don't have a corresponding
     local account for the server.
 
     ```py
@@ -46,7 +50,10 @@ class StreamWrapper:
     _account: Account = None
 
     def __repr__(self):
-        return f"StreamWrapper( server: {self.host}, stream_id: {self.stream_id}, type: {self.type} )"
+        return (
+            f"StreamWrapper( server: {self.host}, stream_id: {self.stream_id}, type:"
+            f" {self.type} )"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -72,7 +79,8 @@ class StreamWrapper:
 
         if not segments or len(segments) < 2:
             raise SpeckleException(
-                f"Cannot parse {url} into a stream wrapper class - invalid URL provided."
+                f"Cannot parse {url} into a stream wrapper class - invalid URL"
+                " provided."
             )
 
         while segments:
@@ -91,7 +99,8 @@ class StreamWrapper:
                     self.commit_id = segments.pop(0)
             else:
                 raise SpeckleException(
-                    f"Cannot parse {url} into a stream wrapper class - invalid URL provided."
+                    f"Cannot parse {url} into a stream wrapper class - invalid URL"
+                    " provided."
                 )
 
         if not self.stream_id:
@@ -105,7 +114,8 @@ class StreamWrapper:
 
     def get_account(self, token: str = None) -> Account:
         """
-        Gets an account object for this server from the local accounts db (added via Speckle Manager or a json file)
+        Gets an account object for this server from the local accounts db
+        (added via Speckle Manager or a json file)
         """
         if self._account and self._account.token:
             return self._account
@@ -129,14 +139,18 @@ class StreamWrapper:
 
     def get_client(self, token: str = None) -> SpeckleClient:
         """
-        Gets an authenticated client for this server. You may provide a token if there aren't any local accounts on this
-        machine. If no account is found and no token is provided, an unauthenticated client is returned.
+        Gets an authenticated client for this server.
+        You may provide a token if there aren't any local accounts on this
+        machine. If no account is found and no token is provided,
+        an unauthenticated client is returned.
 
         Arguments:
-            token {str} -- optional token if no local account is available (defaults to None)
+            token {str}
+            -- optional token if no local account is available (defaults to None)
 
         Returns:
-            SpeckleClient -- authenticated with a corresponding local account or the provided token
+            SpeckleClient
+            -- authenticated with a corresponding local account or the provided token
         """
         if self._client and token is None:
             return self._client
@@ -160,11 +174,14 @@ class StreamWrapper:
 
     def get_transport(self, token: str = None) -> ServerTransport:
         """
-        Gets a server transport for this stream using an authenticated client. If there is no local account for this
-        server and the client was not authenticated with a token, this will throw an exception.
+        Gets a server transport for this stream using an authenticated client.
+        If there is no local account for this
+        server and the client was not authenticated with a token,
+        this will throw an exception.
 
         Returns:
-            ServerTransport -- constructed for this stream with a pre-authenticated client
+            ServerTransport -- constructed for this stream
+            with a pre-authenticated client
         """
         if not self._account or not self._account.token:
             self.get_account(token)

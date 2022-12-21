@@ -517,8 +517,7 @@ def test_mesh_create():
     mesh = Mesh.create(vertices, faces)
 
     with pytest.raises(SpeckleException):
-        # pylint: disable=unused-variable
-        bad_mesh = Mesh.create(vertices=7, faces=faces)
+        bad_mesh = Mesh.create(vertices=7, faces=faces)  # noqa: F841
 
     assert mesh.vertices == vertices
     assert mesh.textureCoordinates == []

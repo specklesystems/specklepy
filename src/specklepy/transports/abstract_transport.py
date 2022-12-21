@@ -4,15 +4,6 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel
 from pydantic.config import Extra
 
-#  __________________
-# |                  |
-# |  this is v wip   |
-# |  pls be careful  |
-# |__________________|
-# (\__/) ||
-# (•ㅅ•)  ||
-# / 　 づ
-
 
 class AbstractTransport(ABC, BaseModel):
     _name: str = "Abstract"
@@ -28,7 +19,9 @@ class AbstractTransport(ABC, BaseModel):
 
     @abstractmethod
     def end_write(self) -> None:
-        """Optional: signals to the transport that no more items will need to be written."""
+        """
+        Optional: signals to the transport that no more items will need to be written.
+        """
         pass
 
     @abstractmethod
@@ -49,7 +42,8 @@ class AbstractTransport(ABC, BaseModel):
 
         Arguments:
             id {str} -- the hash of the object
-            source_transport {AbstractTransport) -- the transport through which the object can be found
+            source_transport {AbstractTransport)
+            -- the transport through which the object can be found
         """
         pass
 
@@ -61,7 +55,8 @@ class AbstractTransport(ABC, BaseModel):
             id {str} -- the hash of the object
 
         Returns:
-            str -- the full string representation of the object (or null if no object is found)
+            str -- the full string representation
+            of the object (or null if no object is found)
         """
         pass
 
@@ -73,7 +68,8 @@ class AbstractTransport(ABC, BaseModel):
             id_list -- List of object id to be checked
 
         Returns:
-            Dict[str, bool] -- keys: input ids, values: whether the transport has that object
+            Dict[str, bool] -- keys: input ids, values:
+                whether the transport has that object
         """
         pass
 
@@ -85,7 +81,8 @@ class AbstractTransport(ABC, BaseModel):
 
         Arguments:
             id {str} -- the id of the object you want to copy
-            target_transport {AbstractTransport} -- the transport you want to copy the object to
+            target_transport {AbstractTransport}
+                -- the transport you want to copy the object to
         Returns:
             str -- the string representation of the root object
         """
