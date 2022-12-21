@@ -72,7 +72,7 @@ class BaseObjectSerializer:
 
         return obj_id, ujson.dumps(obj)
 
-    def traverse_base(self, base: Base) -> Tuple[str, Dict]:
+    def traverse_base(self, base: Base) -> Tuple[str, Dict[str, Any]]:
         """Decomposes the given base object and builds a serializable dictionary
 
         Arguments:
@@ -213,6 +213,8 @@ class BaseObjectSerializer:
         Returns:
             Any -- a serializable version of the given object
         """
+        if obj is None:
+            return None
         if isinstance(obj, PRIMITIVES):
             return obj
 
