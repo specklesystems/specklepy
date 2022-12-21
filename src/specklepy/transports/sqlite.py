@@ -1,10 +1,11 @@
 import os
 import sqlite3
-from typing import Any, List, Dict, Optional, Tuple
 from contextlib import closing
-from specklepy.transports.abstract_transport import AbstractTransport
+from typing import Any, Dict, List, Optional, Tuple
+
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.paths import base_path
+from specklepy.transports.abstract_transport import AbstractTransport
 
 
 class SQLiteTransport(AbstractTransport):

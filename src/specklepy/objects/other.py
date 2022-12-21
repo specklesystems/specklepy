@@ -1,5 +1,7 @@
-from typing import Any, List
+from typing import Any, List, Optional
+
 from specklepy.objects.geometry import Point, Vector
+
 from .base import Base
 
 OTHER = "Objects.Other."
@@ -24,13 +26,47 @@ IDENTITY_TRANSFORM = [
 ]
 
 
+class Material(Base, speckle_type=OTHER + "Material"):
+    """Generic class for materials containing generic parameters."""
+
+    name: Optional[str] = None
+
+
+class RevitMaterial(Material, speckle_type="Objects.Other.Revit." + "RevitMaterial"):
+    materialCategory: Optional[str] = None
+    materialClass: Optional[str] = None
+    shininess: Optional[int] = None
+    smoothness: Optional[int] = None
+    transparency: Optional[int] = None
+    parameters: Optional[Base] = None
+
+
 class RenderMaterial(Base, speckle_type=OTHER + "RenderMaterial"):
-    name: str = None
+    name: Optional[str] = None
     opacity: float = 1
     metalness: float = 0
     roughness: float = 1
     diffuse: int = -2894893  # light gray arbg
     emissive: int = -16777216  # black arbg
+
+
+class MaterialQuantity(Base, speckle_type=OTHER + "MaterialQuantity"):
+    material: Optional[Material] = None
+    volume: Optional[float] = None
+    area: Optional[float] = None
+
+
+class DisplayStyle(Base, speckle_type=OTHER + "DisplayStyle"):
+    """
+    Minimal display style class.
+    Developed primarily for display styles in Rhino and AutoCAD.
+    Rhino object attributes uses OpenNURBS definition for linetypes and lineweights.
+    """
+
+    name: Optional[str] = None
+    color: int = -2894893  # light gray arbg
+    linetype: Optional[str] = None
+    lineweight: float = 0
 
 
 class Transform(
@@ -44,7 +80,7 @@ class Transform(
     The 4th column defines translation, where the last value is a divisor (usually equal to 1).
     """
 
-    _value: List[float] = None
+    _value: Optional[List[float]] = None
 
     @property
     def value(self) -> List[float]:
@@ -188,27 +224,27 @@ class Transform(
 class BlockDefinition(
     Base, speckle_type=OTHER + "BlockDefinition", detachable={"geometry"}
 ):
-    name: str = None
-    basePoint: Point = None
-    geometry: List[Base] = None
+    name: Optional[str] = None
+    basePoint: Optional[Point] = None
+    geometry: Optional[List[Base]] = None
 
 
 class BlockInstance(
     Base, speckle_type=OTHER + "BlockInstance", detachable={"blockDefinition"}
 ):
-    blockDefinition: BlockDefinition = None
-    transform: Transform = None
+    blockDefinition: Optional[BlockDefinition] = None
+    transform: Optional[Transform] = None
 
 
 # TODO: prob move this into a built elements module, but just trialling this for now
 class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter"):
-    name: str = None
+    name: Optional[str] = None
     value: Any = None
-    applicationUnitType: str = None  # eg UnitType UT_Length
-    applicationUnit: str = None  # DisplayUnitType eg DUT_MILLIMITERS
-    applicationInternalName: str = (
-        None  # BuiltInParameterName or GUID for shared parameter
-    )
+    applicationUnitType: Optional[str] = None  # eg UnitType UT_Length
+    applicationUnit: Optional[str] = None  # DisplayUnitType eg DUT_MILLIMITERS
+    applicationInternalName: Optional[
+        str
+    ] = None  # BuiltInParameterName or GUID for shared parameter
     isShared: bool = False
     isReadOnly: bool = False
     isTypeParameter: bool = False

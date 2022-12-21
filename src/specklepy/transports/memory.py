@@ -1,4 +1,5 @@
-from typing import Any, List, Dict
+from typing import Any, Dict, List
+
 from specklepy.transports.abstract_transport import AbstractTransport
 
 

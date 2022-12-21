@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Callable, List, Type, Dict
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
@@ -43,7 +43,7 @@ def curve_from_list(args: List[float]):
 
 
 class ObjectArray:
-    def __init__(self, data: list = None) -> None:
+    def __init__(self, data: Optional[list] = None) -> None:
         self.data = data or []
 
     @classmethod
@@ -68,7 +68,7 @@ class ObjectArray:
     def decode_data(
         data: List[Any], decoder: Callable[[List[Any]], Base], **kwargs: Dict[str, Any]
     ) -> List[Base]:
-        bases = []
+        bases: List[Base] = []
         if not data:
             return bases
         index = 0

@@ -1,10 +1,9 @@
 from enum import Enum
+from typing import Optional
 
-from ..base import Base
-
-from .material import *
-from .axis import Axis
-
+from specklepy.objects.base import Base
+from specklepy.objects.structural.axis import Axis
+from specklepy.objects.structural.material import StructuralMaterial
 
 STRUCTURAL_PROPERTY = "Objectives.Structural.Properties"
 
@@ -59,7 +58,7 @@ class PropertyType3D(int, Enum):
 class ShapeType(int, Enum):
     Rectangular = 0
     Circular = 1
-    I = 2
+    I = 2  # noqa: E741
     Tee = 3
     Angle = 4
     Channel = 5
@@ -89,36 +88,35 @@ class PropertyTypeDamper(int, Enum):
 
 
 class Property(Base, speckle_type=STRUCTURAL_PROPERTY):
-    name: str = None
+    name: Optional[str] = None
 
 
 class SectionProfile(Base, speckle_type=STRUCTURAL_PROPERTY + ".SectionProfile"):
-    name: str = None
-    shapeType: ShapeType = None
+    name: Optional[str] = None
+    shapeType: Optional[ShapeType] = None
     area: float = 0.0
     Iyy: float = 0.0
     Izz: float = 0.0
     J: float = 0.0
     Ky: float = 0.0
     weight: float = 0.0
-    units: str = None
 
 
 class Property1D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property1D"):
-    memberType: MemberType = None
-    material : Material = None
-    profile: SectionProfile = None
-    referencePoint : BaseReferencePoint = None
+    memberType: Optional[MemberType] = None
+    material: Optional[StructuralMaterial] = None
+    profile: Optional[SectionProfile] = None
+    referencePoint: Optional[BaseReferencePoint] = None
     offsetY: float = 0.0
     offsetZ: float = 0.0
 
 
 class Property2D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property2D"):
-    type: PropertyType2D = None
+    type: Optional[PropertyType2D] = None
     thickness: float = 0.0
-    material: Material = None
-    orientationAxis : Axis = None
-    refSurface : ReferenceSurface = None
+    material: Optional[StructuralMaterial] = None
+    orientationAxis: Optional[Axis] = None
+    refSurface: Optional[ReferenceSurface] = None
     zOffset: float = 0.0
     modifierInPlane: float = 0.0
     modifierBending: float = 0.0
@@ -127,13 +125,13 @@ class Property2D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property2D"):
 
 
 class Property3D(Property, speckle_type=STRUCTURAL_PROPERTY + ".Property3D"):
-    type: PropertyType3D = None
-    material: Material = None
-    orientationAxis: Axis = None
+    type: Optional[PropertyType3D] = None
+    material: Optional[StructuralMaterial] = None
+    orientationAxis: Optional[Axis] = None
 
 
 class PropertyDamper(Property, speckle_type=STRUCTURAL_PROPERTY + ".PropertyDamper"):
-    damperType: PropertyTypeDamper = None
+    damperType: Optional[PropertyTypeDamper] = None
     dampingX: float = 0.0
     dampingY: float = 0.0
     dampingZ: float = 0.0
@@ -150,14 +148,14 @@ class PropertyMass(Property, speckle_type=STRUCTURAL_PROPERTY + ".PropertyMass")
     inertiaXY: float = 0.0
     inertiaYZ: float = 0.0
     inertiaZX: float = 0.0
-    massModified: bool = None
+    massModified: Optional[bool] = None
     massModifierX: float = 0.0
     massModifierY: float = 0.0
     massModifierZ: float = 0.0
 
 
 class PropertySpring(Property, speckle_type=STRUCTURAL_PROPERTY + ".PropertySpring"):
-    springType: PropertyTypeSpring = None
+    springType: Optional[PropertyTypeSpring] = None
     springCurveX: float = 0.0
     stiffnessX: float = 0.0
     springCurveY: float = 0.0

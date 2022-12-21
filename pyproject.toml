@@ -54,3 +54,6 @@ target-version = ["py37", "py38", "py39", "py310"]
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

@@ -1,11 +1,13 @@
 import os
-from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 from typing import List, Optional
-from specklepy.logging import metrics
-from specklepy.api.models import ServerInfo
-from specklepy.transports.sqlite import SQLiteTransport
-from specklepy.logging.exceptions import SpeckleException
+
+from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
+
 from specklepy import paths
+from specklepy.api.models import ServerInfo
+from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 class UserInfo(BaseModel):
@@ -64,7 +66,7 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
         json_acct_files.extend(
             file for file in os.listdir(json_path) if file.endswith(".json")
         )
-    
+
     except Exception:
         # cannot find or get the json account paths
         pass

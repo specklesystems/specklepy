@@ -2,10 +2,10 @@
 import json
 
 import pytest
+
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
-from specklepy.objects.units import Units
 from specklepy.objects.encoding import CurveArray, ObjectArray
 from specklepy.objects.geometry import (
     Arc,
@@ -30,6 +30,7 @@ from specklepy.objects.geometry import (
     Surface,
     Vector,
 )
+from specklepy.objects.units import Units
 from specklepy.transports.memory import MemoryTransport
 
 

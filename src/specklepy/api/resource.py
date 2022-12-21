@@ -1,15 +1,17 @@
-from graphql import DocumentNode
-from specklepy.api.credentials import Account
-from specklepy.transports.sqlite import SQLiteTransport
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
+
 from gql.client import Client
 from gql.transport.exceptions import TransportQueryError
+from graphql import DocumentNode
+
+from specklepy.api.credentials import Account
 from specklepy.logging.exceptions import (
     GraphQLException,
     SpeckleException,
     UnsupportedException,
 )
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 class ResourceBase(object):

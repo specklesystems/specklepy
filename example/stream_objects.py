@@ -1,9 +1,10 @@
+import random
+import string
 from typing import List
+
+from specklepy.api import operations
 from specklepy.api.wrapper import StreamWrapper
 from specklepy.objects import Base
-from specklepy.api import operations
-import string
-import random
 
 
 class Sub(Base):

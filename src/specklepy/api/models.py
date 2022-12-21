@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
 
-
 from pydantic import BaseModel, Field
 
 
@@ -60,20 +59,20 @@ class Branches(BaseModel):
 
 
 class Stream(BaseModel):
-    id: Optional[str] = None 
+    id: Optional[str] = None
     name: Optional[str]
     role: Optional[str] = None
     isPublic: Optional[bool] = None
     description: Optional[str] = None
-    createdAt: Optional[datetime] = None 
-    updatedAt: Optional[datetime] = None 
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
     collaborators: List[Collaborator] = Field(default_factory=list)
-    branches: Optional[Branches] = None 
-    commit: Optional[Commit] = None 
-    object: Optional[Object] = None 
-    commentCount: Optional[int] = None 
-    favoritedDate: Optional[datetime] = None 
-    favoritesCount: Optional[int] = None 
+    branches: Optional[Branches] = None
+    commit: Optional[Commit] = None
+    object: Optional[Object] = None
+    commentCount: Optional[int] = None
+    favoritedDate: Optional[datetime] = None
+    favoritesCount: Optional[int] = None
 
     def __repr__(self):
         return f"Stream( id: {self.id}, name: {self.name}, description: {self.description}, isPublic: {self.isPublic})"

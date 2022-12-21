@@ -1,13 +1,15 @@
-import uuid
 import random
+import uuid
+
 import pytest
 import requests
-from specklepy.api.models import Stream
+
 from specklepy.api.client import SpeckleClient
-from specklepy.objects.base import Base
-from specklepy.objects.geometry import Point
-from specklepy.objects.fakemesh import FakeDirection, FakeMesh
+from specklepy.api.models import Stream
 from specklepy.logging import metrics
+from specklepy.objects.base import Base
+from specklepy.objects.fakemesh import FakeDirection, FakeMesh
+from specklepy.objects.geometry import Point
 
 metrics.disable()
 
@@ -29,10 +31,10 @@ def seed_user(host):
     r = requests.post(
         url=f"http://{host}/auth/local/register?challenge=pyspeckletests",
         data=user_dict,
-        # do not follow redirects here, they lead to the frontend, which might not be 
+        # do not follow redirects here, they lead to the frontend, which might not be
         # running in a test environment
         # causing the response to not be OK in the end
-        allow_redirects=False
+        allow_redirects=False,
     )
     if not r.ok:
         raise Exception(f"Cannot seed user: {r.reason}")

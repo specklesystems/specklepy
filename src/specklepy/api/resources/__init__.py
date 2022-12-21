@@ -1,8 +1,6 @@
-from pathlib import Path
-import sys
 import pkgutil
+import sys
 from importlib import import_module
-
 
 for (_, name, _) in pkgutil.iter_modules(__path__):
 

@@ -1,14 +1,14 @@
-import sys
-import queue
-import hashlib
-import getpass
-import logging
-from typing import Optional
-import requests
-import threading
-import platform
 import contextlib
+import getpass
+import hashlib
+import logging
+import platform
+import queue
+import sys
+import threading
+from typing import Optional
 
+import requests
 
 """
 Anonymous telemetry to help us understand how to make a better Speckle.

@@ -1,21 +1,22 @@
+import contextlib
+from enum import Enum
+from inspect import isclass
 from typing import (
     Any,
     ClassVar,
     Dict,
     List,
     Optional,
-    Union,
     Set,
+    Tuple,
     Type,
+    Union,
     get_type_hints,
 )
-
-import contextlib
-from enum import EnumMeta
 from warnings import warn
 
-from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects.units import get_units_from_string, Units
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.objects.units import Units, get_units_from_string
 from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)
@@ -90,7 +91,8 @@ class _RegisteringBase:
     """
 
     speckle_type: ClassVar[str]
-    _type_registry: ClassVar[Dict[str, "Base"]] = {}
+    _speckle_type_override: ClassVar[Optional[str]] = None
+    _type_registry: ClassVar[Dict[str, Type["Base"]]] = {}
     _attr_types: ClassVar[Dict[str, Type]] = {}
     # dict of chunkable props and their max chunk size
     _chunkable: Dict[str, int] = {}
@@ -98,22 +100,40 @@ class _RegisteringBase:
     _detachable: Set[str] = set()  # list of defined detachable props
     _serialize_ignore: Set[str] = set()
 
-    class Config:
-        validate_assignment = True
-
     @classmethod
-    def get_registered_type(
-        cls, speckle_type: str
-    ) -> Union["Base", Type["Base"], None]:
+    def get_registered_type(cls, speckle_type: str) -> Optional[Type["Base"]]:
         """Get the registered type from the protected mapping via the `speckle_type`"""
         return cls._type_registry.get(speckle_type, None)
 
+    @classmethod
+    def _determine_speckle_type(cls) -> str:
+        """
+        This method brings the speckle_type construction in par with peckle-sharp/Core.
+
+        The implementation differs, because in Core the basis of the speckle_type if
+        type.FullName, which includes the dotnet namespace name too.
+        Copying that behavior is hard in python, where the concept of namespaces
+        means something entirely different.
+
+        So we enabled a speckle_type override mechanism, that enables
+        """
+        base_name = "Base"
+        if cls.__name__ == base_name:
+            return base_name
+
+        bases = [
+            b._speckle_type_override if b._speckle_type_override else b.__name__
+            for b in reversed(cls.mro())
+            if issubclass(b, Base) and b.__name__ != base_name
+        ]
+        return ":".join(bases)
+
     def __init_subclass__(
         cls,
-        speckle_type: str = None,
-        chunkable: Dict[str, int] = None,
-        detachable: Set[str] = None,
-        serialize_ignore: Set[str] = None,
+        speckle_type: Optional[str] = None,
+        chunkable: Optional[Dict[str, int]] = None,
+        detachable: Optional[Set[str]] = None,
+        serialize_ignore: Optional[Set[str]] = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -123,13 +143,14 @@ class _RegisteringBase:
         initialization. This is reused to register each subclassing type into a class
         level dictionary.
         """
-        if speckle_type in cls._type_registry:
+        cls._speckle_type_override = speckle_type
+        cls.speckle_type = cls._determine_speckle_type()
+        if cls.speckle_type in cls._type_registry:
             raise ValueError(
                 f"The speckle_type: {speckle_type} is already registered for type: "
-                f"{cls._type_registry[speckle_type].__name__}. "
+                f"{cls._type_registry[cls.speckle_type].__name__}. "
                 f"Please choose a different type name."
             )
-        cls.speckle_type = speckle_type or cls.__name__
         cls._type_registry[cls.speckle_type] = cls  # type: ignore
         try:
             cls._attr_types = get_type_hints(cls)
@@ -143,6 +164,102 @@ class _RegisteringBase:
         if serialize_ignore:
             cls._serialize_ignore = cls._serialize_ignore.union(serialize_ignore)
         super().__init_subclass__(**kwargs)
+
+
+# T = TypeVar("T")
+
+# how i wish the code below would be correct, but we're also parsing into floats
+# and converting into strings if the original type is string, but the value isn't
+# def _validate_type(t: type, value: T) -> Tuple[bool, T]:
+
+
+def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
+    # this should be reworked. Its only ok to return null for Optionals...
+    # if t is None and value is None:
+    if value is None:
+        return True, value
+
+    # after fixing the None t above, this should be
+    # if t is Any:
+    # if t is None:
+
+    if t is None or t is Any:
+        return True, value
+
+    if isclass(t) and issubclass(t, Enum):
+        if isinstance(value, t):
+            return True, value
+        if value in t._value2member_map_:
+            return True, t(value)
+
+    if getattr(t, "__module__", None) == "typing":
+        origin = getattr(t, "__origin__")
+        # below is what in nicer for >= py38
+        # origin = get_origin(t)
+
+        # recursive validation for Unions on both types preferring the fist type
+        if origin is Union:
+            t_1, t_2 = t.__args__  # type: ignore
+            # below is what in nicer for >= py38
+            # t_1, t_2 = get_args(t)
+            t_1_success, t_1_value = _validate_type(t_1, value)
+            if t_1_success:
+                return True, t_1_value
+            return _validate_type(t_2, value)
+        if origin is dict:
+            if not isinstance(value, dict):
+                return False, value
+            if value == {}:
+                return True, value
+            t_key, t_value = t.__args__  # type: ignore
+            # we're only checking the first item, but the for loop and return after
+            # evaluating the first item is the fastest way
+            for dict_key, dict_value in value.items():
+                valid_key, _ = _validate_type(t_key, dict_key)
+                valid_value, _ = _validate_type(t_value, dict_value)
+
+                if valid_key and valid_value:
+                    return True, value
+                return False, value
+
+        if origin is list:
+            if not isinstance(value, list):
+                return False, value
+            if value == []:
+                return True, value
+            t_items = t.__args__[0]  # type: ignore
+            first_item_valid, _ = _validate_type(t_items, value[0])
+            if first_item_valid:
+                return True, value
+            return False, value
+
+        if origin is tuple:
+            if not isinstance(value, tuple):
+                return False, value
+            args = t.__args__  # type: ignore
+            # we're not checking for empty tuple, cause tuple lengths must match
+            if len(args) != len(value):
+                return False, value
+            values = []
+            for t_item, v_item in zip(args, value):
+                item_valid, item_value = _validate_type(t_item, v_item)
+                if not item_valid:
+                    return False, value
+                values.append(item_value)
+            return True, tuple(values)
+
+    if isinstance(value, t):
+        return True, value
+
+    with contextlib.suppress(ValueError):
+        if t is float and value is not None:
+            return True, float(value)
+        # TODO: dafuq, i had to add this not list check
+        # but it would also fail for objects and other complex values
+        if t is str and value and not isinstance(value, list):
+            return True, str(value)
+
+    return False, value
 
 
 class Base(_RegisteringBase):
@@ -242,55 +359,27 @@ class Base(_RegisteringBase):
                 "Invalid Name: Base member names cannot contain characters '.' or '/'",
             )
 
-    def _type_check(self, name: str, value: Any):
+    def _type_check(self, name: str, value: Any) -> Any:
         """
         Lightweight type checking of values before setting them
 
-        NOTE: Does not check subscripted types within generics as the performance hit of checking
-        each item within a given collection isn't worth it. Eg if you have a type Dict[str, float],
+        NOTE: Does not check subscripted types within generics as the performance hit
+        of checking each item within a given collection isn't worth it.
+        Eg if you have a type Dict[str, float],
         we will only check if the value you're trying to set is a dict.
         """
         types = getattr(self, "_attr_types", {})
         t = types.get(name, None)
 
-        if t is None or t is Any:
-            return value
+        valid, checked_value = _validate_type(t, value)
 
-        if value is None:
-            return None
-
-        if isinstance(t, EnumMeta) and (value in t._value2member_map_):
-            return t(value)
-
-        if t.__module__ == "typing":
-            origin = getattr(t, "__origin__")
-            t = (
-                tuple(getattr(sub_t, "__origin__", sub_t) for sub_t in t.__args__)
-                if origin is Union
-                else origin
-            )
-
-            if not isinstance(t, (type, tuple)):
-                warn(
-                    f"Unrecognised type '{t}' provided for attribute '{name}'. Type will not been validated."
-                )
-                return value
-        if isinstance(value, t):
-            return value
-
-        # to be friendly, we'll parse ints and strs into floats, but not the other way around
-        # (to avoid unexpected rounding)
-        if isinstance(t, tuple):
-            t = t[0]
-
-        with contextlib.suppress(ValueError):
-            if t is float:
-                return float(value)
-            if t is str and value:
-                return str(value)
+        if valid:
+            return checked_value
 
         raise SpeckleException(
-            f"Cannot set '{self.__class__.__name__}.{name}': it expects type '{t.__name__}', but received type '{type(value).__name__}'"
+            f"Cannot set '{self.__class__.__name__}.{name}':"
+            f"it expects type '{str(t)}',"
+            f"but received type '{type(value).__name__}'"
         )
 
     def add_chunkable_attrs(self, **kwargs: int) -> None:
