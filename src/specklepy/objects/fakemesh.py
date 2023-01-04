@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
+
 from specklepy.objects.geometry import Point
 
 from .base import Base
@@ -16,8 +17,8 @@ DETACHABLE = {"detach_this", "origin", "detached_list"}
 
 
 class FakeGeo(Base, chunkable={"dots": 50}, detachable={"pointslist"}):
-    pointslist: List[Base] = None
-    dots: List[int] = None
+    pointslist: Optional[List[Base]] = None
+    dots: Optional[List[int]] = None
 
 
 class FakeDirection(Enum):
@@ -28,15 +29,15 @@ class FakeDirection(Enum):
 
 
 class FakeMesh(FakeGeo, chunkable=CHUNKABLE_PROPS, detachable=DETACHABLE):
-    vertices: List[float] = None
-    faces: List[int] = None
-    colors: List[int] = None
-    textureCoordinates: List[float] = None
-    cardinal_dir: FakeDirection = None
-    test_bases: List[Base] = None
-    detach_this: Base = None
-    detached_list: List[Base] = None
-    _origin: Point = None
+    vertices: Optional[List[float]] = None
+    faces: Optional[List[int]] = None
+    colors: Optional[List[int]] = None
+    textureCoordinates: Optional[List[float]] = None
+    cardinal_dir: Optional[FakeDirection] = None
+    test_bases: Optional[List[Base]] = None
+    detach_this: Optional[Base] = None
+    detached_list: Optional[List[Base]] = None
+    _origin: Optional[Point] = None
 
     # def __init__(self, **kwargs) -> None:
     #     super(FakeMesh, self).__init__(**kwargs)

@@ -1,17 +1,21 @@
-from typing import List, Optional, Union
 from datetime import datetime, timezone
+from typing import List, Optional, Union
+
+from deprecated import deprecated
 from gql import gql
+
+from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
+from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.api.resource import ResourceBase
-from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
-from deprecated import deprecated
-
 
 NAME = "user"
 
 DEPRECATION_VERSION = "2.9.0"
-DEPRECATION_TEXT = "The user resource is deprecated, please use the active_user or other_user resources"
+DEPRECATION_TEXT = (
+    "The user resource is deprecated, please use the active_user or other_user"
+    " resources"
+)
 
 
 class Resource(ResourceBase):
@@ -67,7 +71,9 @@ class Resource(ResourceBase):
     def search(
         self, search_query: str, limit: int = 25
     ) -> Union[List[User], SpeckleException]:
-        """Searches for user by name or email. The search query must be at least 3 characters long
+        """
+        Searches for user by name or email.
+        The search query must be at least 3 characters long
 
         Arguments:
             search_query {str} -- a string to search for
@@ -136,7 +142,9 @@ class Resource(ResourceBase):
 
         if not params["user"]:
             return SpeckleException(
-                message="You must provide at least one field to update your user profile"
+                message=(
+                    "You must provide at least one field to update your user profile"
+                )
             )
 
         return self.make_request(
@@ -154,24 +162,43 @@ class Resource(ResourceBase):
         cursor: Optional[datetime] = None,
     ):
         """
-        Get the activity from a given stream in an Activity collection. Step into the activity `items` for the list of activity.
-        If no id argument is provided, will return the current authenticated user's activity (as extracted from the authorization header).
+        Get the activity from a given stream in an Activity collection.
+        Step into the activity `items` for the list of activity.
+        If no id argument is provided, will return the current authenticated
+        user's activity (as extracted from the authorization header).
 
-        Note: all timestamps arguments should be `datetime` of any tz as they will be converted to UTC ISO format strings
+        Note: all timestamps arguments should be `datetime` of any tz as
+        they will be converted to UTC ISO format strings
 
         user_id {str} -- the id of the user to get the activity from
-        action_type {str} -- filter results to a single action type (eg: `commit_create` or `commit_receive`)
+        action_type {str} -- filter results to a single action type
+        (eg: `commit_create` or `commit_receive`)
         limit {int} -- max number of Activity items to return
-        before {datetime} -- latest cutoff for activity (ie: return all activity _before_ this time)
-        after {datetime} -- oldest cutoff for activity (ie: return all activity _after_ this time)
+        before {datetime}
+            -- latest cutoff for activity (ie: return all activity _before_ this time)
+        after {datetime}
+            -- oldest cutoff for activity (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
 
         query = gql(
             """
-            query UserActivity($user_id: String, $action_type: String, $before:DateTime, $after: DateTime, $cursor: DateTime, $limit: Int){
+            query UserActivity(
+                $user_id: String,
+                $action_type: String,
+                $before:DateTime,
+                $after: DateTime,
+                $cursor: DateTime,
+                $limit: Int
+                ){
                 user(id: $user_id) {
-                    activity(actionType: $action_type, before: $before, after: $after, cursor: $cursor, limit: $limit) {
+                    activity(
+                        actionType: $action_type,
+                        before: $before,
+                        after: $after,
+                        cursor: $cursor,
+                        limit: $limit
+                        ) {
                         totalCount
                         cursor
                         items {
@@ -213,7 +240,8 @@ class Resource(ResourceBase):
         Requires Speckle Server version >= 2.6.4
 
         Returns:
-            List[PendingStreamCollaborator] -- a list of pending invites for the current user
+            List[PendingStreamCollaborator]
+                -- a list of pending invites for the current user
         """
         metrics.track(metrics.INVITE, self.account, {"name": "get"})
         self._check_invites_supported()
@@ -260,7 +288,8 @@ class Resource(ResourceBase):
             token {str} -- the token of the invite to look for (optional)
 
         Returns:
-            PendingStreamCollaborator -- the invite for the given stream (or None if it isn't found)
+            PendingStreamCollaborator
+                -- the invite for the given stream (or None if it isn't found)
         """
         metrics.track(metrics.INVITE, self.account, {"name": "get"})
         self._check_invites_supported()

@@ -1,18 +1,16 @@
 from typing import List, Optional
 
-from ..base import Base
-from ..geometry import *
-from .loading import *
-from .geometry import *
-from .analysis import Model
+from specklepy.objects.base import Base
+from specklepy.objects.structural.analysis import Model
+from specklepy.objects.structural.geometry import Element1D, Element2D, Element3D, Node
 
 STRUCTURAL_RESULTS = "Objects.Structural.Results."
 
 
 class Result(Base, speckle_type=STRUCTURAL_RESULTS + "Result"):
-    resultCase: Base = None
-    permutation: str = None
-    description: str = None
+    resultCase: Optional[Base] = None
+    permutation: Optional[str] = None
+    description: Optional[str] = None
 
 
 class ResultSet1D(Result, speckle_type=STRUCTURAL_RESULTS + "ResultSet1D"):
@@ -20,7 +18,7 @@ class ResultSet1D(Result, speckle_type=STRUCTURAL_RESULTS + "ResultSet1D"):
 
 
 class Result1D(Result, speckle_type=STRUCTURAL_RESULTS + "Result1D"):
-    element: Element1D = None
+    element: Optional[Element1D] = None
     position: Optional[float] = None
     dispX: Optional[float] = None
     dispY: Optional[float] = None
@@ -50,7 +48,7 @@ class ResultSet2D(Result, speckle_type=STRUCTURAL_RESULTS + "ResultSet2D"):
 
 
 class Result2D(Result, speckle_type=STRUCTURAL_RESULTS + "Result2D"):
-    element: Element2D = None
+    element: Optional[Element2D] = None
     position: List
     dispX: Optional[float] = None
     dispY: Optional[float] = None
@@ -88,7 +86,7 @@ class ResultSet3D(Result, speckle_type=STRUCTURAL_RESULTS + "ResultSet3D"):
 
 
 class Result3D(Result, speckle_type=STRUCTURAL_RESULTS + "Result3D"):
-    element: Element3D = None
+    element: Optional[Element3D] = None
     position: List
     dispX: Optional[float] = None
     dispY: Optional[float] = None
@@ -102,7 +100,7 @@ class Result3D(Result, speckle_type=STRUCTURAL_RESULTS + "Result3D"):
 
 
 class ResultGlobal(Result, speckle_type=STRUCTURAL_RESULTS + "ResultGlobal"):
-    model: Model = None
+    model: Optional[Model] = None
     loadX: Optional[float] = None
     loadY: Optional[float] = None
     loadZ: Optional[float] = None
@@ -133,7 +131,7 @@ class ResultSetNode(Result, speckle_type=STRUCTURAL_RESULTS + "ResultSetNode"):
 
 
 class ResultNode(Result, speckle_type=STRUCTURAL_RESULTS + " ResultNode"):
-    node: Node = None
+    node: Optional[Node] = None
     dispX: Optional[float] = None
     dispY: Optional[float] = None
     dispZ: Optional[float] = None
@@ -167,8 +165,8 @@ class ResultNode(Result, speckle_type=STRUCTURAL_RESULTS + " ResultNode"):
 
 
 class ResultSetAll(Base, speckle_type=None):
-    resultSet1D: ResultSet1D = None
-    resultSet2D: ResultSet2D = None
-    resultSet3D: ResultSet3D = None
-    resultsGlobal: ResultGlobal = None
-    resultsNode: ResultSetNode = None
+    resultSet1D: Optional[ResultSet1D] = None
+    resultSet2D: Optional[ResultSet2D] = None
+    resultSet3D: Optional[ResultSet3D] = None
+    resultsGlobal: Optional[ResultGlobal] = None
+    resultsNode: Optional[ResultSetNode] = None

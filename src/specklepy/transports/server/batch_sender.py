@@ -1,10 +1,11 @@
+import gzip
 import json
 import logging
-import threading
 import queue
-import gzip
+import threading
 
 import requests
+
 from specklepy.logging.exceptions import SpeckleException
 
 LOG = logging.getLogger(__name__)
@@ -107,7 +108,8 @@ class BatchSender(object):
 
         if not new_objects:
             LOG.info(
-                f"Uploading batch of {len(batch)} objects: all objects are already in the server"
+                f"Uploading batch of {len(batch)} objects: all objects are already in"
+                " the server"
             )
             return
 
@@ -126,11 +128,16 @@ class BatchSender(object):
             if r.status_code != 201:
                 LOG.warning("Upload server response: %s", r.text)
                 raise SpeckleException(
-                    message=f"Could not save the object to the server - status code {r.status_code}"
+                    message=(
+                        "Could not save the object to the server - status code"
+                        f" {r.status_code}"
+                    )
                 )
         except json.JSONDecodeError as error:
             return SpeckleException(
-                f"Failed to send objects to {self.server_url}. Please ensure this stream ({self.stream_id}) exists on this server and that you have permission to send to it.",
+                f"Failed to send objects to {self.server_url}. Please ensure this"
+                f" stream ({self.stream_id}) exists on this server and that you have"
+                " permission to send to it.",
                 error,
             )
 

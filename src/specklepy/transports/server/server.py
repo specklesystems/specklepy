@@ -1,8 +1,8 @@
 import json
-import requests
+from typing import Any, Dict, List, Optional
 from warnings import warn
 
-from typing import Any, Dict, List
+import requests
 
 from specklepy.api.client import SpeckleClient
 from specklepy.api.credentials import Account, get_account_from_token
@@ -14,10 +14,10 @@ from .batch_sender import BatchSender
 
 class ServerTransport(AbstractTransport):
     """
-    The `ServerTransport` is the vehicle through which you transport objects to and from a Speckle Server. Provide it to
-    `operations.send()` or `operations.receive()`.
+    The `ServerTransport` is the vehicle through which you transport objects to and
+    from a Speckle Server. Provide it to `operations.send()` or `operations.receive()`.
 
-    The `ServerTransport` can be authenticted two different ways:
+    The `ServerTransport` can be authenticated two different ways:
         1. by providing a `SpeckleClient`
         2. by providing an `Account`
         3. by providing a `token` and `url`
@@ -29,14 +29,15 @@ class ServerTransport(AbstractTransport):
     # here's the data you want to send
     block = Block(length=2, height=4)
 
-    # next create the server transport - this is the vehicle through which you will send and receive
+    # next create the server transport - this is the vehicle through which
+    # you will send and receive
     transport = ServerTransport(stream_id=new_stream_id, client=client)
 
     # this serialises the block and sends it to the transport
     hash = operations.send(base=block, transports=[transport])
 
     # you can now create a commit on your stream with this object
-    commid_id = client.commit.create(
+    commit_id = client.commit.create(
         stream_id=new_stream_id,
         obj_id=hash,
         message="this is a block I made in speckle-py",
@@ -45,25 +46,26 @@ class ServerTransport(AbstractTransport):
     """
 
     _name = "RemoteTransport"
-    url: str = None
-    stream_id: str = None
-    account: Account = None
+    url: Optional[str] = None
+    stream_id: Optional[str] = None
+    account: Optional[Account] = None
     saved_obj_count: int = 0
-    session: requests.Session = None
+    session: Optional[requests.Session] = None
 
     def __init__(
         self,
         stream_id: str,
-        client: SpeckleClient = None,
-        account: Account = None,
-        token: str = None,
-        url: str = None,
+        client: Optional[SpeckleClient] = None,
+        account: Optional[Account] = None,
+        token: Optional[str] = None,
+        url: Optional[str] = None,
         **data: Any,
     ) -> None:
         super().__init__(**data)
         if client is None and account is None and token is None and url is None:
             raise SpeckleException(
-                "You must provide either a client or a token and url to construct a ServerTransport."
+                "You must provide either a client or a token and url to construct a"
+                " ServerTransport."
             )
 
         if account:
@@ -74,7 +76,8 @@ class ServerTransport(AbstractTransport):
             if not client.account.token:
                 warn(
                     SpeckleWarning(
-                        f"Unauthenticated Speckle Client provided to Server Transport for {self.url}. Receiving from private streams will fail."
+                        "Unauthenticated Speckle Client provided to Server Transport"
+                        f" for {self.url}. Receiving from private streams will fail."
                     )
                 )
             else:
@@ -118,8 +121,10 @@ class ServerTransport(AbstractTransport):
         # return obj
 
         raise SpeckleException(
-            "Getting a single object using `ServerTransport.get_object()` is not implemented. To get an object from the server, please use the `SpeckleClient.object.get()` route",
-            NotImplementedError,
+            "Getting a single object using `ServerTransport.get_object()` is not"
+            " implemented. To get an object from the server, please use the"
+            " `SpeckleClient.object.get()` route",
+            NotImplementedError(),
         )
 
     def has_objects(self, id_list: List[str]) -> Dict[str, bool]:
@@ -134,7 +139,8 @@ class ServerTransport(AbstractTransport):
 
         if r.status_code != 200:
             raise SpeckleException(
-                f"Can't get object {self.stream_id}/{id}: HTTP error {r.status_code} ({r.text[:1000]})"
+                f"Can't get object {self.stream_id}/{id}: HTTP error"
+                f" {r.status_code} ({r.text[:1000]})"
             )
         root_obj_serialized = r.text
         root_obj = json.loads(root_obj_serialized)

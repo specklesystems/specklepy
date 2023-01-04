@@ -1,11 +1,13 @@
 import os
-from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 from typing import List, Optional
-from specklepy.logging import metrics
-from specklepy.api.models import ServerInfo
-from specklepy.transports.sqlite import SQLiteTransport
-from specklepy.logging.exceptions import SpeckleException
+
+from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
+
 from specklepy import paths
+from specklepy.api.models import ServerInfo
+from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 class UserInfo(BaseModel):
@@ -24,7 +26,10 @@ class Account(BaseModel):
     id: Optional[str] = None
 
     def __repr__(self) -> str:
-        return f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url}, isDefault: {self.isDefault})"
+        return (
+            f"Account(email: {self.userInfo.email}, server: {self.serverInfo.url},"
+            f" isDefault: {self.isDefault})"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -43,7 +48,8 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
         base_path {str} -- custom base path if you are not using the system default
 
     Returns:
-        List[Account] -- list of all local accounts or an empty list if no accounts were found
+        List[Account] -- list of all local accounts or an empty list if
+        no accounts were found
     """
     accounts: List[Account] = []
     try:
@@ -64,7 +70,7 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
         json_acct_files.extend(
             file for file in os.listdir(json_path) if file.endswith(".json")
         )
-    
+
     except Exception:
         # cannot find or get the json account paths
         pass
@@ -93,7 +99,9 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
 
 
 def get_default_account(base_path: Optional[str] = None) -> Optional[Account]:
-    """Gets this environment's default account if any. If there is no default, the first found will be returned and set as default.
+    """
+    Gets this environment's default account if any. If there is no default,
+    the first found will be returned and set as default.
     Arguments:
         base_path {str} -- custom base path if you are not using the system default
 
@@ -119,7 +127,8 @@ def get_account_from_token(token: str, server_url: str = None) -> Account:
         token {str} -- the api token
 
     Returns:
-        Account -- the local account with this token or a shell account containing just the token and url if no local account is found
+        Account -- the local account with this token or a shell account containing
+        just the token and url if no local account is found
     """
     accounts = get_local_accounts()
     if not accounts:
@@ -143,6 +152,9 @@ def get_account_from_token(token: str, server_url: str = None) -> Account:
 class StreamWrapper:
     def __init__(self, url: str = None) -> None:
         raise SpeckleException(
-            message="The StreamWrapper has moved as of v2.6.0! Please import from specklepy.api.wrapper",
-            exception=DeprecationWarning,
+            message=(
+                "The StreamWrapper has moved as of v2.6.0! Please import from"
+                " specklepy.api.wrapper"
+            ),
+            exception=DeprecationWarning(),
         )

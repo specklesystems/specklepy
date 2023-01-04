@@ -1,21 +1,17 @@
-import re
-import ujson
 import hashlib
+import re
 import warnings
-from uuid import uuid4
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+from uuid import uuid4
 from warnings import warn
-from typing import Any, Dict, List, Tuple
-from specklepy.objects.base import Base, DataChunk
-from specklepy.logging.exceptions import (
-    SpeckleException,
-    SpeckleWarning,
-)
-from specklepy.transports.abstract_transport import AbstractTransport
+
+import ujson
 
 # import for serialization
-import specklepy.objects.geometry
-import specklepy.objects.other
+from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
+from specklepy.objects.base import Base, DataChunk
+from specklepy.transports.abstract_transport import AbstractTransport
 
 PRIMITIVES = (int, float, str, bool)
 
@@ -31,7 +27,8 @@ def safe_json_loads(obj: str, obj_id=None) -> Any:
         import json
 
         warn(
-            f"Failed to deserialise object (id: {obj_id}). This is likely a ujson big int error - falling back to json. \nError: {err}",
+            f"Failed to deserialise object (id: {obj_id}). This is likely a ujson big"
+            f" int error - falling back to json. \nError: {err}",
             SpeckleWarning,
         )
         return json.loads(obj)
@@ -49,7 +46,9 @@ class BaseObjectSerializer:
     ]  # holds deserialized objects so objects with same id return the same instance
 
     def __init__(
-        self, write_transports: List[AbstractTransport] = None, read_transport=None
+        self,
+        write_transports: Optional[List[AbstractTransport]] = None,
+        read_transport: Optional[AbstractTransport] = None,
     ) -> None:
         self.write_transports = write_transports or []
         self.read_transport = read_transport
@@ -65,21 +64,23 @@ class BaseObjectSerializer:
             base {Base} -- the base object to be decomposed and serialized
 
         Returns:
-            (str, str) -- a tuple containing the object id of the base object and the serialized object string
+            (str, str) -- a tuple containing the object id of the base object and
+            the serialized object string
         """
 
         obj_id, obj = self.traverse_base(base)
 
         return obj_id, ujson.dumps(obj)
 
-    def traverse_base(self, base: Base) -> Tuple[str, Dict]:
+    def traverse_base(self, base: Base) -> Tuple[str, Dict[str, Any]]:
         """Decomposes the given base object and builds a serializable dictionary
 
         Arguments:
             base {Base} -- the base object to be decomposed and serialized
 
         Returns:
-            (str, dict) -- a tuple containing the object id of the base object and the constructed serializable dictionary
+            (str, dict) -- a tuple containing the object id of the base object and
+            the constructed serializable dictionary
         """
         self.__reset_writer()
 
@@ -212,6 +213,8 @@ class BaseObjectSerializer:
         Returns:
             Any -- a serializable version of the given object
         """
+        if obj is None:
+            return None
         if isinstance(obj, PRIMITIVES):
             return obj
 
@@ -249,16 +252,19 @@ class BaseObjectSerializer:
         else:
             try:
                 return obj.dict()
-            except:
+            except Exception:
                 warn(
-                    f"Failed to handle {type(obj)} in `BaseObjectSerializer.traverse_value`",
+                    f"Failed to handle {type(obj)} in"
+                    " `BaseObjectSerializer.traverse_value`",
                     SpeckleWarning,
                 )
 
                 return str(obj)
 
     def detach_helper(self, ref_id: str) -> Dict[str, str]:
-        """Helper to keep track of detached objects and their depth in the family tree and create reference objects to place in the parent object
+        """
+        Helper to keep track of detached objects and their depth in the family tree
+        and create reference objects to place in the parent object
 
         Arguments:
             ref_id {str} -- the id of the fully traversed object
@@ -281,7 +287,10 @@ class BaseObjectSerializer:
         }
 
     def __reset_writer(self) -> None:
-        """Reinitializes the lineage, and other variables that get used during the json writing process"""
+        """
+        Reinitializes the lineage, and other variables that get used during the json
+        writing process
+        """
         self.detach_lineage = [True]
         self.lineage = []
         self.family_tree = {}
@@ -358,7 +367,8 @@ class BaseObjectSerializer:
                     base.__setattr__(prop, self.recompose_base(obj=ref_obj))
                 else:
                     warnings.warn(
-                        f"Could not find the referenced child object of id `{ref_id}` in the given read transport: {self.read_transport.name}",
+                        f"Could not find the referenced child object of id `{ref_id}`"
+                        f" in the given read transport: {self.read_transport.name}",
                         SpeckleWarning,
                     )
                     base.__setattr__(prop, self.handle_value(value))
@@ -373,7 +383,8 @@ class BaseObjectSerializer:
         return base
 
     def handle_value(self, obj: Any):
-        """Helper for recomposing a base object by handling the dictionary representation's values
+        """Helper for recomposing a base object by handling the dictionary
+        representation's values
 
         Arguments:
             obj {Any} -- a value from the base object dictionary
@@ -419,7 +430,8 @@ class BaseObjectSerializer:
         ref_obj_str = self.read_transport.get_object(id=ref_id)
         if not ref_obj_str:
             warnings.warn(
-                f"Could not find the referenced child object of id `{ref_id}` in the given read transport: {self.read_transport.name}",
+                f"Could not find the referenced child object of id `{ref_id}` in the"
+                f" given read transport: {self.read_transport.name}",
                 SpeckleWarning,
             )
             return obj

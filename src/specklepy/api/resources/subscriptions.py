@@ -1,7 +1,9 @@
-from typing import Callable, Dict, List, Union
 from functools import wraps
+from typing import Callable, Dict, List, Optional, Union
+
 from gql import gql
 from graphql import DocumentNode
+
 from specklepy.api.resource import ResourceBase
 from specklepy.api.resources.stream import Stream
 from specklepy.logging.exceptions import SpeckleException
@@ -34,11 +36,13 @@ class Resource(ResourceBase):
         )
 
     @check_wsclient
-    async def stream_added(self, callback: Callable = None):
-        """Subscribes to new stream added event for your profile. Use this to display an up-to-date list of streams.
+    async def stream_added(self, callback: Optional[Callable] = None):
+        """Subscribes to new stream added event for your profile.
+        Use this to display an up-to-date list of streams.
 
         Arguments:
-            callback {Callable[Stream]} -- a function that takes the updated stream as an argument and executes each time a stream is added
+            callback {Callable[Stream]} -- a function that takes the updated stream
+            as an argument and executes each time a stream is added
 
         Returns:
             Stream -- the update stream
@@ -53,12 +57,16 @@ class Resource(ResourceBase):
         )
 
     @check_wsclient
-    async def stream_updated(self, id: str, callback: Callable = None):
-        """Subscribes to stream updated event. Use this in clients/components that pertain only to this stream.
+    async def stream_updated(self, id: str, callback: Optional[Callable] = None):
+        """
+        Subscribes to stream updated event.
+        Use this in clients/components that pertain only to this stream.
 
         Arguments:
             id {str} -- the stream id of the stream to subscribe to
-            callback {Callable[Stream]} -- a function that takes the updated stream as an argument and executes each time the stream is updated
+            callback {Callable[Stream]}
+            -- a function that takes the updated stream
+            as an argument and executes each time the stream is updated
 
         Returns:
             Stream -- the update stream
@@ -79,11 +87,17 @@ class Resource(ResourceBase):
         )
 
     @check_wsclient
-    async def stream_removed(self, callback: Callable = None):
-        """Subscribes to stream removed event for your profile. Use this to display an up-to-date list of streams for your profile. NOTE: If someone revokes your permissions on a stream, this subscription will be triggered with an extra value of revokedBy in the payload.
+    async def stream_removed(self, callback: Optional[Callable] = None):
+        """Subscribes to stream removed event for your profile.
+        Use this to display an up-to-date list of streams for your profile.
+        NOTE: If someone revokes your permissions on a stream,
+        this subscription will be triggered with an extra value of revokedBy
+        in the payload.
 
         Arguments:
-            callback {Callable[Dict]} -- a function that takes the returned dict as an argument and executes each time a stream is removed
+            callback {Callable[Dict]}
+            -- a function that takes the returned dict as an argument
+            and executes each time a stream is removed
 
         Returns:
             dict -- dict containing 'id' of stream removed and optionally 'revokedBy'
@@ -105,9 +119,9 @@ class Resource(ResourceBase):
     async def subscribe(
         self,
         query: DocumentNode,
-        params: Dict = None,
-        callback: Callable = None,
-        return_type: Union[str, List] = None,
+        params: Optional[Dict] = None,
+        callback: Optional[Callable] = None,
+        return_type: Optional[Union[str, List]] = None,
         schema=None,
         parse_response: bool = True,
     ):

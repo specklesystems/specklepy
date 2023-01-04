@@ -2,10 +2,10 @@
 import json
 
 import pytest
+
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
-from specklepy.objects.units import Units
 from specklepy.objects.encoding import CurveArray, ObjectArray
 from specklepy.objects.geometry import (
     Arc,
@@ -30,6 +30,7 @@ from specklepy.objects.geometry import (
     Surface,
     Vector,
 )
+from specklepy.objects.units import Units
 from specklepy.transports.memory import MemoryTransport
 
 
@@ -516,8 +517,7 @@ def test_mesh_create():
     mesh = Mesh.create(vertices, faces)
 
     with pytest.raises(SpeckleException):
-        # pylint: disable=unused-variable
-        bad_mesh = Mesh.create(vertices=7, faces=faces)
+        bad_mesh = Mesh.create(vertices=7, faces=faces)  # noqa: F841
 
     assert mesh.vertices == vertices
     assert mesh.textureCoordinates == []

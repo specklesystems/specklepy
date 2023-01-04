@@ -1,6 +1,9 @@
+from typing import Optional
+
 from gql import gql
-from specklepy.api.resource import ResourceBase
+
 from specklepy.api.models import Branch
+from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 
 NAME = "branch"
@@ -86,7 +89,7 @@ class Resource(ResourceBase):
                               createdAt
                             }
                         }
-                    }                      
+                    }
                 }
             }
             """
@@ -112,7 +115,11 @@ class Resource(ResourceBase):
         metrics.track(metrics.BRANCH, self.account, {"name": "get"})
         query = gql(
             """
-            query BranchesGet($stream_id: String!, $branches_limit: Int!, $commits_limit: Int!) {
+            query BranchesGet(
+                    $stream_id: String!,
+                    $branches_limit: Int!,
+                    $commits_limit: Int!
+                ) {
                 stream(id: $stream_id) {
                     branches(limit: $branches_limit) {
                         items {
@@ -151,7 +158,11 @@ class Resource(ResourceBase):
         )
 
     def update(
-        self, stream_id: str, branch_id: str, name: str = None, description: str = None
+        self,
+        stream_id: str,
+        branch_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
     ):
         """Update a branch
 

@@ -1,10 +1,11 @@
 import pytest
+
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.objects.base import Base
-from specklepy.transports.server import ServerTransport
 from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
+from specklepy.objects.base import Base
+from specklepy.transports.server import ServerTransport
 
 
 def test_invalid_authentication():

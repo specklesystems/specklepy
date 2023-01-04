@@ -1,6 +1,7 @@
 import pytest
-from specklepy.api.models import ServerInfo
+
 from specklepy.api.client import SpeckleClient
+from specklepy.api.models import ServerInfo
 
 
 class TestServer:

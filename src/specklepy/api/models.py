@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
 
-
 from pydantic import BaseModel, Field
 
 
@@ -26,7 +25,11 @@ class Commit(BaseModel):
     parents: Optional[List[str]]
 
     def __repr__(self) -> str:
-        return f"Commit( id: {self.id}, message: {self.message}, referencedObject: {self.referencedObject}, authorName: {self.authorName}, branchName: {self.branchName}, createdAt: {self.createdAt} )"
+        return (
+            f"Commit( id: {self.id}, message: {self.message}, referencedObject:"
+            f" {self.referencedObject}, authorName: {self.authorName}, branchName:"
+            f" {self.branchName}, createdAt: {self.createdAt} )"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -60,23 +63,26 @@ class Branches(BaseModel):
 
 
 class Stream(BaseModel):
-    id: Optional[str] = None 
+    id: Optional[str] = None
     name: Optional[str]
     role: Optional[str] = None
     isPublic: Optional[bool] = None
     description: Optional[str] = None
-    createdAt: Optional[datetime] = None 
-    updatedAt: Optional[datetime] = None 
+    createdAt: Optional[datetime] = None
+    updatedAt: Optional[datetime] = None
     collaborators: List[Collaborator] = Field(default_factory=list)
-    branches: Optional[Branches] = None 
-    commit: Optional[Commit] = None 
-    object: Optional[Object] = None 
-    commentCount: Optional[int] = None 
-    favoritedDate: Optional[datetime] = None 
-    favoritesCount: Optional[int] = None 
+    branches: Optional[Branches] = None
+    commit: Optional[Commit] = None
+    object: Optional[Object] = None
+    commentCount: Optional[int] = None
+    favoritedDate: Optional[datetime] = None
+    favoritesCount: Optional[int] = None
 
     def __repr__(self):
-        return f"Stream( id: {self.id}, name: {self.name}, description: {self.description}, isPublic: {self.isPublic})"
+        return (
+            f"Stream( id: {self.id}, name: {self.name}, description:"
+            f" {self.description}, isPublic: {self.isPublic})"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -100,7 +106,10 @@ class User(BaseModel):
     streams: Optional[Streams]
 
     def __repr__(self):
-        return f"User( id: {self.id}, name: {self.name}, email: {self.email}, company: {self.company} )"
+        return (
+            f"User( id: {self.id}, name: {self.name}, email: {self.email}, company:"
+            f" {self.company} )"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -130,7 +139,11 @@ class PendingStreamCollaborator(BaseModel):
     token: Optional[str]
 
     def __repr__(self):
-        return f"PendingStreamCollaborator( inviteId: {self.inviteId}, streamId: {self.streamId}, role: {self.role}, title: {self.title}, invitedBy: {self.user.name if self.user else None})"
+        return (
+            f"PendingStreamCollaborator( inviteId: {self.inviteId}, streamId:"
+            f" {self.streamId}, role: {self.role}, title: {self.title}, invitedBy:"
+            f" {self.user.name if self.user else None})"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -147,7 +160,10 @@ class Activity(BaseModel):
     time: Optional[datetime]
 
     def __repr__(self) -> str:
-        return f"Activity( streamId: {self.streamId}, actionType: {self.actionType}, message: {self.message}, userId: {self.userId} )"
+        return (
+            f"Activity( streamId: {self.streamId}, actionType: {self.actionType},"
+            f" message: {self.message}, userId: {self.userId} )"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -159,7 +175,11 @@ class ActivityCollection(BaseModel):
     cursor: Optional[datetime]
 
     def __repr__(self) -> str:
-        return f"ActivityCollection( totalCount: {self.totalCount}, items: {len(self.items) if self.items else 0}, cursor: {self.cursor.isoformat() if self.cursor else None} )"
+        return (
+            f"ActivityCollection( totalCount: {self.totalCount}, items:"
+            f" {len(self.items) if self.items else 0}, cursor:"
+            f" {self.cursor.isoformat() if self.cursor else None} )"
+        )
 
     def __str__(self) -> str:
         return self.__repr__()

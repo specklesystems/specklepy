@@ -1,10 +1,11 @@
 from typing import List, Optional
+
 from specklepy.logging import metrics
-from specklepy.objects.base import Base
-from specklepy.transports.sqlite import SQLiteTransport
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.transports.abstract_transport import AbstractTransport
+from specklepy.objects.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.transports.abstract_transport import AbstractTransport
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 def send(
@@ -17,7 +18,8 @@ def send(
     Arguments:
         obj {Base} -- the object you want to send
         transports {list} -- where you want to send them
-        use_default_cache {bool} -- toggle for the default cache. If set to false, it will only send to the provided transports
+        use_default_cache {bool} -- toggle for the default cache.
+        If set to false, it will only send to the provided transports
 
     Returns:
         str -- the object id of the sent object
@@ -25,7 +27,10 @@ def send(
 
     if not transports and not use_default_cache:
         raise SpeckleException(
-            message="You need to provide at least one transport: cannot send with an empty transport list and no default cache"
+            message=(
+                "You need to provide at least one transport: cannot send with an empty"
+                " transport list and no default cache"
+            )
         )
 
     if isinstance(transports, AbstractTransport):
@@ -61,7 +66,6 @@ def _untracked_receive(
     remote_transport: Optional[AbstractTransport] = None,
     local_transport: Optional[AbstractTransport] = None,
 ) -> Base:
-
     """Receives an object from a transport.
 
     Arguments:
@@ -85,7 +89,10 @@ def _untracked_receive(
 
     if not remote_transport:
         raise SpeckleException(
-            message="Could not find the specified object using the local transport, and you didn't provide a fallback remote from which to pull it."
+            message=(
+                "Could not find the specified object using the local transport, and you"
+                " didn't provide a fallback remote from which to pull it."
+            )
         )
 
     obj_string = remote_transport.copy_object_and_children(
@@ -97,12 +104,14 @@ def _untracked_receive(
 
 def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str:
     """
-    Serialize a base object. If no write transports are provided, the object will be serialized
+    Serialize a base object. If no write transports are provided,
+    the object will be serialized
     without detaching or chunking any of the attributes.
 
     Arguments:
         base {Base} -- the object to serialize
-        write_transports {List[AbstractTransport]} -- optional: the transports to write to
+        write_transports {List[AbstractTransport]}
+        -- optional: the transports to write to
 
     Returns:
         str -- the serialized object
@@ -117,12 +126,17 @@ def deserialize(
     obj_string: str, read_transport: Optional[AbstractTransport] = None
 ) -> Base:
     """
-    Deserialize a string object into a Base object. If the object contains referenced child objects that are not stored in the local db, a read transport needs to be provided in order to recompose the base with the children objects.
+    Deserialize a string object into a Base object.
+
+    If the object contains referenced child objects that are not stored in the local db,
+    a read transport needs to be provided in order to recompose
+    the base with the children objects.
 
     Arguments:
         obj_string {str} -- the string object to deserialize
-        read_transport {AbstractTransport} -- the transport to fetch children objects from
-                                              (defaults to SQLiteTransport)
+        read_transport {AbstractTransport}
+            -- the transport to fetch children objects from
+                (defaults to SQLiteTransport)
 
     Returns:
         Base -- the deserialized object

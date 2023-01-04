@@ -1,12 +1,13 @@
-from typing import List
-from specklepy.objects import Base
-from specklepy.api import operations
-from specklepy.transports.sqlite import SQLiteTransport
+import os
+import random
+import string
 import time
 from pathlib import Path
-import os
-import string
-import random
+from typing import List
+
+from specklepy.api import operations
+from specklepy.objects import Base
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 class Sub(Base):
@@ -26,7 +27,6 @@ def clean_db():
 
 
 def one_pass(clean: bool, randomize: bool, child_count: int):
-
     foo = Base()
     for i in range(child_count):
         stuff = random_string() if randomize else "stuff"

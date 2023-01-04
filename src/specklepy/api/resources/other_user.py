@@ -1,13 +1,12 @@
-from typing import List, Optional, Union
 from datetime import datetime, timezone
+from typing import List, Optional, Union
+
 from gql import gql
+
+from specklepy.api.models import ActivityCollection, LimitedUser
+from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.api.resource import ResourceBase
-from specklepy.api.models import (
-    ActivityCollection,
-    LimitedUser,
-)
 
 NAME = "other_user"
 
@@ -59,7 +58,8 @@ class Resource(ResourceBase):
     def search(
         self, search_query: str, limit: int = 25
     ) -> Union[List[LimitedUser], SpeckleException]:
-        """Searches for user by name or email. The search query must be at least 3 characters long
+        """Searches for user by name or email. The search query must be at least
+        3 characters long
 
         Arguments:
             search_query {str} -- a string to search for
@@ -105,23 +105,41 @@ class Resource(ResourceBase):
         cursor: Optional[datetime] = None,
     ) -> ActivityCollection:
         """
-        Get the activity from a given stream in an Activity collection. Step into the activity `items` for the list of activity.
+        Get the activity from a given stream in an Activity collection.
+        Step into the activity `items` for the list of activity.
 
-        Note: all timestamps arguments should be `datetime` of any tz as they will be converted to UTC ISO format strings
+        Note: all timestamps arguments should be `datetime` of
+        any tz as they will be converted to UTC ISO format strings
 
         user_id {str} -- the id of the user to get the activity from
-        action_type {str} -- filter results to a single action type (eg: `commit_create` or `commit_receive`)
+        action_type {str} -- filter results to a single action type
+            (eg: `commit_create` or `commit_receive`)
         limit {int} -- max number of Activity items to return
-        before {datetime} -- latest cutoff for activity (ie: return all activity _before_ this time)
-        after {datetime} -- oldest cutoff for activity (ie: return all activity _after_ this time)
+        before {datetime} -- latest cutoff for activity
+            (ie: return all activity _before_ this time)
+        after {datetime} -- oldest cutoff for activity
+            (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
 
         query = gql(
             """
-            query UserActivity($user_id: String!, $action_type: String, $before:DateTime, $after: DateTime, $cursor: DateTime, $limit: Int){
+            query UserActivity(
+                $user_id: String!,
+                $action_type: String,
+                $before:DateTime,
+                $after: DateTime,
+                $cursor: DateTime,
+                $limit: Int
+                ){
                 otherUser(id: $user_id) {
-                    activity(actionType: $action_type, before: $before, after: $after, cursor: $cursor, limit: $limit) {
+                    activity(
+                        actionType: $action_type,
+                        before: $before,
+                        after: $after,
+                        cursor: $cursor,
+                        limit: $limit
+                        ) {
                         totalCount
                         cursor
                         items {

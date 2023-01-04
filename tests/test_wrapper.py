@@ -1,9 +1,11 @@
 import json
-from specklepy.api.wrapper import StreamWrapper
-from specklepy.transports.sqlite import SQLiteTransport
-from specklepy.paths import accounts_path
 from pathlib import Path
+from typing import Iterable
+
 import pytest
+
+from specklepy.api.wrapper import StreamWrapper
+from specklepy.paths import accounts_path
 
 
 def test_parse_stream():
@@ -58,7 +60,8 @@ def test_parse_globals_as_commit():
     assert wrap.type == "commit"
 
 
-#! NOTE: the following three tests may not pass locally if you have a `speckle.xyz` account in manager
+#! NOTE: the following three tests may not pass locally
+# if you have a `speckle.xyz` account in manager
 def test_get_client_without_auth():
     wrap = StreamWrapper("https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792")
     client = wrap.get_client()
@@ -86,16 +89,16 @@ def test_get_transport_with_token():
 
 
 @pytest.fixture
-def user_path() -> Path:
+def user_path() -> Iterable[Path]:
     path = accounts_path().joinpath("test_acc.json")
     # hey, py37 doesn't support the missing_ok argument
     try:
         path.unlink()
-    except:
+    except Exception:
         pass
     try:
         path.unlink(missing_ok=True)
-    except:
+    except Exception:
         pass
     path.parent.absolute().mkdir(exist_ok=True)
     yield path

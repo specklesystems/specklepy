@@ -1,6 +1,14 @@
-from typing import Union
-from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from enum import Enum
+from typing import Union
+
+from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
+
+__all__ = [
+    "Units",
+    "get_encoding_from_units",
+    "get_units_from_encoding",
+    "get_units_from_string",
+]
 
 
 class Units(Enum):
@@ -57,7 +65,10 @@ def get_units_from_encoding(unit: int):
             return name
 
     raise SpeckleException(
-        message=f"Could not understand what unit {unit} is referring to. Please enter a valid unit encoding (eg {UNITS_ENCODINGS})."
+        message=(
+            f"Could not understand what unit {unit} is referring to."
+            f"Please enter a valid unit encoding (eg {UNITS_ENCODINGS})."
+        )
     )
 
 
@@ -66,5 +77,8 @@ def get_encoding_from_units(unit: Union[Units, None]):
         return UNITS_ENCODINGS[unit]
     except KeyError as e:
         raise SpeckleException(
-            message=f"No encoding exists for unit {unit}. Please enter a valid unit to encode (eg {UNITS_ENCODINGS})."
+            message=(
+                f"No encoding exists for unit {unit}."
+                f"Please enter a valid unit to encode (eg {UNITS_ENCODINGS})."
+            )
         ) from e

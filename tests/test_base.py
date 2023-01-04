@@ -1,23 +1,23 @@
-from codecs import ascii_encode
+from contextlib import ExitStack as does_not_raise
 from enum import Enum
 from typing import Dict, List, Optional, Union
-from contextlib import ExitStack as does_not_raise
 
 import pytest
+
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects.base import Base, DataChunk
+from specklepy.objects.base import Base
 from specklepy.objects.units import Units
 
 
 @pytest.mark.parametrize(
     "invalid_prop_name",
     [
-        (""),
-        ("@"),
-        ("@@wow"),
-        ("this.is.bad"),
-        ("super/bad"),
+        "",
+        "@",
+        "@@wow",
+        "this.is.bad",
+        "super/bad",
     ],
 )
 def test_empty_prop_names(invalid_prop_name: str) -> None:
@@ -29,12 +29,15 @@ def test_empty_prop_names(invalid_prop_name: str) -> None:
 class FakeModel(Base):
     """Just a test class type."""
 
-    foo: str = ""
+
+class FakeSub(FakeModel):
+    """Just a test class type."""
 
 
 def test_new_type_registration() -> None:
     """Test if a new subclass is registered into the type register."""
-    assert Base.get_registered_type("FakeModel") == FakeModel
+    assert Base.get_registered_type(FakeModel.speckle_type) == FakeModel
+    assert Base.get_registered_type(FakeSub.speckle_type) == FakeSub
     assert Base.get_registered_type("🐺️") is None
 
 
@@ -92,7 +95,7 @@ def test_setting_units():
     assert b.units == "ft"
 
     b.units = None  # None should be a valid arg
-    assert b.units == None
+    assert b.units is None
 
     b.units = Units.none
     assert b.units == "none"
@@ -150,6 +153,7 @@ def test_type_checking() -> None:
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
 
     assert order.price == 7.0
+    assert order.dietary == DietaryRestrictions.VEGAN
 
 
 def test_cached_deserialization() -> None:

@@ -1,4 +1,5 @@
 import pytest
+
 from specklepy.api import operations
 from specklepy.api.models import Commit, Stream
 from specklepy.transports.server.server import ServerTransport
@@ -84,4 +85,4 @@ class TestCommit:
             message="testing received",
         )
 
-        assert commit_marked_received == True
+        assert commit_marked_received is True

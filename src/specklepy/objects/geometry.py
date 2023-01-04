@@ -1,26 +1,12 @@
 from enum import Enum
 from typing import Any, List, Optional
 
-from .base import Base
-from .encoding import CurveArray, CurveTypeEncoding, ObjectArray
-from .units import get_encoding_from_units, get_units_from_encoding
+from specklepy.objects.base import Base
+from specklepy.objects.encoding import CurveArray, CurveTypeEncoding, ObjectArray
+from specklepy.objects.primitive import Interval
+from specklepy.objects.units import get_encoding_from_units, get_units_from_encoding
 
 GEOMETRY = "Objects.Geometry."
-
-
-class Interval(Base, speckle_type="Objects.Primitive.Interval"):
-    start: float = 0.0
-    end: float = 0.0
-
-    def length(self):
-        return abs(self.start - self.end)
-
-    @classmethod
-    def from_list(cls, args: List[Any]) -> "Interval":
-        return cls(start=args[0], end=args[1])
-
-    def to_list(self) -> List[Any]:
-        return [self.start, self.end]
 
 
 class Point(Base, speckle_type=GEOMETRY + "Point"):
@@ -29,11 +15,17 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
     z: float = 0.0
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, id: {self.id}, speckle_type: {self.speckle_type})"
+        return (
+            f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, id:"
+            f" {self.id}, speckle_type: {self.speckle_type})"
+        )
 
     @classmethod
     def from_list(cls, args: List[float]) -> "Point":
-        """Create a new Point from a list of three floats representing the x, y, and z coordinates"""
+        """
+        Create a new Point from a list of three floats
+        representing the x, y, and z coordinates
+        """
         return cls(x=args[0], y=args[1], z=args[2])
 
     def to_list(self) -> List[Any]:
@@ -47,12 +39,46 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
         return pt
 
 
-class Vector(Point, speckle_type=GEOMETRY + "Vector"):
-    pass
+class Pointcloud(Base, speckle_type=GEOMETRY + "Pointcloud"):
+    points: Optional[List[float]] = None
+    colors: Optional[List[int]] = None
+    sizes: Optional[List[float]] = None
+    bbox: Optional["Box"] = None
+
+
+class Vector(Base, speckle_type=GEOMETRY + "Vector"):
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
+    applicationId: Optional[str] = None
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__} "
+            "(x: {self.x}, y: {self.y}, z: {self.z}, id: {self.id}, "
+            "speckle_type: {self.speckle_type})"
+        )
+
+    @classmethod
+    def from_list(cls, args: List[float]) -> "Vector":
+        """
+        Create from a list of three floats representing the x, y, and z coordinates.
+        """
+        return cls(x=args[0], y=args[1], z=args[2])
+
+    def to_list(self) -> List[float]:
+        return [self.x, self.y, self.z]
+
+    @classmethod
+    def from_coords(cls, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> "Vector":
+        """Create a new Point from x, y, and z values"""
+        v = Vector()
+        v.x, v.y, v.z = x, y, z
+        return v
 
 
 class ControlPoint(Point, speckle_type=GEOMETRY + "ControlPoint"):
-    weight: float = None
+    weight: Optional[float] = None
 
 
 class Plane(Base, speckle_type=GEOMETRY + "Plane"):
@@ -83,19 +109,19 @@ class Plane(Base, speckle_type=GEOMETRY + "Plane"):
 
 class Box(Base, speckle_type=GEOMETRY + "Box"):
     basePlane: Plane = Plane()
+    xSize: Interval = Interval()
     ySize: Interval = Interval()
     zSize: Interval = Interval()
-    xSize: Interval = Interval()
-    area: float = None
-    volume: float = None
+    area: Optional[float] = None
+    volume: Optional[float] = None
 
 
 class Line(Base, speckle_type=GEOMETRY + "Line"):
     start: Point = Point()
-    end: Point = None
-    domain: Interval = None
-    bbox: Box = None
-    length: float = None
+    end: Optional[Point] = None
+    domain: Optional[Interval] = None
+    bbox: Optional[Box] = None
+    length: Optional[float] = None
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Line":
@@ -118,18 +144,18 @@ class Line(Base, speckle_type=GEOMETRY + "Line"):
 
 
 class Arc(Base, speckle_type=GEOMETRY + "Arc"):
-    radius: float = None
-    startAngle: float = None
-    endAngle: float = None
-    angleRadians: float = None
-    plane: Plane = None
-    domain: Interval = None
-    startPoint: Point = None
-    midPoint: Point = None
-    endPoint: Point = None
-    bbox: Box = None
-    area: float = None
-    length: float = None
+    radius: Optional[float] = None
+    startAngle: Optional[float] = None
+    endAngle: Optional[float] = None
+    angleRadians: Optional[float] = None
+    plane: Optional[Plane] = None
+    domain: Optional[Interval] = None
+    startPoint: Optional[Point] = None
+    midPoint: Optional[Point] = None
+    endPoint: Optional[Point] = None
+    bbox: Optional[Box] = None
+    area: Optional[float] = None
+    length: Optional[float] = None
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Arc":
@@ -163,12 +189,12 @@ class Arc(Base, speckle_type=GEOMETRY + "Arc"):
 
 
 class Circle(Base, speckle_type=GEOMETRY + "Circle"):
-    radius: float = None
-    plane: Plane = None
-    domain: Interval = None
-    bbox: Box = None
-    area: float = None
-    length: float = None
+    radius: Optional[float] = None
+    plane: Optional[Plane] = None
+    domain: Optional[Interval] = None
+    bbox: Optional[Box] = None
+    area: Optional[float] = None
+    length: Optional[float] = None
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Circle":
@@ -190,14 +216,14 @@ class Circle(Base, speckle_type=GEOMETRY + "Circle"):
 
 
 class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
-    firstRadius: float = None
-    secondRadius: float = None
-    plane: Plane = None
-    domain: Interval = None
-    trimDomain: Interval = None
-    bbox: Box = None
-    area: float = None
-    length: float = None
+    firstRadius: Optional[float] = None
+    secondRadius: Optional[float] = None
+    plane: Optional[Plane] = None
+    domain: Optional[Interval] = None
+    trimDomain: Optional[Interval] = None
+    bbox: Optional[Box] = None
+    area: Optional[float] = None
+    length: Optional[float] = None
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Ellipse":
@@ -221,12 +247,12 @@ class Ellipse(Base, speckle_type=GEOMETRY + "Ellipse"):
 
 
 class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 20000}):
-    value: List[float] = None
-    closed: bool = None
-    domain: Interval = None
-    bbox: Box = None
-    area: float = None
-    length: float = None
+    value: Optional[List[float]] = None
+    closed: Optional[bool] = None
+    domain: Optional[Interval] = None
+    bbox: Optional[Box] = None
+    area: Optional[float] = None
+    length: Optional[float] = None
 
     @classmethod
     def from_points(cls, points: List[Point]):
@@ -272,23 +298,50 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 200
         ]
 
 
+class SpiralType(Enum):
+    Biquadratic = (0,)
+    BiquadraticParabola = (1,)
+    Bloss = (2,)
+    Clothoid = (3,)
+    Cosine = (4,)
+    Cubic = (5,)
+    CubicParabola = (6,)
+    Radioid = (7,)
+    Sinusoid = (8,)
+    Unknown = 9
+
+
+class Spiral(Base, speckle_type=GEOMETRY + "Spiral", detachable={"displayValue"}):
+    startPoint: Optional[Point] = None
+    endPoint: Optional[Point]
+    plane: Optional[Plane]
+    turns: Optional[int]
+    pitchAxis: Optional[Vector] = Vector()
+    pitch: float = 0
+    spiralType: Optional[SpiralType] = None
+    displayValue: Optional[Polyline] = None
+    bbox: Optional[Box] = None
+    length: Optional[float] = None
+    domain: Optional[Interval] = None
+
+
 class Curve(
     Base,
     speckle_type=GEOMETRY + "Curve",
     chunkable={"points": 20000, "weights": 20000, "knots": 20000},
 ):
-    degree: int = None
-    periodic: bool = None
-    rational: bool = None
-    points: List[float] = None
-    weights: List[float] = None
-    knots: List[float] = None
-    domain: Interval = None
-    displayValue: Polyline = None
-    closed: bool = None
-    bbox: Box = None
-    area: float = None
-    length: float = None
+    degree: Optional[int] = None
+    periodic: Optional[bool] = None
+    rational: Optional[bool] = None
+    points: Optional[List[float]] = None
+    weights: Optional[List[float]] = None
+    knots: Optional[List[float]] = None
+    domain: Optional[Interval] = None
+    displayValue: Optional[Polyline] = None
+    closed: Optional[bool] = None
+    bbox: Optional[Box] = None
+    area: Optional[float] = None
+    length: Optional[float] = None
 
     def as_points(self) -> List[Point]:
         """Converts the `value` attribute to a list of Points"""
@@ -345,12 +398,12 @@ class Curve(
 
 
 class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
-    segments: List[Base] = None
-    domain: Interval = None
-    closed: bool = None
-    bbox: Box = None
-    area: float = None
-    length: float = None
+    segments: Optional[List[Base]] = None
+    domain: Optional[Interval] = None
+    closed: Optional[bool] = None
+    bbox: Optional[Box] = None
+    area: Optional[float] = None
+    length: Optional[float] = None
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Polycurve":
@@ -375,17 +428,17 @@ class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
 
 
 class Extrusion(Base, speckle_type=GEOMETRY + "Extrusion"):
-    capped: bool = None
-    profile: Base = None
-    pathStart: Point = None
-    pathEnd: Point = None
-    pathCurve: Base = None
-    pathTangent: Base = None
-    profiles: List[Base] = None
-    length: float = None
-    area: float = None
-    volume: float = None
-    bbox: Box = None
+    capped: Optional[bool] = None
+    profile: Optional[Base] = None
+    pathStart: Optional[Point] = None
+    pathEnd: Optional[Point] = None
+    pathCurve: Optional[Base] = None
+    pathTangent: Optional[Base] = None
+    profiles: Optional[List[Base]] = None
+    length: Optional[float] = None
+    area: Optional[float] = None
+    volume: Optional[float] = None
+    bbox: Optional[Box] = None
 
 
 class Mesh(
@@ -398,21 +451,21 @@ class Mesh(
         "textureCoordinates": 2000,
     },
 ):
-    vertices: List[float] = None
-    faces: List[int] = None
-    colors: List[int] = None
-    textureCoordinates: List[float] = None
-    bbox: Box = None
-    area: float = None
-    volume: float = None
+    vertices: Optional[List[float]] = None
+    faces: Optional[List[int]] = None
+    colors: Optional[List[int]] = None
+    textureCoordinates: Optional[List[float]] = None
+    bbox: Optional[Box] = None
+    area: Optional[float] = None
+    volume: Optional[float] = None
 
     @classmethod
     def create(
         cls,
         vertices: List[float],
         faces: List[int],
-        colors: List[int] = None,
-        texture_coordinates: List[float] = None,
+        colors: Optional[List[int]] = None,
+        texture_coordinates: Optional[List[float]] = None,
     ) -> "Mesh":
         """
         Create a new Mesh from lists representing its vertices, faces,
@@ -430,20 +483,20 @@ class Mesh(
 
 
 class Surface(Base, speckle_type=GEOMETRY + "Surface"):
-    degreeU: int = None
-    degreeV: int = None
-    rational: bool = None
-    area: float = None
-    pointData: List[float] = None
-    countU: int = None
-    countV: int = None
-    bbox: Box = None
-    closedU: bool = None
-    closedV: bool = None
-    domainU: Interval = None
-    domainV: Interval = None
-    knotsU: List[float] = None
-    knotsV: List[float] = None
+    degreeU: Optional[int] = None
+    degreeV: Optional[int] = None
+    rational: Optional[bool] = None
+    area: Optional[float] = None
+    pointData: Optional[List[float]] = None
+    countU: Optional[int] = None
+    countV: Optional[int] = None
+    bbox: Optional[Box] = None
+    closedU: Optional[bool] = None
+    closedV: Optional[bool] = None
+    domainU: Optional[Interval] = None
+    domainV: Optional[Interval] = None
+    knotsU: Optional[List[float]] = None
+    knotsV: Optional[List[float]] = None
 
     @classmethod
     def from_list(cls, args: List[Any]) -> "Surface":
@@ -493,11 +546,11 @@ class Surface(Base, speckle_type=GEOMETRY + "Surface"):
 
 
 class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
-    _Brep: "Brep" = None
-    SurfaceIndex: int = None
-    OuterLoopIndex: int = None
-    OrientationReversed: bool = None
-    LoopIndices: List[int] = None
+    _Brep: Optional["Brep"] = None
+    SurfaceIndex: Optional[int] = None
+    OuterLoopIndex: Optional[int] = None
+    OrientationReversed: Optional[bool] = None
+    LoopIndices: Optional[List[int]] = None
 
     @property
     def _outer_loop(self):
@@ -533,13 +586,13 @@ class BrepFace(Base, speckle_type=GEOMETRY + "BrepFace"):
 
 
 class BrepEdge(Base, speckle_type=GEOMETRY + "BrepEdge"):
-    _Brep: "Brep" = None
-    Curve3dIndex: int = None
-    TrimIndices: List[int] = None
-    StartIndex: int = None
-    EndIndex: int = None
-    ProxyCurveIsReversed: bool = None
-    Domain: Interval = None
+    _Brep: Optional["Brep"] = None
+    Curve3dIndex: Optional[int] = None
+    TrimIndices: Optional[List[int]] = None
+    StartIndex: Optional[int] = None
+    EndIndex: Optional[int] = None
+    ProxyCurveIsReversed: Optional[bool] = None
+    Domain: Optional[Interval] = None
 
     @property
     def _start_vertex(self):
@@ -600,10 +653,10 @@ class BrepLoopType(int, Enum):
 
 
 class BrepLoop(Base, speckle_type=GEOMETRY + "BrepLoop"):
-    _Brep: "Brep" = None
-    FaceIndex: int = None
-    TrimIndices: List[int] = None
-    Type: BrepLoopType = None
+    _Brep: Optional["Brep"] = None
+    FaceIndex: Optional[Optional[int]] = None
+    TrimIndices: Optional[List[int]] = None
+    Type: Optional[BrepLoopType] = None
 
     @property
     def _face(self):
@@ -644,17 +697,17 @@ class BrepTrimType(int, Enum):
 
 
 class BrepTrim(Base, speckle_type=GEOMETRY + "BrepTrim"):
-    _Brep: "Brep" = None
-    EdgeIndex: int = None
-    StartIndex: int = None
-    EndIndex: int = None
-    FaceIndex: int = None
-    LoopIndex: int = None
-    CurveIndex: int = None
-    IsoStatus: int = None
-    TrimType: BrepTrimType = None
-    IsReversed: bool = None
-    Domain: Interval = None
+    _Brep: Optional["Brep"] = None
+    EdgeIndex: Optional[int] = None
+    StartIndex: Optional[int] = None
+    EndIndex: Optional[int] = None
+    FaceIndex: Optional[int] = None
+    LoopIndex: Optional[int] = None
+    CurveIndex: Optional[int] = None
+    IsoStatus: Optional[int] = None
+    TrimType: Optional[BrepTrimType] = None
+    IsReversed: Optional[bool] = None
+    Domain: Optional[Interval] = None
 
     @property
     def _face(self):
@@ -731,21 +784,21 @@ class Brep(
         "Faces",
     },
 ):
-    provenance: str = None
-    bbox: Box = None
-    area: float = None
-    volume: float = None
-    _displayValue: List[Mesh] = None
-    Surfaces: List[Surface] = None
-    Curve3D: List[Base] = None
-    Curve2D: List[Base] = None
-    Vertices: List[Point] = None
-    Edges: List[BrepEdge] = None
-    Loops: List[BrepLoop] = None
-    Faces: List[BrepFace] = None
-    Trims: List[BrepTrim] = None
-    IsClosed: bool = None
-    Orientation: int = None
+    provenance: Optional[str] = None
+    bbox: Optional[Box] = None
+    area: Optional[float] = None
+    volume: Optional[float] = None
+    _displayValue: Optional[List[Mesh]] = None
+    Surfaces: Optional[List[Surface]] = None
+    Curve3D: Optional[List[Base]] = None
+    Curve2D: Optional[List[Base]] = None
+    Vertices: Optional[List[Point]] = None
+    Edges: Optional[List[BrepEdge]] = None
+    Loops: Optional[List[BrepLoop]] = None
+    Faces: Optional[List[BrepFace]] = None
+    Trims: Optional[List[BrepTrim]] = None
+    IsClosed: Optional[bool] = None
+    Orientation: Optional[int] = None
 
     def _inject_self_into_children(self, children: Optional[List[Base]]) -> List[Base]:
         if children is None:

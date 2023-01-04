@@ -1,9 +1,10 @@
+import random
+import string
 from typing import List
+
+from specklepy.api import operations
 from specklepy.api.wrapper import StreamWrapper
 from specklepy.objects import Base
-from specklepy.api import operations
-import string
-import random
 
 
 class Sub(Base):
@@ -24,7 +25,6 @@ def create_object(child_count: int) -> Base:
 
 
 if __name__ == "__main__":
-
     stream_url = "http://hyperion:3000/streams/2372b54c35"
 
     child_count = 10

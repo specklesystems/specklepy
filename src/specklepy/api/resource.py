@@ -1,15 +1,17 @@
-from graphql import DocumentNode
-from specklepy.api.credentials import Account
-from specklepy.transports.sqlite import SQLiteTransport
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
+
 from gql.client import Client
 from gql.transport.exceptions import TransportQueryError
+from graphql import DocumentNode
+
+from specklepy.api.credentials import Account
 from specklepy.logging.exceptions import (
     GraphQLException,
     SpeckleException,
     UnsupportedException,
 )
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 class ResourceBase(object):
@@ -50,7 +52,7 @@ class ResourceBase(object):
         elif self.schema:
             try:
                 return self.schema.parse_obj(response)
-            except:
+            except Exception:
                 s = BaseObjectSerializer(read_transport=SQLiteTransport())
                 return s.recompose_base(response)
         else:
@@ -59,7 +61,7 @@ class ResourceBase(object):
     def make_request(
         self,
         query: DocumentNode,
-        params: Dict = None,
+        params: Optional[Dict] = None,
         return_type: Union[str, List, None] = None,
         schema=None,
         parse_response: bool = True,
@@ -70,13 +72,19 @@ class ResourceBase(object):
         except Exception as ex:
             if isinstance(ex, TransportQueryError):
                 return GraphQLException(
-                    message=f"Failed to execute the GraphQL {self.name} request. Errors: {ex.errors}",
+                    message=(
+                        f"Failed to execute the GraphQL {self.name} request. Errors:"
+                        f" {ex.errors}"
+                    ),
                     errors=ex.errors,
                     data=ex.data,
                 )
             else:
                 return SpeckleException(
-                    message=f"Failed to execute the GraphQL {self.name} request. Inner exception: {ex}",
+                    message=(
+                        f"Failed to execute the GraphQL {self.name} request. Inner"
+                        f" exception: {ex}"
+                    ),
                     exception=ex,
                 )
 
@@ -88,16 +96,20 @@ class ResourceBase(object):
             return response
 
     def _check_server_version_at_least(
-        self, target_version: Tuple[Any, ...], unsupported_message: str = None
+        self, target_version: Tuple[Any, ...], unsupported_message: Optional[str] = None
     ):
         """Use this check to guard against making unsupported requests on older servers.
 
         Arguments:
-            target_version {tuple} -- the minimum server version in the format (major, minor, patch, (tag, build))
-                                      eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
+            target_version {tuple}
+            the minimum server version in the format (major, minor, patch, (tag, build))
+            eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
         """
         if not unsupported_message:
-            unsupported_message = f"The client method used is not supported on Speckle Server versions prior to v{'.'.join(target_version)}"
+            unsupported_message = (
+                "The client method used is not supported on Speckle Server versions"
+                f" prior to v{'.'.join(target_version)}"
+            )
         # if version is dev, it should be supported... (or not)
         if self.server_version == ("dev",):
             return
@@ -110,8 +122,7 @@ class ResourceBase(object):
         """
         self._check_server_version_at_least(
             (2, 6, 4),
-            (
-                "Stream invites are only supported as of Speckle Server v2.6.4. "
-                "Please update your Speckle Server to use this method or use the `grant_permission` flow instead."
-            ),
+            "Stream invites are only supported as of Speckle Server v2.6.4. Please"
+            " update your Speckle Server to use this method or use the"
+            " `grant_permission` flow instead.",
         )
