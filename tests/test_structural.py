@@ -11,7 +11,7 @@ from specklepy.objects.structural.geometry import (
     Restraint,
 )
 from specklepy.objects.structural.loading import LoadGravity
-from specklepy.objects.structural.material import StructuralMaterial
+from specklepy.objects.structural.materials import StructuralMaterial
 from specklepy.objects.structural.properties import (
     MemberType,
     Property1D,
