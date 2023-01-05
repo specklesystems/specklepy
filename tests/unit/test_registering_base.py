@@ -22,9 +22,12 @@ class Baz(Bar):
     "klass, speckle_type",
     [
         (Base, "Base"),
-        (Foo, "Tests.TestRegisteringBase.Foo"),
-        (Bar, "Tests.TestRegisteringBase.Foo:Custom.Bar"),
-        (Baz, "Tests.TestRegisteringBase.Foo:Custom.Bar:Tests.TestRegisteringBase.Baz"),
+        (Foo, "Tests.Unit.TestRegisteringBase.Foo"),
+        (Bar, "Tests.Unit.TestRegisteringBase.Foo:Custom.Bar"),
+        (
+            Baz,
+            "Tests.Unit.TestRegisteringBase.Foo:Custom.Bar:Tests.Unit.TestRegisteringBase.Baz",
+        ),
         (
             Concrete,
             "Objects.Structural.Materials.StructuralMaterial:Objects.Structural.Materials.Concrete",
@@ -39,7 +42,7 @@ def test_determine_speckle_type(klass: Type[Base], speckle_type: str):
     "klass, fully_qualified_name",
     [
         (Base, "Base"),
-        (Foo, "Tests.TestRegisteringBase.Foo"),
+        (Foo, "Tests.Unit.TestRegisteringBase.Foo"),
         (Concrete, "Objects.Structural.Materials.Concrete"),
     ],
 )
