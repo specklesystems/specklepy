@@ -22,9 +22,9 @@ class Baz(Bar):
     "klass, speckle_type",
     [
         (Base, "Base"),
-        (Foo, "Foo"),
-        (Bar, "Foo:Custom.Bar"),
-        (Baz, "Foo:Custom.Bar:Baz"),
+        (Foo, "Tests.TestRegisteringBase.Foo"),
+        (Bar, "Tests.TestRegisteringBase.Foo:Custom.Bar"),
+        (Baz, "Tests.TestRegisteringBase.Foo:Custom.Bar:Tests.TestRegisteringBase.Baz"),
         (
             Concrete,
             "Objects.Structural.Materials.StructuralMaterial:Objects.Structural.Materials.Concrete",
@@ -33,3 +33,15 @@ class Baz(Bar):
 )
 def test_determine_speckle_type(klass: Type[Base], speckle_type: str):
     assert klass._determine_speckle_type() == speckle_type
+
+
+@pytest.mark.parametrize(
+    "klass, fully_qualified_name",
+    [
+        (Base, "Base"),
+        (Foo, "Tests.TestRegisteringBase.Foo"),
+        (Concrete, "Objects.Structural.Materials.Concrete"),
+    ],
+)
+def test_full_name(klass: Type[Base], fully_qualified_name: str):
+    assert klass._full_name() == fully_qualified_name

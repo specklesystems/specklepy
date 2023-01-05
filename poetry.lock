@@ -1228,6 +1228,17 @@ files = [
 ]
 
 [[package]]
+name = "stringcase"
+version = "1.2.0"
+description = "String case converter."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "stringcase-1.2.0.tar.gz", hash = "sha256:48a06980661908efe8d9d34eab2b6c13aefa2163b3ced26972902e3bdfd87008"},
+]
+
+[[package]]
 name = "termcolor"
 version = "2.1.1"
 description = "ANSI color formatting for output in terminal"
@@ -1747,4 +1758,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7.2, <4.0"
-content-hash = "cf8d8ae156d93c7a12ec96e876570e02de64f8763d14b4a2263cffdf98651c00"
+content-hash = "08a9cab6af36721f5cf65834281b641f93e60978fc54340f222c833a88aa5bb3"

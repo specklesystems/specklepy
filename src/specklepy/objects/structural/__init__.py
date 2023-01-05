@@ -34,7 +34,7 @@ from specklepy.objects.structural.loading import (
     LoadNode,
     LoadType,
 )
-from specklepy.objects.structural.material import (
+from specklepy.objects.structural.materials import (
     Concrete,
     MaterialType,
     Steel,
