@@ -57,7 +57,7 @@ jobs:
       - checkout
       - run: python patch_version.py $CIRCLE_TAG
       - run: poetry build
-      - run: poetry publish -u specklesystems -p $PYPI_PASSWORD
+      - run: poetry publish -u __token__ -p $PYPI_TOKEN
 
 workflows:
   main:
@@ -70,6 +70,7 @@ workflows:
             tags:
               only: /.*/
       - deploy:
+          context: pypi
           requires:
             - test
           filters:
