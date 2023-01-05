@@ -40,7 +40,7 @@ class StructuralMaterial(
     materialSafetyFactor: float = 0.0
 
 
-class Concrete(StructuralMaterial, speckle_type=STRUCTURAL_MATERIALS + ".Concrete"):
+class Concrete(StructuralMaterial):
     compressiveStrength: float = 0.0
     tensileStrength: float = 0.0
     flexuralStrength: float = 0.0

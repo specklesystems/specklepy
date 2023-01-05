@@ -16,7 +16,7 @@ def test_traverse_value():
     object_id, object_dict = serializer.traverse_base(base)
     assert object_dict == {
         "id": object_id,
-        "speckle_type": "FakeBase",
+        "speckle_type": "Tests.TestTraverseValue.FakeBase",
         "applicationId": None,
         "foo": [None],
         "units": None,

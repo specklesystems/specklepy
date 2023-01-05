@@ -15,6 +15,8 @@ from typing import (
 )
 from warnings import warn
 
+from stringcase import pascalcase
+
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.units import Units, get_units_from_string
 from specklepy.transports.memory import MemoryTransport
@@ -92,6 +94,7 @@ class _RegisteringBase:
 
     speckle_type: ClassVar[str]
     _speckle_type_override: ClassVar[Optional[str]] = None
+    _speckle_namespace: ClassVar[Optional[str]] = None
     _type_registry: ClassVar[Dict[str, Type["Base"]]] = {}
     _attr_types: ClassVar[Dict[str, Type]] = {}
     # dict of chunkable props and their max chunk size
@@ -103,7 +106,11 @@ class _RegisteringBase:
     @classmethod
     def get_registered_type(cls, speckle_type: str) -> Optional[Type["Base"]]:
         """Get the registered type from the protected mapping via the `speckle_type`"""
-        return cls._type_registry.get(speckle_type, None)
+        for full_name in reversed(speckle_type.split(":")):
+            maybe_type = cls._type_registry.get(full_name, None)
+            if maybe_type:
+                return maybe_type
+        return None
 
     @classmethod
     def _determine_speckle_type(cls) -> str:
@@ -122,11 +129,28 @@ class _RegisteringBase:
             return base_name
 
         bases = [
-            b._speckle_type_override if b._speckle_type_override else b.__name__
+            b._full_name()
             for b in reversed(cls.mro())
             if issubclass(b, Base) and b.__name__ != base_name
         ]
         return ":".join(bases)
+
+    @classmethod
+    def _full_name(cls) -> str:
+        base_name = "Base"
+        if cls.__name__ == base_name:
+            return base_name
+
+        if cls._speckle_type_override:
+            return cls._speckle_type_override
+
+        # convert the module names to PascalCase to match c# namespace naming convention
+        # also drop specklepy from the beginning
+        namespace = ".".join(
+            pascalcase(m)
+            for m in filter(lambda name: name != "specklepy", cls.__module__.split("."))
+        )
+        return f"{namespace}.{cls.__name__}"
 
     def __init_subclass__(
         cls,
@@ -145,13 +169,13 @@ class _RegisteringBase:
         """
         cls._speckle_type_override = speckle_type
         cls.speckle_type = cls._determine_speckle_type()
-        if cls.speckle_type in cls._type_registry:
+        if cls._full_name() in cls._type_registry:
             raise ValueError(
                 f"The speckle_type: {speckle_type} is already registered for type: "
-                f"{cls._type_registry[cls.speckle_type].__name__}. "
+                f"{cls._type_registry[cls._full_name()].__name__}. "
                 "Please choose a different type name."
             )
-        cls._type_registry[cls.speckle_type] = cls  # type: ignore
+        cls._type_registry[cls._full_name()] = cls  # type: ignore
         try:
             cls._attr_types = get_type_hints(cls)
         except Exception:
