@@ -3,8 +3,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 
-from specklepy import paths
 from specklepy.api.models import ServerInfo
+from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.sqlite import SQLiteTransport
@@ -64,7 +64,7 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
         pass
 
     json_acct_files = []
-    json_path = paths.accounts_path()
+    json_path = str(speckle_path_provider.accounts_folder_path())
     try:
         os.makedirs(json_path, exist_ok=True)
         json_acct_files.extend(

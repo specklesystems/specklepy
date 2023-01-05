@@ -1,11 +1,32 @@
 import json
+import tempfile
 from pathlib import Path
 from typing import Iterable
 
 import pytest
 
 from specklepy.api.wrapper import StreamWrapper
-from specklepy.paths import accounts_path
+from specklepy.core.helpers import speckle_path_provider
+
+
+@pytest.fixture(scope="module", autouse=True)
+def user_path() -> Iterable[Path]:
+    speckle_path_provider.override_application_data_path(tempfile.gettempdir())
+    path = speckle_path_provider.accounts_folder_path().joinpath("test_acc.json")
+    # hey, py37 doesn't support the missing_ok argument
+    try:
+        path.unlink()
+    except Exception:
+        pass
+    try:
+        path.unlink(missing_ok=True)
+    except Exception:
+        pass
+    path.parent.absolute().mkdir(exist_ok=True)
+    yield path
+    if path.exists():
+        path.unlink()
+    speckle_path_provider.override_application_data_path(None)
 
 
 def test_parse_stream():
@@ -69,7 +90,7 @@ def test_get_client_without_auth():
     assert client is not None
 
 
-def test_get_new_client_with_token():
+def test_get_new_client_with_token(user_path):
     wrap = StreamWrapper("https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792")
     client = wrap.get_client()
     client = wrap.get_client(token="super-secret-token")
@@ -86,23 +107,6 @@ def test_get_transport_with_token():
 
     assert transport is not None
     assert client.account.token == "super-secret-token"
-
-
-@pytest.fixture
-def user_path() -> Iterable[Path]:
-    path = accounts_path().joinpath("test_acc.json")
-    # hey, py37 doesn't support the missing_ok argument
-    try:
-        path.unlink()
-    except Exception:
-        pass
-    try:
-        path.unlink(missing_ok=True)
-    except Exception:
-        pass
-    path.parent.absolute().mkdir(exist_ok=True)
-    yield path
-    path.unlink()
 
 
 def test_wrapper_url_match(user_path) -> None:
