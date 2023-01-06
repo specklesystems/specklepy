@@ -9,7 +9,7 @@ def test_user_application_data_path():
     user_path = str(speckle_path_provider.user_application_data_path())
 
     if sys.platform.startswith("win"):
-        pattern = "C:\\Users\\.*\\AppData\\Roaming"
+        pattern = r"C:\\Users\\.*\\AppData\\Roaming"
     elif sys.platform.startswith("darwin"):
         pattern = "/Users/.*/.config"
     elif sys.platform.startswith("linux"):
