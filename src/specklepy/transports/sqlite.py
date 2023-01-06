@@ -3,8 +3,8 @@ import sqlite3
 from contextlib import closing
 from typing import Any, Dict, List, Optional, Tuple
 
+from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.paths import base_path
 from specklepy.transports.abstract_transport import AbstractTransport
 
 
@@ -72,7 +72,9 @@ class SQLiteTransport(AbstractTransport):
         # path = os.path.expanduser("~/.config/")
         # return os.path.join(path, app_name)
 
-        return str(base_path(app_name))
+        return str(
+            speckle_path_provider.user_application_data_path().joinpath(app_name)
+        )
 
     def save_object_from_transport(
         self, id: str, source_transport: AbstractTransport
