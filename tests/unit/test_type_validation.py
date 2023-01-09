@@ -64,7 +64,9 @@ class FakeIntEnum(IntEnum):
         # same as the dict typing below...
         (List[int], [None, 2], True, [None, 2]),
         (List[Optional[int]], [None, 2], True, [None, 2]),
+        (List, ["foo", 2, "bar"], True, ["foo", 2, "bar"]),
         (Dict[str, int], {"foo": 1}, True, {"foo": 1}),
+        (Dict, {"foo": 1}, True, {"foo": 1}),
         (Dict[str, Optional[int]], {"foo": None}, True, {"foo": None}),
         # this case should be
         # (Dict[int, Base], {1: None}, False, {1: None}),
@@ -72,6 +74,7 @@ class FakeIntEnum(IntEnum):
         (Dict[int, Base], {1: None}, True, {1: None}),
         (Dict[int, Base], {1: test_base}, True, {1: test_base}),
         (Tuple[int, str, str], (1, "foo", "bar"), True, (1, "foo", "bar")),
+        (Tuple, (1, "foo", "bar"), True, (1, "foo", "bar")),
         # given our current rules, this is the reality. Its just sad...
         (Tuple[str, str, str], (1, "foo", "bar"), True, ("1", "foo", "bar")),
         (Tuple[str, Optional[str], str], (1, None, "bar"), True, ("1", None, "bar")),
