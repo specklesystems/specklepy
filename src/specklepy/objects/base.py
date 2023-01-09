@@ -235,6 +235,8 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
                 return False, value
             if value == {}:
                 return True, value
+            if not getattr(t, "__args__", None):
+                return True, value
             t_key, t_value = t.__args__  # type: ignore
 
             if (
