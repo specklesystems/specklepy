@@ -236,6 +236,12 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
             if value == {}:
                 return True, value
             t_key, t_value = t.__args__  # type: ignore
+
+            if (
+                getattr(t_key, "__name__", None),
+                getattr(t_value, "__name__", None),
+            ) == ("KT", "VT"):
+                return True, value
             # we're only checking the first item, but the for loop and return after
             # evaluating the first item is the fastest way
             for dict_key, dict_value in value.items():
@@ -254,6 +260,8 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
             if not hasattr(t, "__args__"):
                 return True, value
             t_items = t.__args__[0]  # type: ignore
+            if getattr(t_items, "__name__", None) == "T":
+                return True, value
             first_item_valid, _ = _validate_type(t_items, value[0])
             if first_item_valid:
                 return True, value
@@ -265,6 +273,8 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
             if not hasattr(t, "__args__"):
                 return True, value
             args = t.__args__  # type: ignore
+            if args == tuple():
+                return True, value
             # we're not checking for empty tuple, cause tuple lengths must match
             if len(args) != len(value):
                 return False, value

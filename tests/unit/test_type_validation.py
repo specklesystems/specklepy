@@ -66,6 +66,7 @@ class FakeIntEnum(IntEnum):
         (List[Optional[int]], [None, 2], True, [None, 2]),
         (List, ["foo", 2, "bar"], True, ["foo", 2, "bar"]),
         (Dict[str, int], {"foo": 1}, True, {"foo": 1}),
+        (Dict, {"foo": 1}, True, {"foo": 1}),
         (Dict[str, Optional[int]], {"foo": None}, True, {"foo": None}),
         # this case should be
         # (Dict[int, Base], {1: None}, False, {1: None}),
