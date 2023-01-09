@@ -251,6 +251,8 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
                 return False, value
             if value == []:
                 return True, value
+            if not hasattr(t, "__args__"):
+                return True, value
             t_items = t.__args__[0]  # type: ignore
             first_item_valid, _ = _validate_type(t_items, value[0])
             if first_item_valid:
@@ -260,6 +262,8 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
         if origin is tuple:
             if not isinstance(value, tuple):
                 return False, value
+            if not hasattr(t, "__args__"):
+                return True, value
             args = t.__args__  # type: ignore
             # we're not checking for empty tuple, cause tuple lengths must match
             if len(args) != len(value):
