@@ -1,5 +1,5 @@
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pytest
 
@@ -16,6 +16,16 @@ class FakeEnum(Enum):
 
 class FakeIntEnum(IntEnum):
     one = 1
+
+
+class FakeBase(Base):
+    foo: Optional[str]
+
+    def __init__(self, foo: str) -> None:
+        self.foo = foo
+
+
+fake_bases = [FakeBase("foo"), FakeBase("bar")]
 
 
 @pytest.mark.parametrize(
@@ -78,6 +88,16 @@ class FakeIntEnum(IntEnum):
         # given our current rules, this is the reality. Its just sad...
         (Tuple[str, str, str], (1, "foo", "bar"), True, ("1", "foo", "bar")),
         (Tuple[str, Optional[str], str], (1, None, "bar"), True, ("1", None, "bar")),
+        (Optional[Union[List[int], List[FakeBase]]], None, True, None),
+        (Optional[Union[List[int], List[FakeBase]]], "foo", False, "foo"),
+        (Union[List[int], List[FakeBase], None], "foo", False, "foo"),
+        (Optional[Union[List[int], List[FakeBase]]], [1, 2, 3], True, [1, 2, 3]),
+        (
+            Optional[Union[List[int], List[FakeBase]]],
+            fake_bases,
+            True,
+            fake_bases,
+        ),
     ],
 )
 def test_validate_type(
