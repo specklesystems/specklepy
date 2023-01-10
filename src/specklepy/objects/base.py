@@ -223,13 +223,14 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
 
         # recursive validation for Unions on both types preferring the fist type
         if origin is Union:
-            t_1, t_2 = t.__args__  # type: ignore
             # below is what in nicer for >= py38
             # t_1, t_2 = get_args(t)
-            t_1_success, t_1_value = _validate_type(t_1, value)
-            if t_1_success:
-                return True, t_1_value
-            return _validate_type(t_2, value)
+            args = t.__args__  # type: ignore
+            for arg_t in args:
+                t_success, t_value = _validate_type(arg_t, value)
+                if t_success:
+                    return True, t_value
+            return False, value
         if origin is dict:
             if not isinstance(value, dict):
                 return False, value
