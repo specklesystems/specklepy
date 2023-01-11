@@ -1,5 +1,5 @@
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import pytest
 
@@ -88,6 +88,14 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
         # given our current rules, this is the reality. Its just sad...
         (Tuple[str, str, str], (1, "foo", "bar"), True, ("1", "foo", "bar")),
         (Tuple[str, Optional[str], str], (1, None, "bar"), True, ("1", None, "bar")),
+        (Set[bool], set([1, 2]), False, set([1, 2])),
+        (Set[int], set([1, 2]), True, set([1, 2])),
+        (Set[int], set([None, 2]), True, set([None, 2])),
+        # not testing this, since order of input iterables in sets are not preserved
+        # easily produces false reports since we're only checking the type of the
+        # first item
+        # (Set[int], set(["None", 2]), False, set(["None", 2])),
+        (Set[Optional[int]], set([None, 2]), True, set([None, 2])),
         (Optional[Union[List[int], List[FakeBase]]], None, True, None),
         (Optional[Union[List[int], List[FakeBase]]], "foo", False, "foo"),
         (Union[List[int], List[FakeBase], None], "foo", False, "foo"),

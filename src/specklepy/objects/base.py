@@ -289,6 +289,17 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
                 values.append(item_value)
             return True, tuple(values)
 
+        if origin is set:
+            if not isinstance(value, set):
+                return False, value
+            if not hasattr(t, "__args__"):
+                return True, value
+            t_items = t.__args__[0]  # type: ignore
+            first_item_valid, _ = _validate_type(t_items, next(iter(value)))
+            if first_item_valid:
+                return True, value
+            return False, value
+
     if isinstance(value, t):
         return True, value
 
