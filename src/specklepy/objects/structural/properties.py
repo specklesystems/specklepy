@@ -5,7 +5,7 @@ from specklepy.objects.base import Base
 from specklepy.objects.structural.axis import Axis
 from specklepy.objects.structural.materials import StructuralMaterial
 
-STRUCTURAL_PROPERTY = "Objectives.Structural.Properties"
+STRUCTURAL_PROPERTY = "Objects.Structural.Properties"
 
 
 class MemberType(int, Enum):
