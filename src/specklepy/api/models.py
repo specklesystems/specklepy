@@ -150,7 +150,7 @@ class PendingStreamCollaborator(BaseModel):
 
 
 class Activity(BaseModel):
-    actionType: Optional[str]
+    actionType: Optional[int]
     info: Optional[dict]
     userId: Optional[str]
     streamId: Optional[str]
