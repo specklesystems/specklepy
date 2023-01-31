@@ -6,12 +6,12 @@ from typing import (
     Iterator,
     List,
     Optional,
-    Protocol,
     Set,
     final,
 )
 
 from attr import define
+from typing_extensions import Protocol
 
 from specklepy.objects import Base
 
