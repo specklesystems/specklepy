@@ -1,40 +1,57 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Callable, Any, Collection, Generator, Iterable, Iterator, List, Optional, Set, final
+from typing import (
+    Any,
+    Callable,
+    Collection,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Protocol,
+    Set,
+    final,
+)
+
+from attr import define
+
 from specklepy.objects import Base
 
 
-class AbstractTraversalRule(ABC):
-
-    @abstractmethod
+class TraversalRule(Protocol):
     def get_members_to_traverse(self, o: Base) -> Set[str]:
-        return []
+        """Get the members to traverse."""
+        pass
 
-    @abstractmethod
     def does_rule_hold(self, o: Base) -> bool:
-        return True
+        """Make sure the rule still holds."""
+        pass
+
 
 @final
-class DefaultRule(AbstractTraversalRule):
-
+class DefaultRule:
     def get_members_to_traverse(self, _) -> Set[str]:
         return set()
 
     def does_rule_hold(self, _) -> bool:
         return True
 
+
+# we're creating a local protected "singleton"
+_default_rule = DefaultRule()
+
+
 @final
-@dataclass(frozen=True, slots=True)
+@define(slots=True, frozen=True)
 class TraversalContext:
     current: Base
     member_name: Optional[str] = None
     parent: Optional["TraversalContext"] = None
 
+
 @final
-@dataclass(frozen=True, slots=True)
+@define(slots=True, frozen=True)
 class GraphTraversal:
 
-    _rules: List[AbstractTraversalRule]
+    _rules: List[TraversalRule]
 
     def traverse(self, root: Base) -> Iterator[TraversalContext]:
         stack: List[TraversalContext] = []
@@ -49,10 +66,17 @@ class GraphTraversal:
             active_rule = self._get_active_rule_or_default_rule(current)
             members_to_traverse = active_rule.get_members_to_traverse(current)
             for child_prop in members_to_traverse:
-                self.traverse_member_to_stack(stack, current[child_prop], child_prop, head)
-            
+                self.traverse_member_to_stack(
+                    stack, current[child_prop], child_prop, head
+                )
+
     @staticmethod
-    def traverse_member_to_stack(stack: List[TraversalContext], value: Any, member_name: Optional[str] = None, parent: Optional[TraversalContext] = None):
+    def traverse_member_to_stack(
+        stack: List[TraversalContext],
+        value: Any,
+        member_name: Optional[str] = None,
+        parent: Optional[TraversalContext] = None,
+    ):
         if isinstance(value, Base):
             stack.append(TraversalContext(value, member_name, parent))
         elif isinstance(value, list):
@@ -62,18 +86,19 @@ class GraphTraversal:
             for obj in value.values():
                 GraphTraversal.traverse_member_to_stack(stack, obj, member_name, parent)
 
-    def _get_active_rule_or_default_rule(self, o: Base) -> AbstractTraversalRule:
-        return self._get_active_rule(o) or DefaultRule()
+    def _get_active_rule_or_default_rule(self, o: Base) -> TraversalRule:
+        return self._get_active_rule(o) or _default_rule
 
-    def _get_active_rule(self, o: Base) -> Optional[AbstractTraversalRule]:
+    def _get_active_rule(self, o: Base) -> Optional[TraversalRule]:
         for rule in self._rules:
             if rule.does_rule_hold(o):
                 return rule
         return None
 
+
 @final
-@dataclass(slots=True)
-class TraversalRule(AbstractTraversalRule):
+@define(slots=True, frozen=True)
+class TraversalRuleImpl:
     _conditions: Collection[Callable[[Base], bool]]
     _members_to_traverse: Callable[[Base], Iterable[str]]
 
@@ -82,6 +107,6 @@ class TraversalRule(AbstractTraversalRule):
 
     def does_rule_hold(self, o: Base) -> bool:
         for condition in self._conditions:
-            if(condition(o)):
+            if condition(o):
                 return True
         return False
