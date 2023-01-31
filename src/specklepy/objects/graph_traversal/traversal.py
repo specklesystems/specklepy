@@ -16,7 +16,7 @@ from attr import define
 from specklepy.objects import Base
 
 
-class TraversalRule(Protocol):
+class ITraversalRule(Protocol):
     def get_members_to_traverse(self, o: Base) -> Set[str]:
         """Get the members to traverse."""
         pass
@@ -51,7 +51,7 @@ class TraversalContext:
 @define(slots=True, frozen=True)
 class GraphTraversal:
 
-    _rules: List[TraversalRule]
+    _rules: List[ITraversalRule]
 
     def traverse(self, root: Base) -> Iterator[TraversalContext]:
         stack: List[TraversalContext] = []
@@ -86,10 +86,10 @@ class GraphTraversal:
             for obj in value.values():
                 GraphTraversal.traverse_member_to_stack(stack, obj, member_name, parent)
 
-    def _get_active_rule_or_default_rule(self, o: Base) -> TraversalRule:
+    def _get_active_rule_or_default_rule(self, o: Base) -> ITraversalRule:
         return self._get_active_rule(o) or _default_rule
 
-    def _get_active_rule(self, o: Base) -> Optional[TraversalRule]:
+    def _get_active_rule(self, o: Base) -> Optional[ITraversalRule]:
         for rule in self._rules:
             if rule.does_rule_hold(o):
                 return rule
@@ -98,7 +98,7 @@ class GraphTraversal:
 
 @final
 @define(slots=True, frozen=True)
-class TraversalRuleImpl:
+class TraversalRule:
     _conditions: Collection[Callable[[Base], bool]]
     _members_to_traverse: Callable[[Base], Iterable[str]]
 

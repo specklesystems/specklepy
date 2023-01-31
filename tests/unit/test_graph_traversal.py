@@ -1,13 +1,12 @@
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 from unittest import TestCase
-
-from attrs import define
 
 from specklepy.objects import Base
 from specklepy.objects.graph_traversal.traversal import GraphTraversal, TraversalRule
 
 
-@define
+@dataclass()
 class TraversalMock(Base):
     child: Optional[Base]
     list_children: List[Base]
