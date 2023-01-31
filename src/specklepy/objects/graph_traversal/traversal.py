@@ -1,17 +1,7 @@
-from typing import (
-    Any,
-    Callable,
-    Collection,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Set,
-    final,
-)
+from typing import Any, Callable, Collection, Iterable, Iterator, List, Optional, Set
 
 from attr import define
-from typing_extensions import Protocol
+from typing_extensions import Protocol, final
 
 from specklepy.objects import Base
 
