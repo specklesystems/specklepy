@@ -6,5 +6,5 @@ from specklepy.objects.geometry import Plane
 
 class Axis(Base, speckle_type="Objects.Structural.Geometry.Axis"):
     name: Optional[str] = None
-    axisType: Optional[str] = None
+    axisType: Optional[int] = None
     plane: Optional[Plane] = None
