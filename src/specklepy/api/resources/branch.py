@@ -5,6 +5,7 @@ from gql import gql
 from specklepy.api.models import Branch
 from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 
 NAME = "branch"
 
@@ -41,6 +42,10 @@ class Resource(ResourceBase):
             }
           """
         )
+        if len(name) < 3:
+            return SpeckleException(
+                message="Branch Name must be at least 3 characters"
+            )
         params = {
             "branch": {
                 "streamId": stream_id,
