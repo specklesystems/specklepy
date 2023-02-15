@@ -5,6 +5,7 @@ from typing import (
     Any,
     ClassVar,
     Dict,
+    ForwardRef,
     List,
     Optional,
     Set,
@@ -217,6 +218,9 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
             return True, t(value)
 
     if getattr(t, "__module__", None) == "typing":
+        if isinstance(t, ForwardRef):
+            return True, value
+
         origin = getattr(t, "__origin__")
         # below is what in nicer for >= py38
         # origin = get_origin(t)
