@@ -220,7 +220,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
     if getattr(t, "__module__", None) == "typing":
         if isinstance(t, ForwardRef):
             return True, value
-            
+
         origin = getattr(t, "__origin__")
         # below is what in nicer for >= py38
         # origin = get_origin(t)
