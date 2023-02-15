@@ -106,6 +106,7 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
             True,
             fake_bases,
         ),
+        (List["int"], [2, 3, 4], True, [2, 3, 4])
     ],
 )
 def test_validate_type(
