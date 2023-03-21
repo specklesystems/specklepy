@@ -567,15 +567,16 @@ class Resource(ResourceBase):
 
         email_invites = [
             {"streamId": stream_id, "message": message, "email": email}
-            for email in emails
-            if emails is not None
+            for email in (emails if emails is not None else [])
+            if email is not None
         ]
 
         user_invites = [
             {"streamId": stream_id, "message": message, "userId": user_id}
-            for user_id in user_ids
-            if user_ids is not None
+            for user_id in (user_ids if user_ids is not None else []) 
+            if user_id is not None
         ]
+
 
         params = {"input": [*email_invites, *user_invites]}
 
