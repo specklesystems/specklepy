@@ -1,10 +1,12 @@
 from typing import Any, List, Optional
+from deprecated import deprecated
 
 from specklepy.objects.geometry import Point, Vector
 
 from .base import Base
 
 OTHER = "Objects.Other."
+OTHER_REVIT = OTHER + "Revit."
 
 IDENTITY_TRANSFORM = [
     1.0,
@@ -72,7 +74,7 @@ class DisplayStyle(Base, speckle_type=OTHER + "DisplayStyle"):
 class Transform(
     Base,
     speckle_type=OTHER + "Transform",
-    serialize_ignore={"translation", "scaling", "is_identity"},
+    serialize_ignore={"translation", "scaling", "is_identity", "value"},
 ):
     """The 4x4 transformation matrix
 
@@ -84,12 +86,21 @@ class Transform(
     _value: Optional[List[float]] = None
 
     @property
+    @deprecated(version="2.12", reason="Use matrix")
     def value(self) -> List[float]:
-        """The transform matrix represented as a flat list of 16 floats"""
         return self._value
 
     @value.setter
     def value(self, value: List[float]) -> None:
+        self.matrix = value
+
+    @property
+    def matrix(self) -> List[float]:
+        """The transform matrix represented as a flat list of 16 floats"""
+        return self._value
+
+    @matrix.setter
+    def matrix(self, value: List[float]) -> None:
         try:
             value = [float(x) for x in value]
         except (ValueError, TypeError) as error:
@@ -118,7 +129,7 @@ class Transform(
 
     @property
     def is_identity(self) -> bool:
-        return self.value == IDENTITY_TRANSFORM
+        return self._value == IDENTITY_TRANSFORM
 
     def apply_to_point(self, point: Point) -> Point:
         """Transform a single speckle Point
@@ -236,15 +247,38 @@ class BlockDefinition(
     geometry: Optional[List[Base]] = None
 
 
-class BlockInstance(
-    Base, speckle_type=OTHER + "BlockInstance", detachable={"blockDefinition"}
+class Instance(
+    Base, speckle_type=OTHER + "Instance", detachable={"definition"}
 ):
-    blockDefinition: Optional[BlockDefinition] = None
     transform: Optional[Transform] = None
+    definition: Optional[Base] = None
 
+
+class BlockInstance(
+    Instance, speckle_type=OTHER + "BlockInstance", serialize_ignore={"blockDefinition"}
+):
+    @property
+    @deprecated(version="2.13", reason="Use definition")
+    def blockDefinition(self) -> Optional[BlockDefinition]:
+        if isinstance(self.definition, BlockDefinition):
+            return self.definition
+        return None
+
+    @blockDefinition.setter
+    def blockDefinition(self, value: Optional[BlockDefinition]) -> None:
+        self.definition = value
+
+class RevitInstance(Instance, speckle_type=OTHER_REVIT + "RevitInstance"):
+    level: Optional[Base]  = None
+    facingFlipped: bool
+    handFlipped: bool
+    parameters: Optional[Base]  = None
+    elementId: Optional[str]
 
 # TODO: prob move this into a built elements module, but just trialling this for now
-class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter"):
+class RevitParameter(
+    Base, speckle_type="Objects.BuiltElements.Revit.Parameter"
+):
     name: Optional[str] = None
     value: Any = None
     applicationUnitType: Optional[str] = None  # eg UnitType UT_Length
