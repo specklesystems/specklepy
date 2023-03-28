@@ -106,6 +106,18 @@ def user_speckle_folder_path() -> Path:
     return _ensure_folder_exists(user_application_data_path(), _application_name)
 
 
+def user_speckle_connector_installation_path(host_application: str) -> Path:
+    """
+    Gets a connector specific installation folder.
+
+    In this folder we can put our connector installation and all python packages.
+    """
+    return _ensure_folder_exists(
+        _ensure_folder_exists(user_speckle_folder_path(), "connector_installations"),
+        host_application,
+    )
+
+
 def accounts_folder_path() -> Path:
     """Get the folder where the Speckle accounts data should be stored."""
     return _ensure_folder_exists(user_speckle_folder_path(), _accounts_folder_name)
