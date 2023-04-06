@@ -90,17 +90,18 @@ class BatchSender(object):
             self._exception = self._exception or ex
             LOG.error("ServerTransport sending thread error: " + str(ex))
 
-    def _bg_send_batch(self, session, batch):
+    def _bg_send_batch(self, session: requests.Session, batch):
         object_ids = [obj[0] for obj in batch]
-        try:
-            server_has_object = session.post(
-                url=f"{self.server_url}/api/diff/{self.stream_id}",
-                data={"objects": json.dumps(object_ids)},
-            ).json()
-        except Exception as ex:
+        response = session.post(
+            url=f"{self.server_url}/api/diff/{self.stream_id}",
+            data={"objects": json.dumps(object_ids)},
+        )
+        if response.status_code == 403:
             raise SpeckleException(
                 f"Invalid credentials - cannot send objects to server {self.server_url}"
-            ) from ex
+            )
+        response.raise_for_status()
+        server_has_object = response.json()
 
         new_object_ids = [x for x in object_ids if not server_has_object[x]]
         new_object_ids = set(new_object_ids)
