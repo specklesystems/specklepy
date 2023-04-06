@@ -6,6 +6,7 @@ from deprecated import deprecated
 from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
+from gql.transport.exceptions import TransportServerError
 
 from specklepy.api import resources
 from specklepy.api.credentials import Account, get_account_from_token
@@ -164,13 +165,23 @@ class SpeckleClient:
 
         self._init_resources()
 
-        if self.user.get() is None:
-            warn(
-                SpeckleWarning(
-                    "Possibly invalid token - could not authenticate Speckle Client"
-                    f" for server {self.url}"
+        try:
+            user_or_error = self.active_user.get()
+            if isinstance(user_or_error, SpeckleException):
+                if isinstance(user_or_error.exception, TransportServerError):
+                    raise user_or_error.exception
+                else:
+                    raise user_or_error
+        except TransportServerError as ex:
+            if ex.code == 403:
+                warn(
+                    SpeckleWarning(
+                        "Possibly invalid token - could not authenticate Speckle Client"
+                        f" for server {self.url}"
+                    )
                 )
-            )
+            else:
+                raise ex
 
     def execute_query(self, query: str) -> Dict:
         return self.httpclient.execute(query)
