@@ -1,5 +1,6 @@
 import random
 import uuid
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 import requests
@@ -10,8 +11,6 @@ from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.objects.fakemesh import FakeDirection, FakeMesh
 from specklepy.objects.geometry import Point
-from urllib.parse import urlparse, parse_qs
-
 
 metrics.disable()
 
@@ -40,8 +39,8 @@ def seed_user(host):
     )
     if not r.ok:
         raise Exception(f"Cannot seed user: {r.reason}")
-    redirect_url = urlparse(r.headers.get('location'))
-    access_code = parse_qs(redirect_url.query)['access_code'][0] # type: ignore
+    redirect_url = urlparse(r.headers.get("location"))
+    access_code = parse_qs(redirect_url.query)["access_code"][0]  # type: ignore
 
     r_tokens = requests.post(
         url=f"http://{host}/auth/token",
