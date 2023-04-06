@@ -307,7 +307,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
     if isinstance(value, t):
         return True, value
 
-    with contextlib.suppress(ValueError):
+    with contextlib.suppress(ValueError, TypeError):
         if t is float and value is not None:
             return True, float(value)
         # TODO: dafuq, i had to add this not list check
