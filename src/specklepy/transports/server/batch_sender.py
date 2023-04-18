@@ -18,6 +18,7 @@ class BatchSender(object):
         stream_id,
         token,
         max_batch_size_mb=1,
+        max_batch_length=20000,
         batch_buffer_length=10,
         thread_count=4,
     ):
@@ -26,6 +27,7 @@ class BatchSender(object):
         self._token = token
 
         self.max_size = int(max_batch_size_mb * 1000 * 1000)
+        self.max_batch_length = int(max_batch_length)
         self._batches = queue.Queue(batch_buffer_length)
         self._crt_batch = []
         self._crt_batch_size = 0
@@ -39,7 +41,11 @@ class BatchSender(object):
             self._create_threads()
 
         crt_obj_size = len(obj)
-        if not self._crt_batch or self._crt_batch_size + crt_obj_size < self.max_size:
+        crt_batch_length = len(self._crt_batch)
+        if not self._crt_batch or (
+            self._crt_batch_size + crt_obj_size < self.max_size
+            and crt_batch_length < self.max_batch_length
+        ):
             self._crt_batch.append((id, obj))
             self._crt_batch_size += crt_obj_size
             return
