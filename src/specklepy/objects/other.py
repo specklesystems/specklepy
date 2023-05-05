@@ -289,3 +289,10 @@ class RevitParameter(
     isShared: bool = False
     isReadOnly: bool = False
     isTypeParameter: bool = False
+
+class Collection(
+    Base, speckle_type="Speckle.Core.Models.Collection", detachable={"elements"}
+):
+    name: Optional[str] = None
+    collectionType: Optional[str] = None
+    elements: Optional[List[Base]] = None
