@@ -1,5 +1,6 @@
 import random
 import uuid
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 import requests
@@ -38,7 +39,8 @@ def seed_user(host):
     )
     if not r.ok:
         raise Exception(f"Cannot seed user: {r.reason}")
-    access_code = r.text.split("access_code=")[1]
+    redirect_url = urlparse(r.headers.get("location"))
+    access_code = parse_qs(redirect_url.query)["access_code"][0]  # type: ignore
 
     r_tokens = requests.post(
         url=f"http://{host}/auth/token",
