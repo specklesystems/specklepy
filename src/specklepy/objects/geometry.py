@@ -39,7 +39,11 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
         return pt
 
 
-class Pointcloud(Base, speckle_type=GEOMETRY + "Pointcloud"):
+class Pointcloud(
+    Base, 
+    speckle_type=GEOMETRY + "Pointcloud",
+    chunkable={"points": 31250, "colors": 62500, "sizes": 62500},      
+):
     points: Optional[List[float]] = None
     colors: Optional[List[int]] = None
     sizes: Optional[List[float]] = None
