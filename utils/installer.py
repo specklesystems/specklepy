@@ -163,7 +163,10 @@ def install_requirements(host_application: str) -> None:
     )
 
     if completed_process.returncode != 0:
-        m = f"Failed to install dependenices through pip, got {completed_process.returncode} return code"
+        m = (
+            "Failed to install dependenices through pip, ",
+            f"got {completed_process.returncode} return code",
+        )
         print(m)
         raise Exception(m)
 
@@ -194,5 +197,6 @@ def ensure_dependencies(host_application: str) -> None:
         return
 
     raise Exception(
-        f"Cannot automatically ensure Speckle dependencies. Please try restarting the host application {host_application}!"
+        "Cannot automatically ensure Speckle dependencies. ",
+        f"Please try restarting the host application {host_application}!",
     )
