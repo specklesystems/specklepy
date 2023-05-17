@@ -3,9 +3,10 @@ Provides uniform and consistent path helpers for `specklepy`
 """
 import os
 import sys
+from importlib import import_module, invalidate_caches
 from pathlib import Path
 from typing import Optional
-from importlib import import_module, invalidate_caches
+
 import pkg_resources
 
 _user_data_env_var = "SPECKLE_USERDATA_PATH"
