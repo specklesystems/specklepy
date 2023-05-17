@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 from importlib import import_module, invalidate_caches
+import pkg_resources
 
 _user_data_env_var = "SPECKLE_USERDATA_PATH"
 
@@ -55,9 +56,7 @@ def user_application_data_path() -> Path:
         if sys.platform.startswith("win"):
             app_data_path = os.getenv("APPDATA")
             if not app_data_path:
-                raise Exception(
-                    "Cannot get appdata path from environment."
-                )
+                raise Exception("Cannot get appdata path from environment.")
             return Path(app_data_path)
         else:
             # try getting the standard XDG_DATA_HOME value
@@ -68,9 +67,7 @@ def user_application_data_path() -> Path:
             else:
                 return _ensure_folder_exists(Path.home(), ".config")
     except Exception as ex:
-        raise Exception(
-            "Failed to initialize user application data path.", ex
-        )
+        raise Exception("Failed to initialize user application data path.", ex)
 
 
 def user_speckle_folder_path() -> Path:
@@ -90,19 +87,16 @@ def user_speckle_connector_installation_path(host_application: str) -> Path:
     )
 
 
-
-
-
-
 print("Starting module dependency installation")
 print(sys.executable)
 
 PYTHON_PATH = sys.executable
 
 
-
 def connector_installation_path(host_application: str) -> Path:
-    connector_installation_path = user_speckle_connector_installation_path(host_application)
+    connector_installation_path = user_speckle_connector_installation_path(
+        host_application
+    )
     connector_installation_path.mkdir(exist_ok=True, parents=True)
 
     # set user modules path at beginning of paths for earlier hit
@@ -111,7 +105,6 @@ def connector_installation_path(host_application: str) -> Path:
 
     print(f"Using connector installation path {connector_installation_path}")
     return connector_installation_path
-
 
 
 def is_pip_available() -> bool:
@@ -132,13 +125,15 @@ def ensure_pip() -> None:
     if completed_process.returncode == 0:
         print("Successfully installed pip")
     else:
-        raise Exception(f"Failed to install pip, got {completed_process.returncode} return code")
+        raise Exception(
+            f"Failed to install pip, got {completed_process.returncode} return code"
+        )
 
 
 def get_requirements_path() -> Path:
     # we assume that a requirements.txt exists next to the __init__.py file
-    path = Path(Path(__file__).parent, "requirements.txt")
-    assert path.exists()
+    path = Path(__file__).parent.with_name("requirements.txt")
+    assert path.exists(), f"Can't find requirements file at {path}"
     return path
 
 
@@ -179,29 +174,24 @@ def install_dependencies(host_application: str) -> None:
     install_requirements(host_application)
 
 
-def _import_dependencies() -> None:
-    import_module("specklepy")
-    # the code above doesn't work for now, it fails on importing graphql-core
-    # despite that, the connector seams to be working as expected
-    # But it would be nice to make this solution work
-    # it would ensure that all dependencies are fully loaded  
-    # requirements = get_requirements_path().read_text()
-    # reqs = [
-    #     req.split(" ; ")[0].split("==")[0].split("[")[0].replace("-", "_")
-    #     for req in requirements.split("\n")
-    #     if req and not req.startswith(" ")
-    # ]
-    # for req in reqs:
-    #     print(req)
-    #     import_module("specklepy")
+def _dependencies_installed() -> bool:
+    try:
+        pkg_resources.require(get_requirements_path().read_text())
+        return True
+    except (pkg_resources.DistributionNotFound, pkg_resources.VersionConflict):
+        return False
+
 
 def ensure_dependencies(host_application: str) -> None:
-    try:
-        install_dependencies(host_application)
-        invalidate_caches()
-        _import_dependencies()
+    if _dependencies_installed():
+        return
+
+    install_dependencies(host_application)
+    invalidate_caches()
+    if _dependencies_installed():
         print("Successfully found dependencies")
-    except ImportError:
-        raise Exception(f"Cannot automatically ensure Speckle dependencies. Please try restarting the host application {host_application}!")
+        return
 
-
+    raise Exception(
+        f"Cannot automatically ensure Speckle dependencies. Please try restarting the host application {host_application}!"
+    )
