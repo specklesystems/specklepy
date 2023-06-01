@@ -4,7 +4,7 @@ from gql.client import Client
 from gql.transport.exceptions import TransportQueryError
 from graphql import DocumentNode
 
-from specklepy.api.credentials import Account
+from specklepy.core.api.credentials import Account
 from specklepy.logging.exceptions import (
     GraphQLException,
     SpeckleException,

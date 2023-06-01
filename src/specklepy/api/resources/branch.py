@@ -6,10 +6,10 @@ from specklepy.api.models import Branch
 from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 
-NAME = "branch"
+from specklepy.core.api.resources.branch import NAME, Resource as Core_Resource
 
 
-class Resource(ResourceBase):
+class Resource(Core_Resource):
     """API Access class for branches"""
 
     def __init__(self, account, basepath, client) -> None:
@@ -34,24 +34,8 @@ class Resource(ResourceBase):
             id {str} -- the newly created branch's id
         """
         metrics.track(metrics.BRANCH, self.account, {"name": "create"})
-        query = gql(
-            """
-            mutation BranchCreate($branch: BranchCreateInput!) {
-              branchCreate(branch: $branch)
-            }
-          """
-        )
-        params = {
-            "branch": {
-                "streamId": stream_id,
-                "name": name,
-                "description": description,
-            }
-        }
 
-        return self.make_request(
-            query=query, params=params, return_type="branchCreate", parse_response=False
-        )
+        return super().create(stream_id, name, description)
 
     def get(self, stream_id: str, name: str, commits_limit: int = 10):
         """Get a branch by name from a stream
@@ -65,41 +49,8 @@ class Resource(ResourceBase):
             Branch -- the fetched branch with its latest commits
         """
         metrics.track(metrics.BRANCH, self.account, {"name": "get"})
-        query = gql(
-            """
-            query BranchGet($stream_id: String!, $name: String!, $commits_limit: Int!) {
-                stream(id: $stream_id) {
-                        branch(name: $name) {
-                          id,
-                          name,
-                          description,
-                          commits (limit: $commits_limit) {
-                            totalCount,
-                            cursor,
-                            items {
-                              id,
-                              referencedObject,
-                              sourceApplication,
-                              totalChildrenCount,
-                              message,
-                              authorName,
-                              authorId,
-                              branchName,
-                              parents,
-                              createdAt
-                            }
-                        }
-                    }
-                }
-            }
-            """
-        )
-
-        params = {"stream_id": stream_id, "name": name, "commits_limit": commits_limit}
-
-        return self.make_request(
-            query=query, params=params, return_type=["stream", "branch"]
-        )
+        
+        return super().get(stream_id, name, commits_limit)
 
     def list(self, stream_id: str, branches_limit: int = 10, commits_limit: int = 10):
         """Get a list of branches from a given stream
@@ -113,49 +64,8 @@ class Resource(ResourceBase):
             List[Branch] -- the branches on the stream
         """
         metrics.track(metrics.BRANCH, self.account, {"name": "get"})
-        query = gql(
-            """
-            query BranchesGet(
-                    $stream_id: String!,
-                    $branches_limit: Int!,
-                    $commits_limit: Int!
-                ) {
-                stream(id: $stream_id) {
-                    branches(limit: $branches_limit) {
-                        items {
-                            id
-                            name
-                            description
-                            commits(limit: $commits_limit) {
-                                totalCount
-                                items{
-                                    id
-                                    message
-                                    referencedObject
-                                    sourceApplication
-                                    parents
-                                    authorId
-                                    authorName
-                                    branchName
-                                    createdAt
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            """
-        )
-
-        params = {
-            "stream_id": stream_id,
-            "branches_limit": branches_limit,
-            "commits_limit": commits_limit,
-        }
-
-        return self.make_request(
-            query=query, params=params, return_type=["stream", "branches", "items"]
-        )
+        
+        return super().list(stream_id, branches_limit, commits_limit)
 
     def update(
         self,
@@ -176,28 +86,8 @@ class Resource(ResourceBase):
             bool -- True if update is successful
         """
         metrics.track(metrics.BRANCH, self.account, {"name": "update"})
-        query = gql(
-            """
-            mutation  BranchUpdate($branch: BranchUpdateInput!) {
-                branchUpdate(branch: $branch)
-                }
-            """
-        )
-        params = {
-            "branch": {
-                "streamId": stream_id,
-                "id": branch_id,
-            }
-        }
 
-        if name:
-            params["branch"]["name"] = name
-        if description:
-            params["branch"]["description"] = description
-
-        return self.make_request(
-            query=query, params=params, return_type="branchUpdate", parse_response=False
-        )
+        return super().update(stream_id, branch_id, name, description)
 
     def delete(self, stream_id: str, branch_id: str):
         """Delete a branch
@@ -210,16 +100,4 @@ class Resource(ResourceBase):
             bool -- True if deletion is successful
         """
         metrics.track(metrics.BRANCH, self.account, {"name": "delete"})
-        query = gql(
-            """
-            mutation BranchDelete($branch: BranchDeleteInput!) {
-                branchDelete(branch: $branch)
-            }
-            """
-        )
-
-        params = {"branch": {"streamId": stream_id, "id": branch_id}}
-
-        return self.make_request(
-            query=query, params=params, return_type="branchDelete", parse_response=False
-        )
+        return super().delete(stream_id, branch_id)

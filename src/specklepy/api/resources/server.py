@@ -8,10 +8,10 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import GraphQLException
 
-NAME = "server"
+from specklepy.core.api.resources.server import NAME, Resource as Core_Resource
 
 
-class Resource(ResourceBase):
+class Resource(Core_Resource):
     """API Access class for the server"""
 
     def __init__(self, account, basepath, client) -> None:
@@ -29,71 +29,8 @@ class Resource(ResourceBase):
             dict -- the server info in dictionary form
         """
         metrics.track(metrics.SERVER, self.account, {"name": "get"})
-        query = gql(
-            """
-            query Server {
-                serverInfo {
-                    name
-                    company
-                    description
-                    adminContact
-                    canonicalUrl
-                    version
-                    roles {
-                        name
-                        description
-                        resourceTarget
-                    }
-                    scopes {
-                        name
-                        description
-                    }
-                    authStrategies{
-                        id
-                        name
-                        icon
-                    }
-                }
-            }
-            """
-        )
 
-        return self.make_request(
-            query=query, return_type="serverInfo", schema=ServerInfo
-        )
-
-    def version(self) -> Tuple[Any, ...]:
-        """Get the server version
-
-        Returns:
-            the server version in the format (major, minor, patch, (tag, build))
-            eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
-        """
-        # not tracking as it will be called along with other mutations / queries as a check
-        query = gql(
-            """
-            query Server {
-                serverInfo {
-                    version
-                }
-            }
-            """
-        )
-        ver = self.make_request(
-            query=query, return_type=["serverInfo", "version"], parse_response=False
-        )
-        if isinstance(ver, Exception):
-            raise GraphQLException(
-                f"Could not get server version for {self.basepath}", [ver]
-            )
-
-        # pylint: disable=consider-using-generator; (list comp is faster)
-        return tuple(
-            [
-                int(segment) if segment.isdigit() else segment
-                for segment in re.split(r"\.|-", ver)
-            ]
-        )
+        return super().get()
 
     def apps(self) -> Dict:
         """Get the apps registered on the server
@@ -102,27 +39,8 @@ class Resource(ResourceBase):
             dict -- a dictionary of apps registered on the server
         """
         metrics.track(metrics.SERVER, self.account, {"name": "apps"})
-        query = gql(
-            """
-            query Apps {
-                apps{
-                    id
-                    name
-                    description
-                    termsAndConditionsLink
-                    trustByDefault
-                    logo
-                    author {
-                        id
-                        name
-                        avatar
-                    }
-                }
-            }
-        """
-        )
-
-        return self.make_request(query=query, return_type="apps", parse_response=False)
+        
+        return super().apps()
 
     def create_token(self, name: str, scopes: List[str], lifespan: int) -> str:
         """Create a personal API token
@@ -136,21 +54,8 @@ class Resource(ResourceBase):
             str -- the new API token. note: this is the only time you'll see the token!
         """
         metrics.track(metrics.SERVER, self.account, {"name": "create_token"})
-        query = gql(
-            """
-            mutation TokenCreate($token: ApiTokenCreateInput!) {
-                apiTokenCreate(token: $token)
-            }
-            """
-        )
-        params = {"token": {"scopes": scopes, "name": name, "lifespan": lifespan}}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="apiTokenCreate",
-            parse_response=False,
-        )
+        
+        return super().create_token(name, scopes, lifespan)
 
     def revoke_token(self, token: str) -> bool:
         """Revokes (deletes) a personal API token
@@ -162,18 +67,5 @@ class Resource(ResourceBase):
             bool -- True if the token was successfully deleted
         """
         metrics.track(metrics.SERVER, self.account, {"name": "revoke_token"})
-        query = gql(
-            """
-            mutation TokenRevoke($token: String!) {
-                apiTokenRevoke(token: $token)
-            }
-            """
-        )
-        params = {"token": token}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="apiTokenRevoke",
-            parse_response=False,
-        )
+        
+        return super().revoke_token(token) 
