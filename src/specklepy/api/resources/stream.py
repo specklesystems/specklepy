@@ -20,7 +20,6 @@ class Resource(Core_Resource):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
             server_version=server_version,
         )
 

@@ -17,7 +17,6 @@ class Resource(Core_Resource):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
         )
         self.schema = Commit
 

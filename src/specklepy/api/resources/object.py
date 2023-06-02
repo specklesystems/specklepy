@@ -16,7 +16,6 @@ class Resource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
         )
         self.schema = Base
 

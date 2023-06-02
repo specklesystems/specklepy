@@ -32,7 +32,6 @@ class Resource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
         )
 
     @check_wsclient

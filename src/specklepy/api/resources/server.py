@@ -19,7 +19,6 @@ class Resource(Core_Resource):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
         )
 
     def get(self) -> ServerInfo:
