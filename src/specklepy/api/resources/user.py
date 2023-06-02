@@ -26,6 +26,7 @@ class Resource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
+            name=NAME,
             server_version=server_version,
         )
         self.schema = User
