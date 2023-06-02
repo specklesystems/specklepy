@@ -33,7 +33,7 @@ class Resource(Core_Resource):
         Returns:
             id {str} -- the newly created branch's id
         """
-        metrics.track(metrics.BRANCH, self.account, {"name": "create"})
+        metrics.track(metrics.SDK, self.account, {"name": "Branch Create"})
 
         return super().create(stream_id, name, description)
 
@@ -48,7 +48,7 @@ class Resource(Core_Resource):
         Returns:
             Branch -- the fetched branch with its latest commits
         """
-        metrics.track(metrics.BRANCH, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Branch Get"})
         
         return super().get(stream_id, name, commits_limit)
 
@@ -63,7 +63,7 @@ class Resource(Core_Resource):
         Returns:
             List[Branch] -- the branches on the stream
         """
-        metrics.track(metrics.BRANCH, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Branch Get"})
         
         return super().list(stream_id, branches_limit, commits_limit)
 
@@ -85,8 +85,8 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if update is successful
         """
-        metrics.track(metrics.BRANCH, self.account, {"name": "update"})
-
+        metrics.track(metrics.SDK, self.account, {"name": "Branch Update"})
+        
         return super().update(stream_id, branch_id, name, description)
 
     def delete(self, stream_id: str, branch_id: str):
@@ -99,5 +99,6 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if deletion is successful
         """
-        metrics.track(metrics.BRANCH, self.account, {"name": "delete"})
+        metrics.track(metrics.SDK, self.account, {"name": "Branch Delete"})
+        
         return super().delete(stream_id, branch_id)

@@ -81,7 +81,7 @@ def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str
     Returns:
         str -- the serialized object
     """
-    metrics.track(metrics.SERIALIZE)
+    metrics.track(metrics.SDK, custom_props={"name": "Serialize"})
 
     return core_serialize(base, write_transports)
 
@@ -104,7 +104,7 @@ def deserialize(
     Returns:
         Base -- the deserialized object
     """
-    metrics.track(metrics.DESERIALIZE)
+    metrics.track(metrics.SDK, custom_props={"name": "Deserialize"})
 
     return core_deserialize(obj_string, read_transport)
 

@@ -28,11 +28,12 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
     accounts = core_get_local_accounts(base_path)
 
     metrics.track(
-        metrics.ACCOUNTS,
+        metrics.SDK,
         next(
             (acc for acc in accounts if acc.isDefault),
             accounts[0] if accounts else None,
         ),
+        {"name": "Get Local Accounts"}
     )
 
     return accounts

@@ -23,23 +23,24 @@ LOG = logging.getLogger(__name__)
 METRICS_TRACKER = None
 
 # actions
+SDK = "SDK Actions"
 RECEIVE = "Receive"
 SEND = "Send"
-STREAM = "Stream Action"
-PERMISSION = "Permission Action"
-INVITE = "Invite Action"
-COMMIT = "Commit Action"
-BRANCH = "Branch Action"
-USER = "User Action"
-OTHER_USER = "Other User Action"
-SERVER = "Server Action"
-CLIENT = "Speckle Client"
-STREAM_WRAPPER = "Stream Wrapper"
 
+# not in use since 2.15  
 ACCOUNTS = "Get Local Accounts"
-
-SERIALIZE = "serialization/serialize"
+BRANCH = "Branch Action"
+CLIENT = "Speckle Client"
+COMMIT = "Commit Action"
 DESERIALIZE = "serialization/deserialize"
+INVITE = "Invite Action"
+OTHER_USER = "Other User Action"
+PERMISSION = "Permission Action"
+SERIALIZE = "serialization/serialize"
+SERVER = "Server Action"
+STREAM = "Stream Action"
+STREAM_WRAPPER = "Stream Wrapper"
+USER = "User Action"
 
 
 def disable():

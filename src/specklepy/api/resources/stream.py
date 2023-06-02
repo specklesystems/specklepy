@@ -37,7 +37,7 @@ class Resource(Core_Resource):
         Returns:
             Stream -- the retrieved stream
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Get"})
 
         return super().get(id, branch_limit, commit_limit)
 
@@ -50,7 +50,7 @@ class Resource(Core_Resource):
         Returns:
             List[Stream] -- A list of Stream objects
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Get"})
 
         return super().list(stream_limit)
 
@@ -71,8 +71,8 @@ class Resource(Core_Resource):
         Returns:
             id {str} -- the id of the newly created stream
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "create"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Create"})
+
         return super().create(name, description, is_public)
 
     def update(
@@ -94,7 +94,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- whether the stream update was successful
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "update"})
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Update"})
 
         return super().update(id, name, description, is_public)
 
@@ -107,8 +107,8 @@ class Resource(Core_Resource):
         Returns:
             bool -- whether the deletion was successful
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "delete"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Delete"})
+
         return super().delete(id)
 
     def search(
@@ -129,7 +129,7 @@ class Resource(Core_Resource):
         Returns:
             List[Stream] -- a list of Streams that match the search query
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "search"})
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Search"})
 
         return super().search(search_query, limit, branch_limit, commit_limit)
 
@@ -144,8 +144,8 @@ class Resource(Core_Resource):
         Returns:
             Stream -- the stream with its `id`, `name`, and `favoritedDate`
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "favorite"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Favorite"})
+
         return super().favorite(stream_id, favorited)
 
     @deprecated(
@@ -168,7 +168,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
+        #metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
         # we're checking for the actual version info, and if the version is 'dev' we treat it
         # as an up to date instance
         if self.server_version and (
@@ -221,7 +221,7 @@ class Resource(Core_Resource):
             List[PendingStreamCollaborator]
                 -- a list of pending invites for the specified stream
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Invite Get"})
 
         return super().get_all_pending_invites(stream_id)
 
@@ -249,8 +249,8 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "create"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Invite Create"})
+
         return super().invite(stream_id, email, user_id, role, message)
 
     def invite_batch(
@@ -276,7 +276,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "batch create"})
+        metrics.track(metrics.SDK, self.account, {"name": "Invite Batch Create"})
 
         return super().invite_batch(stream_id, emails, user_ids, message)
 
@@ -292,7 +292,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- true if the operation was successful
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "cancel"})
+        metrics.track(metrics.SDK, self.account, {"name": "Invite Cancel"})
 
         return super().invite_cancel(stream_id, invite_id)
 
@@ -310,8 +310,8 @@ class Resource(Core_Resource):
         Returns:
             bool -- true if the operation was successful
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "use"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Invite Use"})
+
         return super().invite_use(stream_id, token, accept)
 
     def update_permission(self, stream_id: str, user_id: str, role: str):
@@ -327,9 +327,8 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(
-            metrics.PERMISSION, self.account, {"name": "update", "role": role}
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Permission Update", "role": role})
+
         return super().update_permission(stream_id, user_id, role)
 
     def revoke_permission(self, stream_id: str, user_id: str):
@@ -342,7 +341,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.PERMISSION, self.account, {"name": "revoke"})
+        metrics.track(metrics.SDK, self.account, {"name": "Permission Revoke"})
 
         return super().revoke_permission(stream_id, user_id)
 

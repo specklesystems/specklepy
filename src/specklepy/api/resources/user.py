@@ -44,7 +44,7 @@ class Resource(ResourceBase):
         Returns:
             User -- the retrieved user
         """
-        metrics.track(metrics.USER, self.account, {"name": "get"})
+        #metrics.track(metrics.USER, self.account, {"name": "get"})
         query = gql(
             """
             query User($id: String) {
@@ -86,7 +86,7 @@ class Resource(ResourceBase):
                 message="User search query must be at least 3 characters"
             )
 
-        metrics.track(metrics.USER, self.account, {"name": "search"})
+        #metrics.track(metrics.USER, self.account, {"name": "search"})
         query = gql(
             """
             query UserSearch($search_query: String!, $limit: Int!) {
@@ -128,7 +128,7 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if your profile was updated successfully
         """
-        metrics.track(metrics.USER, self.account, {"name": "update"})
+        #metrics.track(metrics.USER, self.account, {"name": "update"})
         query = gql(
             """
             mutation UserUpdate($user: UserUpdateInput!) {
@@ -243,7 +243,7 @@ class Resource(ResourceBase):
             List[PendingStreamCollaborator]
                 -- a list of pending invites for the current user
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        #metrics.track(metrics.INVITE, self.account, {"name": "get"})
         self._check_invites_supported()
 
         query = gql(
@@ -291,7 +291,7 @@ class Resource(ResourceBase):
             PendingStreamCollaborator
                 -- the invite for the given stream (or None if it isn't found)
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        #metrics.track(metrics.INVITE, self.account, {"name": "get"})
         self._check_invites_supported()
 
         query = gql(

@@ -34,7 +34,7 @@ class Resource(Core_Resource):
         Returns:
             LimitedUser -- the retrieved profile of another user
         """
-        metrics.track(metrics.OTHER_USER, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Other User Get"})
         
         return super().get(id)
 
@@ -55,7 +55,7 @@ class Resource(Core_Resource):
                 message="User search query must be at least 3 characters"
             )
 
-        metrics.track(metrics.OTHER_USER, self.account, {"name": "search"})
+        metrics.track(metrics.SDK, self.account, {"name": "Other User Search"})
         
         return super().search(search_query, limit) 
 

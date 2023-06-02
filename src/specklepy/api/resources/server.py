@@ -28,7 +28,7 @@ class Resource(Core_Resource):
         Returns:
             dict -- the server info in dictionary form
         """
-        metrics.track(metrics.SERVER, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Server Get"})
 
         return super().get()
 
@@ -38,8 +38,8 @@ class Resource(Core_Resource):
         Returns:
             dict -- a dictionary of apps registered on the server
         """
-        metrics.track(metrics.SERVER, self.account, {"name": "apps"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Server Apps"})
+
         return super().apps()
 
     def create_token(self, name: str, scopes: List[str], lifespan: int) -> str:
@@ -53,8 +53,8 @@ class Resource(Core_Resource):
         Returns:
             str -- the new API token. note: this is the only time you'll see the token!
         """
-        metrics.track(metrics.SERVER, self.account, {"name": "create_token"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Server Create Token"})
+
         return super().create_token(name, scopes, lifespan)
 
     def revoke_token(self, token: str) -> bool:
@@ -66,6 +66,6 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the token was successfully deleted
         """
-        metrics.track(metrics.SERVER, self.account, {"name": "revoke_token"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Server Revoke Token"})
+
         return super().revoke_token(token) 

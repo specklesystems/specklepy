@@ -35,7 +35,7 @@ class Resource(Core_Resource):
         Returns:
             User -- the retrieved user
         """
-        metrics.track(metrics.USER, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, custom_props={"name": "User Get"})
         
         return super().get()
 
@@ -57,7 +57,7 @@ class Resource(Core_Resource):
         Returns    @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT):
             bool -- True if your profile was updated successfully
         """
-        metrics.track(metrics.USER, self.account, {"name": "update"})
+        metrics.track(metrics.SDK, self.account, {"name": "User Update"})
         
         return super().update(name, company, bio, avatar)
 
@@ -70,7 +70,7 @@ class Resource(Core_Resource):
             List[PendingStreamCollaborator]
             -- a list of pending invites for the current user
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Invite Get"})
         
         return super().get_all_pending_invites()
 
@@ -90,6 +90,6 @@ class Resource(Core_Resource):
             PendingStreamCollaborator
             -- the invite for the given stream (or None if it isn't found)
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Invite Get"})
         
         return super().get_pending_invite(stream_id, token)
