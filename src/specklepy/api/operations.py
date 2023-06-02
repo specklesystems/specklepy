@@ -8,7 +8,7 @@ from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.transports.sqlite import SQLiteTransport
 
 from specklepy.core.api.operations import (send as core_send,
-                                           receive as core_receive,
+                                           receive as _untracked_receive,
                                            serialize as core_serialize,
                                            deserialize as core_deserialize)
 
@@ -56,15 +56,7 @@ def receive(
         Base -- the base object
     """
     metrics.track(metrics.RECEIVE, getattr(remote_transport, "account", None))
-    return core_receive(obj_id, remote_transport, local_transport)
-
-
-def _untracked_receive(
-    obj_id: str,
-    remote_transport: Optional[AbstractTransport] = None,
-    local_transport: Optional[AbstractTransport] = None,
-) -> Base:
-    return receive(obj_id, remote_transport, local_transport)
+    return _untracked_receive(obj_id, remote_transport, local_transport)
 
 
 def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str:
