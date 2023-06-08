@@ -6,6 +6,35 @@ orbs:
 
 jobs:
   test:
+    machine:
+      image: ubuntu-2204:2023.02.1
+      docker_layer_caching: true
+    resource_class: medium
+    parameters:
+      tag:
+        default: "3.8"
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Install python
+          command: python3 --version
+      - run:
+          name: Startup the Speckle Server
+          command: docker compose -f docker-compose.yml up -d
+      - run:
+          command: python -m pip install --upgrade pip
+          name: upgrade pip
+      - python/install-packages:
+          pkg-manager: poetry
+      - run: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
+      - store_test_results:
+          path: reports
+      - store_artifacts:
+          path: reports
+      - codecov/upload
+
+  test-old:
     docker:
       - image: "cimg/python:<<parameters.tag>>"
       - image: "cimg/node:16.15"
