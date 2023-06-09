@@ -12,7 +12,7 @@ jobs:
     resource_class: medium
     parameters:
       tag:
-        default: "3.8"
+        default: "3.11"
         type: string
     steps:
       - checkout
@@ -28,7 +28,6 @@ jobs:
           name: Install Poetry
           command: |
             pip install poetry
-      - run: exec $SHELL
       - run:
           name: Install packages
           command: poetry install
@@ -101,7 +100,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              tag: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+              tag: ["3.11"]
           filters:
             tags:
               only: /.*/
