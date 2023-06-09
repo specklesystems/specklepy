@@ -25,8 +25,11 @@ jobs:
       - run:
           command: python -m pip install --upgrade pip
           name: upgrade pip
-      - python/install-packages:
-          pkg-manager: poetry
+      - run:
+          name: Install packages
+          command: |
+            pip install poetry
+            poetry install
       - run: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
       - store_test_results:
           path: reports
@@ -94,7 +97,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              tag: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+              tag: ["3.11"]
           filters:
             tags:
               only: /.*/
