@@ -19,7 +19,7 @@ jobs:
       - run:
           name: Install python
           command: |
-            pyenv install << parameters.tag >>
+            pyenv install -s << parameters.tag >>
             pyenv global << parameters.tag >>
       - run:
           name: Startup the Speckle Server
