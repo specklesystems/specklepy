@@ -18,7 +18,8 @@ jobs:
       - checkout
       - run:
           name: Install python
-          command: python3 --version
+          command: |
+            curl https://pyenv.run | bash
       - run:
           name: Startup the Speckle Server
           command: docker compose -f docker-compose.yml up -d
@@ -29,7 +30,7 @@ jobs:
           name: Install packages
           command: |
             python3 -m pip install poetry
-            python3 - m poetry install
+            python3 -m poetry install
       - run: python3 -m poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
       - store_test_results:
           path: reports
