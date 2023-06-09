@@ -19,19 +19,17 @@ jobs:
       - run:
           name: Install python
           command: |
-            curl https://pyenv.run | bash
+            pyenv install << parameters.tag >>
+            pyenv global << parameters.tag >>
       - run:
           name: Startup the Speckle Server
           command: docker compose -f docker-compose.yml up -d
       - run:
-          command: python3 -m pip install --upgrade pip
-          name: upgrade pip
-      - run:
           name: Install packages
           command: |
-            python3 -m pip install poetry
-            python3 -m poetry install
-      - run: python3 -m poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
+            pip install poetry
+            poetry install
+      - run: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
       - store_test_results:
           path: reports
       - store_artifacts:
