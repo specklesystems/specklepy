@@ -29,8 +29,8 @@ jobs:
           name: Install packages
           command: |
             python3 -m pip install poetry
-            poetry install
-      - run: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
+            python3 - m poetry install
+      - run: python3 -m poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
       - store_test_results:
           path: reports
       - store_artifacts:
