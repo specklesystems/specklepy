@@ -25,11 +25,16 @@ jobs:
           name: Startup the Speckle Server
           command: docker compose -f docker-compose.yml up -d
       - run:
-          name: Install packages
+          name: Install Poetry
           command: |
             pip install poetry
-            poetry install
-      - run: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
+      - run: exec $SHELL
+      - run:
+          name: Install packages
+          command: poetry install
+      - run:
+          name: Run tests
+          command: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
       - store_test_results:
           path: reports
       - store_artifacts:
