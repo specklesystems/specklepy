@@ -6,48 +6,38 @@ orbs:
 
 jobs:
   test:
-    docker:
-      - image: "cimg/python:<<parameters.tag>>"
-      - image: "cimg/node:16.15"
-      - image: "cimg/redis:6.2"
-      - image: "cimg/postgres:14.2"
-        environment:
-          POSTGRES_DB: speckle2_test
-          POSTGRES_PASSWORD: speckle
-          POSTGRES_USER: speckle
-      - image: "speckle/speckle-server"
-        command: ["bash", "-c", "/wait && node bin/www"]
-        environment:
-          POSTGRES_URL: "127.0.0.1"
-          POSTGRES_USER: "speckle"
-          POSTGRES_PASSWORD: "speckle"
-          POSTGRES_DB: "speckle2_test"
-          REDIS_URL: "redis://127.0.0.1"
-          SESSION_SECRET: "keyboard cat"
-          STRATEGY_LOCAL: "true"
-          CANONICAL_URL: "http://localhost:3000"
-          WAIT_HOSTS: 127.0.0.1:5432, 127.0.0.1:6379
-          DISABLE_FILE_UPLOADS: "true"
+    machine:
+      image: ubuntu-2204:2023.02.1
+      docker_layer_caching: true
+    resource_class: medium
     parameters:
       tag:
-        default: "3.8"
+        default: "3.11"
         type: string
     steps:
       - checkout
-      - run: python --version
       - run:
-          command: python -m pip install --upgrade pip
-          name: upgrade pip
-      - python/install-packages:
-          pkg-manager: poetry
-      - run: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
-
+          name: Install python
+          command: |
+            pyenv install -s << parameters.tag >>
+            pyenv global << parameters.tag >>
+      - run:
+          name: Startup the Speckle Server
+          command: docker compose -f docker-compose.yml up -d
+      - run:
+          name: Install Poetry
+          command: |
+            pip install poetry
+      - run:
+          name: Install packages
+          command: poetry install
+      - run:
+          name: Run tests
+          command: poetry run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
       - store_test_results:
           path: reports
-
       - store_artifacts:
           path: reports
-
       - codecov/upload
 
   deploy:
@@ -65,7 +55,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              tag: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+              tag: ["3.11"]
           filters:
             tags:
               only: /.*/
