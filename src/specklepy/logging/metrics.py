@@ -97,7 +97,7 @@ def initialise_tracker(account=None):
     if account and account.userInfo.email:
         METRICS_TRACKER.set_last_user(account.userInfo.email)
     if account and account.serverInfo.url:
-        METRICS_TRACKER.set_last_server(account.userInfo.email)
+        METRICS_TRACKER.set_last_server(account.serverInfo.url)
 
 
 class Singleton(type):
@@ -140,7 +140,8 @@ class MetricsTracker(metaclass=Singleton):
         self.last_server = self.hash(server)
 
     def hash(self, value: str):
-        return hashlib.md5(value.lower().encode("utf-8")).hexdigest().upper()
+        input = value.lower().replace("https://","")
+        return hashlib.md5(input.encode("utf-8")).hexdigest().upper()
 
     def _send_tracking_requests(self):
         session = requests.Session()
