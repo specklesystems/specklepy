@@ -11,7 +11,7 @@ class CRS(Base, speckle_type="Objects.GIS.CRS"):
         authority_id: Optional[str] = None, 
         wkt: Optional[str] = None, 
         units: Optional[str] = None, 
-        native_units: Optional[str] = None, 
+        units_native: Optional[str] = None, 
         **kwargs
     ) -> None:
         super().__init__(**kwargs)
@@ -20,5 +20,5 @@ class CRS(Base, speckle_type="Objects.GIS.CRS"):
         self.authority_id = authority_id 
         self.wkt = wkt 
         self.units = units or "m"
-        self.native_units = native_units 
+        self.units_native = units_native 
 
