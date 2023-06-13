@@ -140,7 +140,8 @@ class MetricsTracker(metaclass=Singleton):
         self.last_server = self.hash(server)
 
     def hash(self, value: str):
-        input = value.lower().replace("https://","")
+        inputList = value.lower().split("://")
+        input = inputList[len(inputList)-1].split("/")[0].split('?')[0]
         return hashlib.md5(input.encode("utf-8")).hexdigest().upper()
 
     def _send_tracking_requests(self):
