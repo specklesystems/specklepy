@@ -65,6 +65,7 @@ class ShapeType(int, Enum):
     Box = 7
     Catalogue = 8
     Explicit = 9
+    Undefined = 10
 
 
 class PropertyTypeSpring(int, Enum):
@@ -90,7 +91,9 @@ class Property(Base, speckle_type=STRUCTURAL_PROPERTY):
     name: Optional[str] = None
 
 
-class SectionProfile(Base, speckle_type=STRUCTURAL_PROPERTY + ".Profiles.SectionProfile"):
+class SectionProfile(
+    Base, speckle_type=STRUCTURAL_PROPERTY + ".Profiles.SectionProfile"
+):
     name: Optional[str] = None
     shapeType: Optional[ShapeType] = None
     area: float = 0.0
