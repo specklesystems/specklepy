@@ -14,6 +14,7 @@ class CRS(Base, speckle_type="Objects.GIS.CRS"):
         units_native: Optional[str] = None, 
         offset_x: Optional[float] = None,
         offset_y: Optional[float] = None,
+        rotation: Optional[float] = None,
         **kwargs
     ) -> None:
         super().__init__(**kwargs)
@@ -25,4 +26,5 @@ class CRS(Base, speckle_type="Objects.GIS.CRS"):
         self.units_native = units_native 
         self.offset_x = offset_x 
         self.offset_y = offset_y 
+        self.rotation = rotation 
 
