@@ -9,7 +9,7 @@ from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
 
 from specklepy.api import resources
-from specklepy.api.credentials import Account, get_account_from_token
+from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.api.resources import (
     active_user,
     branch,
@@ -60,7 +60,6 @@ class SpeckleClient:
     USE_SSL = True
 
     def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL) -> None:
-        metrics.track(metrics.CLIENT, custom_props={"name": "create"})
         ws_protocol = "ws"
         http_protocol = "http"
 
@@ -129,7 +128,6 @@ class SpeckleClient:
             token {str} -- an api token
         """
         self.account = get_account_from_token(token, self.url)
-        metrics.track(metrics.CLIENT, self.account, {"name": "authenticate with token"})
         self._set_up_client()
 
     def authenticate_with_account(self, account: Account) -> None:
@@ -141,12 +139,10 @@ class SpeckleClient:
             account {Account} -- the account object which can be found with
             `get_default_account` or `get_local_accounts`
         """
-        metrics.track(metrics.CLIENT, account, {"name": "authenticate with account"})
         self.account = account
         self._set_up_client()
 
     def _set_up_client(self) -> None:
-        metrics.track(metrics.CLIENT, self.account, {"name": "set up client"})
         headers = {
             "Authorization": f"Bearer {self.account.token}",
             "Content-Type": "application/json",

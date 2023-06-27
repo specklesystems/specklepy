@@ -2,12 +2,11 @@ from urllib.parse import unquote, urlparse
 from warnings import warn
 
 from specklepy.api.client import SpeckleClient
-from specklepy.api.credentials import (
+from specklepy.core.api.credentials import (
     Account,
     get_account_from_token,
     get_local_accounts,
 )
-from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.server.server import ServerTransport
 
@@ -75,7 +74,6 @@ class StreamWrapper:
         self.host = parsed.netloc
         self.use_ssl = parsed.scheme == "https"
         segments = parsed.path.strip("/").split("/", 3)
-        metrics.track(metrics.STREAM_WRAPPER, self.get_account())
 
         if not segments or len(segments) < 2:
             raise SpeckleException(

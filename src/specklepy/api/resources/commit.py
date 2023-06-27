@@ -6,10 +6,10 @@ from specklepy.api.models import Commit
 from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 
-NAME = "commit"
+from specklepy.core.api.resources.commit import NAME, Resource as Core_Resource
 
 
-class Resource(ResourceBase):
+class Resource(Core_Resource):
     """API Access class for commits"""
 
     def __init__(self, account, basepath, client) -> None:
@@ -17,7 +17,6 @@ class Resource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
         )
         self.schema = Commit
 
@@ -32,32 +31,9 @@ class Resource(ResourceBase):
         Returns:
             Commit -- the retrieved commit object
         """
-        query = gql(
-            """
-            query Commit($stream_id: String!, $commit_id: String!) {
-                stream(id: $stream_id) {
-                    commit(id: $commit_id) {
-                        id
-                        message
-                        referencedObject
-                        authorId
-                        authorName
-                        authorAvatar
-                        branchName
-                        createdAt
-                        sourceApplication
-                        totalChildrenCount
-                        parents
-                    }
-                }
-            }
-            """
-        )
-        params = {"stream_id": stream_id, "commit_id": commit_id}
-
-        return self.make_request(
-            query=query, params=params, return_type=["stream", "commit"]
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Commit Get"})
+        
+        return super().get(stream_id, commit_id)
 
     def list(self, stream_id: str, limit: int = 10) -> List[Commit]:
         """
@@ -70,36 +46,9 @@ class Resource(ResourceBase):
         Returns:
             List[Commit] -- a list of the most recent commit objects
         """
-        metrics.track(metrics.COMMIT, self.account, {"name": "get"})
-        query = gql(
-            """
-            query Commits($stream_id: String!, $limit: Int!) {
-                stream(id: $stream_id) {
-                    commits(limit: $limit) {
-                        items {
-                            id
-                            message
-                            referencedObject
-                            authorName
-                            authorId
-                            authorName
-                            authorAvatar
-                            branchName
-                            createdAt
-                            sourceApplication
-                            totalChildrenCount
-                            parents
-                        }
-                    }
-                }
-            }
-            """
-        )
-        params = {"stream_id": stream_id, "limit": limit}
-
-        return self.make_request(
-            query=query, params=params, return_type=["stream", "commits", "items"]
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Commit Get"})
+        
+        return super().list(stream_id, limit)
 
     def create(
         self,
@@ -128,28 +77,9 @@ class Resource(ResourceBase):
         Returns:
             str -- the id of the created commit
         """
-        metrics.track(metrics.COMMIT, self.account, {"name": "create"})
-        query = gql(
-            """
-            mutation CommitCreate ($commit: CommitCreateInput!)
-                { commitCreate(commit: $commit)}
-            """
-        )
-        params = {
-            "commit": {
-                "streamId": stream_id,
-                "branchName": branch_name,
-                "objectId": object_id,
-                "message": message,
-                "sourceApplication": source_application,
-            }
-        }
-        if parents:
-            params["commit"]["parents"] = parents
-
-        return self.make_request(
-            query=query, params=params, return_type="commitCreate", parse_response=False
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Commit Create"})
+        
+        return super().create(stream_id, object_id, branch_name, message, source_application, parents)
 
     def update(self, stream_id: str, commit_id: str, message: str) -> bool:
         """
@@ -164,20 +94,9 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation succeeded
         """
-        metrics.track(metrics.COMMIT, self.account, {"name": "update"})
-        query = gql(
-            """
-            mutation CommitUpdate($commit: CommitUpdateInput!)
-                { commitUpdate(commit: $commit)}
-            """
-        )
-        params = {
-            "commit": {"streamId": stream_id, "id": commit_id, "message": message}
-        }
-
-        return self.make_request(
-            query=query, params=params, return_type="commitUpdate", parse_response=False
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Commit Update"})
+        
+        return super().update(stream_id, commit_id, message)
 
     def delete(self, stream_id: str, commit_id: str) -> bool:
         """
@@ -191,18 +110,9 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation succeeded
         """
-        metrics.track(metrics.COMMIT, self.account, {"name": "delete"})
-        query = gql(
-            """
-            mutation CommitDelete($commit: CommitDeleteInput!)
-                { commitDelete(commit: $commit)}
-            """
-        )
-        params = {"commit": {"streamId": stream_id, "id": commit_id}}
-
-        return self.make_request(
-            query=query, params=params, return_type="commitDelete", parse_response=False
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Commit Delete"})
+        
+        return super().delete(stream_id, commit_id)
 
     def received(
         self,
@@ -214,30 +124,6 @@ class Resource(ResourceBase):
         """
         Mark a commit object a received by the source application.
         """
-        metrics.track(metrics.COMMIT, self.account, {"name": "received"})
-        query = gql(
-            """
-            mutation CommitReceive($receivedInput:CommitReceivedInput!){
-                commitReceive(input:$receivedInput)
-            }
-            """
-        )
-        params = {
-            "receivedInput": {
-                "sourceApplication": source_application,
-                "streamId": stream_id,
-                "commitId": commit_id,
-                "message": "message",
-            }
-        }
-
-        try:
-            return self.make_request(
-                query=query,
-                params=params,
-                return_type="commitReceive",
-                parse_response=False,
-            )
-        except Exception as ex:
-            print(ex.with_traceback)
-            return False
+        metrics.track(metrics.SDK, self.account, {"name": "Commit Received"})
+        
+        return super().received(stream_id, commit_id, source_application, message)
