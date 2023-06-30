@@ -1,3 +1,4 @@
+from threading import Lock
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from gql.client import Client
@@ -29,6 +30,7 @@ class ResourceBase(object):
         self.name = name
         self.server_version = server_version
         self.schema: Optional[Type] = None
+        self.__lock = Lock()
 
     def _step_into_response(self, response: dict, return_type: Union[str, List, None]):
         """Step into the dict to get the relevant data"""
@@ -68,7 +70,8 @@ class ResourceBase(object):
     ) -> Any:
         """Executes the GraphQL query"""
         try:
-            response = self.client.execute(query, variable_values=params)
+            with self.__lock:
+                response = self.client.execute(query, variable_values=params)
         except Exception as ex:
             if isinstance(ex, TransportQueryError):
                 return GraphQLException(
