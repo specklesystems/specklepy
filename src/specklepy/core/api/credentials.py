@@ -57,7 +57,7 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
         res = account_storage.get_all_objects()
         account_storage.close()
         if res:
-            accounts.extend(Account.parse_raw(r[1]) for r in res)
+            accounts.extend(Account.model_validate_json(r[1]) for r in res)
     except SpeckleException:
         # cannot open SQLiteTransport, probably because of the lack
         # of disk write permissions
