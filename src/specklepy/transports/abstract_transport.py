@@ -7,6 +7,7 @@ from pydantic.config import Extra
 
 class AbstractTransport(ABC, BaseModel):
     _name: str = "Abstract"
+    model_config = {'extra': 'allow', 'arbitrary_types_allowed': True}
 
     @property
     def name(self):
@@ -87,7 +88,3 @@ class AbstractTransport(ABC, BaseModel):
             str -- the string representation of the root object
         """
         pass
-
-    class Config:
-        extra = Extra.allow
-        arbitrary_types_allowed = True
