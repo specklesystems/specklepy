@@ -6,7 +6,7 @@ from specklepy.api.models import Commit
 from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 
-from specklepy.core.api.resources.commit import NAME, Resource as Core_Resource
+from specklepy.core.api.resources.commit import Resource as Core_Resource
 
 
 class Resource(Core_Resource):

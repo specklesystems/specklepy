@@ -2,34 +2,15 @@ from dataclasses import dataclass
 from enum import Enum
 from unicodedata import name
 
-
-class HostAppVersion(Enum):
-    v = "v"
-    v6 = "v6"
-    v7 = "v7"
-    v2019 = "v2019"
-    v2020 = "v2020"
-    v2021 = "v2021"
-    v2022 = "v2022"
-    v2023 = "v2023"
-    v2024 = "v2024"
-    v2025 = "v2025"
-    vSandbox = "vSandbox"
-    vRevit = "vRevit"
-    vRevit2021 = "vRevit2021"
-    vRevit2022 = "vRevit2022"
-    vRevit2023 = "vRevit2023"
-    vRevit2024 = "vRevit2024"
-    vRevit2025 = "vRevit2025"
-    v25 = "v25"
-    v26 = "v26"
-
-    def __repr__(self) -> str:
-        return self.value
-
-    def __str__(self) -> str:
-        return self.value
-
+# following imports seem to be unnecessary, but they need to stay 
+# to not break the scripts using these functions as non-core
+from specklepy.core.api.host_applications import (HostAppVersion,
+                                                  RHINO,GRASSHOPPER,REVIT,DYNAMO,UNITY,GSA,
+                                                  CIVIL,AUTOCAD,MICROSTATION,OPENROADS,
+                                                  OPENRAIL,OPENBUILDINGS,ETABS,SAP2000,CSIBRIDGE,
+                                                  SAFE,TEKLASTRUCTURES,DXF,EXCEL,UNREAL,POWERBI,
+                                                  BLENDER,QGIS,ARCGIS,SKETCHUP,ARCHICAD,TOPSOLID,
+                                                  PYTHON,NET,OTHER)
 
 @dataclass
 class HostApplication:
@@ -38,38 +19,6 @@ class HostApplication:
 
     def get_version(self, version: HostAppVersion) -> str:
         return f"{name.replace(' ', '')}{str(version).strip('v')}"
-
-
-RHINO = HostApplication("Rhino", "rhino")
-GRASSHOPPER = HostApplication("Grasshopper", "grasshopper")
-REVIT = HostApplication("Revit", "revit")
-DYNAMO = HostApplication("Dynamo", "dynamo")
-UNITY = HostApplication("Unity", "unity")
-GSA = HostApplication("GSA", "gsa")
-CIVIL = HostApplication("Civil 3D", "civil3d")
-AUTOCAD = HostApplication("AutoCAD", "autocad")
-MICROSTATION = HostApplication("MicroStation", "microstation")
-OPENROADS = HostApplication("OpenRoads", "openroads")
-OPENRAIL = HostApplication("OpenRail", "openrail")
-OPENBUILDINGS = HostApplication("OpenBuildings", "openbuildings")
-ETABS = HostApplication("ETABS", "etabs")
-SAP2000 = HostApplication("SAP2000", "sap2000")
-CSIBRIDGE = HostApplication("CSIBridge", "csibridge")
-SAFE = HostApplication("SAFE", "safe")
-TEKLASTRUCTURES = HostApplication("Tekla Structures", "teklastructures")
-DXF = HostApplication("DXF Converter", "dxf")
-EXCEL = HostApplication("Excel", "excel")
-UNREAL = HostApplication("Unreal", "unreal")
-POWERBI = HostApplication("Power BI", "powerbi")
-BLENDER = HostApplication("Blender", "blender")
-QGIS = HostApplication("QGIS", "qgis")
-ARCGIS = HostApplication("ArcGIS", "arcgis")
-SKETCHUP = HostApplication("SketchUp", "sketchup")
-ARCHICAD = HostApplication("Archicad", "archicad")
-TOPSOLID = HostApplication("TopSolid", "topsolid")
-PYTHON = HostApplication("Python", "python")
-NET = HostApplication(".NET", "net")
-OTHER = HostApplication("Other", "other")
 
 _app_name_host_app_mapping = {
     "dynamo": DYNAMO,
@@ -102,7 +51,6 @@ _app_name_host_app_mapping = {
     "python": PYTHON,
     "net": NET,
 }
-
 
 def get_host_app_from_string(app_name: str) -> HostApplication:
     app_name = app_name.lower().replace(" ", "")

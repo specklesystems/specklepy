@@ -8,7 +8,7 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 
-from specklepy.core.api.resources.active_user import NAME, Resource as Core_Resource
+from specklepy.core.api.resources.active_user import Resource as Core_Resource
 
 
 class Resource(Core_Resource):
@@ -34,7 +34,7 @@ class Resource(Core_Resource):
         Returns:
             User -- the retrieved user
         """
-        metrics.track(metrics.SDK, custom_props={"name": "User Get"})
+        metrics.track(metrics.SDK, custom_props={"name": "User Active Get"})
         
         return super().get()
 
@@ -56,7 +56,7 @@ class Resource(Core_Resource):
         Returns    @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT):
             bool -- True if your profile was updated successfully
         """
-        metrics.track(metrics.SDK, self.account, {"name": "User Update"})
+        metrics.track(metrics.SDK, self.account, {"name": "User Active Update"})
         
         return super().update(name, company, bio, avatar)
 
@@ -69,7 +69,7 @@ class Resource(Core_Resource):
             List[PendingStreamCollaborator]
             -- a list of pending invites for the current user
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Invite Get"})
+        metrics.track(metrics.SDK, self.account, {"name": "Invites All Get"})
         
         return super().get_all_pending_invites()
 

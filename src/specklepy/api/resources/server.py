@@ -8,7 +8,7 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import GraphQLException
 
-from specklepy.core.api.resources.server import NAME, Resource as Core_Resource
+from specklepy.core.api.resources.server import Resource as Core_Resource
 
 
 class Resource(Core_Resource):

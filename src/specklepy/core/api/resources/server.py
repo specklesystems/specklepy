@@ -3,8 +3,8 @@ from typing import Any, Dict, List, Tuple
 
 from gql import gql
 
-from specklepy.api.models import ServerInfo
-from specklepy.api.resource import ResourceBase
+from specklepy.core.api.models import ServerInfo
+from specklepy.core.api.resource import ResourceBase
 from specklepy.logging.exceptions import GraphQLException
 
 NAME = "server"
