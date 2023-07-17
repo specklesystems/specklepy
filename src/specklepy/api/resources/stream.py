@@ -37,7 +37,6 @@ class Resource(Core_Resource):
             Stream -- the retrieved stream
         """
         metrics.track(metrics.SDK, self.account, {"name": "Stream Get"})
-
         return super().get(id, branch_limit, commit_limit)
 
     def list(self, stream_limit: int = 10) -> List[Stream]:
@@ -49,8 +48,7 @@ class Resource(Core_Resource):
         Returns:
             List[Stream] -- A list of Stream objects
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Stream Get"})
-
+        metrics.track(metrics.SDK, self.account, {"name": "Stream List"})
         return super().list(stream_limit)
 
     def create(
@@ -71,7 +69,6 @@ class Resource(Core_Resource):
             id {str} -- the id of the newly created stream
         """
         metrics.track(metrics.SDK, self.account, {"name": "Stream Create"})
-
         return super().create(name, description, is_public)
 
     def update(
@@ -94,7 +91,6 @@ class Resource(Core_Resource):
             bool -- whether the stream update was successful
         """
         metrics.track(metrics.SDK, self.account, {"name": "Stream Update"})
-
         return super().update(id, name, description, is_public)
 
     def delete(self, id: str) -> bool:
@@ -107,7 +103,6 @@ class Resource(Core_Resource):
             bool -- whether the deletion was successful
         """
         metrics.track(metrics.SDK, self.account, {"name": "Stream Delete"})
-
         return super().delete(id)
 
     def search(
@@ -129,7 +124,6 @@ class Resource(Core_Resource):
             List[Stream] -- a list of Streams that match the search query
         """
         metrics.track(metrics.SDK, self.account, {"name": "Stream Search"})
-
         return super().search(search_query, limit, branch_limit, commit_limit)
 
     def favorite(self, stream_id: str, favorited: bool = True):
@@ -144,7 +138,6 @@ class Resource(Core_Resource):
             Stream -- the stream with its `id`, `name`, and `favoritedDate`
         """
         metrics.track(metrics.SDK, self.account, {"name": "Stream Favorite"})
-
         return super().favorite(stream_id, favorited)
 
     @deprecated(
@@ -170,40 +163,9 @@ class Resource(Core_Resource):
         #metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
         # we're checking for the actual version info, and if the version is 'dev' we treat it
         # as an up to date instance
-        if self.server_version and (
-            self.server_version == ("dev",) or self.server_version >= (2, 6, 4)
-        ):
-            raise UnsupportedException(
-                "Server mutation `grant_permission` is no longer supported as of"
-                " Speckle Server v2.6.4. Please use the new `update_permission` method"
-                " to change an existing user's permission or use the `invite` method to"
-                " invite a user to a stream."
-            )
-
-        query = gql(
-            """
-            mutation StreamGrantPermission(
-                $permission_params: StreamGrantPermissionInput !
-                ) {
-                streamGrantPermission(permissionParams: $permission_params)
-            }
-            """
-        )
-
-        params = {
-            "permission_params": {
-                "streamId": stream_id,
-                "userId": user_id,
-                "role": role,
-            }
-        }
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamGrantPermission",
-            parse_response=False,
-        )
+        
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Grant Permission_deprecated"})
+        return super().grant_permission(stream_id, user_id, role)
 
     def get_all_pending_invites(
         self, stream_id: str
@@ -220,8 +182,7 @@ class Resource(Core_Resource):
             List[PendingStreamCollaborator]
                 -- a list of pending invites for the specified stream
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Invite Get"})
-
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Get"})
         return super().get_all_pending_invites(stream_id)
 
     def invite(
@@ -248,8 +209,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Invite Create"})
-
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Create"})
         return super().invite(stream_id, email, user_id, role, message)
 
     def invite_batch(
@@ -275,8 +235,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Invite Batch Create"})
-
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Batch Create"})
         return super().invite_batch(stream_id, emails, user_ids, message)
 
     def invite_cancel(self, stream_id: str, invite_id: str) -> bool:
@@ -291,8 +250,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- true if the operation was successful
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Invite Cancel"})
-
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Cancel"})
         return super().invite_cancel(stream_id, invite_id)
 
     def invite_use(self, stream_id: str, token: str, accept: bool = True) -> bool:
@@ -310,7 +268,6 @@ class Resource(Core_Resource):
             bool -- true if the operation was successful
         """
         metrics.track(metrics.SDK, self.account, {"name": "Invite Use"})
-
         return super().invite_use(stream_id, token, accept)
 
     def update_permission(self, stream_id: str, user_id: str, role: str):
@@ -326,8 +283,7 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Permission Update", "role": role})
-
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Permission Update", "role": role})
         return super().update_permission(stream_id, user_id, role)
 
     def revoke_permission(self, stream_id: str, user_id: str):
@@ -340,7 +296,36 @@ class Resource(Core_Resource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Permission Revoke"})
-
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Permission Revoke"})
         return super().revoke_permission(stream_id, user_id)
 
+    def activity(
+        self,
+        stream_id: str,
+        action_type: Optional[str] = None,
+        limit: int = 20,
+        before: Optional[datetime] = None,
+        after: Optional[datetime] = None,
+        cursor: Optional[datetime] = None,
+    ):
+        """
+        Get the activity from a given stream in an Activity collection.
+        Step into the activity `items` for the list of activity.
+
+        Note: all timestamps arguments should be `datetime` of any tz
+            as they will be converted to UTC ISO format strings
+
+        stream_id {str} -- the id of the stream to get activity from
+        action_type {str}
+            -- filter results to a single action type
+            (eg: `commit_create` or `commit_receive`)
+        limit {int} -- max number of Activity items to return
+        before {datetime}
+            -- latest cutoff for activity (ie: return all activity _before_ this time)
+        after {datetime}
+            -- oldest cutoff for activity (ie: return all activity _after_ this time)
+        cursor {datetime} -- timestamp cursor for pagination
+        """
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Activity"})
+        return super().activity(stream_id, action_type, limit, before, after, cursor)
+    
