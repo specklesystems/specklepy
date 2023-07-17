@@ -95,14 +95,7 @@ def get_account_from_token(token: str, server_url: str = None) -> Account:
         Account -- the local account with this token or a shell account containing
         just the token and url if no local account is found
     """
-    accounts = core_get_account_from_token(token, server_url)
+    account = core_get_account_from_token(token, server_url)
 
-    metrics.track(
-        metrics.SDK,
-        next(
-            (acc for acc in accounts if acc.isDefault),
-            accounts[0] if accounts else None,
-        ),
-        {"name": "Get Account From Token"}
-    )
-    return accounts
+    metrics.track( metrics.SDK, account, {"name": "Get Account From Token"} )
+    return account
