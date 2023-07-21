@@ -347,65 +347,6 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["streamFavorite"]
         )
 
-
-    @deprecated(
-        version="2.6.4",
-        reason=(
-            "As of Speckle Server v2.6.4, this method is deprecated. Users need to be"
-            " invited and accept the invite before being added to a stream"
-        ),
-    )
-    def grant_permission(self, stream_id: str, user_id: str, role: str):
-        """Grant permissions to a user on a given stream
-
-        Valid for Speckle Server version < 2.6.4
-
-        Arguments:
-            stream_id {str} -- the id of the stream to grant permissions to
-            user_id {str} -- the id of the user to grant permissions for
-            role {str} -- the role to grant the user
-
-        Returns:
-            bool -- True if the operation was successful
-        """
-        #metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
-        # we're checking for the actual version info, and if the version is 'dev' we treat it
-        # as an up to date instance
-        if self.server_version and (
-            self.server_version == ("dev",) or self.server_version >= (2, 6, 4)
-        ):
-            raise UnsupportedException(
-                "Server mutation `grant_permission` is no longer supported as of"
-                " Speckle Server v2.6.4. Please use the new `update_permission` method"
-                " to change an existing user's permission or use the `invite` method to"
-                " invite a user to a stream."
-            )
-
-        query = gql(
-            """
-            mutation StreamGrantPermission(
-                $permission_params: StreamGrantPermissionInput !
-                ) {
-                streamGrantPermission(permissionParams: $permission_params)
-            }
-            """
-        )
-
-        params = {
-            "permission_params": {
-                "streamId": stream_id,
-                "userId": user_id,
-                "role": role,
-            }
-        }
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamGrantPermission",
-            parse_response=False,
-        )
-
     def get_all_pending_invites(
         self, stream_id: str
     ) -> List[PendingStreamCollaborator]:

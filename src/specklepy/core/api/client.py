@@ -19,7 +19,6 @@ from specklepy.core.api.resources import (
     server,
     stream,
     subscriptions,
-    user,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
@@ -191,12 +190,6 @@ class SpeckleClient:
             server_version = self.server.version()
         except Exception:
             pass
-        self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
         self.other_user = other_user.Resource(
             account=self.account,
             basepath=self.url,
@@ -209,6 +202,7 @@ class SpeckleClient:
             client=self.httpclient,
             server_version=server_version,
         )
+        self.user = self.active_user
         self.stream = stream.Resource(
             account=self.account,
             basepath=self.url,

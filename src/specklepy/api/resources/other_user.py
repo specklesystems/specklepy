@@ -8,10 +8,10 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 
-from specklepy.core.api.resources.other_user import Resource as Core_Resource
+from specklepy.core.api.resources.other_user import Resource as CoreResource
 
 
-class Resource(Core_Resource):
+class Resource(CoreResource):
     """API Access class for other users, that are not the currently active user."""
 
     def __init__(self, account, basepath, client, server_version) -> None:

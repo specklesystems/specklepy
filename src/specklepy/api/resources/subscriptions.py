@@ -9,7 +9,7 @@ from specklepy.api.resources.stream import Stream
 from specklepy.logging.exceptions import SpeckleException
 
 from specklepy.logging import metrics
-from specklepy.core.api.resources.subscriptions import Resource as Core_Resource
+from specklepy.core.api.resources.subscriptions import Resource as CoreResource
 
 def check_wsclient(function):
     @wraps(function)
@@ -24,7 +24,7 @@ def check_wsclient(function):
     return check_wsclient_wrapper
 
 
-class Resource(Core_Resource):
+class Resource(CoreResource):
     """API Access class for subscriptions"""
 
     def __init__(self, account, basepath, client) -> None:

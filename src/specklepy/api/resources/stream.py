@@ -9,10 +9,10 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, UnsupportedException
 
-from specklepy.core.api.resources.stream import Resource as Core_Resource
+from specklepy.core.api.resources.stream import Resource as CoreResource
 
 
-class Resource(Core_Resource):
+class Resource(CoreResource):
     """API Access class for streams"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
@@ -139,33 +139,6 @@ class Resource(Core_Resource):
         """
         metrics.track(metrics.SDK, self.account, {"name": "Stream Favorite"})
         return super().favorite(stream_id, favorited)
-
-    @deprecated(
-        version="2.6.4",
-        reason=(
-            "As of Speckle Server v2.6.4, this method is deprecated. Users need to be"
-            " invited and accept the invite before being added to a stream"
-        ),
-    )
-    def grant_permission(self, stream_id: str, user_id: str, role: str):
-        """Grant permissions to a user on a given stream
-
-        Valid for Speckle Server version < 2.6.4
-
-        Arguments:
-            stream_id {str} -- the id of the stream to grant permissions to
-            user_id {str} -- the id of the user to grant permissions for
-            role {str} -- the role to grant the user
-
-        Returns:
-            bool -- True if the operation was successful
-        """
-        #metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
-        # we're checking for the actual version info, and if the version is 'dev' we treat it
-        # as an up to date instance
-        
-        metrics.track(metrics.SDK, self.account, {"name": "Stream Grant Permission_deprecated"})
-        return super().grant_permission(stream_id, user_id, role)
 
     def get_all_pending_invites(
         self, stream_id: str

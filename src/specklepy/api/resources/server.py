@@ -8,10 +8,10 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import GraphQLException
 
-from specklepy.core.api.resources.server import Resource as Core_Resource
+from specklepy.core.api.resources.server import Resource as CoreResource
 
 
-class Resource(Core_Resource):
+class Resource(CoreResource):
     """API Access class for the server"""
 
     def __init__(self, account, basepath, client) -> None:

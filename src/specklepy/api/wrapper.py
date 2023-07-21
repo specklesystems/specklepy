@@ -11,9 +11,9 @@ from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.server.server import ServerTransport
 
 from specklepy.logging import metrics
-from specklepy.core.api.wrapper import StreamWrapper as Core_StreamWrapper 
+from specklepy.core.api.wrapper import StreamWrapper as CoreStreamWrapper 
 
-class StreamWrapper(Core_StreamWrapper):
+class StreamWrapper(CoreStreamWrapper):
     """
     The `StreamWrapper` gives you some handy helpers to deal with urls and
     get authenticated clients and transports.

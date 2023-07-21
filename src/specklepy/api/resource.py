@@ -16,10 +16,10 @@ from specklepy.transports.sqlite import SQLiteTransport
 
 # following imports seem to be unnecessary, but they need to stay 
 # to not break the scripts using these functions as non-core
-from specklepy.core.api.resource import ResourceBase as Core_ResourceBase
+from specklepy.core.api.resource import ResourceBase as CoreResourceBase
 
 
-class ResourceBase(Core_ResourceBase):
+class ResourceBase(CoreResourceBase):
     def __init__(
         self,
         account: Account,

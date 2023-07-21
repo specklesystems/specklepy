@@ -19,15 +19,14 @@ from specklepy.api.resources import (
     server,
     stream,
     subscriptions,
-    user,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
-from specklepy.core.api.client import SpeckleClient as Core_SpeckleClient
+from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 
 
-class SpeckleClient(Core_SpeckleClient):
+class SpeckleClient(CoreSpeckleClient):
     """
     The `SpeckleClient` is your entry point for interacting with
     your Speckle Server's GraphQL API.

@@ -7,10 +7,10 @@ from specklepy.objects.base import Base
 
 from specklepy.logging import metrics
 
-from specklepy.core.api.resources.object import Resource as Core_Resource
+from specklepy.core.api.resources.object import Resource as CoreResource
 
 
-class Resource(Core_Resource):
+class Resource(CoreResource):
     """API Access class for objects"""
 
     def __init__(self, account, basepath, client) -> None:
