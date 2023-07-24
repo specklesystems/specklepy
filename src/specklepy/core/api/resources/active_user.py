@@ -23,7 +23,7 @@ class Resource(ResourceBase):
         )
         self.schema = User
 
-    def get(self) -> User:
+    def get(self, id: Optional[str] = None) -> User:
         """Gets the profile of a user. If no id argument is provided,
         will return the current authenticated user's profile
         (as extracted from the authorization header).
@@ -34,6 +34,9 @@ class Resource(ResourceBase):
         Returns:
             User -- the retrieved user
         """
+        if id is not None:
+            raise UserWarning("The \'user\' resource is deprecated, please use the \'other_user\' resource for \'get\' by id method")
+
         query = gql(
             """
             query User {
@@ -103,6 +106,7 @@ class Resource(ResourceBase):
         before: Optional[datetime] = None,
         after: Optional[datetime] = None,
         cursor: Optional[datetime] = None,
+        user_id: Optional[str] = None
     ):
         """
         Get the activity from a given stream in an Activity collection.
@@ -123,6 +127,9 @@ class Resource(ResourceBase):
             (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
+        if user_id is not None or isinstance(limit, str):
+            raise UserWarning("The \'user\' resource is deprecated, please use the \'other_user\' resource for \'activity\' by id method")
+
         query = gql(
             """
             query UserActivity(
@@ -261,3 +268,7 @@ class Resource(ResourceBase):
             return_type="streamInvite",
             schema=PendingStreamCollaborator,
         )
+
+    def search(self, search_query: str, limit: int = 25):
+        raise UserWarning("The \'user\' resource is deprecated, please use the \'other_user\' resource for \'search\' method")
+    
