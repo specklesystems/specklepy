@@ -17,7 +17,7 @@ class TestUser:
 
             user_dict["id"] = fetched_user.id
 
-    def test_user_search(self, client, second_user_dict):
+    def test_user_search(self, client: SpeckleClient, second_user_dict):
         with pytest.deprecated_call():
             search_results = client.user.search(
                 search_query=second_user_dict["name"][:5]
