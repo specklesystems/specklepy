@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from gql import gql
 import warnings
