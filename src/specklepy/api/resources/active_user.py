@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from typing import List, Optional, Union
+import warnings
+from deprecated import deprecated
 
 from gql import gql
 
@@ -9,6 +11,10 @@ from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 
 from specklepy.core.api.resources.active_user import Resource as CoreResource
+from specklepy.core.api.resources.other_user import Resource as CoreResourceOtherUser
+
+DEPRECATION_VERSION = "2.9.0"
+DEPRECATION_TEXT_SEARCH = "The \'user\' resource is deprecated, please use the \'other_user\' resource for \'search\' method"
 
 class Resource(CoreResource):
     """API Access class for users"""
@@ -22,7 +28,7 @@ class Resource(CoreResource):
         )
         self.schema = User
 
-    def get(self) -> User:
+    def get(self, id: Optional[str] = None) -> User:
         """Gets the profile of a user. If no id argument is provided,
         will return the current authenticated user's profile
         (as extracted from the authorization header).
@@ -33,6 +39,10 @@ class Resource(CoreResource):
         Returns:
             User -- the retrieved user
         """
+        if id is not None:
+            warnings.warn("The \'user\' resource is deprecated, please use the \'other_user\' resource for \'get\' by id method")
+            return CoreResourceOtherUser().get(id) 
+
         metrics.track(metrics.SDK, custom_props={"name": "User Active Get"})
         return super().get()
 
@@ -64,6 +74,7 @@ class Resource(CoreResource):
         before: Optional[datetime] = None,
         after: Optional[datetime] = None,
         cursor: Optional[datetime] = None,
+        user_id: Optional[str] = None
     ):
         """
         Get the activity from a given stream in an Activity collection.
@@ -84,6 +95,10 @@ class Resource(CoreResource):
             (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
+        if user_id is not None or isinstance(limit, str):
+            warnings.warn("The \'user\' resource is deprecated, please use the \'other_user\' resource for \'activity\' by id method")
+            return CoreResourceOtherUser().activity(user_id, limit, action_type, before, after, cursor)
+        
         metrics.track(metrics.SDK, self.account, {"name": "User Active Activity"})
         return super().activity(limit, action_type, before, after, cursor)
 
@@ -117,3 +132,19 @@ class Resource(CoreResource):
         """
         metrics.track(metrics.SDK, self.account, {"name": "User Active Invite Get"})
         return super().get_pending_invite(stream_id, token)
+
+    @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT_SEARCH)
+    def search(self, search_query: str, limit: int = 25)-> Union[List[User], SpeckleException]:
+        """
+        Searches for user by name or email.
+        The search query must be at least 3 characters long
+
+        Arguments:
+            search_query {str} -- a string to search for
+            limit {int} -- the maximum number of results to return
+        Returns:
+            List[User] -- a list of User objects that match the search query
+        """
+        metrics.track(metrics.SDK, self.account, {"name": "User Search_deprecated"})
+        return CoreResourceOtherUser().search(search_query, limit)
+    

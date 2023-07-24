@@ -2,19 +2,12 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from gql import gql
-import warnings
-from deprecated import deprecated
 
 from specklepy.core.api.models import ActivityCollection, PendingStreamCollaborator, User
 from specklepy.core.api.resource import ResourceBase
 from specklepy.logging.exceptions import SpeckleException
 
-from specklepy.core.api.resources.other_user import Resource as CoreResourceOtherUser
-
 NAME = "active_user"
-
-DEPRECATION_VERSION = "2.9.0"
-DEPRECATION_TEXT_SEARCH = "The \'user\' resource is deprecated, please use the \'other_user\' resource for \'search\' method"
 
 
 class Resource(ResourceBase):
@@ -30,7 +23,7 @@ class Resource(ResourceBase):
         )
         self.schema = User
 
-    def get(self, id: Optional[str] = None) -> User:
+    def get(self) -> User:
         """Gets the profile of a user. If no id argument is provided,
         will return the current authenticated user's profile
         (as extracted from the authorization header).
@@ -41,10 +34,6 @@ class Resource(ResourceBase):
         Returns:
             User -- the retrieved user
         """
-        if id is not None:
-            warnings.warn("The \'user\' resource is deprecated, please use the \'other_user\' resource for \'get\' by id method")
-            return CoreResourceOtherUser().get(id) 
-
         query = gql(
             """
             query User {
@@ -114,7 +103,6 @@ class Resource(ResourceBase):
         before: Optional[datetime] = None,
         after: Optional[datetime] = None,
         cursor: Optional[datetime] = None,
-        user_id: Optional[str] = None
     ):
         """
         Get the activity from a given stream in an Activity collection.
@@ -135,10 +123,6 @@ class Resource(ResourceBase):
             (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
-        if user_id is not None or isinstance(limit, str):
-            warnings.warn("The \'user\' resource is deprecated, please use the \'other_user\' resource for \'activity\' by id method")
-            return CoreResourceOtherUser().activity(user_id, limit, action_type, before, after, cursor)
-        
         query = gql(
             """
             query UserActivity(
@@ -277,19 +261,3 @@ class Resource(ResourceBase):
             return_type="streamInvite",
             schema=PendingStreamCollaborator,
         )
-
-    @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT_SEARCH)
-    def search(self, search_query: str, limit: int = 25)-> Union[List[User], SpeckleException]:
-        """
-        Searches for user by name or email.
-        The search query must be at least 3 characters long
-
-        Arguments:
-            search_query {str} -- a string to search for
-            limit {int} -- the maximum number of results to return
-        Returns:
-            List[User] -- a list of User objects that match the search query
-        """
-        metrics.track(metrics.SDK, self.account, {"name": "User Search_deprecated"})
-        return CoreResourceOtherUser().search(search_query, limit)
-    
