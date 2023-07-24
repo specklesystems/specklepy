@@ -202,7 +202,6 @@ class SpeckleClient:
             client=self.httpclient,
             server_version=server_version,
         )
-        self.user = self.active_user
         self.stream = stream.Resource(
             account=self.account,
             basepath=self.url,
