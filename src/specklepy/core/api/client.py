@@ -11,6 +11,7 @@ from gql.transport.websockets import WebsocketsTransport
 from specklepy.core.api import resources
 from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.core.api.resources import (
+    user,
     active_user,
     branch,
     commit,
@@ -190,6 +191,12 @@ class SpeckleClient:
             server_version = self.server.version()
         except Exception:
             pass
+        self.user = user.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
         self.other_user = other_user.Resource(
             account=self.account,
             basepath=self.url,
