@@ -11,6 +11,7 @@ from gql.transport.websockets import WebsocketsTransport
 from specklepy.api import resources
 from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.api.resources import (
+    user,
     active_user,
     branch,
     commit,
@@ -66,6 +67,54 @@ class SpeckleClient(CoreSpeckleClient):
             use_ssl=use_ssl,
         )
         self.account = Account()
+
+    def _init_resources(self) -> None:
+        self.server = server.Resource(
+            account=self.account, basepath=self.url, client=self.httpclient
+        )
+        server_version = None
+        try:
+            server_version = self.server.version()
+        except Exception:
+            pass
+        self.user = user.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.other_user = other_user.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.active_user = active_user.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.stream = stream.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.commit = commit.Resource(
+            account=self.account, basepath=self.url, client=self.httpclient
+        )
+        self.branch = branch.Resource(
+            account=self.account, basepath=self.url, client=self.httpclient
+        )
+        self.object = object.Resource(
+            account=self.account, basepath=self.url, client=self.httpclient
+        )
+        self.subscribe = subscriptions.Resource(
+            account=self.account,
+            basepath=self.ws_url,
+            client=self.wsclient,
+        )
 
     @deprecated(
         version="2.6.0",
