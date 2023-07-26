@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 
-from specklepy.api.models import ServerInfo
+from specklepy.core.api.models import ServerInfo
 from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
