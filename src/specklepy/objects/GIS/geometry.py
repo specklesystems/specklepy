@@ -102,3 +102,16 @@ class GisRasterElement(Base, speckle_type="Objects.GIS.RasterElement", detachabl
         self.displayValue = displayValue
         self.units = units or "m"
 
+class GisNonGeometryElement(Base, speckle_type="Objects.GIS.NonGeometryElement"):
+    """GIS Point element"""
+    
+    def __init__(
+        self, 
+        attributes: Optional[Base] = None,
+        units: Optional[str] = None,
+        **kwargs
+    ) -> None:
+        super().__init__(**kwargs)
+        
+        self.attributes = attributes 
+        self.units = units or "m"
