@@ -8,10 +8,10 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 
-from specklepy.core.api.resources.other_user import NAME, Resource as Core_Resource
+from specklepy.core.api.resources.other_user import Resource as CoreResource
 
 
-class Resource(Core_Resource):
+class Resource(CoreResource):
     """API Access class for other users, that are not the currently active user."""
 
     def __init__(self, account, basepath, client, server_version) -> None:
@@ -34,7 +34,6 @@ class Resource(Core_Resource):
             LimitedUser -- the retrieved profile of another user
         """
         metrics.track(metrics.SDK, self.account, {"name": "Other User Get"})
-        
         return super().get(id)
 
     def search(
@@ -55,6 +54,34 @@ class Resource(Core_Resource):
             )
 
         metrics.track(metrics.SDK, self.account, {"name": "Other User Search"})
-        
         return super().search(search_query, limit) 
 
+    def activity(
+        self,
+        user_id: str,
+        limit: int = 20,
+        action_type: Optional[str] = None,
+        before: Optional[datetime] = None,
+        after: Optional[datetime] = None,
+        cursor: Optional[datetime] = None,
+    ) -> ActivityCollection:
+        """
+        Get the activity from a given stream in an Activity collection.
+        Step into the activity `items` for the list of activity.
+
+        Note: all timestamps arguments should be `datetime` of
+        any tz as they will be converted to UTC ISO format strings
+
+        user_id {str} -- the id of the user to get the activity from
+        action_type {str} -- filter results to a single action type
+            (eg: `commit_create` or `commit_receive`)
+        limit {int} -- max number of Activity items to return
+        before {datetime} -- latest cutoff for activity
+            (ie: return all activity _before_ this time)
+        after {datetime} -- oldest cutoff for activity
+            (ie: return all activity _after_ this time)
+        cursor {datetime} -- timestamp cursor for pagination
+        """
+        metrics.track(metrics.SDK, self.account, {"name": "Other User Activity"})
+        return super().activity(user_id, limit, action_type, before, after, cursor) 
+    

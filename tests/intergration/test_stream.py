@@ -93,15 +93,6 @@ class TestStream:
         assert isinstance(favorited, Stream)
         assert unfavorited.favoritedDate is None
 
-    def test_stream_grant_permission(self, client, stream, second_user):
-        # deprecated as of Speckle Server 2.6.4
-        with pytest.raises(UnsupportedException):
-            client.stream.grant_permission(
-                stream_id=stream.id,
-                user_id=second_user.id,
-                role="stream:contributor",
-            )
-
     def test_stream_invite(
         self, client: SpeckleClient, stream: Stream, second_user_dict: dict
     ):

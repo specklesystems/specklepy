@@ -3,8 +3,8 @@ from typing import List, Optional, Union
 
 from gql import gql
 
-from specklepy.api.models import ActivityCollection, LimitedUser
-from specklepy.api.resource import ResourceBase
+from specklepy.core.api.models import ActivityCollection, LimitedUser
+from specklepy.core.api.resource import ResourceBase
 from specklepy.logging.exceptions import SpeckleException
 
 NAME = "other_user"
