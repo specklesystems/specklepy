@@ -50,10 +50,10 @@ class ResourceBase(object):
         if isinstance(response, list):
             return [self._parse_response(response=r, schema=schema) for r in response]
         if schema:
-            return schema.parse_obj(response)
+            return schema.model_validate(response)
         elif self.schema:
             try:
-                return self.schema.parse_obj(response)
+                return self.schema.model_validate(response)
             except Exception:
                 s = BaseObjectSerializer(read_transport=SQLiteTransport())
                 return s.recompose_base(response)
