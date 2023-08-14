@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import List, Optional
 
 from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
@@ -78,7 +79,8 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
     if json_acct_files:
         try:
             accounts.extend(
-                Account.parse_file(os.path.join(json_path, json_file))
+                Account.model_validate_json(Path(json_path, json_file).read_text())
+                # Account.parse_file(os.path.join(json_path, json_file))
                 for json_file in json_acct_files
             )
         except Exception as ex:
