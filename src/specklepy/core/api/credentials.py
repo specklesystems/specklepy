@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import List, Optional
 
 from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
@@ -57,7 +58,7 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
         res = account_storage.get_all_objects()
         account_storage.close()
         if res:
-            accounts.extend(Account.parse_raw(r[1]) for r in res)
+            accounts.extend(Account.model_validate_json(r[1]) for r in res)
     except SpeckleException:
         # cannot open SQLiteTransport, probably because of the lack
         # of disk write permissions
@@ -78,7 +79,8 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
     if json_acct_files:
         try:
             accounts.extend(
-                Account.parse_file(os.path.join(json_path, json_file))
+                Account.model_validate_json(Path(json_path, json_file).read_text())
+                # Account.parse_file(os.path.join(json_path, json_file))
                 for json_file in json_acct_files
             )
         except Exception as ex:

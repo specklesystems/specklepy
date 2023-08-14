@@ -5,24 +5,24 @@ from pydantic import BaseModel, Field
 
 
 class Collaborator(BaseModel):
-    id: Optional[str]
-    name: Optional[str]
-    role: Optional[str]
-    avatar: Optional[str]
+    id: Optional[str] = None
+    name: Optional[str] = None
+    role: Optional[str] = None
+    avatar: Optional[str] = None
 
 
 class Commit(BaseModel):
-    id: Optional[str]
-    message: Optional[str]
-    authorName: Optional[str]
-    authorId: Optional[str]
-    authorAvatar: Optional[str]
-    branchName: Optional[str]
-    createdAt: Optional[datetime]
-    sourceApplication: Optional[str]
-    referencedObject: Optional[str]
-    totalChildrenCount: Optional[int]
-    parents: Optional[List[str]]
+    id: Optional[str] = None
+    message: Optional[str] = None
+    authorName: Optional[str] = None
+    authorId: Optional[str] = None
+    authorAvatar: Optional[str] = None
+    branchName: Optional[str] = None
+    createdAt: Optional[datetime] = None
+    sourceApplication: Optional[str] = None
+    referencedObject: Optional[str] = None
+    totalChildrenCount: Optional[int] = None
+    parents: Optional[List[str]] = None
 
     def __repr__(self) -> str:
         return (
@@ -36,35 +36,35 @@ class Commit(BaseModel):
 
 
 class Commits(BaseModel):
-    totalCount: Optional[int]
-    cursor: Optional[datetime]
+    totalCount: Optional[int] = None
+    cursor: Optional[datetime] = None
     items: List[Commit] = []
 
 
 class Object(BaseModel):
-    id: Optional[str]
-    speckleType: Optional[str]
-    applicationId: Optional[str]
-    totalChildrenCount: Optional[int]
-    createdAt: Optional[datetime]
+    id: Optional[str] = None
+    speckleType: Optional[str] = None
+    applicationId: Optional[str] = None
+    totalChildrenCount: Optional[int] = None
+    createdAt: Optional[datetime] = None
 
 
 class Branch(BaseModel):
-    id: Optional[str]
-    name: Optional[str]
-    description: Optional[str]
-    commits: Optional[Commits]
+    id: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    commits: Optional[Commits] = None
 
 
 class Branches(BaseModel):
-    totalCount: Optional[int]
-    cursor: Optional[datetime]
+    totalCount: Optional[int] = None
+    cursor: Optional[datetime] = None
     items: List[Branch] = []
 
 
 class Stream(BaseModel):
     id: Optional[str] = None
-    name: Optional[str]
+    name: Optional[str] = None
     role: Optional[str] = None
     isPublic: Optional[bool] = None
     description: Optional[str] = None
@@ -89,21 +89,21 @@ class Stream(BaseModel):
 
 
 class Streams(BaseModel):
-    totalCount: Optional[int]
-    cursor: Optional[datetime]
+    totalCount: Optional[int] = None
+    cursor: Optional[datetime] = None
     items: List[Stream] = []
 
 
 class User(BaseModel):
-    id: Optional[str]
-    email: Optional[str]
-    name: Optional[str]
-    bio: Optional[str]
-    company: Optional[str]
-    avatar: Optional[str]
-    verified: Optional[bool]
-    role: Optional[str]
-    streams: Optional[Streams]
+    id: Optional[str] = None
+    email: Optional[str] = None
+    name: Optional[str] = None
+    bio: Optional[str] = None
+    company: Optional[str] = None
+    avatar: Optional[str] = None
+    verified: Optional[bool] = None
+    role: Optional[str] = None
+    streams: Optional[Streams] = None
 
     def __repr__(self):
         return (
@@ -119,24 +119,24 @@ class LimitedUser(BaseModel):
     """Limited user type, for showing public info about a user to another user."""
 
     id: str
-    name: Optional[str]
-    bio: Optional[str]
-    company: Optional[str]
-    avatar: Optional[str]
-    verified: Optional[bool]
-    role: Optional[str]
+    name: Optional[str] = None
+    bio: Optional[str] = None
+    company: Optional[str] = None
+    avatar: Optional[str] = None
+    verified: Optional[bool] = None
+    role: Optional[str] = None
 
 
 class PendingStreamCollaborator(BaseModel):
-    id: Optional[str]
-    inviteId: Optional[str]
-    streamId: Optional[str]
-    streamName: Optional[str]
-    title: Optional[str]
-    role: Optional[str]
-    invitedBy: Optional[User]
-    user: Optional[User]
-    token: Optional[str]
+    id: Optional[str] = None
+    inviteId: Optional[str] = None
+    streamId: Optional[str] = None
+    streamName: Optional[str] = None
+    title: Optional[str] = None
+    role: Optional[str] = None
+    invitedBy: Optional[User] = None
+    user: Optional[User] = None
+    token: Optional[str] = None
 
     def __repr__(self):
         return (
@@ -150,14 +150,14 @@ class PendingStreamCollaborator(BaseModel):
 
 
 class Activity(BaseModel):
-    actionType: Optional[str]
-    info: Optional[dict]
-    userId: Optional[str]
-    streamId: Optional[str]
-    resourceId: Optional[str]
-    resourceType: Optional[str]
-    message: Optional[str]
-    time: Optional[datetime]
+    actionType: Optional[str] = None
+    info: Optional[dict] = None
+    userId: Optional[str] = None
+    streamId: Optional[str] = None
+    resourceId: Optional[str] = None
+    resourceType: Optional[str] = None
+    message: Optional[str] = None
+    time: Optional[datetime] = None
 
     def __repr__(self) -> str:
         return (
@@ -170,9 +170,9 @@ class Activity(BaseModel):
 
 
 class ActivityCollection(BaseModel):
-    totalCount: Optional[int]
-    items: Optional[List[Activity]]
-    cursor: Optional[datetime]
+    totalCount: Optional[int] = None
+    items: Optional[List[Activity]] = None
+    cursor: Optional[datetime] = None
 
     def __repr__(self) -> str:
         return (
