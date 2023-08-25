@@ -102,6 +102,38 @@ class GisRasterElement(Base, speckle_type="Objects.GIS.RasterElement", detachabl
         self.displayValue = displayValue
         self.units = units or "m"
 
+class GisTopography(GisRasterElement, speckle_type="Objects.GIS.GisTopography", detachable={"displayValue"}):
+    """GIS Raster element"""
+
+    def __init__(
+        self, 
+        band_count: Optional[int] = None,
+        band_names: Optional[List[str]] = None,
+        x_origin: Optional[float] = None,
+        y_origin: Optional[float] = None,
+        x_size: Optional[int] = None,
+        y_size: Optional[int] = None,
+        x_resolution: Optional[float] = None,
+        y_resolution: Optional[float] = None,
+        noDataValue: Optional[List[float]] = None,
+        displayValue: Optional[List[Mesh]] = None, 
+        units: Optional[str] = None,
+        **kwargs
+    ) -> None:
+        super().__init__(**kwargs)
+        
+        self.band_count = band_count
+        self.band_names = band_names
+        self.x_origin = x_origin
+        self.y_origin = y_origin
+        self.x_size = x_size
+        self.y_size = y_size
+        self.x_resolution = x_resolution
+        self.y_resolution = y_resolution
+        self.noDataValue = noDataValue
+        self.displayValue = displayValue
+        self.units = units or "m"
+
 class GisNonGeometryElement(Base, speckle_type="Objects.GIS.NonGeometryElement"):
     """GIS Point element"""
     
