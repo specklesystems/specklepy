@@ -85,14 +85,15 @@ def test_speckle_type_cannot_be_set(base: Base) -> None:
 
 def test_setting_units():
     b = Base(units="foot")
-    assert b.units == "ft"
+    assert b.units == "foot"
 
-    with pytest.raises(SpeckleInvalidUnitException):
-        b.units = "big"
+    # with pytest.raises(SpeckleInvalidUnitException):
+    b.units = "big"
+    assert b.units == "big"
 
     with pytest.raises(SpeckleInvalidUnitException):
         b.units = 7  # invalid args are skipped
-    assert b.units == "ft"
+    assert b.units == "big"
 
     b.units = None  # None should be a valid arg
     assert b.units is None

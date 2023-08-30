@@ -18,7 +18,7 @@ from warnings import warn
 
 from stringcase import pascalcase
 
-from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from specklepy.objects.units import Units, get_units_from_string
 from specklepy.transports.memory import MemoryTransport
 
@@ -322,7 +322,7 @@ class Base(_RegisteringBase):
     id: Union[str, None] = None
     totalChildrenCount: Union[int, None] = None
     applicationId: Union[str, None] = None
-    _units: Union[Units, None] = None
+    _units: Union[None, str] = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
@@ -463,22 +463,18 @@ class Base(_RegisteringBase):
 
     @property
     def units(self) -> Union[str, None]:
-        if self._units:
-            return self._units.value
-        return None
+        return self._units
 
     @units.setter
     def units(self, value: Union[str, Units, None]):
-        if value is None:
-            units = value
+        if isinstance(value, str) or value is None:
+            self._units = value
         elif isinstance(value, Units):
-            units: Units = value
+            self._units = value.value
         else:
-            units = get_units_from_string(value)
-        self._units = units
-        # except SpeckleInvalidUnitException as ex:
-        #     warn(f"Units are reset to None. Reason {ex.message}")
-        #     self._units = None
+            raise SpeckleInvalidUnitException(
+                f"Unknown type {type(value)} received for units"
+            )
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""

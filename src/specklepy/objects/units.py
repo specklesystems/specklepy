@@ -72,13 +72,18 @@ def get_units_from_encoding(unit: int):
     )
 
 
-def get_encoding_from_units(unit: Union[Units, None]):
+def get_encoding_from_units(unit: Union[Units, str, None]):
+    maybe_sanitized_unit = unit
+    if isinstance(unit, str):
+        for unit_enum, aliases in UNITS_STRINGS.items():
+            if unit in aliases:
+                maybe_sanitized_unit = unit_enum
     try:
-        return UNITS_ENCODINGS[unit]
+        return UNITS_ENCODINGS[maybe_sanitized_unit]
     except KeyError as e:
         raise SpeckleException(
             message=(
-                f"No encoding exists for unit {unit}."
+                f"No encoding exists for unit {maybe_sanitized_unit}."
                 f"Please enter a valid unit to encode (eg {UNITS_ENCODINGS})."
             )
         ) from e
