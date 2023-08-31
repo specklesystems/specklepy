@@ -37,7 +37,7 @@ class TestStream:
 
     @pytest.fixture(scope="module")
     def second_user(self, second_client: SpeckleClient):
-        return second_client.user.get()
+        return second_client.active_user.get()
 
     def test_stream_create(self, client, stream, updated_stream):
         stream.id = updated_stream.id = client.stream.create(
@@ -93,15 +93,6 @@ class TestStream:
         assert isinstance(favorited, Stream)
         assert unfavorited.favoritedDate is None
 
-    def test_stream_grant_permission(self, client, stream, second_user):
-        # deprecated as of Speckle Server 2.6.4
-        with pytest.raises(UnsupportedException):
-            client.stream.grant_permission(
-                stream_id=stream.id,
-                user_id=second_user.id,
-                role="stream:contributor",
-            )
-
     def test_stream_invite(
         self, client: SpeckleClient, stream: Stream, second_user_dict: dict
     ):
@@ -122,18 +113,18 @@ class TestStream:
         self, second_client: SpeckleClient, stream: Stream
     ):
         # NOTE: these are user queries, but testing here to contain the flow
-        invites = second_client.user.get_all_pending_invites()
+        invites = second_client.active_user.get_all_pending_invites()
 
         assert isinstance(invites, list)
         assert isinstance(invites[0], PendingStreamCollaborator)
         assert len(invites) == 1
 
-        invite = second_client.user.get_pending_invite(stream_id=stream.id)
+        invite = second_client.active_user.get_pending_invite(stream_id=stream.id)
         assert isinstance(invite, PendingStreamCollaborator)
 
     def test_stream_invite_use(self, second_client: SpeckleClient, stream: Stream):
         invite: PendingStreamCollaborator = (
-            second_client.user.get_all_pending_invites()[0]
+            second_client.active_user.get_all_pending_invites()[0]
         )
 
         accepted = second_client.stream.invite_use(

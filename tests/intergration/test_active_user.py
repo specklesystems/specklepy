@@ -39,7 +39,7 @@ class TestUser:
         assert my_activity.totalCount
         assert isinstance(their_activity, ActivityCollection)
 
-        older_activity = client.user.activity(before=my_activity.items[0].time)
+        older_activity = client.active_user.activity(before=my_activity.items[0].time)
 
         assert isinstance(older_activity, ActivityCollection)
         assert older_activity.totalCount

@@ -6,10 +6,10 @@ from specklepy.api.models import Commit
 from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 
-from specklepy.core.api.resources.commit import NAME, Resource as Core_Resource
+from specklepy.core.api.resources.commit import Resource as CoreResource
 
 
-class Resource(Core_Resource):
+class Resource(CoreResource):
     """API Access class for commits"""
 
     def __init__(self, account, basepath, client) -> None:
@@ -32,7 +32,6 @@ class Resource(Core_Resource):
             Commit -- the retrieved commit object
         """
         metrics.track(metrics.SDK, self.account, {"name": "Commit Get"})
-        
         return super().get(stream_id, commit_id)
 
     def list(self, stream_id: str, limit: int = 10) -> List[Commit]:
@@ -46,8 +45,7 @@ class Resource(Core_Resource):
         Returns:
             List[Commit] -- a list of the most recent commit objects
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Commit Get"})
-        
+        metrics.track(metrics.SDK, self.account, {"name": "Commit List"})
         return super().list(stream_id, limit)
 
     def create(
@@ -78,7 +76,6 @@ class Resource(Core_Resource):
             str -- the id of the created commit
         """
         metrics.track(metrics.SDK, self.account, {"name": "Commit Create"})
-        
         return super().create(stream_id, object_id, branch_name, message, source_application, parents)
 
     def update(self, stream_id: str, commit_id: str, message: str) -> bool:
@@ -95,7 +92,6 @@ class Resource(Core_Resource):
             bool -- True if the operation succeeded
         """
         metrics.track(metrics.SDK, self.account, {"name": "Commit Update"})
-        
         return super().update(stream_id, commit_id, message)
 
     def delete(self, stream_id: str, commit_id: str) -> bool:
@@ -111,7 +107,6 @@ class Resource(Core_Resource):
             bool -- True if the operation succeeded
         """
         metrics.track(metrics.SDK, self.account, {"name": "Commit Delete"})
-        
         return super().delete(stream_id, commit_id)
 
     def received(
@@ -125,5 +120,4 @@ class Resource(Core_Resource):
         Mark a commit object a received by the source application.
         """
         metrics.track(metrics.SDK, self.account, {"name": "Commit Received"})
-        
         return super().received(stream_id, commit_id, source_application, message)

@@ -29,14 +29,12 @@ def send(
     Returns:
         str -- the object id of the sent object
     """
-    obj_hash = core_send(base, transports, use_default_cache)
-
     if transports is None:
         metrics.track(metrics.SEND)
     else:
         metrics.track(metrics.SEND, getattr(transports[0], "account", None))
 
-    return obj_hash
+    return core_send(base, transports, use_default_cache)
 
 
 def receive(
@@ -74,7 +72,6 @@ def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str
         str -- the serialized object
     """
     metrics.track(metrics.SDK, custom_props={"name": "Serialize"})
-
     return core_serialize(base, write_transports)
 
 def deserialize(
@@ -97,7 +94,6 @@ def deserialize(
         Base -- the deserialized object
     """
     metrics.track(metrics.SDK, custom_props={"name": "Deserialize"})
-
     return core_deserialize(obj_string, read_transport)
 
 

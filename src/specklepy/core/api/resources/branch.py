@@ -2,8 +2,8 @@ from typing import Optional
 
 from gql import gql
 
-from specklepy.api.models import Branch
-from specklepy.api.resource import ResourceBase
+from specklepy.core.api.models import Branch
+from specklepy.core.api.resource import ResourceBase
 
 NAME = "branch"
 
