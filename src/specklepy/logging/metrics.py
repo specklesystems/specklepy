@@ -24,7 +24,6 @@ METRICS_TRACKER = None
 
 # actions
 SDK = "SDK Actions"
-CONNECTOR = "Connector Action"
 RECEIVE = "Receive"
 SEND = "Send"
 
