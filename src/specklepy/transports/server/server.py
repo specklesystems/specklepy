@@ -4,7 +4,7 @@ from warnings import warn
 
 import requests
 
-from specklepy.api.client import SpeckleClient
+from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
