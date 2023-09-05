@@ -23,7 +23,7 @@ LOG = logging.getLogger(__name__)
 METRICS_TRACKER = None
 
 # actions
-SDK = "SDK Actions"
+SDK = "SDK Action"
 CONNECTOR = "Connector Action"
 RECEIVE = "Receive"
 SEND = "Send"
