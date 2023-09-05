@@ -103,7 +103,7 @@ class GisRasterElement(Base, speckle_type="Objects.GIS.RasterElement", detachabl
         self.units = units or "m"
 
 class GisTopography(GisRasterElement, speckle_type="Objects.GIS.GisTopography", detachable={"displayValue"}):
-    """GIS Raster element"""
+    """GIS Raster element with 3d Topography representation"""
 
     def __init__(
         self, 
@@ -135,7 +135,7 @@ class GisTopography(GisRasterElement, speckle_type="Objects.GIS.GisTopography", 
         self.units = units or "m"
 
 class GisNonGeometryElement(Base, speckle_type="Objects.GIS.NonGeometryElement"):
-    """GIS Point element"""
+    """GIS Table feature"""
     
     def __init__(
         self, 
