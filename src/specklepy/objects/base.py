@@ -467,6 +467,7 @@ class Base(_RegisteringBase):
 
     @units.setter
     def units(self, value: Union[str, Units, None]):
+        """While this property accepts any string value, geometry expects units to be specific strings (see Units enum)"""
         if isinstance(value, str) or value is None:
             self._units = value
         elif isinstance(value, Units):
