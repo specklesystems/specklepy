@@ -4,14 +4,15 @@ from specklepy.transports.abstract_transport import AbstractTransport
 
 
 class MemoryTransport(AbstractTransport):
-    _name: str = "Memory"
-    objects: dict = {}
-    saved_object_count: int = 0
+    def __init__(self, name="Memory") -> None:
+        super().__init__()
+        self._name = name
+        self.objects = {}
+        self.saved_object_count = 0
 
-    def __init__(self, name=None, **data: Any) -> None:
-        super().__init__(**data)
-        if name:
-            self._name = name
+    @property
+    def name(self) -> str:
+        return self._name
 
     def __repr__(self) -> str:
         return f"MemoryTransport(objects: {len(self.objects)})"
