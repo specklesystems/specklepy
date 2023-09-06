@@ -28,29 +28,22 @@ class Layer(Base, detachable={"features"}):
         self.geomType = geomType
         self.renderer = renderer or {} 
 
-class VectorLayer(Collection, detachable={"elements"}, speckle_type="Objects.GIS.VectorLayer", serialize_ignore={"features"}):
+class VectorLayer(
+    Collection, 
+    detachable={"elements"}, 
+    speckle_type="Objects.GIS.VectorLayer", 
+    serialize_ignore={"features"},
+    collectionType = "VectorLayer"):
+
     """GIS Vector Layer"""
 
-    def __init__(
-        self,
-        name: Optional[str]=None,
-        crs: Optional[CRS]=None,
-        units: Optional[str] = None,
-        elements: Optional[List[Base]] = None,
-        attributes: Optional[Base] = None,
-        geomType: Optional[str] = None,
-        renderer: Optional[Dict[str, Any]] = None,
-        **kwargs
-    ) -> None:
-        super().__init__(**kwargs)
-        self.name = name or ""
-        self.crs = crs
-        self.units = units
-        self.elements = elements or []
-        self.attributes = attributes
-        self.geomType = geomType or "None"
-        self.renderer = renderer or {}
-        self.collectionType = "VectorLayer"
+    name: Optional[str]=None
+    crs: Optional[CRS]=None
+    units: Optional[str] = None
+    elements: Optional[List[Base]] = None
+    attributes: Optional[Base] = None
+    geomType: Optional[str] = "None"
+    renderer: Optional[Dict[str, Any]] = None
     
     @property
     @deprecated(version="2.14", reason="Use elements")
@@ -61,29 +54,23 @@ class VectorLayer(Collection, detachable={"elements"}, speckle_type="Objects.GIS
     def features(self, value: Optional[List[Base]]) -> None:
         self.elements = value
 
-class RasterLayer(Collection, detachable={"elements"}, speckle_type="Objects.GIS.RasterLayer", serialize_ignore={"features"}):
+class RasterLayer(
+    Collection, 
+    detachable={"elements"}, 
+    speckle_type="Objects.GIS.RasterLayer", 
+    serialize_ignore={"features"},
+    collectionType = "RasterLayer"):
+
     """GIS Raster Layer"""
 
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        crs: Optional[CRS]=None,
-        units: Optional[str] = None,
-        rasterCrs: Optional[CRS]=None,
-        elements: Optional[List[Base]] = None,
-        geomType: Optional[str] = None,
-        renderer: Optional[Dict[str, Any]] = None,
-        **kwargs
-    ) -> None:
-        super().__init__(**kwargs)
-        self.name = name or ""
-        self.crs = crs
-        self.units = units
-        self.rasterCrs = rasterCrs
-        self.elements = elements or []
-        self.geomType = geomType or "None"
-        self.renderer = renderer or {}
-        self.collectionType = "RasterLayer"
+    name: Optional[str] = None
+    crs: Optional[CRS]=None
+    units: Optional[str] = None
+    rasterCrs: Optional[CRS]=None
+    elements: Optional[List[Base]] = None
+    geomType: Optional[str] = "None"
+    renderer: Optional[Dict[str, Any]] = None
+
     
     @property
     @deprecated(version="2.14", reason="Use elements")
