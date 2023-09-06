@@ -32,8 +32,7 @@ class VectorLayer(
     Collection, 
     detachable={"elements"}, 
     speckle_type="Objects.GIS.VectorLayer", 
-    serialize_ignore={"features"},
-    collectionType = "VectorLayer"):
+    serialize_ignore={"features"}):
 
     """GIS Vector Layer"""
 
@@ -44,6 +43,7 @@ class VectorLayer(
     attributes: Optional[Base] = None
     geomType: Optional[str] = "None"
     renderer: Optional[Dict[str, Any]] = None
+    collectionType = "VectorLayer"
     
     @property
     @deprecated(version="2.14", reason="Use elements")
@@ -58,8 +58,7 @@ class RasterLayer(
     Collection, 
     detachable={"elements"}, 
     speckle_type="Objects.GIS.RasterLayer", 
-    serialize_ignore={"features"},
-    collectionType = "RasterLayer"):
+    serialize_ignore={"features"}):
 
     """GIS Raster Layer"""
 
@@ -70,6 +69,7 @@ class RasterLayer(
     elements: Optional[List[Base]] = None
     geomType: Optional[str] = "None"
     renderer: Optional[Dict[str, Any]] = None
+    collectionType = "RasterLayer"
 
     
     @property
