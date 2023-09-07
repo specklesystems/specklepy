@@ -1,17 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel
-from pydantic.config import Extra
 
-
-class AbstractTransport(ABC, BaseModel):
-    _name: str = "Abstract"
-    model_config = {'extra': 'allow', 'arbitrary_types_allowed': True}
-
+class AbstractTransport(ABC):
     @property
+    @abstractmethod
     def name(self):
-        return type(self)._name
+        pass
 
     @abstractmethod
     def begin_write(self) -> None:
