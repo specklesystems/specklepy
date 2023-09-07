@@ -11,8 +11,8 @@ from specklepy.api.models import (
 from specklepy.logging.exceptions import (
     GraphQLException,
     SpeckleException,
-    UnsupportedException,
 )
+from devtools import debug
 
 
 @pytest.mark.run(order=3)
@@ -200,6 +200,9 @@ class TestStream:
 
     def test_stream_activity(self, client: SpeckleClient, stream: Stream):
         activity = client.stream.activity(stream.id)
+
+        if isinstance(activity, SpeckleException):
+            debug(activity.with_traceback())
 
         older_activity = client.stream.activity(
             stream.id, before=activity.items[0].time
