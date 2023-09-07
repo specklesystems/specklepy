@@ -17,7 +17,7 @@ class TestSerialization:
         deserialized = operations.deserialize(serialized)
 
         assert base.get_id() == deserialized.get_id()
-        assert base.units == "mm"
+        assert base.units == "millimetres"
         assert isinstance(base.test_bases[0], Base)
         assert base["@revit_thing"].speckle_type == "SpecialRevitFamily"
         assert base["@detach"].name == deserialized["@detach"].name
