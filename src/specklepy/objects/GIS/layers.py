@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Union, Optional
 from specklepy.objects.base import Base
 from specklepy.objects.other import Collection
 
@@ -28,6 +28,61 @@ class Layer(Base, detachable={"features"}):
         self.geomType = geomType
         self.renderer = renderer or {} 
 
+@deprecated(version="2.16", reason="Use VectorLayer or RasterLayer instead")
+class VectorLayer(
+    Collection, 
+    detachable={"elements"}, 
+    speckle_type="VectorLayer", 
+    serialize_ignore={"features"}):
+
+    """GIS Vector Layer"""
+    name: Optional[str]=None
+    crs: Optional[Union[CRS, Base]]=None
+    units: Optional[str] = None
+    elements: Optional[List[Base]] = None
+    attributes: Optional[Base] = None
+    geomType: Optional[str] = "None"
+    renderer: Optional[Dict[str, Any]] = None
+    collectionType = "VectorLayer"
+    
+    @property
+    @deprecated(version="2.14", reason="Use elements")
+    def features(self) -> Optional[List[Base]]:
+        return self.elements
+
+    @features.setter
+    def features(self, value: Optional[List[Base]]) -> None:
+        self.elements = value
+
+@deprecated(version="2.16", reason="Use VectorLayer or RasterLayer instead")
+class RasterLayer(
+    Collection, 
+    detachable={"elements"}, 
+    speckle_type="RasterLayer", 
+    serialize_ignore={"features"}):
+
+    """GIS Raster Layer"""
+
+    name: Optional[str] = None
+    crs: Optional[Union[CRS, Base]]=None
+    units: Optional[str] = None
+    rasterCrs: Optional[Union[CRS, Base]]=None
+    elements: Optional[List[Base]] = None
+    geomType: Optional[str] = "None"
+    renderer: Optional[Dict[str, Any]] = None
+    collectionType = "RasterLayer"
+
+    
+    @property
+    @deprecated(version="2.14", reason="Use elements")
+    def features(self) -> Optional[List[Base]]:
+        return self.elements
+
+    @features.setter
+    def features(self, value: Optional[List[Base]]) -> None:
+        self.elements = value
+
+
 class VectorLayer(
     Collection, 
     detachable={"elements"}, 
@@ -37,7 +92,7 @@ class VectorLayer(
     """GIS Vector Layer"""
 
     name: Optional[str]=None
-    crs: Optional[CRS]=None
+    crs: Optional[Union[CRS, Base]]=None
     units: Optional[str] = None
     elements: Optional[List[Base]] = None
     attributes: Optional[Base] = None
@@ -63,9 +118,9 @@ class RasterLayer(
     """GIS Raster Layer"""
 
     name: Optional[str] = None
-    crs: Optional[CRS]=None
+    crs: Optional[Union[CRS, Base]]=None
     units: Optional[str] = None
-    rasterCrs: Optional[CRS]=None
+    rasterCrs: Optional[Union[CRS, Base]]=None
     elements: Optional[List[Base]] = None
     geomType: Optional[str] = "None"
     renderer: Optional[Dict[str, Any]] = None
