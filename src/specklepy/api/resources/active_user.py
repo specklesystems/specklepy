@@ -8,10 +8,10 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 
-NAME = "active_user"
+from specklepy.core.api.resources.active_user import Resource as CoreResource
 
 
-class Resource(ResourceBase):
+class Resource(CoreResource):
     """API Access class for users"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
@@ -19,7 +19,6 @@ class Resource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
             server_version=server_version,
         )
         self.schema = User
@@ -35,28 +34,8 @@ class Resource(ResourceBase):
         Returns:
             User -- the retrieved user
         """
-        metrics.track(metrics.USER, self.account, {"name": "get"})
-        query = gql(
-            """
-            query User {
-                activeUser {
-                    id
-                    email
-                    name
-                    bio
-                    company
-                    avatar
-                    verified
-                    profiles
-                    role
-                }
-            }
-          """
-        )
-
-        params = {}
-
-        return self.make_request(query=query, params=params, return_type="activeUser")
+        metrics.track(metrics.SDK, custom_props={"name": "User Active Get"})
+        return super().get()
 
     def update(
         self,
@@ -76,28 +55,8 @@ class Resource(ResourceBase):
         Returns    @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT):
             bool -- True if your profile was updated successfully
         """
-        metrics.track(metrics.USER, self.account, {"name": "update"})
-        query = gql(
-            """
-            mutation UserUpdate($user: UserUpdateInput!) {
-                userUpdate(user: $user)
-            }
-            """
-        )
-        params = {"name": name, "company": company, "bio": bio, "avatar": avatar}
-
-        params = {"user": {k: v for k, v in params.items() if v is not None}}
-
-        if not params["user"]:
-            return SpeckleException(
-                message=(
-                    "You must provide at least one field to update your user profile"
-                )
-            )
-
-        return self.make_request(
-            query=query, params=params, return_type="userUpdate", parse_response=False
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "User Active Update"})
+        return super().update(name, company, bio, avatar)
 
     def activity(
         self,
@@ -126,56 +85,8 @@ class Resource(ResourceBase):
             (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
-
-        query = gql(
-            """
-            query UserActivity(
-                $action_type: String,
-                $before:DateTime,
-                $after: DateTime,
-                $cursor: DateTime,
-                $limit: Int
-                ){
-                activeUser {
-                    activity(
-                        actionType: $action_type,
-                        before: $before,
-                        after: $after,
-                        cursor: $cursor,
-                        limit: $limit
-                        ) {
-                        totalCount
-                        cursor
-                        items {
-                            actionType
-                            info
-                            userId
-                            streamId
-                            resourceId
-                            resourceType
-                            message
-                            time
-                        }
-                    }
-                }
-            }
-            """
-        )
-
-        params = {
-            "limit": limit,
-            "action_type": action_type,
-            "before": before.astimezone(timezone.utc).isoformat() if before else before,
-            "after": after.astimezone(timezone.utc).isoformat() if after else after,
-            "cursor": cursor.astimezone(timezone.utc).isoformat() if cursor else cursor,
-        }
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type=["activeUser", "activity"],
-            schema=ActivityCollection,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "User Active Activity"})
+        return super().activity(limit, action_type, before, after, cursor)
 
     def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
         """Get all of the active user's pending stream invites
@@ -186,36 +97,8 @@ class Resource(ResourceBase):
             List[PendingStreamCollaborator]
             -- a list of pending invites for the current user
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            query StreamInvites {
-                streamInvites{
-                    id
-                    token
-                    inviteId
-                    streamId
-                    streamName
-                    title
-                    role
-                    invitedBy {
-                        id
-                        name
-                        company
-                        avatar
-                    }
-                }
-            }
-            """
-        )
-
-        return self.make_request(
-            query=query,
-            return_type="streamInvites",
-            schema=PendingStreamCollaborator,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "User Active Invites All Get"})
+        return super().get_all_pending_invites()
 
     def get_pending_invite(
         self, stream_id: str, token: Optional[str] = None
@@ -233,37 +116,5 @@ class Resource(ResourceBase):
             PendingStreamCollaborator
             -- the invite for the given stream (or None if it isn't found)
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            query StreamInvite($streamId: String!, $token: String) {
-                streamInvite(streamId: $streamId, token: $token) {
-                    id
-                    token
-                    streamId
-                    streamName
-                    title
-                    role
-                    invitedBy {
-                        id
-                        name
-                        company
-                        avatar
-                    }
-                }
-            }
-            """
-        )
-
-        params = {"streamId": stream_id}
-        if token:
-            params["token"] = token
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamInvite",
-            schema=PendingStreamCollaborator,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "User Active Invite Get"})
+        return super().get_pending_invite(stream_id, token)

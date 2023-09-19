@@ -44,3 +44,12 @@ def test_accounts_folder_name_override():
     speckle_path_provider.override_accounts_folder_name(new_folder_name)
     assert speckle_path_provider._accounts_folder_name == new_folder_name
     speckle_path_provider.override_accounts_folder_name(old_folder_name)
+
+
+def test_connector_installation_path():
+    host_application = "test application"
+    connector_path = speckle_path_provider.user_speckle_connector_installation_path(
+        host_application
+    )
+    assert "connector_installations" in str(connector_path)
+    assert str(connector_path).endswith(host_application)

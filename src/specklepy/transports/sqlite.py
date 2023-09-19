@@ -9,31 +9,22 @@ from specklepy.transports.abstract_transport import AbstractTransport
 
 
 class SQLiteTransport(AbstractTransport):
-    _name = "SQLite"
-    _base_path: Optional[str] = None
-    _root_path: Optional[str] = None
-    __connection: Optional[sqlite3.Connection] = None
-    app_name: str = ""
-    scope: str = ""
-    saved_obj_count: int = 0
-    max_size: Optional[int] = None
-    _current_batch: Optional[List[Tuple[str, str]]] = None
-    _current_batch_size: Optional[int] = None
-
     def __init__(
         self,
         base_path: Optional[str] = None,
         app_name: Optional[str] = None,
         scope: Optional[str] = None,
         max_batch_size_mb: float = 10.0,
-        **data: Any,
+        name: str = "SQLite",
     ) -> None:
-        super().__init__(**data)
+        super().__init__()
+        self._name = name
         self.app_name = app_name or "Speckle"
         self.scope = scope or "Objects"
         self._base_path = base_path or self.get_base_path(self.app_name)
         self.max_size = int(max_batch_size_mb * 1000 * 1000)
-        self._current_batch = []
+        self.saved_obj_count = 0
+        self._current_batch: List[Tuple[str, str]] = []
         self._current_batch_size = 0
 
         try:
@@ -54,24 +45,12 @@ class SQLiteTransport(AbstractTransport):
     def __repr__(self) -> str:
         return f"SQLiteTransport(app: '{self.app_name}', scope: '{self.scope}')"
 
+    @property
+    def name(self) -> str:
+        return self._name
+
     @staticmethod
     def get_base_path(app_name):
-        # # from appdirs https://github.com/ActiveState/appdirs/blob/master/appdirs.py
-        # # default mac path is not the one we use (we use unix path), so using special case for this
-        # system = sys.platform
-        # if system.startswith("java"):
-        #     import platform
-
-        #     os_name = platform.java_ver()[3][0]
-        #     if os_name.startswith("Mac"):
-        #         system = "darwin"
-
-        # if system != "darwin":
-        #     return user_data_dir(appname=app_name, appauthor=False, roaming=True)
-
-        # path = os.path.expanduser("~/.config/")
-        # return os.path.join(path, app_name)
-
         return str(
             speckle_path_provider.user_application_data_path().joinpath(app_name)
         )

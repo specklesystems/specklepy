@@ -6,10 +6,11 @@ from gql import gql
 
 from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
 from specklepy.api.resource import ResourceBase
-from specklepy.logging import metrics
+
 from specklepy.logging.exceptions import SpeckleException
 
-NAME = "user"
+from specklepy.logging import metrics
+from specklepy.core.api.resources.user import Resource as CoreResource
 
 DEPRECATION_VERSION = "2.9.0"
 DEPRECATION_TEXT = (
@@ -18,7 +19,7 @@ DEPRECATION_TEXT = (
 )
 
 
-class Resource(ResourceBase):
+class Resource(CoreResource):
     """API Access class for users"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
@@ -26,7 +27,6 @@ class Resource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
             server_version=server_version,
         )
         self.schema = User
@@ -44,29 +44,9 @@ class Resource(ResourceBase):
         Returns:
             User -- the retrieved user
         """
-        metrics.track(metrics.USER, self.account, {"name": "get"})
-        query = gql(
-            """
-            query User($id: String) {
-                user(id: $id) {
-                    id
-                    email
-                    name
-                    bio
-                    company
-                    avatar
-                    verified
-                    profiles
-                    role
-                }
-            }
-          """
-        )
-
-        params = {"id": id}
-
-        return self.make_request(query=query, params=params, return_type="user")
-
+        metrics.track(metrics.SDK, self.account, {"name": "User Get_deprecated"})
+        return super().get(id)
+        
     @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT)
     def search(
         self, search_query: str, limit: int = 25
@@ -81,33 +61,8 @@ class Resource(ResourceBase):
         Returns:
             List[User] -- a list of User objects that match the search query
         """
-        if len(search_query) < 3:
-            return SpeckleException(
-                message="User search query must be at least 3 characters"
-            )
-
-        metrics.track(metrics.USER, self.account, {"name": "search"})
-        query = gql(
-            """
-            query UserSearch($search_query: String!, $limit: Int!) {
-                userSearch(query: $search_query, limit: $limit) {
-                    items {
-                        id
-                        name
-                        bio
-                        company
-                        avatar
-                        verified
-                    }
-                }
-            }
-          """
-        )
-        params = {"search_query": search_query, "limit": limit}
-
-        return self.make_request(
-            query=query, params=params, return_type=["userSearch", "items"]
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "User Search_deprecated"})
+        return super().search(search_query, limit)
 
     @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT)
     def update(
@@ -128,28 +83,9 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if your profile was updated successfully
         """
-        metrics.track(metrics.USER, self.account, {"name": "update"})
-        query = gql(
-            """
-            mutation UserUpdate($user: UserUpdateInput!) {
-                userUpdate(user: $user)
-            }
-            """
-        )
-        params = {"name": name, "company": company, "bio": bio, "avatar": avatar}
-
-        params = {"user": {k: v for k, v in params.items() if v is not None}}
-
-        if not params["user"]:
-            return SpeckleException(
-                message=(
-                    "You must provide at least one field to update your user profile"
-                )
-            )
-
-        return self.make_request(
-            query=query, params=params, return_type="userUpdate", parse_response=False
-        )
+        #metrics.track(metrics.USER, self.account, {"name": "update"})
+        metrics.track(metrics.SDK, self.account, {"name": "User Update_deprecated"})
+        return super().update(name, company, bio, avatar)
 
     @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT)
     def activity(
@@ -180,58 +116,9 @@ class Resource(ResourceBase):
             -- oldest cutoff for activity (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
-
-        query = gql(
-            """
-            query UserActivity(
-                $user_id: String,
-                $action_type: String,
-                $before:DateTime,
-                $after: DateTime,
-                $cursor: DateTime,
-                $limit: Int
-                ){
-                user(id: $user_id) {
-                    activity(
-                        actionType: $action_type,
-                        before: $before,
-                        after: $after,
-                        cursor: $cursor,
-                        limit: $limit
-                        ) {
-                        totalCount
-                        cursor
-                        items {
-                            actionType
-                            info
-                            userId
-                            streamId
-                            resourceId
-                            resourceType
-                            message
-                            time
-                        }
-                    }
-                }
-            }
-            """
-        )
-
-        params = {
-            "user_id": user_id,
-            "limit": limit,
-            "action_type": action_type,
-            "before": before.astimezone(timezone.utc).isoformat() if before else before,
-            "after": after.astimezone(timezone.utc).isoformat() if after else after,
-            "cursor": cursor.astimezone(timezone.utc).isoformat() if cursor else cursor,
-        }
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type=["user", "activity"],
-            schema=ActivityCollection,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "User Activity_deprecated"})
+        return super().activity(user_id, limit, action_type, before, after, cursor)
+        
 
     @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT)
     def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
@@ -243,36 +130,10 @@ class Resource(ResourceBase):
             List[PendingStreamCollaborator]
                 -- a list of pending invites for the current user
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            query StreamInvites {
-                streamInvites{
-                    id
-                    token
-                    inviteId
-                    streamId
-                    streamName
-                    title
-                    role
-                    invitedBy {
-                        id
-                        name
-                        company
-                        avatar
-                    }
-                }
-            }
-            """
-        )
-
-        return self.make_request(
-            query=query,
-            return_type="streamInvites",
-            schema=PendingStreamCollaborator,
-        )
+        #metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "User GetAllInvites_deprecated"})
+        return super().get_all_pending_invites()
+        
 
     @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT)
     def get_pending_invite(
@@ -291,37 +152,7 @@ class Resource(ResourceBase):
             PendingStreamCollaborator
                 -- the invite for the given stream (or None if it isn't found)
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            query StreamInvite($streamId: String!, $token: String) {
-                streamInvite(streamId: $streamId, token: $token) {
-                    id
-                    token
-                    streamId
-                    streamName
-                    title
-                    role
-                    invitedBy {
-                        id
-                        name
-                        company
-                        avatar
-                    }
-                }
-            }
-            """
-        )
-
-        params = {"streamId": stream_id}
-        if token:
-            params["token"] = token
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamInvite",
-            schema=PendingStreamCollaborator,
-        )
+        #metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        metrics.track(metrics.SDK, self.account, {"name": "User GetInvite_deprecated"})
+        return super().get_pending_invite(stream_id, token)
+        

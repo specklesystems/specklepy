@@ -23,23 +23,25 @@ LOG = logging.getLogger(__name__)
 METRICS_TRACKER = None
 
 # actions
+SDK = "SDK Action"
+CONNECTOR = "Connector Action"
 RECEIVE = "Receive"
 SEND = "Send"
-STREAM = "Stream Action"
-PERMISSION = "Permission Action"
-INVITE = "Invite Action"
-COMMIT = "Commit Action"
-BRANCH = "Branch Action"
-USER = "User Action"
-OTHER_USER = "Other User Action"
-SERVER = "Server Action"
-CLIENT = "Speckle Client"
-STREAM_WRAPPER = "Stream Wrapper"
 
+# not in use since 2.15  
 ACCOUNTS = "Get Local Accounts"
-
-SERIALIZE = "serialization/serialize"
+BRANCH = "Branch Action"
+CLIENT = "Speckle Client"
+COMMIT = "Commit Action"
 DESERIALIZE = "serialization/deserialize"
+INVITE = "Invite Action"
+OTHER_USER = "Other User Action"
+PERMISSION = "Permission Action"
+SERIALIZE = "serialization/serialize"
+SERVER = "Server Action"
+STREAM = "Stream Action"
+STREAM_WRAPPER = "Stream Wrapper"
+USER = "User Action"
 
 
 def disable():
@@ -96,7 +98,7 @@ def initialise_tracker(account=None):
     if account and account.userInfo.email:
         METRICS_TRACKER.set_last_user(account.userInfo.email)
     if account and account.serverInfo.url:
-        METRICS_TRACKER.set_last_server(account.userInfo.email)
+        METRICS_TRACKER.set_last_server(account.serverInfo.url)
 
 
 class Singleton(type):
@@ -139,7 +141,9 @@ class MetricsTracker(metaclass=Singleton):
         self.last_server = self.hash(server)
 
     def hash(self, value: str):
-        return hashlib.md5(value.lower().encode("utf-8")).hexdigest().upper()
+        inputList = value.lower().split("://")
+        input = inputList[len(inputList)-1].split("/")[0].split('?')[0]
+        return hashlib.md5(input.encode("utf-8")).hexdigest().upper()
 
     def _send_tracking_requests(self):
         session = requests.Session()

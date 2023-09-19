@@ -4,8 +4,8 @@ from warnings import warn
 
 import requests
 
-from specklepy.api.client import SpeckleClient
-from specklepy.api.credentials import Account, get_account_from_token
+from specklepy.core.api.client import SpeckleClient
+from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
 
@@ -45,13 +45,6 @@ class ServerTransport(AbstractTransport):
     ```
     """
 
-    _name = "RemoteTransport"
-    url: Optional[str] = None
-    stream_id: Optional[str] = None
-    account: Optional[Account] = None
-    saved_obj_count: int = 0
-    session: Optional[requests.Session] = None
-
     def __init__(
         self,
         stream_id: str,
@@ -59,15 +52,18 @@ class ServerTransport(AbstractTransport):
         account: Optional[Account] = None,
         token: Optional[str] = None,
         url: Optional[str] = None,
-        **data: Any,
+        name: str = "RemoteTransport",
     ) -> None:
-        super().__init__(**data)
+        super().__init__()
         if client is None and account is None and token is None and url is None:
             raise SpeckleException(
                 "You must provide either a client or a token and url to construct a"
                 " ServerTransport."
             )
 
+        self._name = name
+        self.account = None
+        self.saved_obj_count = 0
         if account:
             self.account = account
             url = account.serverInfo.url
@@ -96,6 +92,10 @@ class ServerTransport(AbstractTransport):
         self.session.headers.update(
             {"Authorization": f"Bearer {self.account.token}", "Accept": "text/plain"}
         )
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     def begin_write(self) -> None:
         self.saved_obj_count = 0

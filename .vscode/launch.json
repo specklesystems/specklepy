@@ -5,6 +5,7 @@
   "version": "0.2.0",
   "configurations": [
 
+
     {
       "name": "Python: Current File",
       "type": "python",
@@ -17,8 +18,8 @@
       "name": "Pytest",
       "type": "python",
       "request": "launch",
-      "program": "poetry",
-      "args": ["run", "pytest"],
+      "program": "pytest",
+      "args": [],
       "console": "integratedTerminal",
       "justMyCode": true
     }

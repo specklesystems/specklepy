@@ -18,6 +18,7 @@ class BatchSender(object):
         stream_id,
         token,
         max_batch_size_mb=1,
+        max_batch_length=20000,
         batch_buffer_length=10,
         thread_count=4,
     ):
@@ -26,6 +27,7 @@ class BatchSender(object):
         self._token = token
 
         self.max_size = int(max_batch_size_mb * 1000 * 1000)
+        self.max_batch_length = int(max_batch_length)
         self._batches = queue.Queue(batch_buffer_length)
         self._crt_batch = []
         self._crt_batch_size = 0
@@ -39,7 +41,11 @@ class BatchSender(object):
             self._create_threads()
 
         crt_obj_size = len(obj)
-        if not self._crt_batch or self._crt_batch_size + crt_obj_size < self.max_size:
+        crt_batch_length = len(self._crt_batch)
+        if not self._crt_batch or (
+            self._crt_batch_size + crt_obj_size < self.max_size
+            and crt_batch_length < self.max_batch_length
+        ):
             self._crt_batch.append((id, obj))
             self._crt_batch_size += crt_obj_size
             return
@@ -90,17 +96,18 @@ class BatchSender(object):
             self._exception = self._exception or ex
             LOG.error("ServerTransport sending thread error: " + str(ex))
 
-    def _bg_send_batch(self, session, batch):
+    def _bg_send_batch(self, session: requests.Session, batch):
         object_ids = [obj[0] for obj in batch]
-        try:
-            server_has_object = session.post(
-                url=f"{self.server_url}/api/diff/{self.stream_id}",
-                data={"objects": json.dumps(object_ids)},
-            ).json()
-        except Exception as ex:
+        response = session.post(
+            url=f"{self.server_url}/api/diff/{self.stream_id}",
+            data={"objects": json.dumps(object_ids)},
+        )
+        if response.status_code == 403:
             raise SpeckleException(
                 f"Invalid credentials - cannot send objects to server {self.server_url}"
-            ) from ex
+            )
+        response.raise_for_status()
+        server_has_object = response.json()
 
         new_object_ids = [x for x in object_ids if not server_has_object[x]]
         new_object_ids = set(new_object_ids)
@@ -130,7 +137,7 @@ class BatchSender(object):
                 raise SpeckleException(
                     message=(
                         "Could not save the object to the server - status code"
-                        f" {r.status_code}"
+                        f" {r.status_code} ({r.text[:1000]})" 
                     )
                 )
         except json.JSONDecodeError as error:

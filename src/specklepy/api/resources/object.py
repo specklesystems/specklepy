@@ -5,10 +5,12 @@ from gql import gql
 from specklepy.api.resource import ResourceBase
 from specklepy.objects.base import Base
 
-NAME = "object"
+from specklepy.logging import metrics
+
+from specklepy.core.api.resources.object import Resource as CoreResource
 
 
-class Resource(ResourceBase):
+class Resource(CoreResource):
     """API Access class for objects"""
 
     def __init__(self, account, basepath, client) -> None:
@@ -16,7 +18,6 @@ class Resource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
         )
         self.schema = Base
 
@@ -31,31 +32,8 @@ class Resource(ResourceBase):
         Returns:
             Base -- the returned Base object
         """
-        query = gql(
-            """
-            query Object($stream_id: String!, $object_id: String!) {
-              stream(id: $stream_id) {
-                id
-                name
-                object(id: $object_id) {
-                  id
-                  speckleType
-                  applicationId
-                  createdAt
-                  totalChildrenCount
-                  data
-                }
-              }
-            }
-          """
-        )
-        params = {"stream_id": stream_id, "object_id": object_id}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type=["stream", "object", "data"],
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Object Get"})
+        return super().get(stream_id, object_id)
 
     def create(self, stream_id: str, objects: List[Dict]) -> str:
         """
@@ -78,15 +56,6 @@ class Resource(ResourceBase):
         Returns:
             str -- the id of the object
         """
-        query = gql(
-            """
-          mutation ObjectCreate($object_input: ObjectCreateInput!) {
-            objectCreate(objectInput: $object_input)
-        }
-          """
-        )
-        params = {"object_input": {"streamId": stream_id, "objects": objects}}
-
-        return self.make_request(
-            query=query, params=params, return_type="objectCreate", parse_response=False
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Object Create"})
+        return super().create(stream_id, objects)
+    

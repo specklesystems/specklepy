@@ -9,10 +9,10 @@ from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, UnsupportedException
 
-NAME = "stream"
+from specklepy.core.api.resources.stream import Resource as CoreResource
 
 
-class Resource(ResourceBase):
+class Resource(CoreResource):
     """API Access class for streams"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
@@ -20,7 +20,6 @@ class Resource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
             server_version=server_version,
         )
 
@@ -37,56 +36,8 @@ class Resource(ResourceBase):
         Returns:
             Stream -- the retrieved stream
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "get"})
-        query = gql(
-            """
-            query Stream($id: String!, $branch_limit: Int!, $commit_limit: Int!) {
-                stream(id: $id) {
-                    id
-                    name
-                    role
-                    description
-                    isPublic
-                    createdAt
-                    updatedAt
-                    commentCount
-                    favoritesCount
-                    collaborators {
-                        id
-                        name
-                        role
-                        avatar
-                    }
-                    branches(limit: $branch_limit) {
-                        totalCount
-                        cursor
-                        items {
-                            id
-                            name
-                            description
-                            commits(limit: $commit_limit) {
-                                totalCount
-                                cursor
-                                items {
-                                    id
-                                    message
-                                    authorId
-                                    createdAt
-                                    authorName
-                                    referencedObject
-                                    sourceApplication
-                                }
-                              }
-                          }
-                      }
-                }
-            }
-          """
-        )
-
-        params = {"id": id, "branch_limit": branch_limit, "commit_limit": commit_limit}
-
-        return self.make_request(query=query, params=params, return_type="stream")
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Get"})
+        return super().get(id, branch_limit, commit_limit)
 
     def list(self, stream_limit: int = 10) -> List[Stream]:
         """Get a list of the user's streams
@@ -97,50 +48,8 @@ class Resource(ResourceBase):
         Returns:
             List[Stream] -- A list of Stream objects
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "get"})
-        query = gql(
-            """
-            query User($stream_limit: Int!) {
-                user {
-                    id
-                    bio
-                    name
-                    email
-                    avatar
-                    company
-                    verified
-                    profiles
-                    role
-                    streams(limit: $stream_limit) {
-                        totalCount
-                        cursor
-                        items {
-                            id
-                            name
-                            role
-                            isPublic
-                            createdAt
-                            updatedAt
-                            description
-                            commentCount
-                            favoritesCount
-                            collaborators {
-                                id
-                                name
-                                role
-                            }
-                          }
-                      }
-                  }
-            }
-          """
-        )
-
-        params = {"stream_limit": stream_limit}
-
-        return self.make_request(
-            query=query, params=params, return_type=["user", "streams", "items"]
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream List"})
+        return super().list(stream_limit)
 
     def create(
         self,
@@ -159,25 +68,8 @@ class Resource(ResourceBase):
         Returns:
             id {str} -- the id of the newly created stream
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "create"})
-        query = gql(
-            """
-            mutation StreamCreate($stream: StreamCreateInput!) {
-              streamCreate(stream: $stream)
-            }
-        """
-        )
-        if len(name) < 3 and len(name) != 0:
-            return SpeckleException(
-                message="Stream Name must be at least 3 characters"
-            )
-        params = {
-            "stream": {"name": name, "description": description, "isPublic": is_public}
-        }
-
-        return self.make_request(
-            query=query, params=params, return_type="streamCreate", parse_response=False
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Create"})
+        return super().create(name, description, is_public)
 
     def update(
         self,
@@ -198,27 +90,8 @@ class Resource(ResourceBase):
         Returns:
             bool -- whether the stream update was successful
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "update"})
-        query = gql(
-            """
-            mutation StreamUpdate($stream: StreamUpdateInput!) {
-                streamUpdate(stream: $stream)
-            }
-        """
-        )
-
-        params = {
-            "id": id,
-            "name": name,
-            "description": description,
-            "isPublic": is_public,
-        }
-        # remove None values so graphql doesn't cry
-        params = {"stream": {k: v for k, v in params.items() if v is not None}}
-
-        return self.make_request(
-            query=query, params=params, return_type="streamUpdate", parse_response=False
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Update"})
+        return super().update(id, name, description, is_public)
 
     def delete(self, id: str) -> bool:
         """Delete a stream given its id
@@ -229,20 +102,8 @@ class Resource(ResourceBase):
         Returns:
             bool -- whether the deletion was successful
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "delete"})
-        query = gql(
-            """
-            mutation StreamDelete($id: String!) {
-                streamDelete(id: $id)
-            }
-            """
-        )
-
-        params = {"id": id}
-
-        return self.make_request(
-            query=query, params=params, return_type="streamDelete", parse_response=False
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Delete"})
+        return super().delete(id)
 
     def search(
         self,
@@ -262,67 +123,8 @@ class Resource(ResourceBase):
         Returns:
             List[Stream] -- a list of Streams that match the search query
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "search"})
-        query = gql(
-            """
-            query StreamSearch(
-                $search_query: String!,
-                $limit: Int!,
-                $branch_limit:Int!,
-                $commit_limit:Int!
-            ) {
-                streams(query: $search_query, limit: $limit) {
-                    items {
-                        id
-                        name
-                        role
-                        description
-                        isPublic
-                        createdAt
-                        updatedAt
-                        collaborators {
-                            id
-                            name
-                            role
-                            avatar
-                        }
-                        branches(limit: $branch_limit) {
-                            totalCount
-                            cursor
-                            items {
-                                id
-                                name
-                                description
-                                commits(limit: $commit_limit) {
-                                    totalCount
-                                    cursor
-                                    items {
-                                        id
-                                        referencedObject
-                                        message
-                                        authorName
-                                        authorId
-                                        createdAt
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-          """
-        )
-
-        params = {
-            "search_query": search_query,
-            "limit": limit,
-            "branch_limit": branch_limit,
-            "commit_limit": commit_limit,
-        }
-
-        return self.make_request(
-            query=query, params=params, return_type=["streams", "items"]
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Search"})
+        return super().search(search_query, limit, branch_limit, commit_limit)
 
     def favorite(self, stream_id: str, favorited: bool = True):
         """Favorite or unfavorite the given stream.
@@ -335,86 +137,8 @@ class Resource(ResourceBase):
         Returns:
             Stream -- the stream with its `id`, `name`, and `favoritedDate`
         """
-        metrics.track(metrics.STREAM, self.account, {"name": "favorite"})
-        query = gql(
-            """
-            mutation StreamFavorite($stream_id: String!, $favorited: Boolean!) {
-                streamFavorite(streamId: $stream_id, favorited: $favorited) {
-                    id
-                    name
-                    favoritedDate
-                    favoritesCount
-                }
-            }
-            """
-        )
-
-        params = {
-            "stream_id": stream_id,
-            "favorited": favorited,
-        }
-
-        return self.make_request(
-            query=query, params=params, return_type=["streamFavorite"]
-        )
-
-    @deprecated(
-        version="2.6.4",
-        reason=(
-            "As of Speckle Server v2.6.4, this method is deprecated. Users need to be"
-            " invited and accept the invite before being added to a stream"
-        ),
-    )
-    def grant_permission(self, stream_id: str, user_id: str, role: str):
-        """Grant permissions to a user on a given stream
-
-        Valid for Speckle Server version < 2.6.4
-
-        Arguments:
-            stream_id {str} -- the id of the stream to grant permissions to
-            user_id {str} -- the id of the user to grant permissions for
-            role {str} -- the role to grant the user
-
-        Returns:
-            bool -- True if the operation was successful
-        """
-        metrics.track(metrics.PERMISSION, self.account, {"name": "add", "role": role})
-        # we're checking for the actual version info, and if the version is 'dev' we treat it
-        # as an up to date instance
-        if self.server_version and (
-            self.server_version == ("dev",) or self.server_version >= (2, 6, 4)
-        ):
-            raise UnsupportedException(
-                "Server mutation `grant_permission` is no longer supported as of"
-                " Speckle Server v2.6.4. Please use the new `update_permission` method"
-                " to change an existing user's permission or use the `invite` method to"
-                " invite a user to a stream."
-            )
-
-        query = gql(
-            """
-            mutation StreamGrantPermission(
-                $permission_params: StreamGrantPermissionInput !
-                ) {
-                streamGrantPermission(permissionParams: $permission_params)
-            }
-            """
-        )
-
-        params = {
-            "permission_params": {
-                "streamId": stream_id,
-                "userId": user_id,
-                "role": role,
-            }
-        }
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamGrantPermission",
-            parse_response=False,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Favorite"})
+        return super().favorite(stream_id, favorited)
 
     def get_all_pending_invites(
         self, stream_id: str
@@ -431,46 +155,8 @@ class Resource(ResourceBase):
             List[PendingStreamCollaborator]
                 -- a list of pending invites for the specified stream
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "get"})
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            query StreamInvites($streamId: String!) {
-                stream(id: $streamId){
-                    pendingCollaborators {
-                        id
-                        token
-                        inviteId
-                        streamId
-                        streamName
-                        title
-                        role
-                        invitedBy{
-                            id
-                            name
-                            company
-                            avatar
-                        }
-                        user {
-                            id
-                            name
-                            company
-                            avatar
-                        }
-                    }
-                }
-            }
-            """
-        )
-        params = {"streamId": stream_id}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type=["stream", "pendingCollaborators"],
-            schema=PendingStreamCollaborator,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Get"})
+        return super().get_all_pending_invites(stream_id)
 
     def invite(
         self,
@@ -496,38 +182,8 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "create"})
-        self._check_invites_supported()
-
-        if email is None and user_id is None:
-            raise SpeckleException(
-                "You must provide either an email or a user id to use the"
-                " `stream.invite` method"
-            )
-
-        query = gql(
-            """
-            mutation StreamInviteCreate($input: StreamInviteCreateInput!) {
-                streamInviteCreate(input: $input)
-            }
-            """
-        )
-
-        params = {
-            "email": email,
-            "userId": user_id,
-            "streamId": stream_id,
-            "message": message,
-            "role": role,
-        }
-        params = {"input": {k: v for k, v in params.items() if v is not None}}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamInviteCreate",
-            parse_response=False,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Create"})
+        return super().invite(stream_id, email, user_id, role, message)
 
     def invite_batch(
         self,
@@ -552,42 +208,8 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "batch create"})
-        self._check_invites_supported()
-        if emails is None and user_ids is None:
-            raise SpeckleException(
-                "You must provide either an email or a user id to use the"
-                " `stream.invite` method"
-            )
-
-        query = gql(
-            """
-            mutation StreamInviteBatchCreate($input: [StreamInviteCreateInput!]!) {
-                streamInviteBatchCreate(input: $input)
-            }
-            """
-        )
-
-        email_invites = [
-            {"streamId": stream_id, "message": message, "email": email}
-            for email in emails
-            if emails is not None
-        ]
-
-        user_invites = [
-            {"streamId": stream_id, "message": message, "userId": user_id}
-            for user_id in user_ids
-            if user_ids is not None
-        ]
-
-        params = {"input": [*email_invites, *user_invites]}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamInviteBatchCreate",
-            parse_response=False,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Batch Create"})
+        return super().invite_batch(stream_id, emails, user_ids, message)
 
     def invite_cancel(self, stream_id: str, invite_id: str) -> bool:
         """Cancel an existing stream invite
@@ -601,25 +223,8 @@ class Resource(ResourceBase):
         Returns:
             bool -- true if the operation was successful
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "cancel"})
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            mutation StreamInviteCancel($streamId: String!, $inviteId: String!) {
-                streamInviteCancel(streamId: $streamId, inviteId: $inviteId)
-            }
-            """
-        )
-
-        params = {"streamId": stream_id, "inviteId": invite_id}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamInviteCancel",
-            parse_response=False,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Cancel"})
+        return super().invite_cancel(stream_id, invite_id)
 
     def invite_use(self, stream_id: str, token: str, accept: bool = True) -> bool:
         """Accept or decline a stream invite
@@ -635,29 +240,8 @@ class Resource(ResourceBase):
         Returns:
             bool -- true if the operation was successful
         """
-        metrics.track(metrics.INVITE, self.account, {"name": "use"})
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            mutation StreamInviteUse(
-                $accept: Boolean!,
-                $streamId: String!,
-                $token: String!
-                ) {
-                streamInviteUse(accept: $accept, streamId: $streamId, token: $token)
-            }
-            """
-        )
-
-        params = {"streamId": stream_id, "token": token, "accept": accept}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamInviteUse",
-            parse_response=False,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Invite Use"})
+        return super().invite_use(stream_id, token, accept)
 
     def update_permission(self, stream_id: str, user_id: str, role: str):
         """Updates permissions for a user on a given stream
@@ -672,41 +256,8 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(
-            metrics.PERMISSION, self.account, {"name": "update", "role": role}
-        )
-        if self.server_version and (
-            self.server_version != ("dev",) and self.server_version < (2, 6, 4)
-        ):
-            raise UnsupportedException(
-                "Server mutation `update_permission` is only supported as of Speckle"
-                " Server v2.6.4. Please update your Speckle Server to use this method"
-                " or use the `grant_permission` method instead."
-            )
-        query = gql(
-            """
-            mutation StreamUpdatePermission(
-                $permission_params: StreamUpdatePermissionInput!
-                ) {
-                streamUpdatePermission(permissionParams: $permission_params)
-            }
-            """
-        )
-
-        params = {
-            "permission_params": {
-                "streamId": stream_id,
-                "userId": user_id,
-                "role": role,
-            }
-        }
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamUpdatePermission",
-            parse_response=False,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Permission Update", "role": role})
+        return super().update_permission(stream_id, user_id, role)
 
     def revoke_permission(self, stream_id: str, user_id: str):
         """Revoke permissions from a user on a given stream
@@ -718,25 +269,8 @@ class Resource(ResourceBase):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.PERMISSION, self.account, {"name": "revoke"})
-        query = gql(
-            """
-            mutation StreamRevokePermission(
-                $permission_params: StreamRevokePermissionInput!
-                ) {
-                streamRevokePermission(permissionParams: $permission_params)
-            }
-            """
-        )
-
-        params = {"permission_params": {"streamId": stream_id, "userId": user_id}}
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamRevokePermission",
-            parse_response=False,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Permission Revoke"})
+        return super().revoke_permission(stream_id, user_id)
 
     def activity(
         self,
@@ -765,64 +299,6 @@ class Resource(ResourceBase):
             -- oldest cutoff for activity (ie: return all activity _after_ this time)
         cursor {datetime} -- timestamp cursor for pagination
         """
-        query = gql(
-            """
-            query StreamActivity(
-                $stream_id: String!,
-                $action_type: String,
-                $before:DateTime,
-                $after: DateTime,
-                $cursor: DateTime,
-                $limit: Int
-                ){
-                stream(id: $stream_id) {
-                    activity(
-                        actionType: $action_type,
-                        before: $before,
-                        after: $after,
-                        cursor: $cursor,
-                        limit: $limit
-                        ) {
-                        totalCount
-                        cursor
-                        items {
-                            actionType
-                            info
-                            userId
-                            streamId
-                            resourceId
-                            resourceType
-                            message
-                            time
-                        }
-                    }
-                }
-            }
-            """
-        )
-        try:
-            params = {
-                "stream_id": stream_id,
-                "limit": limit,
-                "action_type": action_type,
-                "before": before.astimezone(timezone.utc).isoformat()
-                if before
-                else before,
-                "after": after.astimezone(timezone.utc).isoformat() if after else after,
-                "cursor": cursor.astimezone(timezone.utc).isoformat()
-                if cursor
-                else cursor,
-            }
-        except AttributeError as e:
-            raise SpeckleException(
-                "Could not get stream activity - `before`, `after`, and `cursor` must"
-                " be in `datetime` format if provided",
-                ValueError(),
-            ) from e
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type=["stream", "activity"],
-            schema=ActivityCollection,
-        )
+        metrics.track(metrics.SDK, self.account, {"name": "Stream Activity"})
+        return super().activity(stream_id, action_type, limit, before, after, cursor)
+    

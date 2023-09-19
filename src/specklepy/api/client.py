@@ -4,12 +4,14 @@ from warnings import warn
 
 from deprecated import deprecated
 from gql import Client
+from gql.transport.exceptions import TransportServerError
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
 
 from specklepy.api import resources
 from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.api.resources import (
+    user,
     active_user,
     branch,
     commit,
@@ -18,13 +20,14 @@ from specklepy.api.resources import (
     server,
     stream,
     subscriptions,
-    user,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
+from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 
-class SpeckleClient:
+
+class SpeckleClient(CoreSpeckleClient):
     """
     The `SpeckleClient` is your entry point for interacting with
     your Speckle Server's GraphQL API.
@@ -59,121 +62,11 @@ class SpeckleClient:
     USE_SSL = True
 
     def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL) -> None:
-        metrics.track(metrics.CLIENT, custom_props={"name": "create"})
-        ws_protocol = "ws"
-        http_protocol = "http"
-
-        if use_ssl:
-            ws_protocol = "wss"
-            http_protocol = "https"
-
-        # sanitise host input by removing protocol and trailing slash
-        host = re.sub(r"((^\w+:|^)\/\/)|(\/$)", "", host)
-
-        self.url = f"{http_protocol}://{host}"
-        self.graphql = f"{self.url}/graphql"
-        self.ws_url = f"{ws_protocol}://{host}/graphql"
+        super().__init__(
+            host=host,
+            use_ssl=use_ssl,
+        )
         self.account = Account()
-
-        self.httpclient = Client(
-            transport=RequestsHTTPTransport(url=self.graphql, verify=True, retries=3)
-        )
-        self.wsclient = None
-
-        self._init_resources()
-
-        # ? Check compatibility with the server - i think we can skip this at this point? save a request
-        # try:
-        #     server_info = self.server.get()
-        #     if isinstance(server_info, Exception):
-        #         raise server_info
-        #     if not isinstance(server_info, ServerInfo):
-        #         raise Exception("Couldn't get ServerInfo")
-        # except Exception as ex:
-        #     raise SpeckleException(
-        #         f"{self.url} is not a compatible Speckle Server", ex
-        #     ) from ex
-
-    def __repr__(self):
-        return (
-            f"SpeckleClient( server: {self.url}, authenticated:"
-            f" {self.account.token is not None} )"
-        )
-
-    @deprecated(
-        version="2.6.0",
-        reason=(
-            "Renamed: please use `authenticate_with_account` or"
-            " `authenticate_with_token` instead."
-        ),
-    )
-    def authenticate(self, token: str) -> None:
-        """Authenticate the client using a personal access token
-        The token is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            token {str} -- an api token
-        """
-        self.authenticate_with_token(token)
-        self._set_up_client()
-
-    def authenticate_with_token(self, token: str) -> None:
-        """
-        Authenticate the client using a personal access token.
-        The token is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            token {str} -- an api token
-        """
-        self.account = get_account_from_token(token, self.url)
-        metrics.track(metrics.CLIENT, self.account, {"name": "authenticate with token"})
-        self._set_up_client()
-
-    def authenticate_with_account(self, account: Account) -> None:
-        """Authenticate the client using an Account object
-        The account is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            account {Account} -- the account object which can be found with
-            `get_default_account` or `get_local_accounts`
-        """
-        metrics.track(metrics.CLIENT, account, {"name": "authenticate with account"})
-        self.account = account
-        self._set_up_client()
-
-    def _set_up_client(self) -> None:
-        metrics.track(metrics.CLIENT, self.account, {"name": "set up client"})
-        headers = {
-            "Authorization": f"Bearer {self.account.token}",
-            "Content-Type": "application/json",
-            "apollographql-client-name": metrics.HOST_APP,
-            "apollographql-client-version": metrics.HOST_APP_VERSION,
-        }
-        httptransport = RequestsHTTPTransport(
-            url=self.graphql, headers=headers, verify=True, retries=3
-        )
-        wstransport = WebsocketsTransport(
-            url=self.ws_url,
-            init_payload={"Authorization": f"Bearer {self.account.token}"},
-        )
-        self.httpclient = Client(transport=httptransport)
-        self.wsclient = Client(transport=wstransport)
-
-        self._init_resources()
-
-        if self.user.get() is None:
-            warn(
-                SpeckleWarning(
-                    "Possibly invalid token - could not authenticate Speckle Client"
-                    f" for server {self.url}"
-                )
-            )
-
-    def execute_query(self, query: str) -> Dict:
-        return self.httpclient.execute(query)
 
     def _init_resources(self) -> None:
         self.server = server.Resource(
@@ -223,13 +116,44 @@ class SpeckleClient:
             client=self.wsclient,
         )
 
-    def __getattr__(self, name):
-        try:
-            attr = getattr(resources, name)
-            return attr.Resource(
-                account=self.account, basepath=self.url, client=self.httpclient
-            )
-        except AttributeError:
-            raise SpeckleException(
-                f"Method {name} is not supported by the SpeckleClient class"
-            )
+    @deprecated(
+        version="2.6.0",
+        reason=(
+            "Renamed: please use `authenticate_with_account` or"
+            " `authenticate_with_token` instead."
+        ),
+    )
+    def authenticate(self, token: str) -> None:
+        """Authenticate the client using a personal access token
+        The token is saved in the client object and a synchronous GraphQL
+        entrypoint is created
+
+        Arguments:
+            token {str} -- an api token
+        """
+        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate_deprecated"})
+        return super().authenticate(token)
+
+    def authenticate_with_token(self, token: str) -> None:
+        """
+        Authenticate the client using a personal access token.
+        The token is saved in the client object and a synchronous GraphQL
+        entrypoint is created
+
+        Arguments:
+            token {str} -- an api token
+        """
+        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate With Token"})
+        return super().authenticate_with_token(token)
+
+    def authenticate_with_account(self, account: Account) -> None:
+        """Authenticate the client using an Account object
+        The account is saved in the client object and a synchronous GraphQL
+        entrypoint is created
+
+        Arguments:
+            account {Account} -- the account object which can be found with
+            `get_default_account` or `get_local_accounts`
+        """
+        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate With Account"})
+        return super().authenticate_with_account(account)
