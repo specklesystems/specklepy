@@ -5,7 +5,6 @@ from gql import gql
 from specklepy.api.models import Branch
 from specklepy.api.resource import ResourceBase
 from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException
 
 from specklepy.core.api.resources.branch import Resource as CoreResource
 
