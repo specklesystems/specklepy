@@ -161,7 +161,7 @@ class _RegisteringBase:
         chunkable: Optional[Dict[str, int]] = None,
         detachable: Optional[Set[str]] = None,
         serialize_ignore: Optional[Set[str]] = None,
-        speckle_type_translations: Optional[Dict[str, str]] = None,
+        speckle_type_translations: Optional[List[str]] = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -192,7 +192,9 @@ class _RegisteringBase:
         if serialize_ignore:
             cls._serialize_ignore = cls._serialize_ignore.union(serialize_ignore)
         if speckle_type_translations:
-            cls._translations.update(speckle_type_translations)
+            cls._translations.update(
+                {trans: cls.speckle_type for trans in speckle_type_translations}
+            )
         super().__init_subclass__(**kwargs)
 
 

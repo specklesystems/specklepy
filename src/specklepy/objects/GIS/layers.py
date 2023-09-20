@@ -36,7 +36,7 @@ class VectorLayer(
     detachable={"elements"},
     speckle_type="Objects.GIS.VectorLayer",
     serialize_ignore={"features"},
-    speckle_type_translations={"VectorLayer": "Objects.GIS.VectorLayer"},
+    speckle_type_translations=["VectorLayer"],
 ):
 
     """GIS Vector Layer"""
@@ -65,7 +65,7 @@ class RasterLayer(
     detachable={"elements"},
     speckle_type="Objects.GIS.RasterLayer",
     serialize_ignore={"features"},
-    speckle_type_translations={"RasterLayer": "Objects.GIS.RasterLayer"},
+    speckle_type_translations=["RasterLayer"],
 ):
 
     """GIS Raster Layer"""

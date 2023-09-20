@@ -184,7 +184,7 @@ def test_translations() -> None:
     class TrickyToTranslate(
         Base,
         speckle_type=speckle_type_override,
-        speckle_type_translations={translated_speckle_type: speckle_type_override},
+        speckle_type_translations=[translated_speckle_type],
     ):
         """This is just a test class with no body."""
 
