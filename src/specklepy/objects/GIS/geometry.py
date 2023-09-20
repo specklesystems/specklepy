@@ -1,15 +1,25 @@
+from typing import Optional, Union, List
+from specklepy.objects.geometry import (
+    Point,
+    Line,
+    Polyline,
+    Circle,
+    Arc,
+    Polycurve,
+    Mesh,
+)
+from specklepy.objects.base import Base
 
-from typing import Optional, Union, List 
-from specklepy.objects.geometry import Point, Line, Polyline, Circle, Arc, Polycurve, Mesh 
-from specklepy.objects import Base
-from deprecated import deprecated
 
-class GisPolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry", detachable={"displayValue"}):
+class GisPolygonGeometry(
+    Base, speckle_type="Objects.GIS.PolygonGeometry", detachable={"displayValue"}
+):
     """GIS Polygon Geometry"""
 
     boundary: Optional[Union[Polyline, Arc, Line, Circle, Polycurve]] = None
-    voids: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]] ] = None
+    voids: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]]] = None
     displayValue: Optional[List[Mesh]] = None
+
 
 class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
     """GIS Polygon element"""
@@ -17,19 +27,24 @@ class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
     geometry: Optional[List[GisPolygonGeometry]] = None
     attributes: Optional[Base] = None
 
+
 class GisLineElement(Base, speckle_type="Objects.GIS.LineElement"):
     """GIS Polyline element"""
 
-    geometry: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]]] = None,
-    attributes: Optional[Base] = None,
+    geometry: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]]] = (None,)
+    attributes: Optional[Base] = (None,)
+
 
 class GisPointElement(Base, speckle_type="Objects.GIS.PointElement"):
     """GIS Point element"""
 
-    geometry: Optional[List[Point]] = None,
-    attributes: Optional[Base] = None,
+    geometry: Optional[List[Point]] = (None,)
+    attributes: Optional[Base] = (None,)
 
-class GisRasterElement(Base, speckle_type="Objects.GIS.RasterElement", detachable={"displayValue"}):
+
+class GisRasterElement(
+    Base, speckle_type="Objects.GIS.RasterElement", detachable={"displayValue"}
+):
     """GIS Raster element"""
 
     band_count: Optional[int] = None
@@ -43,11 +58,16 @@ class GisRasterElement(Base, speckle_type="Objects.GIS.RasterElement", detachabl
     noDataValue: Optional[List[float]] = None
     displayValue: Optional[List[Mesh]] = None
 
-class GisTopography(GisRasterElement, speckle_type="Objects.GIS.GisTopography", detachable={"displayValue"}):
+
+class GisTopography(
+    GisRasterElement,
+    speckle_type="Objects.GIS.GisTopography",
+    detachable={"displayValue"},
+):
     """GIS Raster element with 3d Topography representation"""
+
 
 class GisNonGeometryElement(Base, speckle_type="Objects.GIS.NonGeometryElement"):
     """GIS Table feature"""
 
     attributes: Optional[Base] = None
-

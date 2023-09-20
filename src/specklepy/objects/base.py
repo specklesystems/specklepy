@@ -93,6 +93,7 @@ class _RegisteringBase:
     The type registry is a base for accurate type based (de)serialization.
     """
 
+    _translations: ClassVar[Dict[str, str]] = {}
     speckle_type: ClassVar[str]
     _speckle_type_override: ClassVar[Optional[str]] = None
     _speckle_namespace: ClassVar[Optional[str]] = None
@@ -108,7 +109,8 @@ class _RegisteringBase:
     def get_registered_type(cls, speckle_type: str) -> Optional[Type["Base"]]:
         """Get the registered type from the protected mapping via the `speckle_type`"""
         for full_name in reversed(speckle_type.split(":")):
-            maybe_type = cls._type_registry.get(full_name, None)
+            translated_name = cls._translations.get(full_name, full_name)
+            maybe_type = cls._type_registry.get(translated_name, None)
             if maybe_type:
                 return maybe_type
         return None
@@ -159,6 +161,7 @@ class _RegisteringBase:
         chunkable: Optional[Dict[str, int]] = None,
         detachable: Optional[Set[str]] = None,
         serialize_ignore: Optional[Set[str]] = None,
+        speckle_type_translations: Optional[Dict[str, str]] = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -188,6 +191,8 @@ class _RegisteringBase:
             cls._detachable = cls._detachable.union(detachable)
         if serialize_ignore:
             cls._serialize_ignore = cls._serialize_ignore.union(serialize_ignore)
+        if speckle_type_translations:
+            cls._translations.update(speckle_type_translations)
         super().__init_subclass__(**kwargs)
 
 

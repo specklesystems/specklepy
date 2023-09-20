@@ -1,5 +1,5 @@
 from typing import Optional
-from specklepy.objects import Base
+from specklepy.objects.base import Base
 
 
 class CRS(Base, speckle_type="Objects.GIS.CRS"):
