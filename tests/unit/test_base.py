@@ -171,3 +171,25 @@ def test_cached_deserialization() -> None:
     deserialized = operations.deserialize(serialized)
 
     assert deserialized["a"]["@material"] is deserialized["b"]["@material"]
+
+
+def test_translations() -> None:
+    speckle_type_override = "TrickyToTranslate"
+    translated_speckle_type = "ItMeansThis🪂"
+
+    maybe_type = Base.get_registered_type(speckle_type_override)
+
+    assert maybe_type == None
+
+    class TrickyToTranslate(
+        Base,
+        speckle_type=speckle_type_override,
+        speckle_type_translations={translated_speckle_type: speckle_type_override},
+    ):
+        """This is just a test class with no body."""
+
+    maybe_type = Base.get_registered_type(speckle_type_override)
+    assert maybe_type == TrickyToTranslate
+
+    maybe_type = Base.get_registered_type(translated_speckle_type)
+    assert maybe_type == TrickyToTranslate
