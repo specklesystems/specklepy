@@ -66,6 +66,9 @@ def execute_automate_function(
             raise ValueError("Cannot get speckle token from arguments or environment")
 
         speckle_token = speckle_token if speckle_token else args[3]
+        automation_context = AutomationContext.initialize(
+            automation_run_data, speckle_token
+        )
 
         inputs = (
             input_schema.model_validate_json(function_inputs)
@@ -75,16 +78,14 @@ def execute_automate_function(
 
         if inputs:
             automation_context = run_function(
+                automation_context,
                 automate_function,  # type: ignore
-                automation_run_data,
-                speckle_token,
                 inputs,
             )
         else:
             automation_context = run_function(
+                automation_context,
                 automate_function,  # type: ignore
-                automation_run_data,
-                speckle_token,
             )
 
         exit_code = (
@@ -98,9 +99,8 @@ def execute_automate_function(
 
 @overload
 def run_function(
+    automation_context: AutomationContext,
     automate_function: AutomateFunction[T],
-    automation_run_data: Union[AutomationRunData, str],
-    speckle_token: str,
     inputs: T,
 ) -> AutomationContext:
     ...
@@ -108,23 +108,18 @@ def run_function(
 
 @overload
 def run_function(
+    automation_context: AutomationContext,
     automate_function: AutomateFunctionWithoutInputs,
-    automation_run_data: Union[AutomationRunData, str],
-    speckle_token: str,
 ) -> AutomationContext:
     ...
 
 
 def run_function(
+    automation_context: AutomationContext,
     automate_function: Union[AutomateFunction[T], AutomateFunctionWithoutInputs],
-    automation_run_data: Union[AutomationRunData, str],
-    speckle_token: str,
     inputs: Optional[T] = None,
 ) -> AutomationContext:
     """Run the provided function with the automate sdk context."""
-    automation_context = AutomationContext.initialize(
-        automation_run_data, speckle_token
-    )
     automation_context.report_run_status()
 
     try:

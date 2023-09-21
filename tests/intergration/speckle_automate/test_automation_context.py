@@ -143,6 +143,14 @@ def automation_run_data(
     )
 
 
+@pytest.fixture()
+def automation_context(
+    automation_run_data: AutomationRunData, speckle_token: str
+) -> AutomationContext:
+    """Set up the run context."""
+    return AutomationContext.initialize(automation_run_data, speckle_token)
+
+
 def get_automation_status(
     project_id: str,
     model_id: str,
@@ -200,17 +208,17 @@ class FunctionInputs(AutomateBase):
 
 
 def automate_function(
-    automate_context: AutomationContext,
+    automation_context: AutomationContext,
     function_inputs: FunctionInputs,
 ) -> None:
     """Hey, trying the automate sdk experience here."""
-    version_root_object = automate_context.receive_version()
+    version_root_object = automation_context.receive_version()
 
     count = 0
     if version_root_object.speckle_type == function_inputs.forbidden_speckle_type:
         if not version_root_object.id:
             raise ValueError("Cannot operate on objects without their id's.")
-        automate_context.add_object_error(
+        automation_context.add_object_error(
             version_root_object.id,
             "This project should not contain the type: "
             f"{function_inputs.forbidden_speckle_type}",
@@ -218,34 +226,33 @@ def automate_function(
         count += 1
 
     if count > 0:
-        automate_context.mark_run_failed(
+        automation_context.mark_run_failed(
             "Automation failed: "
             f"Found {count} object that have a forbidden speckle type: "
             f"{function_inputs.forbidden_speckle_type}"
         )
 
     else:
-        automate_context.mark_run_success("No forbidden types found.")
+        automation_context.mark_run_success("No forbidden types found.")
 
 
-def test_function_run(automation_run_data: AutomationRunData, speckle_token: str):
+def test_function_run(automation_context: AutomationContext, speckle_token: str):
     """Run an integration test for the automate function."""
     automation_context = run_function(
+        automation_context,
         automate_function,
-        automation_run_data,
-        speckle_token,
         FunctionInputs(forbidden_speckle_type="Base"),
     )
 
     assert automation_context.run_status == AutomationStatus.FAILED
     status = get_automation_status(
-        automation_run_data.project_id,
-        automation_run_data.model_id,
+        automation_context.automation_run_data.project_id,
+        automation_context.automation_run_data.model_id,
         automation_context.speckle_client,
     )
     assert status["status"] == automation_context.run_status
     status_message = status["automationRuns"][0]["functionRuns"][0]["statusMessage"]
-    assert status_message == automation_context._automation_result.status_message
+    assert status_message == automation_context.status_message
 
 
 def test_file_uploads(automation_run_data: AutomationRunData, speckle_token: str):

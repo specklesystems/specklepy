@@ -82,6 +82,11 @@ class AutomationContext:
         """Get the status of the automation run."""
         return self._automation_result.run_status
 
+    @property
+    def status_message(self) -> str:
+        """Get the current status message."""
+        return self._automation_result.status_message
+
     def elapsed(self) -> float:
         """Return the elapsed time in seconds since the initialization time."""
         return time.perf_counter() - self._init_time
