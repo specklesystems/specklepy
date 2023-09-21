@@ -1,13 +1,12 @@
 """Run integration tests with a speckle server."""
 import os
-import secrets
-import string
 from pathlib import Path
 from typing import Dict
 
 import pytest
 from gql import gql
 from speckle_automate.schema import AutomateBase
+from speckle_automate.helpers import register_new_automation, crypto_random_string
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.objects.base import Base
@@ -19,54 +18,6 @@ from speckle_automate import (
     AutomationStatus,
     run_function,
 )
-
-
-def crypto_random_string(length: int) -> str:
-    """Generate a semi crypto random string of a given length."""
-    alphabet = string.ascii_letters + string.digits
-    return "".join(secrets.choice(alphabet) for _ in range(length))
-
-
-def register_new_automation(
-    project_id: str,
-    model_id: str,
-    speckle_client: SpeckleClient,
-    automation_id: str,
-    automation_name: str,
-    automation_revision_id: str,
-):
-    """Register a new automation in the speckle server."""
-    query = gql(
-        """
-        mutation CreateAutomation(
-            $projectId: String! 
-            $modelId: String! 
-            $automationName: String!
-            $automationId: String! 
-            $automationRevisionId: String!
-        ) {
-                automationMutations {
-                    create(
-                        input: {
-                            projectId: $projectId
-                            modelId: $modelId
-                            automationName: $automationName 
-                            automationId: $automationId
-                            automationRevisionId: $automationRevisionId
-                        }
-                    )
-                }
-            }
-        """
-    )
-    params = {
-        "projectId": project_id,
-        "modelId": model_id,
-        "automationName": automation_name,
-        "automationId": automation_id,
-        "automationRevisionId": automation_revision_id,
-    }
-    speckle_client.httpclient.execute(query, params)
 
 
 @pytest.fixture()
@@ -118,9 +69,9 @@ def automation_run_data(
     automation_revision_id = crypto_random_string(10)
 
     register_new_automation(
+        test_client,
         project_id,
         model_id,
-        test_client,
         automation_id,
         automation_name,
         automation_revision_id,
@@ -128,7 +79,7 @@ def automation_run_data(
 
     automation_run_id = crypto_random_string(10)
     function_id = crypto_random_string(10)
-    function_revision = crypto_random_string(10)
+    function_release = crypto_random_string(10)
     return AutomationRunData(
         project_id=project_id,
         model_id=model_id,
@@ -139,7 +90,7 @@ def automation_run_data(
         automation_revision_id=automation_revision_id,
         automation_run_id=automation_run_id,
         function_id=function_id,
-        function_revision=function_revision,
+        function_release=function_release,
     )
 
 

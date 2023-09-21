@@ -27,7 +27,7 @@ class AutomationRunData(BaseModel):
     automation_run_id: str
 
     function_id: str
-    function_revision: str
+    function_release: str
 
     model_config = ConfigDict(
         alias_generator=camelcase, populate_by_name=True, protected_namespaces=()
