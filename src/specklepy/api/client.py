@@ -1,14 +1,8 @@
-import re
-from typing import Dict
-from warnings import warn
-
 from deprecated import deprecated
-from gql import Client
 from gql.transport.exceptions import TransportServerError
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
 
-from specklepy.api import resources
 from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.api.resources import (
     user,
@@ -131,7 +125,9 @@ class SpeckleClient(CoreSpeckleClient):
         Arguments:
             token {str} -- an api token
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate_deprecated"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Client Authenticate_deprecated"}
+        )
         return super().authenticate(token)
 
     def authenticate_with_token(self, token: str) -> None:
@@ -143,7 +139,9 @@ class SpeckleClient(CoreSpeckleClient):
         Arguments:
             token {str} -- an api token
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate With Token"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Client Authenticate With Token"}
+        )
         return super().authenticate_with_token(token)
 
     def authenticate_with_account(self, account: Account) -> None:
@@ -155,5 +153,7 @@ class SpeckleClient(CoreSpeckleClient):
             account {Account} -- the account object which can be found with
             `get_default_account` or `get_local_accounts`
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate With Account"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Client Authenticate With Account"}
+        )
         return super().authenticate_with_account(account)

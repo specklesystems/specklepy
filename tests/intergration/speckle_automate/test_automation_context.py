@@ -20,19 +20,19 @@ from speckle_automate import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def speckle_token(user_dict: Dict[str, str]) -> str:
     """Provide a speckle token for the test suite."""
     return user_dict["token"]
 
 
-@pytest.fixture()
+@pytest.fixture
 def speckle_server_url(host: str) -> str:
     """Provide a speckle server url for the test suite, default to localhost."""
     return f"http://{host}"
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_client(speckle_server_url: str, speckle_token: str) -> SpeckleClient:
     """Initialize a SpeckleClient for testing."""
     test_client = SpeckleClient(speckle_server_url, use_ssl=False)
@@ -40,7 +40,7 @@ def test_client(speckle_server_url: str, speckle_token: str) -> SpeckleClient:
     return test_client
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_object() -> Base:
     """Create a Base model for testing."""
     root_object = Base()
@@ -48,7 +48,7 @@ def test_object() -> Base:
     return root_object
 
 
-@pytest.fixture()
+@pytest.fixture
 def automation_run_data(
     test_object: Base, test_client: SpeckleClient, speckle_server_url: str
 ) -> AutomationRunData:
@@ -91,10 +91,11 @@ def automation_run_data(
         automation_run_id=automation_run_id,
         function_id=function_id,
         function_release=function_release,
+        function_name="foobar",
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def automation_context(
     automation_run_data: AutomationRunData, speckle_token: str
 ) -> AutomationContext:
@@ -169,7 +170,8 @@ def automate_function(
     if version_root_object.speckle_type == function_inputs.forbidden_speckle_type:
         if not version_root_object.id:
             raise ValueError("Cannot operate on objects without their id's.")
-        automation_context.add_object_error(
+        automation_context.attach_error_to_objects(
+            "Forbidden speckle_type",
             version_root_object.id,
             "This project should not contain the type: "
             f"{function_inputs.forbidden_speckle_type}",
@@ -187,7 +189,7 @@ def automate_function(
         automation_context.mark_run_success("No forbidden types found.")
 
 
-def test_function_run(automation_context: AutomationContext, speckle_token: str):
+def test_function_run(automation_context: AutomationContext) -> None:
     """Run an integration test for the automate function."""
     automation_context = run_function(
         automation_context,
@@ -206,16 +208,44 @@ def test_function_run(automation_context: AutomationContext, speckle_token: str)
     assert status_message == automation_context.status_message
 
 
-def test_file_uploads(automation_run_data: AutomationRunData, speckle_token: str):
+@pytest.fixture
+def test_file_path():
+    path = Path(f"./{crypto_random_string(10)}").resolve()
+    yield path
+    os.remove(path)
+
+
+def test_file_uploads(
+    automation_run_data: AutomationRunData, speckle_token: str, test_file_path: Path
+):
     """Test file store capabilities of the automate sdk."""
     automation_context = AutomationContext.initialize(
         automation_run_data, speckle_token
     )
 
-    path = Path(f"./{crypto_random_string(10)}").resolve()
-    path.write_text("foobar")
+    test_file_path.write_text("foobar")
 
-    automation_context.store_file_result(path)
+    automation_context.store_file_result(test_file_path)
 
-    os.remove(path)
     assert len(automation_context._automation_result.blobs) == 1
+
+
+def test_create_version_in_project_raises_error_for_same_model(
+    automation_context: AutomationContext,
+) -> None:
+    with pytest.raises(ValueError):
+        automation_context.create_new_version_in_project(
+            Base(), automation_context.automation_run_data.model_id
+        )
+
+
+def test_create_version_in_project(
+    automation_context: AutomationContext,
+) -> None:
+    model_id = automation_context.speckle_client.branch.create(
+        automation_context.automation_run_data.project_id, "foobar"
+    )
+    root_object = Base()
+    root_object.foo = "bar"
+    version_id = automation_context.create_new_version_in_project(root_object, model_id)
+    assert version_id is not None

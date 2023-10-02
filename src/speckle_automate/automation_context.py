@@ -2,12 +2,13 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 import time
-from typing import Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import httpx
 from gql import gql
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
+from specklepy.core.api.models import Branch
 from specklepy.objects import Base
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
@@ -17,8 +18,8 @@ from speckle_automate.schema import (
     AutomationResult,
     AutomationRunData,
     AutomationStatus,
-    ObjectResult,
     ObjectResultLevel,
+    ResultCase,
 )
 
 
@@ -83,13 +84,13 @@ class AutomationContext:
         return self._automation_result.run_status
 
     @property
-    def status_message(self) -> str:
+    def status_message(self) -> Optional[str]:
         """Get the current status message."""
         return self._automation_result.status_message
 
     def elapsed(self) -> float:
         """Return the elapsed time in seconds since the initialization time."""
-        return time.perf_counter() - self._init_time
+        return (time.perf_counter() - self._init_time) / 1000
 
     def receive_version(self) -> Base:
         """Receive the Speckle project version that triggered this automation run."""
@@ -102,14 +103,14 @@ class AutomationContext:
             commit.referencedObject, self._server_transport, self._memory_transport
         )
         print(
-            f"It took {self.elapsed():2f} seconds to receive",
+            f"It took {self.elapsed():.2f} seconds to receive",
             f" the speckle version {self.automation_run_data.version_id}",
         )
         return base
 
     def create_new_version_in_project(
         self, root_object: Base, model_id: str, version_message: str = ""
-    ) -> None:
+    ) -> str:
         """Save a base model to a new version on the project.
 
         Args:
@@ -117,11 +118,16 @@ class AutomationContext:
             model_id (str): For now please use a `branchName`!
             version_message (str): The message for the new version.
         """
+
         if model_id == self.automation_run_data.model_id:
             raise ValueError(
                 f"The target model id: {model_id} cannot match the model id"
                 f" that triggered this automation: {self.automation_run_data.model_id}"
             )
+
+        branch = self._get_model(model_id)
+        if not branch.name:
+            raise ValueError(f"The model {model_id} has no name.")
 
         root_object_id = operations.send(
             root_object,
@@ -132,11 +138,30 @@ class AutomationContext:
         version_id = self.speckle_client.commit.create(
             stream_id=self.automation_run_data.project_id,
             object_id=root_object_id,
-            branch_name=model_id,
+            branch_name=branch.name,
             message=version_message,
             source_application="SpeckleAutomate",
         )
         self._automation_result.result_versions.append(version_id)
+        return version_id
+
+    def _get_model(self, model_id: str) -> Branch:
+        query = gql(
+            """
+            query ProjectModel($projectId: String!, $modelId: String!){
+                project(id: $projectId) {
+                    model(id: $modelId) {
+                        name
+                        id
+                        description
+                    }
+                }
+            }
+        """
+        )
+        params = {"projectId": self.automation_run_data.project_id, "modelId": model_id}
+        response = self.speckle_client.httpclient.execute(query, params)
+        return Branch.model_validate(response["project"]["model"])
 
     def report_run_status(self) -> None:
         """Report the current run status to the project of this automation."""
@@ -178,14 +203,15 @@ class AutomationContext:
             object_results = {
                 "version": "1.0.0",
                 "values": {
-                    "speckleObjects": self._automation_result.model_dump(by_alias=True)[
+                    "objectResults": self._automation_result.model_dump(by_alias=True)[
                         "objectResults"
                     ],
-                    "blobs": self._automation_result.blobs,
+                    "blobIds": self._automation_result.blobs,
                 },
             }
         else:
             object_results = None
+
         params = {
             "automationId": self.automation_run_data.automation_id,
             "automationRevisionId": self.automation_run_data.automation_revision_id,
@@ -237,8 +263,9 @@ class AutomationContext:
         if len(upload_response.upload_results) != 1:
             raise ValueError("Expecting one upload result.")
 
-        for upload_result in upload_response.upload_results:
-            self._automation_result.blobs.append(upload_result.blob_id)
+        self._automation_result.blobs.extend(
+            [upload_result.blob_id for upload_result in upload_response.upload_results]
+        )
 
     def mark_run_failed(self, status_message: str) -> None:
         """Mark the current run a failure."""
@@ -256,28 +283,101 @@ class AutomationContext:
         self._automation_result.run_status = status
         self._automation_result.elapsed = duration
 
-        msg = f"Automation run {status.value} after {duration:2f} seconds."
+        msg = f"Automation run {status.value} after {duration:.2f} seconds."
         print("\n".join([msg, status_message]) if status_message else msg)
 
-    def add_object_error(self, object_id: str, error_cause: str) -> None:
-        """Add an error to a given Speckle object."""
-        self._add_object_result(object_id, ObjectResultLevel.ERROR, error_cause)
-
-    def add_object_warning(self, object_id: str, warning: str) -> None:
-        """Add a warning to a given Speckle object."""
-        self._add_object_result(object_id, ObjectResultLevel.WARNING, warning)
-
-    def add_object_info(self, object_id: str, info: str) -> None:
-        """Add an info message to a given Speckle object."""
-        self._add_object_result(object_id, ObjectResultLevel.INFO, info)
-
-    def _add_object_result(
-        self, object_id: str, level: ObjectResultLevel, status_message: str
+    def attach_error_to_objects(
+        self,
+        category: str,
+        object_ids: Union[str, List[str]],
+        message: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        print(
-            f"Object {object_id} was marked with {level.value.upper()}",
-            f" cause: {status_message}",
+        """Add a new error case to the run results.
+
+        If the error cause has already created an error case,
+        the error will be extended with a new case refering to the causing objects.
+        Args:
+            error_tag (str): A short tag for the error type.
+            causing_object_ids (str[]): A list of object_id-s that are causing the error
+            error_messagge (Optional[str]): Optional error message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
+        self.attach_result_to_objects(
+            ObjectResultLevel.ERROR,
+            category,
+            object_ids,
+            message,
+            metadata,
+            visual_overrides,
         )
-        self._automation_result.object_results[object_id].append(
-            ObjectResult(level=level, status_message=status_message)
+
+    def attach_warning_to_objects(
+        self,
+        category: str,
+        object_ids: Union[str, List[str]],
+        message: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        visual_overrides: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Add a new warning case to the run results."""
+        self.attach_result_to_objects(
+            ObjectResultLevel.WARNING,
+            category,
+            object_ids,
+            message,
+            metadata,
+            visual_overrides,
+        )
+
+    def attach_info_to_objects(
+        self,
+        category: str,
+        object_ids: Union[str, List[str]],
+        message: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        visual_overrides: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Add a new info case to the run results."""
+        self.attach_result_to_objects(
+            ObjectResultLevel.INFO,
+            category,
+            object_ids,
+            message,
+            metadata,
+            visual_overrides,
+        )
+
+    def attach_result_to_objects(
+        self,
+        level: ObjectResultLevel,
+        category: str,
+        object_ids: Union[str, List[str]],
+        message: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        visual_overrides: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        if isinstance(object_ids, list):
+            if len(object_ids) < 1:
+                raise ValueError(
+                    f"Need atleast one object_id to report a(n) {level.value.upper()}"
+                )
+            id_list = object_ids
+        else:
+            id_list = [object_ids]
+        print(
+            f"Object {', '.join(id_list)} was marked with {level.value.upper()}",
+            f"/{category} cause: {message}",
+        )
+        self._automation_result.object_results.append(
+            ResultCase(
+                category=category,
+                level=level,
+                object_ids=id_list,
+                message=message,
+                metadata=metadata,
+                visual_overrides=visual_overrides,
+            )
         )
