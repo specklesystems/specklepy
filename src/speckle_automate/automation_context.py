@@ -8,6 +8,7 @@ import httpx
 from gql import gql
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
+from specklepy.core.api.models import Branch
 from specklepy.objects import Base
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
@@ -119,6 +120,10 @@ class AutomationContext:
                 f" that triggered this automation: {self.automation_run_data.model_id}"
             )
 
+        branch = self._get_model(model_id)
+        if not branch.name:
+            raise ValueError(f"The model {model_id} has no name.")
+
         root_object_id = operations.send(
             root_object,
             [self._server_transport, self._memory_transport],
@@ -137,6 +142,24 @@ class AutomationContext:
             raise version_id
 
         self._automation_result.result_versions.append(version_id)
+
+    def _get_model(self, model_id: str) -> Branch:
+        query = gql(
+            """
+            query ProjectModel($projectId: String!, $modelId: String!){
+                project(id: $projectId) {
+                    model(id: $modelId) {
+                        name
+                        id
+                        description
+                    }
+                }
+            }
+        """
+        )
+        params = {"projectId": self.automation_run_data.project_id, "modelId": model_id}
+        response = self.speckle_client.httpclient.execute(query, params)
+        return Branch.model_validate(response["project"]["model"])
 
     def report_run_status(self) -> None:
         """Report the current run status to the project of this automation."""
