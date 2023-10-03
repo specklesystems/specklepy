@@ -128,7 +128,7 @@ def automation_run_data(
 
     automation_run_id = crypto_random_string(10)
     function_id = crypto_random_string(10)
-    function_revision = crypto_random_string(10)
+    function_release = crypto_random_string(10)
     return AutomationRunData(
         project_id=project_id,
         model_id=model_id,
@@ -139,7 +139,7 @@ def automation_run_data(
         automation_revision_id=automation_revision_id,
         automation_run_id=automation_run_id,
         function_id=function_id,
-        function_revision=function_revision,
+        function_release=function_release,
     )
 
 

@@ -1,7 +1,7 @@
 """"""
 from collections import defaultdict
 from enum import Enum
-from typing import Optional
+from typing import Optional, List, Dict
 
 from pydantic import BaseModel, ConfigDict, Field
 from stringcase import camelcase
@@ -63,11 +63,11 @@ class AutomationResult(AutomateBase):
 
     elapsed: float = 0
     result_view: Optional[str] = None
-    result_versions: list[str] = Field(default_factory=list)
-    blobs: list[str] = Field(default_factory=list)
+    result_versions: List[str] = Field(default_factory=list)
+    blobs: List[str] = Field(default_factory=list)
     run_status: AutomationStatus = AutomationStatus.RUNNING
     status_message: Optional[str] = None
 
-    object_results: dict[str, list[ObjectResult]] = Field(
+    object_results: Dict[str, List[ObjectResult]] = Field(
         default_factory=lambda: defaultdict(list)  # typing: ignore
     )
