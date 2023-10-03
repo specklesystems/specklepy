@@ -11,6 +11,7 @@ from specklepy.api.client import SpeckleClient
 from specklepy.objects import Base
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
+from specklepy.logging.exceptions import SpeckleException
 
 from speckle_automate.schema import (
     AutomateBase,
@@ -131,6 +132,10 @@ class AutomationContext:
             message=version_message,
             source_application="SpeckleAutomate",
         )
+
+        if isinstance(version_id, SpeckleException):
+            raise version_id
+
         self._automation_result.result_versions.append(version_id)
 
     def report_run_status(self) -> None:
