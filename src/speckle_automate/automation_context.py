@@ -133,7 +133,7 @@ class AutomationContext:
         version_id = self.speckle_client.commit.create(
             stream_id=self.automation_run_data.project_id,
             object_id=root_object_id,
-            branch_name=model_id,
+            branch_name=branch.name,
             message=version_message,
             source_application="SpeckleAutomate",
         )
