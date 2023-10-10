@@ -1,9 +1,10 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from gql import gql
 
 from specklepy.core.api.models import Commit
 from specklepy.core.api.resource import ResourceBase
+from specklepy.logging.exceptions import SpeckleException
 
 NAME = "commit"
 
@@ -106,8 +107,8 @@ class Resource(ResourceBase):
         branch_name: str = "main",
         message: str = "",
         source_application: str = "python",
-        parents: List[str] = None,
-    ) -> str:
+        parents: Optional[List[str]] = None,
+    ) -> Union[str, SpeckleException]:
         """
         Creates a commit on a branch
 

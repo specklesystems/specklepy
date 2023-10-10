@@ -67,8 +67,8 @@ class AutomationResult(AutomateBase):
 
     elapsed: float = 0
     result_view: Optional[str] = None
-    result_versions: list[str] = Field(default_factory=list)
-    blobs: list[str] = Field(default_factory=list)
+    result_versions: List[str] = Field(default_factory=list)
+    blobs: List[str] = Field(default_factory=list)
     run_status: AutomationStatus = AutomationStatus.RUNNING
     status_message: Optional[str] = None
     object_results: list[ResultCase] = Field(default_factory=list)

@@ -12,6 +12,7 @@ from specklepy.core.api.models import Branch
 from specklepy.objects import Base
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
+from specklepy.logging.exceptions import SpeckleException
 
 from speckle_automate.schema import (
     AutomateBase,
@@ -142,8 +143,30 @@ class AutomationContext:
             message=version_message,
             source_application="SpeckleAutomate",
         )
+
+        if isinstance(version_id, SpeckleException):
+            raise version_id
+
         self._automation_result.result_versions.append(version_id)
         return version_id
+
+    def _get_model(self, model_id: str) -> Branch:
+        query = gql(
+            """
+            query ProjectModel($projectId: String!, $modelId: String!){
+                project(id: $projectId) {
+                    model(id: $modelId) {
+                        name
+                        id
+                        description
+                    }
+                }
+            }
+        """
+        )
+        params = {"projectId": self.automation_run_data.project_id, "modelId": model_id}
+        response = self.speckle_client.httpclient.execute(query, params)
+        return Branch.model_validate(response["project"]["model"])
 
     def _get_model(self, model_id: str) -> Branch:
         query = gql(
