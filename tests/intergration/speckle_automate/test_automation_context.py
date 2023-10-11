@@ -1,13 +1,12 @@
 """Run integration tests with a speckle server."""
 import os
-import secrets
-import string
 from pathlib import Path
 from typing import Dict
 
 import pytest
 from gql import gql
 from speckle_automate.schema import AutomateBase
+from speckle_automate.helpers import register_new_automation, crypto_random_string
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.objects.base import Base
@@ -21,67 +20,19 @@ from speckle_automate import (
 )
 
 
-def crypto_random_string(length: int) -> str:
-    """Generate a semi crypto random string of a given length."""
-    alphabet = string.ascii_letters + string.digits
-    return "".join(secrets.choice(alphabet) for _ in range(length))
-
-
-def register_new_automation(
-    project_id: str,
-    model_id: str,
-    speckle_client: SpeckleClient,
-    automation_id: str,
-    automation_name: str,
-    automation_revision_id: str,
-):
-    """Register a new automation in the speckle server."""
-    query = gql(
-        """
-        mutation CreateAutomation(
-            $projectId: String! 
-            $modelId: String! 
-            $automationName: String!
-            $automationId: String! 
-            $automationRevisionId: String!
-        ) {
-                automationMutations {
-                    create(
-                        input: {
-                            projectId: $projectId
-                            modelId: $modelId
-                            automationName: $automationName 
-                            automationId: $automationId
-                            automationRevisionId: $automationRevisionId
-                        }
-                    )
-                }
-            }
-        """
-    )
-    params = {
-        "projectId": project_id,
-        "modelId": model_id,
-        "automationName": automation_name,
-        "automationId": automation_id,
-        "automationRevisionId": automation_revision_id,
-    }
-    speckle_client.httpclient.execute(query, params)
-
-
-@pytest.fixture()
+@pytest.fixture
 def speckle_token(user_dict: Dict[str, str]) -> str:
     """Provide a speckle token for the test suite."""
     return user_dict["token"]
 
 
-@pytest.fixture()
+@pytest.fixture
 def speckle_server_url(host: str) -> str:
     """Provide a speckle server url for the test suite, default to localhost."""
     return f"http://{host}"
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_client(speckle_server_url: str, speckle_token: str) -> SpeckleClient:
     """Initialize a SpeckleClient for testing."""
     test_client = SpeckleClient(speckle_server_url, use_ssl=False)
@@ -89,7 +40,7 @@ def test_client(speckle_server_url: str, speckle_token: str) -> SpeckleClient:
     return test_client
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_object() -> Base:
     """Create a Base model for testing."""
     root_object = Base()
@@ -97,7 +48,7 @@ def test_object() -> Base:
     return root_object
 
 
-@pytest.fixture()
+@pytest.fixture
 def automation_run_data(
     test_object: Base, test_client: SpeckleClient, speckle_server_url: str
 ) -> AutomationRunData:
@@ -118,9 +69,9 @@ def automation_run_data(
     automation_revision_id = crypto_random_string(10)
 
     register_new_automation(
+        test_client,
         project_id,
         model_id,
-        test_client,
         automation_id,
         automation_name,
         automation_revision_id,
@@ -140,7 +91,16 @@ def automation_run_data(
         automation_run_id=automation_run_id,
         function_id=function_id,
         function_release=function_release,
+        function_name="foobar",
     )
+
+
+@pytest.fixture
+def automation_context(
+    automation_run_data: AutomationRunData, speckle_token: str
+) -> AutomationContext:
+    """Set up the run context."""
+    return AutomationContext.initialize(automation_run_data, speckle_token)
 
 
 def get_automation_status(
@@ -200,17 +160,18 @@ class FunctionInputs(AutomateBase):
 
 
 def automate_function(
-    automate_context: AutomationContext,
+    automation_context: AutomationContext,
     function_inputs: FunctionInputs,
 ) -> None:
     """Hey, trying the automate sdk experience here."""
-    version_root_object = automate_context.receive_version()
+    version_root_object = automation_context.receive_version()
 
     count = 0
     if version_root_object.speckle_type == function_inputs.forbidden_speckle_type:
         if not version_root_object.id:
             raise ValueError("Cannot operate on objects without their id's.")
-        automate_context.add_object_error(
+        automation_context.attach_error_to_objects(
+            "Forbidden speckle_type",
             version_root_object.id,
             "This project should not contain the type: "
             f"{function_inputs.forbidden_speckle_type}",
@@ -218,46 +179,73 @@ def automate_function(
         count += 1
 
     if count > 0:
-        automate_context.mark_run_failed(
+        automation_context.mark_run_failed(
             "Automation failed: "
             f"Found {count} object that have a forbidden speckle type: "
             f"{function_inputs.forbidden_speckle_type}"
         )
 
     else:
-        automate_context.mark_run_success("No forbidden types found.")
+        automation_context.mark_run_success("No forbidden types found.")
 
 
-def test_function_run(automation_run_data: AutomationRunData, speckle_token: str):
+def test_function_run(automation_context: AutomationContext) -> None:
     """Run an integration test for the automate function."""
     automation_context = run_function(
+        automation_context,
         automate_function,
-        automation_run_data,
-        speckle_token,
         FunctionInputs(forbidden_speckle_type="Base"),
     )
 
     assert automation_context.run_status == AutomationStatus.FAILED
     status = get_automation_status(
-        automation_run_data.project_id,
-        automation_run_data.model_id,
+        automation_context.automation_run_data.project_id,
+        automation_context.automation_run_data.model_id,
         automation_context.speckle_client,
     )
     assert status["status"] == automation_context.run_status
     status_message = status["automationRuns"][0]["functionRuns"][0]["statusMessage"]
-    assert status_message == automation_context._automation_result.status_message
+    assert status_message == automation_context.status_message
 
 
-def test_file_uploads(automation_run_data: AutomationRunData, speckle_token: str):
+@pytest.fixture
+def test_file_path():
+    path = Path(f"./{crypto_random_string(10)}").resolve()
+    yield path
+    os.remove(path)
+
+
+def test_file_uploads(
+    automation_run_data: AutomationRunData, speckle_token: str, test_file_path: Path
+):
     """Test file store capabilities of the automate sdk."""
     automation_context = AutomationContext.initialize(
         automation_run_data, speckle_token
     )
 
-    path = Path(f"./{crypto_random_string(10)}").resolve()
-    path.write_text("foobar")
+    test_file_path.write_text("foobar")
 
-    automation_context.store_file_result(path)
+    automation_context.store_file_result(test_file_path)
 
-    os.remove(path)
     assert len(automation_context._automation_result.blobs) == 1
+
+
+def test_create_version_in_project_raises_error_for_same_model(
+    automation_context: AutomationContext,
+) -> None:
+    with pytest.raises(ValueError):
+        automation_context.create_new_version_in_project(
+            Base(), automation_context.automation_run_data.model_id
+        )
+
+
+def test_create_version_in_project(
+    automation_context: AutomationContext,
+) -> None:
+    model_id = automation_context.speckle_client.branch.create(
+        automation_context.automation_run_data.project_id, "foobar"
+    )
+    root_object = Base()
+    root_object.foo = "bar"
+    version_id = automation_context.create_new_version_in_project(root_object, model_id)
+    assert version_id is not None

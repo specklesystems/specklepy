@@ -6,8 +6,8 @@ from speckle_automate.schema import (
     AutomationResult,
     AutomationRunData,
     AutomationStatus,
-    ObjectResult,
     ObjectResultLevel,
+    ResultCase,
 )
 
 __all__ = [
@@ -16,7 +16,7 @@ __all__ = [
     "AutomationStatus",
     "AutomationResult",
     "AutomationRunData",
-    "ObjectResult",
+    "ResultCase",
     "ObjectResultLevel",
     "run_function",
     "execute_automate_function",

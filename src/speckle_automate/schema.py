@@ -1,7 +1,6 @@
 """"""
-from collections import defaultdict
 from enum import Enum
-from typing import Optional, List, Dict
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from stringcase import camelcase
@@ -28,6 +27,7 @@ class AutomationRunData(BaseModel):
 
     function_id: str
     function_release: str
+    function_name: str
 
     model_config = ConfigDict(
         alias_generator=camelcase, populate_by_name=True, protected_namespaces=()
@@ -51,11 +51,15 @@ class ObjectResultLevel(str, Enum):
     ERROR = "ERROR"
 
 
-class ObjectResult(AutomateBase):
-    """An object level result."""
+class ResultCase(AutomateBase):
+    """A result case."""
 
+    category: str
     level: ObjectResultLevel
-    status_message: str
+    object_ids: List[str]
+    message: Optional[str]
+    metadata: Optional[Dict[str, Any]]
+    visual_overrides: Optional[Dict[str, Any]]
 
 
 class AutomationResult(AutomateBase):
@@ -67,7 +71,4 @@ class AutomationResult(AutomateBase):
     blobs: List[str] = Field(default_factory=list)
     run_status: AutomationStatus = AutomationStatus.RUNNING
     status_message: Optional[str] = None
-
-    object_results: Dict[str, List[ObjectResult]] = Field(
-        default_factory=lambda: defaultdict(list)  # typing: ignore
-    )
+    object_results: list[ResultCase] = Field(default_factory=list)
