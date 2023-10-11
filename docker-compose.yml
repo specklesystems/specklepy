@@ -61,7 +61,7 @@ services:
       FILE_SIZE_LIMIT_MB: 100
 
   speckle-server:
-    image: speckle/speckle-server:latest
+    image: speckle/speckle-server:2.16.1-alpha.56633
     restart: always
     healthcheck:
       test:
