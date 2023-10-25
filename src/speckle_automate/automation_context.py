@@ -91,7 +91,7 @@ class AutomationContext:
 
     def elapsed(self) -> float:
         """Return the elapsed time in seconds since the initialization time."""
-        return (time.perf_counter() - self._init_time) / 1000
+        return time.perf_counter() - self._init_time
 
     def receive_version(self) -> Base:
         """Receive the Speckle project version that triggered this automation run."""
@@ -110,7 +110,7 @@ class AutomationContext:
         return base
 
     def create_new_version_in_project(
-        self, root_object: Base, model_id: str, version_message: str = ""
+        self, root_object: Base, model_name: str, version_message: str = ""
     ) -> str:
         """Save a base model to a new version on the project.
 
@@ -120,15 +120,26 @@ class AutomationContext:
             version_message (str): The message for the new version.
         """
 
-        if model_id == self.automation_run_data.model_id:
+        if model_name == self.automation_run_data.branch_name:
             raise ValueError(
-                f"The target model id: {model_id} cannot match the model id"
-                f" that triggered this automation: {self.automation_run_data.model_id}"
+                f"The target model: {model_name} cannot match the model"
+                f" that triggered this automation:"
+                f" {self.automation_run_data.model_id} /"
+                f" {self.automation_run_data.branch_name}"
             )
 
-        branch = self._get_model(model_id)
-        if not branch.name:
-            raise ValueError(f"The model {model_id} has no name.")
+        branch = self.speckle_client.branch.get(
+            self.automation_run_data.project_id, model_name, 1
+        )
+        # we just check if it exists
+        if (not branch) or isinstance(branch, SpeckleException):
+            branch_create = self.speckle_client.branch.create(
+                self.automation_run_data.project_id,
+                model_name,
+            )
+            print(branch_create)
+            if isinstance(branch_create, Exception):
+                raise branch_create
 
         root_object_id = operations.send(
             root_object,
@@ -139,7 +150,7 @@ class AutomationContext:
         version_id = self.speckle_client.commit.create(
             stream_id=self.automation_run_data.project_id,
             object_id=root_object_id,
-            branch_name=branch.name,
+            branch_name=model_name,
             message=version_message,
             source_application="SpeckleAutomate",
         )
@@ -149,42 +160,6 @@ class AutomationContext:
 
         self._automation_result.result_versions.append(version_id)
         return version_id
-
-    def _get_model(self, model_id: str) -> Branch:
-        query = gql(
-            """
-            query ProjectModel($projectId: String!, $modelId: String!){
-                project(id: $projectId) {
-                    model(id: $modelId) {
-                        name
-                        id
-                        description
-                    }
-                }
-            }
-        """
-        )
-        params = {"projectId": self.automation_run_data.project_id, "modelId": model_id}
-        response = self.speckle_client.httpclient.execute(query, params)
-        return Branch.model_validate(response["project"]["model"])
-
-    def _get_model(self, model_id: str) -> Branch:
-        query = gql(
-            """
-            query ProjectModel($projectId: String!, $modelId: String!){
-                project(id: $projectId) {
-                    model(id: $modelId) {
-                        name
-                        id
-                        description
-                    }
-                }
-            }
-        """
-        )
-        params = {"projectId": self.automation_run_data.project_id, "modelId": model_id}
-        response = self.speckle_client.httpclient.execute(query, params)
-        return Branch.model_validate(response["project"]["model"])
 
     def report_run_status(self) -> None:
         """Report the current run status to the project of this automation."""
@@ -196,6 +171,8 @@ class AutomationContext:
                 $automationRunId: String!,
                 $versionId: String!,
                 $functionId: String!,
+                $functionName: String!,
+                $functionLogo: String,
                 $runStatus: AutomationRunStatus!
                 $elapsed: Float!
                 $resultVersionIds: [String!]!
@@ -211,6 +188,8 @@ class AutomationContext:
                         functionRuns: [
                         {
                             functionId: $functionId
+                            functionName: $functionName
+                            functionLogo: $functionLogo
                             status: $runStatus,
                             elapsed: $elapsed,
                             resultVersionIds: $resultVersionIds,
@@ -241,6 +220,8 @@ class AutomationContext:
             "automationRunId": self.automation_run_data.automation_run_id,
             "versionId": self.automation_run_data.version_id,
             "functionId": self.automation_run_data.function_id,
+            "functionName": self.automation_run_data.function_name,
+            "functionLogo": self.automation_run_data.function_logo,
             "runStatus": self.run_status.value,
             "statusMessage": self._automation_result.status_message,
             "elapsed": self.elapsed(),
