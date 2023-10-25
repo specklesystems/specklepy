@@ -79,7 +79,7 @@ def automation_run_data(
 
     automation_run_id = crypto_random_string(10)
     function_id = crypto_random_string(10)
-    function_release = crypto_random_string(10)
+    function_name = f"automate test {crypto_random_string(3)}"
     return AutomationRunData(
         project_id=project_id,
         model_id=model_id,
@@ -90,8 +90,8 @@ def automation_run_data(
         automation_revision_id=automation_revision_id,
         automation_run_id=automation_run_id,
         function_id=function_id,
-        function_release=function_release,
-        function_name="foobar",
+        function_name=function_name,
+        function_logo=None,
     )
 
 
@@ -235,17 +235,14 @@ def test_create_version_in_project_raises_error_for_same_model(
 ) -> None:
     with pytest.raises(ValueError):
         automation_context.create_new_version_in_project(
-            Base(), automation_context.automation_run_data.model_id
+            Base(), automation_context.automation_run_data.branch_name
         )
 
 
 def test_create_version_in_project(
     automation_context: AutomationContext,
 ) -> None:
-    model_id = automation_context.speckle_client.branch.create(
-        automation_context.automation_run_data.project_id, "foobar"
-    )
     root_object = Base()
     root_object.foo = "bar"
-    version_id = automation_context.create_new_version_in_project(root_object, model_id)
+    version_id = automation_context.create_new_version_in_project(root_object, "foobar")
     assert version_id is not None

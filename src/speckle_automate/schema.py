@@ -27,7 +27,7 @@ class AutomationRunData(BaseModel):
 
     function_id: str
     function_name: str
-    function_logo: str | None
+    function_logo: Optional[str]
 
     model_config = ConfigDict(
         alias_generator=camelcase, populate_by_name=True, protected_namespaces=()
