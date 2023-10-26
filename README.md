@@ -74,9 +74,11 @@ Commiting code that doesn't adhere to the given rules, will fail the checks in o
 ### Local Data Paths
 
 It may be helpful to know where the local accounts and object cache dbs are stored. Depending on on your OS, you can find the dbs at:
-- Windows: `APPDATA` or `<USER>\AppData\Roaming\Speckle`
-- Linux: `$XDG_DATA_HOME` or by default `~/.local/share/Speckle`
-- Mac: `~/.config/Speckle`
+| Operating System | Path                                             |
+|------------------|--------------------------------------------------|
+| Windows          | `APPDATA` or `<USER>\AppData\Roaming\Speckle`    |
+| Linux            | `$XDG_DATA_HOME` or by default `~/.local/share/Speckle` |
+| Mac              | `~/.config/Speckle`                              |
 
 ## Contributing
 
