@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import httpx
 from gql import gql
@@ -111,7 +111,7 @@ class AutomationContext:
 
     def create_new_version_in_project(
         self, root_object: Base, model_name: str, version_message: str = ""
-    ) -> str:
+    ) -> Tuple[str, str]:
         """Save a base model to a new version on the project.
 
         Args:
@@ -137,9 +137,11 @@ class AutomationContext:
                 self.automation_run_data.project_id,
                 model_name,
             )
-            print(branch_create)
             if isinstance(branch_create, Exception):
                 raise branch_create
+            model_id = branch_create
+        else:
+            model_id = branch.id
 
         root_object_id = operations.send(
             root_object,
@@ -159,7 +161,31 @@ class AutomationContext:
             raise version_id
 
         self._automation_result.result_versions.append(version_id)
-        return version_id
+        return model_id, version_id
+
+    def set_context_view(
+        self,
+        # f"{model_id}@{version_id} or {model_id} "
+        resource_ids: Optional[List[str]] = None,
+        include_source_model_version: bool = True,
+    ) -> None:
+        link_resources = (
+            [
+                f"{self.automation_run_data.model_id}@{self.automation_run_data.version_id}"
+            ]
+            if include_source_model_version
+            else []
+        )
+        if resource_ids:
+            link_resources.append(*resource_ids)
+        if not link_resources:
+            raise Exception(
+                "We do not have enough resource ids to compose a context view"
+            )
+        self._automation_result.result_view = (
+            f"{self.automation_run_data.speckle_server_url}/projects"
+            f"/{self.automation_run_data.project_id}/models/{','.join(link_resources)}"
+        )
 
     def report_run_status(self) -> None:
         """Report the current run status to the project of this automation."""
@@ -175,6 +201,7 @@ class AutomationContext:
                 $functionLogo: String,
                 $runStatus: AutomationRunStatus!
                 $elapsed: Float!
+                $contextView: String
                 $resultVersionIds: [String!]!
                 $statusMessage: String
                 $objectResults: JSONObject
@@ -191,6 +218,7 @@ class AutomationContext:
                             functionName: $functionName
                             functionLogo: $functionLogo
                             status: $runStatus,
+                            contextView: $contextView,
                             elapsed: $elapsed,
                             resultVersionIds: $resultVersionIds,
                             statusMessage: $statusMessage
@@ -224,6 +252,7 @@ class AutomationContext:
             "functionLogo": self.automation_run_data.function_logo,
             "runStatus": self.run_status.value,
             "statusMessage": self._automation_result.status_message,
+            "contextView": self._automation_result.result_view,
             "elapsed": self.elapsed(),
             "resultVersionIds": self._automation_result.result_versions,
             "objectResults": object_results,
