@@ -244,5 +244,39 @@ def test_create_version_in_project(
 ) -> None:
     root_object = Base()
     root_object.foo = "bar"
-    version_id = automation_context.create_new_version_in_project(root_object, "foobar")
+    model_id, version_id = automation_context.create_new_version_in_project(
+        root_object, "foobar"
+    )
+
+    assert model_id is not None
     assert version_id is not None
+
+
+def test_set_context_view(automation_context: AutomationContext) -> None:
+    automation_context.set_context_view()
+
+    assert automation_context._automation_result.result_view is not None
+    assert automation_context._automation_result.result_view.endswith(
+        f"models/{automation_context.automation_run_data.model_id}@{automation_context.automation_run_data.version_id}"
+    )
+
+    automation_context._automation_result.result_view = None
+
+    dummy_context = "foo@bar"
+    automation_context.set_context_view([dummy_context])
+
+    assert automation_context._automation_result.result_view is not None
+    assert automation_context._automation_result.result_view.endswith(
+        f"models/{automation_context.automation_run_data.model_id}@{automation_context.automation_run_data.version_id},{dummy_context}"
+    )
+    automation_context._automation_result.result_view = None
+
+    dummy_context = "foo@baz"
+    automation_context.set_context_view(
+        [dummy_context], include_source_model_version=False
+    )
+
+    assert automation_context._automation_result.result_view is not None
+    assert automation_context._automation_result.result_view.endswith(
+        f"models/{dummy_context}"
+    )
