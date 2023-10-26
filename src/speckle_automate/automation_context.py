@@ -175,6 +175,7 @@ class AutomationContext:
                 $functionLogo: String,
                 $runStatus: AutomationRunStatus!
                 $elapsed: Float!
+                $contextView: String
                 $resultVersionIds: [String!]!
                 $statusMessage: String
                 $objectResults: JSONObject
@@ -191,6 +192,7 @@ class AutomationContext:
                             functionName: $functionName
                             functionLogo: $functionLogo
                             status: $runStatus,
+                            contextView: $contextView,
                             elapsed: $elapsed,
                             resultVersionIds: $resultVersionIds,
                             statusMessage: $statusMessage
@@ -224,6 +226,7 @@ class AutomationContext:
             "functionLogo": self.automation_run_data.function_logo,
             "runStatus": self.run_status.value,
             "statusMessage": self._automation_result.status_message,
+            "contextView": self._automation_result.result_view,
             "elapsed": self.elapsed(),
             "resultVersionIds": self._automation_result.result_versions,
             "objectResults": object_results,
