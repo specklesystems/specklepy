@@ -260,6 +260,8 @@ def test_set_context_view(automation_context: AutomationContext) -> None:
         f"models/{automation_context.automation_run_data.model_id}@{automation_context.automation_run_data.version_id}"
     )
 
+    automation_context.report_run_status()
+
     automation_context._automation_result.result_view = None
 
     dummy_context = "foo@bar"
@@ -269,6 +271,8 @@ def test_set_context_view(automation_context: AutomationContext) -> None:
     assert automation_context._automation_result.result_view.endswith(
         f"models/{automation_context.automation_run_data.model_id}@{automation_context.automation_run_data.version_id},{dummy_context}"
     )
+    automation_context.report_run_status()
+
     automation_context._automation_result.result_view = None
 
     dummy_context = "foo@baz"
@@ -280,3 +284,4 @@ def test_set_context_view(automation_context: AutomationContext) -> None:
     assert automation_context._automation_result.result_view.endswith(
         f"models/{dummy_context}"
     )
+    automation_context.report_run_status()

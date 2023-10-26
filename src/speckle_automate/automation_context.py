@@ -183,8 +183,8 @@ class AutomationContext:
                 "We do not have enough resource ids to compose a context view"
             )
         self._automation_result.result_view = (
-            f"{self.automation_run_data.speckle_server_url}/projects"
-            f"/{self.automation_run_data.project_id}/models/{','.join(link_resources)}"
+            f"/projects/{self.automation_run_data.project_id}"
+            f"/models/{','.join(link_resources)}"
         )
 
     def report_run_status(self) -> None:
