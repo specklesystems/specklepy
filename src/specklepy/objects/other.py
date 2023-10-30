@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 from deprecated import deprecated
 
-from specklepy.objects.geometry import Point, Vector
+from specklepy.objects.geometry import Point, Vector, Plane, Polyline
 
 from .base import Base
 
@@ -69,6 +69,18 @@ class DisplayStyle(Base, speckle_type=OTHER + "DisplayStyle"):
     color: int = -2894893  # light gray arbg
     linetype: Optional[str] = None
     lineweight: float = 0
+
+
+class Text(Base, speckle_type=OTHER + "Text"):
+    """
+    Text object to render it on viewer.
+    """
+    plane: Plane
+    value: str
+    height: float
+    rotation: float
+    displayValue: Optional[List[Polyline]] = None
+    richText: Optional[str] = None
 
 
 class Transform(
