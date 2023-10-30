@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 from deprecated import deprecated
 
-from specklepy.objects.geometry import Point, Vector, Plane
+from specklepy.objects.geometry import Point, Vector, Plane, Polyline
 
 from .base import Base
 
@@ -80,6 +80,8 @@ class Text(Base, speckle_type=OTHER + "Text"):
     height: float
     rotation: float
     displayStyle: DisplayStyle
+    displayValue: Optional[Polyline] = None
+    richText: Optional[str] = None
 
 
 class Transform(
