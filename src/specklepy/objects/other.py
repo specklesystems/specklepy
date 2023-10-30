@@ -80,7 +80,7 @@ class Text(Base, speckle_type=OTHER + "Text"):
     height: float
     rotation: float
     displayStyle: DisplayStyle
-    displayValue: Optional[Polyline] = None
+    displayValue: Optional[List[Polyline]] = None
     richText: Optional[str] = None
 
 
