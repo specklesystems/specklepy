@@ -1,5 +1,7 @@
+import re
 from urllib.parse import unquote, urlparse
 from warnings import warn
+from gql import gql
 
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import (
@@ -81,13 +83,25 @@ class StreamWrapper:
                 " provided."
             )
 
+        # check for fe2 URL
+        if "/projects/" in parsed.path:
+            use_fe2 = True
+        else:
+            use_fe2 = False
+
         while segments:
             segment = segments.pop(0)
-            if segments and segment.lower() == "streams":
+            if segments and (
+                (use_fe2 is False and segment.lower() == "streams")
+                or (use_fe2 is True and segment.lower() == "projects")
+            ):
                 self.stream_id = segments.pop(0)
             elif segments and segment.lower() == "commits":
                 self.commit_id = segments.pop(0)
-            elif segments and segment.lower() == "branches":
+            elif segments and (
+                (use_fe2 is False and segment.lower() == "branches")
+                or (use_fe2 is True and segment.lower() == "models")
+            ):
                 self.branch_name = unquote(segments.pop(0))
             elif segments and segment.lower() == "objects":
                 self.object_id = segments.pop(0)
@@ -100,6 +114,38 @@ class StreamWrapper:
                     f"Cannot parse {url} into a stream wrapper class - invalid URL"
                     " provided."
                 )
+
+        if use_fe2 is True and self.branch_name is not None:
+            if "," in self.branch_name:
+                raise SpeckleException("Multi-model urls are not supported yet")
+
+            if "@" in self.branch_name:
+                model_id = self.branch_name.split("@")[0]
+                self.commit_id = self.branch_name.split("@")[1]
+            else:
+                model_id = self.branch_name
+
+            # get branch name
+            query = gql(
+                """
+                query Project($project_id: String!, $model_id: String!) {
+                    project(id: $project_id) {
+                        id
+                        model(id: $model_id) {
+                            name
+                        }
+                    }
+                }
+            """
+            )
+            self._client = self.get_client()
+            params = {"project_id": self.stream_id, "model_id": model_id}
+            project = self._client.httpclient.execute(query, params)
+
+            try:
+                self.branch_name = project["project"]["model"]["name"]
+            except KeyError as ke:
+                raise SpeckleException("Project model name is not found", ke)
 
         if not self.stream_id:
             raise SpeckleException(
