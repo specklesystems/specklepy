@@ -1,4 +1,3 @@
-import re
 from urllib.parse import unquote, urlparse
 from warnings import warn
 from gql import gql
