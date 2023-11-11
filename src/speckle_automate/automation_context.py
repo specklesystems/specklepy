@@ -163,6 +163,10 @@ class AutomationContext:
         self._automation_result.result_versions.append(version_id)
         return model_id, version_id
 
+    @property
+    def context_view(self) -> Optional[str]:
+        return self._automation_result.result_view
+
     def set_context_view(
         self,
         # f"{model_id}@{version_id} or {model_id} "

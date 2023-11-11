@@ -146,5 +146,7 @@ def run_function(
             "Function error. Check the automation run logs for details."
         )
     finally:
+        if not automation_context.context_view:
+            automation_context.set_context_view()
         automation_context.report_run_status()
         return automation_context
