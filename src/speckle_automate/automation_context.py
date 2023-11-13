@@ -181,7 +181,7 @@ class AutomationContext:
             else []
         )
         if resource_ids:
-            link_resources.append(*resource_ids)
+            link_resources.extend(resource_ids)
         if not link_resources:
             raise Exception(
                 "We do not have enough resource ids to compose a context view"
