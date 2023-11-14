@@ -406,8 +406,8 @@ class AutomationContext:
         else:
             id_list = [object_ids]
         print(
-            f"Object {', '.join(id_list)} was marked with {level.value.upper()}",
-            f"/{category} cause: {message}",
+            f"Created new {level.value.upper()}"
+            f" category: {category} caused by: {message}"
         )
         self._automation_result.object_results.append(
             ResultCase(
