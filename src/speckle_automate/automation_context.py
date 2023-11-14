@@ -261,6 +261,7 @@ class AutomationContext:
             "resultVersionIds": self._automation_result.result_versions,
             "objectResults": object_results,
         }
+        print(f"Reporting run status with content: {params}")
         self.speckle_client.httpclient.execute(query, params)
 
     def store_file_result(self, file_path: Union[Path, str]) -> None:
