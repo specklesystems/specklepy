@@ -1,9 +1,6 @@
 from typing import Optional
 
-from gql import gql
-
 from specklepy.api.models import Branch
-from specklepy.api.resource import ResourceBase
 from specklepy.core.api.resources.branch import Resource as CoreResource
 from specklepy.logging import metrics
 

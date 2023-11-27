@@ -1,10 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional, Union
 
-from gql import gql
-
 from specklepy.api.models import ActivityCollection, LimitedUser
-from specklepy.api.resource import ResourceBase
 from specklepy.core.api.resources.other_user import Resource as CoreResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException

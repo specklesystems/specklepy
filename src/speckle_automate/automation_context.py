@@ -17,7 +17,6 @@ from speckle_automate.schema import (
 )
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.models import Branch
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects import Base
 from specklepy.transports.memory import MemoryTransport
@@ -196,8 +195,8 @@ class AutomationContext:
         query = gql(
             """
             mutation ReportFunctionRunStatus(
-                $automationId: String!, 
-                $automationRevisionId: String!, 
+                $automationId: String!,
+                $automationRevisionId: String!,
                 $automationRunId: String!,
                 $versionId: String!,
                 $functionId: String!,

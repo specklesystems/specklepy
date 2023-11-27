@@ -1,11 +1,8 @@
 from functools import wraps
 from typing import Callable, Dict, List, Optional, Union
 
-from gql import gql
 from graphql import DocumentNode
 
-from specklepy.api.resource import ResourceBase
-from specklepy.api.resources.stream import Stream
 from specklepy.core.api.resources.subscriptions import Resource as CoreResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException

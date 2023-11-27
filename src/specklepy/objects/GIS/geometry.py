@@ -1,7 +1,5 @@
 from typing import List, Optional, Union
 
-from deprecated import deprecated
-
 from specklepy.objects import Base
 from specklepy.objects.geometry import (
     Arc,
@@ -34,15 +32,15 @@ class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
 class GisLineElement(Base, speckle_type="Objects.GIS.LineElement"):
     """GIS Polyline element"""
 
-    geometry: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]]] = (None,)
-    attributes: Optional[Base] = (None,)
+    geometry: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]]] = None
+    attributes: Optional[Base] = None
 
 
 class GisPointElement(Base, speckle_type="Objects.GIS.PointElement"):
     """GIS Point element"""
 
-    geometry: Optional[List[Point]] = (None,)
-    attributes: Optional[Base] = (None,)
+    geometry: Optional[List[Point]] = None
+    attributes: Optional[Base] = None
 
 
 class GisRasterElement(

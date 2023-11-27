@@ -1,8 +1,5 @@
 from typing import Dict, List
 
-from gql import gql
-
-from specklepy.api.resource import ResourceBase
 from specklepy.core.api.resources.object import Resource as CoreResource
 from specklepy.logging import metrics
 from specklepy.objects.base import Base

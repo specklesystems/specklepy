@@ -1,9 +1,6 @@
 from deprecated import deprecated
-from gql.transport.exceptions import TransportServerError
-from gql.transport.requests import RequestsHTTPTransport
-from gql.transport.websockets import WebsocketsTransport
 
-from specklepy.api.credentials import Account, get_account_from_token
+from specklepy.api.credentials import Account
 from specklepy.api.resources import (
     active_user,
     branch,
@@ -17,7 +14,6 @@ from specklepy.api.resources import (
 )
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
 
 class SpeckleClient(CoreSpeckleClient):

@@ -41,7 +41,6 @@ class TraversalContext:
 @final
 @define(slots=True, frozen=True)
 class GraphTraversal:
-
     _rules: List[ITraversalRule]
 
     def traverse(self, root: Base) -> Iterator[TraversalContext]:
@@ -63,7 +62,7 @@ class GraphTraversal:
                     if getattr(current, child_prop, None):
                         value = current[child_prop]
                         self._traverse_member_to_stack(stack, value, child_prop, head)
-                except KeyError as ex:
+                except KeyError:
                     # Unset application ids, and class variables like SpeckleType will throw when __getitem__ is called
                     pass
 

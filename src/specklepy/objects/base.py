@@ -19,7 +19,7 @@ from warnings import warn
 from stringcase import pascalcase
 
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects.units import Units, get_units_from_string
+from specklepy.objects.units import Units
 from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)

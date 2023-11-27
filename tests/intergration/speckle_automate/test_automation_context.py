@@ -111,8 +111,8 @@ def get_automation_status(
     query = gql(
         """
 query AutomationRuns(
-            $projectId: String! 
-            $modelId: String! 
+            $projectId: String!
+            $modelId: String!
     )
 {
   project(id: $projectId) {

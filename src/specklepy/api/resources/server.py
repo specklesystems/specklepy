@@ -1,13 +1,8 @@
-import re
 from typing import Any, Dict, List, Tuple
 
-from gql import gql
-
 from specklepy.api.models import ServerInfo
-from specklepy.api.resource import ResourceBase
 from specklepy.core.api.resources.server import Resource as CoreResource
 from specklepy.logging import metrics
-from specklepy.logging.exceptions import GraphQLException
 
 
 class Resource(CoreResource):

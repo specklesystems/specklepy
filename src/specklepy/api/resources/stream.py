@@ -1,14 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional
 
-from deprecated import deprecated
-from gql import gql
-
-from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, Stream
-from specklepy.api.resource import ResourceBase
+from specklepy.api.models import PendingStreamCollaborator, Stream
 from specklepy.core.api.resources.stream import Resource as CoreResource
 from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException, UnsupportedException
 
 
 class Resource(CoreResource):

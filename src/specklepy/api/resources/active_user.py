@@ -1,13 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional
 
-from gql import gql
-
-from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
-from specklepy.api.resource import ResourceBase
+from specklepy.api.models import PendingStreamCollaborator, User
 from specklepy.core.api.resources.active_user import Resource as CoreResource
 from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException
 
 
 class Resource(CoreResource):

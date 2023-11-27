@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Callable, Optional, TypeVar, Union, overload
 
 from speckle_automate.automation_context import AutomationContext
-from speckle_automate.schema import AutomateBase, AutomationRunData, AutomationStatus
+from speckle_automate.schema import AutomateBase, AutomationStatus
 
 T = TypeVar("T", bound=AutomateBase)
 

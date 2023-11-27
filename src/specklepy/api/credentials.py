@@ -1,22 +1,14 @@
-import os
 from typing import List, Optional
-
-from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
-
-from specklepy.api.models import ServerInfo
 
 # following imports seem to be unnecessary, but they need to stay
 # to not break the scripts using these functions as non-core
-from specklepy.core.api.credentials import StreamWrapper  # deprecated
-from specklepy.core.api.credentials import Account, UserInfo
+from specklepy.core.api.credentials import StreamWrapper  # noqa: F401
+from specklepy.core.api.credentials import Account, UserInfo  # noqa: F401
 from specklepy.core.api.credentials import (
     get_account_from_token as core_get_account_from_token,
 )
 from specklepy.core.api.credentials import get_local_accounts as core_get_local_accounts
-from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException
-from specklepy.transports.sqlite import SQLiteTransport
 
 
 def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:

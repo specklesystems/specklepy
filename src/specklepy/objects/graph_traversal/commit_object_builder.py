@@ -1,16 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import (
-    Any,
-    Collection,
-    Dict,
-    Generic,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    TypeVar,
-)
+from typing import Any, Collection, Dict, Generic, Iterable, Optional, Tuple, TypeVar
 
 from attrs import define
 
@@ -24,7 +13,6 @@ PARENT_INFO = Tuple[Optional[str], str]
 
 @define(slots=True)
 class CommitObjectBuilder(ABC, Generic[T]):
-
     converted: Dict[str, Base]
     _parent_infos: Dict[str, Collection[PARENT_INFO]]
 
@@ -42,7 +30,6 @@ class CommitObjectBuilder(ABC, Generic[T]):
     def set_relationship(
         self, app_id: Optional[str], *parent_info: PARENT_INFO
     ) -> None:
-
         if not app_id:
             return
 
@@ -59,11 +46,11 @@ class CommitObjectBuilder(ABC, Generic[T]):
 
     def apply_relationship(self, current: Base, root_commit_object: Base):
         if not current.applicationId:
-            raise Exception(f"Expected applicationId to have been set")
+            raise Exception("Expected applicationId to have been set")
 
         parents = self._parent_infos[current.applicationId]
 
-        for (parent_id, prop_name) in parents:
+        for parent_id, prop_name in parents:
             if not parent_id:
                 continue
 

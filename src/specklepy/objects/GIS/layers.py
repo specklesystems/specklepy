@@ -90,7 +90,7 @@ class RasterLayer(
         self.elements = value
 
 
-class VectorLayer(
+class VectorLayer(  # noqa: F811
     Collection,
     detachable={"elements"},
     speckle_type="Objects.GIS.VectorLayer",
@@ -118,7 +118,7 @@ class VectorLayer(
         self.elements = value
 
 
-class RasterLayer(
+class RasterLayer(  # noqa: F811
     Collection,
     detachable={"elements"},
     speckle_type="Objects.GIS.RasterLayer",
