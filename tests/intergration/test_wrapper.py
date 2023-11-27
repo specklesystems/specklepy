@@ -126,3 +126,24 @@ def test_wrapper_url_match(user_path) -> None:
     account = wrap.get_account()
 
     assert account.userInfo.email is None
+
+
+def test_parse_project():
+    wrap = StreamWrapper("https://latest.speckle.systems/projects/843d07eb10")
+    assert wrap.type == "stream"
+
+
+def test_parse_model():
+    wrap = StreamWrapper(
+        "https://latest.speckle.systems/projects/843d07eb10/models/d9eb4918c8"
+    )
+
+    assert wrap.branch_name == "building wrapper"
+    assert wrap.type == "branch"
+
+
+def test_parse_version():
+    wrap = StreamWrapper(
+        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838@c42d5cbac1"
+    )
+    assert wrap.type == "commit"

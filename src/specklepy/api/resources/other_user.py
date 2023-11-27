@@ -1,14 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional, Union
 
-from gql import gql
-
 from specklepy.api.models import ActivityCollection, LimitedUser
-from specklepy.api.resource import ResourceBase
+from specklepy.core.api.resources.other_user import Resource as CoreResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
-
-from specklepy.core.api.resources.other_user import Resource as CoreResource
 
 
 class Resource(CoreResource):
@@ -54,7 +50,7 @@ class Resource(CoreResource):
             )
 
         metrics.track(metrics.SDK, self.account, {"name": "Other User Search"})
-        return super().search(search_query, limit) 
+        return super().search(search_query, limit)
 
     def activity(
         self,
@@ -83,5 +79,4 @@ class Resource(CoreResource):
         cursor {datetime} -- timestamp cursor for pagination
         """
         metrics.track(metrics.SDK, self.account, {"name": "Other User Activity"})
-        return super().activity(user_id, limit, action_type, before, after, cursor) 
-    
+        return super().activity(user_id, limit, action_type, before, after, cursor)

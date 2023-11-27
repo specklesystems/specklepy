@@ -1,14 +1,8 @@
-import re
 from typing import Any, Dict, List, Tuple
 
-from gql import gql
-
 from specklepy.api.models import ServerInfo
-from specklepy.api.resource import ResourceBase
-from specklepy.logging import metrics
-from specklepy.logging.exceptions import GraphQLException
-
 from specklepy.core.api.resources.server import Resource as CoreResource
+from specklepy.logging import metrics
 
 
 class Resource(CoreResource):
@@ -73,4 +67,4 @@ class Resource(CoreResource):
             bool -- True if the token was successfully deleted
         """
         metrics.track(metrics.SDK, self.account, {"name": "Server Revoke Token"})
-        return super().revoke_token(token) 
+        return super().revoke_token(token)

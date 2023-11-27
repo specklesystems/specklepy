@@ -1,18 +1,11 @@
 """This module provides an abstraction layer above the Speckle Automate runtime."""
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import httpx
 from gql import gql
-from specklepy.api import operations
-from specklepy.api.client import SpeckleClient
-from specklepy.core.api.models import Branch
-from specklepy.objects import Base
-from specklepy.transports.memory import MemoryTransport
-from specklepy.transports.server import ServerTransport
-from specklepy.logging.exceptions import SpeckleException
 
 from speckle_automate.schema import (
     AutomateBase,
@@ -22,6 +15,12 @@ from speckle_automate.schema import (
     ObjectResultLevel,
     ResultCase,
 )
+from specklepy.api import operations
+from specklepy.api.client import SpeckleClient
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.objects import Base
+from specklepy.transports.memory import MemoryTransport
+from specklepy.transports.server import ServerTransport
 
 
 @dataclass
@@ -163,6 +162,10 @@ class AutomationContext:
         self._automation_result.result_versions.append(version_id)
         return model_id, version_id
 
+    @property
+    def context_view(self) -> Optional[str]:
+        return self._automation_result.result_view
+
     def set_context_view(
         self,
         # f"{model_id}@{version_id} or {model_id} "
@@ -177,7 +180,7 @@ class AutomationContext:
             else []
         )
         if resource_ids:
-            link_resources.append(*resource_ids)
+            link_resources.extend(resource_ids)
         if not link_resources:
             raise Exception(
                 "We do not have enough resource ids to compose a context view"
@@ -192,8 +195,8 @@ class AutomationContext:
         query = gql(
             """
             mutation ReportFunctionRunStatus(
-                $automationId: String!, 
-                $automationRevisionId: String!, 
+                $automationId: String!,
+                $automationRevisionId: String!,
                 $automationRunId: String!,
                 $versionId: String!,
                 $functionId: String!,
@@ -257,6 +260,7 @@ class AutomationContext:
             "resultVersionIds": self._automation_result.result_versions,
             "objectResults": object_results,
         }
+        print(f"Reporting run status with content: {params}")
         self.speckle_client.httpclient.execute(query, params)
 
     def store_file_result(self, file_path: Union[Path, str]) -> None:
@@ -401,8 +405,8 @@ class AutomationContext:
         else:
             id_list = [object_ids]
         print(
-            f"Object {', '.join(id_list)} was marked with {level.value.upper()}",
-            f"/{category} cause: {message}",
+            f"Created new {level.value.upper()}"
+            f" category: {category} caused by: {message}"
         )
         self._automation_result.object_results.append(
             ResultCase(

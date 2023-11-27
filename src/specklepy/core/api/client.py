@@ -11,7 +11,6 @@ from gql.transport.websockets import WebsocketsTransport
 from specklepy.core.api import resources
 from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.core.api.resources import (
-    user,
     active_user,
     branch,
     commit,
@@ -20,6 +19,7 @@ from specklepy.core.api.resources import (
     server,
     stream,
     subscriptions,
+    user,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
@@ -58,8 +58,14 @@ class SpeckleClient:
 
     DEFAULT_HOST = "speckle.xyz"
     USE_SSL = True
+    VERIFY_CERTIFICATE = True
 
-    def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL) -> None:
+    def __init__(
+        self,
+        host: str = DEFAULT_HOST,
+        use_ssl: bool = USE_SSL,
+        verify_certificate: bool = VERIFY_CERTIFICATE,
+    ) -> None:
         ws_protocol = "ws"
         http_protocol = "http"
 
@@ -74,9 +80,12 @@ class SpeckleClient:
         self.graphql = f"{self.url}/graphql"
         self.ws_url = f"{ws_protocol}://{host}/graphql"
         self.account = Account()
+        self.verify_certificate = verify_certificate
 
         self.httpclient = Client(
-            transport=RequestsHTTPTransport(url=self.graphql, verify=True, retries=3)
+            transport=RequestsHTTPTransport(
+                url=self.graphql, verify=self.verify_certificate, retries=3
+            )
         )
         self.wsclient = None
 
@@ -150,7 +159,7 @@ class SpeckleClient:
             "apollographql-client-version": metrics.HOST_APP_VERSION,
         }
         httptransport = RequestsHTTPTransport(
-            url=self.graphql, headers=headers, verify=True, retries=3
+            url=self.graphql, headers=headers, verify=self.verify_certificate, retries=3
         )
         wstransport = WebsocketsTransport(
             url=self.ws_url,

@@ -2,8 +2,9 @@
 import secrets
 import string
 
-from specklepy.api.client import SpeckleClient
 from gql import gql
+
+from specklepy.api.client import SpeckleClient
 
 
 def register_new_automation(
@@ -18,10 +19,10 @@ def register_new_automation(
     query = gql(
         """
         mutation CreateAutomation(
-            $projectId: String! 
-            $modelId: String! 
+            $projectId: String!
+            $modelId: String!
             $automationName: String!
-            $automationId: String! 
+            $automationId: String!
             $automationRevisionId: String!
         ) {
                 automationMutations {
@@ -29,7 +30,7 @@ def register_new_automation(
                         input: {
                             projectId: $projectId
                             modelId: $modelId
-                            automationName: $automationName 
+                            automationName: $automationName
                             automationId: $automationId
                             automationRevisionId: $automationRevisionId
                         }

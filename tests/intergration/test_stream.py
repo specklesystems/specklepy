@@ -8,11 +8,7 @@ from specklepy.api.models import (
     Stream,
     User,
 )
-from specklepy.logging.exceptions import (
-    GraphQLException,
-    SpeckleException,
-    UnsupportedException,
-)
+from specklepy.logging.exceptions import GraphQLException, SpeckleException
 
 
 @pytest.mark.run(order=3)

@@ -1,7 +1,8 @@
 from typing import Any, List, Optional
+
 from deprecated import deprecated
 
-from specklepy.objects.geometry import Point, Vector
+from specklepy.objects.geometry import Plane, Point, Polyline, Vector
 
 from .base import Base
 
@@ -69,6 +70,19 @@ class DisplayStyle(Base, speckle_type=OTHER + "DisplayStyle"):
     color: int = -2894893  # light gray arbg
     linetype: Optional[str] = None
     lineweight: float = 0
+
+
+class Text(Base, speckle_type=OTHER + "Text"):
+    """
+    Text object to render it on viewer.
+    """
+
+    plane: Plane
+    value: str
+    height: float
+    rotation: float
+    displayValue: Optional[List[Polyline]] = None
+    richText: Optional[str] = None
 
 
 class Transform(
@@ -247,9 +261,7 @@ class BlockDefinition(
     geometry: Optional[List[Base]] = None
 
 
-class Instance(
-    Base, speckle_type=OTHER + "Instance", detachable={"definition"}
-):
+class Instance(Base, speckle_type=OTHER + "Instance", detachable={"definition"}):
     transform: Optional[Transform] = None
     definition: Optional[Base] = None
 
@@ -268,17 +280,17 @@ class BlockInstance(
     def blockDefinition(self, value: Optional[BlockDefinition]) -> None:
         self.definition = value
 
+
 class RevitInstance(Instance, speckle_type=OTHER_REVIT + "RevitInstance"):
-    level: Optional[Base]  = None
+    level: Optional[Base] = None
     facingFlipped: bool
     handFlipped: bool
-    parameters: Optional[Base]  = None
+    parameters: Optional[Base] = None
     elementId: Optional[str]
 
+
 # TODO: prob move this into a built elements module, but just trialling this for now
-class RevitParameter(
-    Base, speckle_type="Objects.BuiltElements.Revit.Parameter"
-):
+class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter"):
     name: Optional[str] = None
     value: Any = None
     applicationUnitType: Optional[str] = None  # eg UnitType UT_Length
@@ -289,6 +301,7 @@ class RevitParameter(
     isShared: bool = False
     isReadOnly: bool = False
     isTypeParameter: bool = False
+
 
 class Collection(
     Base, speckle_type="Speckle.Core.Models.Collection", detachable={"elements"}

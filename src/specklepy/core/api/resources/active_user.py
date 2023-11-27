@@ -3,7 +3,11 @@ from typing import List, Optional
 
 from gql import gql
 
-from specklepy.core.api.models import ActivityCollection, PendingStreamCollaborator, User
+from specklepy.core.api.models import (
+    ActivityCollection,
+    PendingStreamCollaborator,
+    User,
+)
 from specklepy.core.api.resource import ResourceBase
 from specklepy.logging.exceptions import SpeckleException
 

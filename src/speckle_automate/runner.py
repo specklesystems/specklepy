@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Callable, Optional, TypeVar, Union, overload
 
 from speckle_automate.automation_context import AutomationContext
-from speckle_automate.schema import AutomateBase, AutomationRunData, AutomationStatus
+from speckle_automate.schema import AutomateBase, AutomationStatus
 
 T = TypeVar("T", bound=AutomateBase)
 
@@ -146,5 +146,7 @@ def run_function(
             "Function error. Check the automation run logs for details."
         )
     finally:
+        if not automation_context.context_view:
+            automation_context.set_context_view()
         automation_context.report_run_status()
         return automation_context

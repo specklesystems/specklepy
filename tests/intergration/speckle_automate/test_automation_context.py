@@ -5,12 +5,6 @@ from typing import Dict
 
 import pytest
 from gql import gql
-from speckle_automate.schema import AutomateBase
-from speckle_automate.helpers import register_new_automation, crypto_random_string
-from specklepy.api import operations
-from specklepy.api.client import SpeckleClient
-from specklepy.objects.base import Base
-from specklepy.transports.server import ServerTransport
 
 from speckle_automate import (
     AutomationContext,
@@ -18,6 +12,12 @@ from speckle_automate import (
     AutomationStatus,
     run_function,
 )
+from speckle_automate.helpers import crypto_random_string, register_new_automation
+from speckle_automate.schema import AutomateBase
+from specklepy.api import operations
+from specklepy.api.client import SpeckleClient
+from specklepy.objects.base import Base
+from specklepy.transports.server import ServerTransport
 
 
 @pytest.fixture
@@ -111,8 +111,8 @@ def get_automation_status(
     query = gql(
         """
 query AutomationRuns(
-            $projectId: String! 
-            $modelId: String! 
+            $projectId: String!
+            $modelId: String!
     )
 {
   project(id: $projectId) {
@@ -255,8 +255,8 @@ def test_create_version_in_project(
 def test_set_context_view(automation_context: AutomationContext) -> None:
     automation_context.set_context_view()
 
-    assert automation_context._automation_result.result_view is not None
-    assert automation_context._automation_result.result_view.endswith(
+    assert automation_context.context_view is not None
+    assert automation_context.context_view.endswith(
         f"models/{automation_context.automation_run_data.model_id}@{automation_context.automation_run_data.version_id}"
     )
 
@@ -267,8 +267,8 @@ def test_set_context_view(automation_context: AutomationContext) -> None:
     dummy_context = "foo@bar"
     automation_context.set_context_view([dummy_context])
 
-    assert automation_context._automation_result.result_view is not None
-    assert automation_context._automation_result.result_view.endswith(
+    assert automation_context.context_view is not None
+    assert automation_context.context_view.endswith(
         f"models/{automation_context.automation_run_data.model_id}@{automation_context.automation_run_data.version_id},{dummy_context}"
     )
     automation_context.report_run_status()
@@ -280,8 +280,6 @@ def test_set_context_view(automation_context: AutomationContext) -> None:
         [dummy_context], include_source_model_version=False
     )
 
-    assert automation_context._automation_result.result_view is not None
-    assert automation_context._automation_result.result_view.endswith(
-        f"models/{dummy_context}"
-    )
+    assert automation_context.context_view is not None
+    assert automation_context.context_view.endswith(f"models/{dummy_context}")
     automation_context.report_run_status()
