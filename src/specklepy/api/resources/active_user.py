@@ -1,14 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional
 
-from gql import gql
-
-from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
-from specklepy.api.resource import ResourceBase
-from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException
-
+from specklepy.api.models import PendingStreamCollaborator, User
 from specklepy.core.api.resources.active_user import Resource as CoreResource
+from specklepy.logging import metrics
 
 
 class Resource(CoreResource):
@@ -97,7 +92,9 @@ class Resource(CoreResource):
             List[PendingStreamCollaborator]
             -- a list of pending invites for the current user
         """
-        metrics.track(metrics.SDK, self.account, {"name": "User Active Invites All Get"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "User Active Invites All Get"}
+        )
         return super().get_all_pending_invites()
 
     def get_pending_invite(

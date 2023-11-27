@@ -1,16 +1,12 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional, Union
 
 from deprecated import deprecated
-from gql import gql
 
-from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
-from specklepy.api.resource import ResourceBase
-
-from specklepy.logging.exceptions import SpeckleException
-
-from specklepy.logging import metrics
+from specklepy.api.models import PendingStreamCollaborator, User
 from specklepy.core.api.resources.user import Resource as CoreResource
+from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 
 DEPRECATION_VERSION = "2.9.0"
 DEPRECATION_TEXT = (
@@ -46,7 +42,7 @@ class Resource(CoreResource):
         """
         metrics.track(metrics.SDK, self.account, {"name": "User Get_deprecated"})
         return super().get(id)
-        
+
     @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT)
     def search(
         self, search_query: str, limit: int = 25
@@ -83,7 +79,7 @@ class Resource(CoreResource):
         Returns:
             bool -- True if your profile was updated successfully
         """
-        #metrics.track(metrics.USER, self.account, {"name": "update"})
+        # metrics.track(metrics.USER, self.account, {"name": "update"})
         metrics.track(metrics.SDK, self.account, {"name": "User Update_deprecated"})
         return super().update(name, company, bio, avatar)
 
@@ -118,7 +114,6 @@ class Resource(CoreResource):
         """
         metrics.track(metrics.SDK, self.account, {"name": "User Activity_deprecated"})
         return super().activity(user_id, limit, action_type, before, after, cursor)
-        
 
     @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT)
     def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
@@ -130,10 +125,11 @@ class Resource(CoreResource):
             List[PendingStreamCollaborator]
                 -- a list of pending invites for the current user
         """
-        #metrics.track(metrics.INVITE, self.account, {"name": "get"})
-        metrics.track(metrics.SDK, self.account, {"name": "User GetAllInvites_deprecated"})
+        # metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "User GetAllInvites_deprecated"}
+        )
         return super().get_all_pending_invites()
-        
 
     @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT)
     def get_pending_invite(
@@ -152,7 +148,6 @@ class Resource(CoreResource):
             PendingStreamCollaborator
                 -- the invite for the given stream (or None if it isn't found)
         """
-        #metrics.track(metrics.INVITE, self.account, {"name": "get"})
+        # metrics.track(metrics.INVITE, self.account, {"name": "get"})
         metrics.track(metrics.SDK, self.account, {"name": "User GetInvite_deprecated"})
         return super().get_pending_invite(stream_id, token)
-        

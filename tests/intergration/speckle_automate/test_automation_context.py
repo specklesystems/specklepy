@@ -5,12 +5,6 @@ from typing import Dict
 
 import pytest
 from gql import gql
-from speckle_automate.schema import AutomateBase
-from speckle_automate.helpers import register_new_automation, crypto_random_string
-from specklepy.api import operations
-from specklepy.api.client import SpeckleClient
-from specklepy.objects.base import Base
-from specklepy.transports.server import ServerTransport
 
 from speckle_automate import (
     AutomationContext,
@@ -18,6 +12,12 @@ from speckle_automate import (
     AutomationStatus,
     run_function,
 )
+from speckle_automate.helpers import crypto_random_string, register_new_automation
+from speckle_automate.schema import AutomateBase
+from specklepy.api import operations
+from specklepy.api.client import SpeckleClient
+from specklepy.objects.base import Base
+from specklepy.transports.server import ServerTransport
 
 
 @pytest.fixture
@@ -111,8 +111,8 @@ def get_automation_status(
     query = gql(
         """
 query AutomationRuns(
-            $projectId: String! 
-            $modelId: String! 
+            $projectId: String!
+            $modelId: String!
     )
 {
   project(id: $projectId) {

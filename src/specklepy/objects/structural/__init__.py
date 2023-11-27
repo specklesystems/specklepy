@@ -6,10 +6,7 @@ from specklepy.objects.structural.analysis import (
     ModelSettings,
     ModelUnits,
 )
-from specklepy.objects.structural.axis import (
-    AxisType,
-    Axis
-)
+from specklepy.objects.structural.axis import Axis, AxisType
 from specklepy.objects.structural.geometry import (
     Element1D,
     Element2D,

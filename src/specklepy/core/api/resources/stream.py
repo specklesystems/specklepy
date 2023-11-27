@@ -1,10 +1,13 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from deprecated import deprecated
 from gql import gql
 
-from specklepy.core.api.models import ActivityCollection, PendingStreamCollaborator, Stream
+from specklepy.core.api.models import (
+    ActivityCollection,
+    PendingStreamCollaborator,
+    Stream,
+)
 from specklepy.core.api.resource import ResourceBase
 from specklepy.logging.exceptions import SpeckleException, UnsupportedException
 
@@ -504,10 +507,9 @@ class Resource(ResourceBase):
 
         user_invites = [
             {"streamId": stream_id, "message": message, "userId": user_id}
-            for user_id in (user_ids if user_ids is not None else []) 
+            for user_id in (user_ids if user_ids is not None else [])
             if user_id is not None
         ]
-
 
         params = {"input": [*email_invites, *user_invites]}
 

@@ -1,5 +1,6 @@
 from urllib.parse import unquote, urlparse
 from warnings import warn
+
 from gql import gql
 
 from specklepy.core.api.client import SpeckleClient

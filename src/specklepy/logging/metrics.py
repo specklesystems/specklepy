@@ -28,7 +28,7 @@ CONNECTOR = "Connector Action"
 RECEIVE = "Receive"
 SEND = "Send"
 
-# not in use since 2.15  
+# not in use since 2.15
 ACCOUNTS = "Get Local Accounts"
 BRANCH = "Branch Action"
 CLIENT = "Speckle Client"
@@ -142,7 +142,7 @@ class MetricsTracker(metaclass=Singleton):
 
     def hash(self, value: str):
         inputList = value.lower().split("://")
-        input = inputList[len(inputList)-1].split("/")[0].split('?')[0]
+        input = inputList[len(inputList) - 1].split("/")[0].split("?")[0]
         return hashlib.md5(input.encode("utf-8")).hexdigest().upper()
 
     def _send_tracking_requests(self):

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-#from specklepy.logging import metrics
+# from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
