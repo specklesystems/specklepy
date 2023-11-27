@@ -60,7 +60,12 @@ class SpeckleClient:
     USE_SSL = True
     VERIFY_CERTIFICATE = True
 
-    def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL, verify_certificate: bool = VERIFY_CERTIFICATE) -> None:
+    def __init__(
+        self,
+        host: str = DEFAULT_HOST,
+        use_ssl: bool = USE_SSL,
+        verify_certificate: bool = VERIFY_CERTIFICATE,
+    ) -> None:
         ws_protocol = "ws"
         http_protocol = "http"
 
@@ -78,7 +83,9 @@ class SpeckleClient:
         self.verify_certificate = verify_certificate
 
         self.httpclient = Client(
-            transport=RequestsHTTPTransport(url=self.graphql, verify=self.verify_certificate, retries=3)
+            transport=RequestsHTTPTransport(
+                url=self.graphql, verify=self.verify_certificate, retries=3
+            )
         )
         self.wsclient = None
 
