@@ -11,7 +11,8 @@ from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.server.server import ServerTransport
 
 from specklepy.logging import metrics
-from specklepy.core.api.wrapper import StreamWrapper as CoreStreamWrapper 
+from specklepy.core.api.wrapper import StreamWrapper as CoreStreamWrapper
+
 
 class StreamWrapper(CoreStreamWrapper):
     """
@@ -51,7 +52,7 @@ class StreamWrapper(CoreStreamWrapper):
     _account: Account = None
 
     def __init__(self, url: str) -> None:
-        super().__init__(url = url)
+        super().__init__(url=url)
 
     def get_account(self, token: str = None) -> Account:
         """
@@ -90,5 +91,7 @@ class StreamWrapper(CoreStreamWrapper):
             ServerTransport -- constructed for this stream
             with a pre-authenticated client
         """
-        metrics.track(metrics.SDK, custom_props={"name": "Stream Wrapper Get Transport"})
+        metrics.track(
+            metrics.SDK, custom_props={"name": "Stream Wrapper Get Transport"}
+        )
         return super().get_transport(token)

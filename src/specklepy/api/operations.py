@@ -7,10 +7,12 @@ from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.transports.sqlite import SQLiteTransport
 
-from specklepy.core.api.operations import (send as core_send,
-                                           receive as _untracked_receive,
-                                           serialize as core_serialize,
-                                           deserialize as core_deserialize)
+from specklepy.core.api.operations import (
+    send as core_send,
+    receive as _untracked_receive,
+    serialize as core_serialize,
+    deserialize as core_deserialize,
+)
 
 
 def send(
@@ -73,6 +75,7 @@ def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str
     """
     metrics.track(metrics.SDK, custom_props={"name": "Serialize"})
     return core_serialize(base, write_transports)
+
 
 def deserialize(
     obj_string: str, read_transport: Optional[AbstractTransport] = None

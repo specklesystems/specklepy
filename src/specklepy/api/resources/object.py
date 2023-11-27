@@ -58,4 +58,3 @@ class Resource(CoreResource):
         """
         metrics.track(metrics.SDK, self.account, {"name": "Object Create"})
         return super().create(stream_id, objects)
-    

@@ -73,4 +73,4 @@ class Resource(CoreResource):
             bool -- True if the token was successfully deleted
         """
         metrics.track(metrics.SDK, self.account, {"name": "Server Revoke Token"})
-        return super().revoke_token(token) 
+        return super().revoke_token(token)

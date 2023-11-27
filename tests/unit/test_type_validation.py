@@ -107,7 +107,12 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
             fake_bases,
         ),
         (List["int"], [2, 3, 4], True, [2, 3, 4]),
-        (Union[float, Dict[str, float]], {"foo": 1, "bar": 2}, True, {"foo": 1.0, "bar": 2.0}),
+        (
+            Union[float, Dict[str, float]],
+            {"foo": 1, "bar": 2},
+            True,
+            {"foo": 1.0, "bar": 2.0},
+        ),
         (Union[float, Dict[str, float]], {"foo": "bar"}, False, {"foo": "bar"}),
     ],
 )

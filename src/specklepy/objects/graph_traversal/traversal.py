@@ -58,15 +58,15 @@ class GraphTraversal:
             members_to_traverse = active_rule.get_members_to_traverse(current)
             for child_prop in members_to_traverse:
                 try:
-                    if child_prop in {"speckle_type", "units", "applicationId"}: continue #debug: to avoid noisy exceptions, explicitly avoid checking ones we know will fail, this is not exhaustive
+                    if child_prop in {"speckle_type", "units", "applicationId"}:
+                        continue  # debug: to avoid noisy exceptions, explicitly avoid checking ones we know will fail, this is not exhaustive
                     if getattr(current, child_prop, None):
                         value = current[child_prop]
-                        self._traverse_member_to_stack(
-                            stack, value, child_prop, head
-                        )
+                        self._traverse_member_to_stack(stack, value, child_prop, head)
                 except KeyError as ex:
                     # Unset application ids, and class variables like SpeckleType will throw when __getitem__ is called
                     pass
+
     @staticmethod
     def _traverse_member_to_stack(
         stack: List[TraversalContext],
@@ -78,10 +78,14 @@ class GraphTraversal:
             stack.append(TraversalContext(value, member_name, parent))
         elif isinstance(value, list):
             for obj in value:
-                GraphTraversal._traverse_member_to_stack(stack, obj, member_name, parent)
+                GraphTraversal._traverse_member_to_stack(
+                    stack, obj, member_name, parent
+                )
         elif isinstance(value, dict):
             for obj in value.values():
-                GraphTraversal._traverse_member_to_stack(stack, obj, member_name, parent)
+                GraphTraversal._traverse_member_to_stack(
+                    stack, obj, member_name, parent
+                )
 
     @staticmethod
     def traverse_member(value: Optional[Any]) -> Iterator[Base]:
@@ -95,7 +99,6 @@ class GraphTraversal:
             for obj in value.values():
                 for o in GraphTraversal.traverse_member(obj):
                     yield o
-
 
     def _get_active_rule_or_default_rule(self, o: Base) -> ITraversalRule:
         return self._get_active_rule(o) or _default_rule

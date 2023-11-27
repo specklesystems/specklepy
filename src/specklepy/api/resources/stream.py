@@ -256,7 +256,11 @@ class Resource(CoreResource):
         Returns:
             bool -- True if the operation was successful
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Stream Permission Update", "role": role})
+        metrics.track(
+            metrics.SDK,
+            self.account,
+            {"name": "Stream Permission Update", "role": role},
+        )
         return super().update_permission(stream_id, user_id, role)
 
     def revoke_permission(self, stream_id: str, user_id: str):
@@ -301,4 +305,3 @@ class Resource(CoreResource):
         """
         metrics.track(metrics.SDK, self.account, {"name": "Stream Activity"})
         return super().activity(stream_id, action_type, limit, before, after, cursor)
-    

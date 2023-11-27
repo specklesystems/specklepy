@@ -54,7 +54,7 @@ class Resource(CoreResource):
             )
 
         metrics.track(metrics.SDK, self.account, {"name": "Other User Search"})
-        return super().search(search_query, limit) 
+        return super().search(search_query, limit)
 
     def activity(
         self,
@@ -83,5 +83,4 @@ class Resource(CoreResource):
         cursor {datetime} -- timestamp cursor for pagination
         """
         metrics.track(metrics.SDK, self.account, {"name": "Other User Activity"})
-        return super().activity(user_id, limit, action_type, before, after, cursor) 
-    
+        return super().activity(user_id, limit, action_type, before, after, cursor)

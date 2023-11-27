@@ -11,6 +11,7 @@ from specklepy.logging.exceptions import SpeckleException
 from specklepy.logging import metrics
 from specklepy.core.api.resources.subscriptions import Resource as CoreResource
 
+
 def check_wsclient(function):
     @wraps(function)
     async def check_wsclient_wrapper(self, *args, **kwargs):
@@ -64,7 +65,9 @@ class Resource(CoreResource):
         Returns:
             Stream -- the update stream
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Subscription Stream Updated"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Subscription Stream Updated"}
+        )
         return super().stream_updated(id, callback)
 
     @check_wsclient
@@ -83,7 +86,9 @@ class Resource(CoreResource):
         Returns:
             dict -- dict containing 'id' of stream removed and optionally 'revokedBy'
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Subscription Stream Removed"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Subscription Stream Removed"}
+        )
         return super().stream_removed(callback)
 
     @check_wsclient

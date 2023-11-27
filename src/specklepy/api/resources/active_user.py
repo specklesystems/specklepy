@@ -97,7 +97,9 @@ class Resource(CoreResource):
             List[PendingStreamCollaborator]
             -- a list of pending invites for the current user
         """
-        metrics.track(metrics.SDK, self.account, {"name": "User Active Invites All Get"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "User Active Invites All Get"}
+        )
         return super().get_all_pending_invites()
 
     def get_pending_invite(
