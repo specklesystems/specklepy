@@ -1,9 +1,10 @@
-from typing import Any, Dict, List, Union, Optional
-from specklepy.objects.base import Base
-from specklepy.objects.other import Collection
+from typing import Any, Dict, List, Optional, Union
 
-from specklepy.objects.GIS.CRS import CRS
 from deprecated import deprecated
+
+from specklepy.objects.base import Base
+from specklepy.objects.GIS.CRS import CRS
+from specklepy.objects.other import Collection
 
 
 @deprecated(version="2.15", reason="Use VectorLayer or RasterLayer instead")

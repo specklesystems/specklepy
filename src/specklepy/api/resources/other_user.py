@@ -5,10 +5,9 @@ from gql import gql
 
 from specklepy.api.models import ActivityCollection, LimitedUser
 from specklepy.api.resource import ResourceBase
+from specklepy.core.api.resources.other_user import Resource as CoreResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
-
-from specklepy.core.api.resources.other_user import Resource as CoreResource
 
 
 class Resource(CoreResource):

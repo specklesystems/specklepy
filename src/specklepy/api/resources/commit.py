@@ -4,9 +4,8 @@ from gql import gql
 
 from specklepy.api.models import Commit
 from specklepy.api.resource import ResourceBase
-from specklepy.logging import metrics
-
 from specklepy.core.api.resources.commit import Resource as CoreResource
+from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 
 

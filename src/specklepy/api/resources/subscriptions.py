@@ -6,10 +6,9 @@ from graphql import DocumentNode
 
 from specklepy.api.resource import ResourceBase
 from specklepy.api.resources.stream import Stream
-from specklepy.logging.exceptions import SpeckleException
-
-from specklepy.logging import metrics
 from specklepy.core.api.resources.subscriptions import Resource as CoreResource
+from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 
 
 def check_wsclient(function):

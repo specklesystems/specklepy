@@ -1,5 +1,5 @@
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Plane

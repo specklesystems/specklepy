@@ -1,4 +1,5 @@
 from typing import Optional
+
 from specklepy.objects import Base
 
 

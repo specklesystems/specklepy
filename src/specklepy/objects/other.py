@@ -1,7 +1,8 @@
 from typing import Any, List, Optional
+
 from deprecated import deprecated
 
-from specklepy.objects.geometry import Point, Vector, Plane, Polyline
+from specklepy.objects.geometry import Plane, Point, Polyline, Vector
 
 from .base import Base
 

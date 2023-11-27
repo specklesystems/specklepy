@@ -10,7 +10,6 @@ from specklepy.core.api.models import (
     User,
 )
 from specklepy.core.api.resource import ResourceBase
-
 from specklepy.logging.exceptions import SpeckleException
 
 NAME = "user"

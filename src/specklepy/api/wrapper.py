@@ -7,11 +7,10 @@ from specklepy.api.credentials import (
     get_account_from_token,
     get_local_accounts,
 )
+from specklepy.core.api.wrapper import StreamWrapper as CoreStreamWrapper
+from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.server.server import ServerTransport
-
-from specklepy.logging import metrics
-from specklepy.core.api.wrapper import StreamWrapper as CoreStreamWrapper
 
 
 class StreamWrapper(CoreStreamWrapper):

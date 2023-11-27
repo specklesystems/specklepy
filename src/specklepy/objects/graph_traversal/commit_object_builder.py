@@ -11,7 +11,9 @@ from typing import (
     Tuple,
     TypeVar,
 )
+
 from attrs import define
+
 from specklepy.objects.base import Base
 
 ROOT: str = "__Root"

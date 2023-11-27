@@ -6,6 +6,10 @@ from gql.transport.exceptions import TransportQueryError
 from graphql import DocumentNode
 
 from specklepy.api.credentials import Account
+
+# following imports seem to be unnecessary, but they need to stay
+# to not break the scripts using these functions as non-core
+from specklepy.core.api.resource import ResourceBase as CoreResourceBase
 from specklepy.logging.exceptions import (
     GraphQLException,
     SpeckleException,
@@ -13,10 +17,6 @@ from specklepy.logging.exceptions import (
 )
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.sqlite import SQLiteTransport
-
-# following imports seem to be unnecessary, but they need to stay
-# to not break the scripts using these functions as non-core
-from specklepy.core.api.resource import ResourceBase as CoreResourceBase
 
 
 class ResourceBase(CoreResourceBase):

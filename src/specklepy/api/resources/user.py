@@ -6,11 +6,9 @@ from gql import gql
 
 from specklepy.api.models import ActivityCollection, PendingStreamCollaborator, User
 from specklepy.api.resource import ResourceBase
-
-from specklepy.logging.exceptions import SpeckleException
-
-from specklepy.logging import metrics
 from specklepy.core.api.resources.user import Resource as CoreResource
+from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 
 DEPRECATION_VERSION = "2.9.0"
 DEPRECATION_TEXT = (

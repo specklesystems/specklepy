@@ -2,8 +2,9 @@
 import secrets
 import string
 
-from specklepy.api.client import SpeckleClient
 from gql import gql
+
+from specklepy.api.client import SpeckleClient
 
 
 def register_new_automation(

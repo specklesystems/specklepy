@@ -5,7 +5,6 @@ from gql.transport.websockets import WebsocketsTransport
 
 from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.api.resources import (
-    user,
     active_user,
     branch,
     commit,
@@ -14,11 +13,11 @@ from specklepy.api.resources import (
     server,
     stream,
     subscriptions,
+    user,
 )
+from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
-
-from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 
 
 class SpeckleClient(CoreSpeckleClient):
