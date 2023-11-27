@@ -137,7 +137,7 @@ class BatchSender(object):
                 raise SpeckleException(
                     message=(
                         "Could not save the object to the server - status code"
-                        f" {r.status_code} ({r.text[:1000]})" 
+                        f" {r.status_code} ({r.text[:1000]})"
                     )
                 )
         except json.JSONDecodeError as error:

@@ -106,7 +106,9 @@ def get_encoding_from_units(unit: Union[Units, str, None]):
 
 def get_scale_factor_from_string(fromUnits: str, toUnits: str) -> float:
     """Returns a scalar to convert distance values from one unit system to another"""
-    return get_scale_factor(get_units_from_string(fromUnits), get_units_from_string(toUnits))
+    return get_scale_factor(
+        get_units_from_string(fromUnits), get_units_from_string(toUnits)
+    )
 
 
 def get_scale_factor(fromUnits: Units, toUnits: Units) -> float:

@@ -11,7 +11,6 @@ from gql.transport.websockets import WebsocketsTransport
 from specklepy.core.api import resources
 from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.core.api.resources import (
-    user,
     active_user,
     branch,
     commit,
@@ -20,6 +19,7 @@ from specklepy.core.api.resources import (
     server,
     stream,
     subscriptions,
+    user,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning

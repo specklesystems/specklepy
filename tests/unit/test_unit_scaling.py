@@ -1,5 +1,3 @@
-
-
 import pytest
 
 from specklepy.objects.units import Units, get_scale_factor
@@ -8,7 +6,7 @@ from specklepy.objects.units import Units, get_scale_factor
 @pytest.mark.parametrize(
     "fromUnits, toUnits, inValue, expectedOutValue",
     [
-        #To self
+        # To self
         (Units.km, Units.km, 1.5, 1.5),
         (Units.km, Units.km, 0, 0),
         (Units.m, Units.m, 1.5, 1.5),
@@ -23,24 +21,20 @@ from specklepy.objects.units import Units, get_scale_factor
         (Units.yards, Units.yards, 0, 0),
         (Units.feet, Units.feet, 1.5, 1.5),
         (Units.feet, Units.feet, 0, 0),
-
-        #To Meters
+        # To Meters
         (Units.km, Units.m, 987654.321, 987654321),
         (Units.m, Units.m, 987654.321, 987654.321),
         (Units.mm, Units.m, 98765432.1, 98765.4321),
         (Units.cm, Units.m, 9876543.21, 98765.4321),
-
-        #To negative meters
+        # To negative meters
         (Units.km, Units.m, -987654.321, -987654321),
-        (Units.m, Units.m,- 987654.321, -987654.321),
+        (Units.m, Units.m, -987654.321, -987654.321),
         (Units.mm, Units.m, -98765432.1, -98765.4321),
         (Units.cm, Units.m, -9876543.21, -98765.4321),
-
         (Units.m, Units.km, 987654.321, 987.654321),
         (Units.m, Units.cm, 987654.321, 98765432.1),
         (Units.m, Units.mm, 987654.321, 987654321),
-
-        #Imperial
+        # Imperial
         (Units.miles, Units.m, 123.45, 198673.517),
         (Units.miles, Units.inches, 123.45, 7821792),
         (Units.yards, Units.m, 123.45, 112.88268),
@@ -50,7 +44,9 @@ from specklepy.objects.units import Units, get_scale_factor
         (Units.inches, Units.m, 123.45, 3.13563),
     ],
 )
-def test_get_scale_factor_between_units(fromUnits: Units, toUnits: Units, inValue: float, expectedOutValue: float):
+def test_get_scale_factor_between_units(
+    fromUnits: Units, toUnits: Units, inValue: float, expectedOutValue: float
+):
     Tolerance = 1e-10
     actual = inValue * get_scale_factor(fromUnits, toUnits)
-    assert(actual - expectedOutValue < Tolerance)
+    assert actual - expectedOutValue < Tolerance
