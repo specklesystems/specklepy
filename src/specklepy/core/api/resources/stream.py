@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from deprecated import deprecated
 from gql import gql
 
 from specklepy.core.api.models import (
