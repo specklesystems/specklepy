@@ -5,7 +5,11 @@ from warnings import warn
 import requests
 
 from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.credentials import Account, get_account_from_token
+from specklepy.core.api.credentials import (
+    Account,
+    get_account_from_token,
+    get_default_account,
+)
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
 
@@ -73,9 +77,14 @@ class ServerTransport(AbstractTransport):
                 warn(
                     SpeckleWarning(
                         "Unauthenticated Speckle Client provided to Server Transport"
-                        f" for {self.url}. Receiving from private streams will fail."
+                        f" for {url}. Receiving from private streams will fail."
                     )
                 )
+                self.account = get_default_account()
+                if self.account is None:
+                    raise SpeckleException(
+                        "No local default account found", PermissionError
+                    )
             else:
                 self.account = client.account
         else:
