@@ -168,6 +168,7 @@ class _RegisteringBase:
         initialization. This is reused to register each subclassing type into a class
         level dictionary.
         """
+        print(cls, super())
         cls._speckle_type_override = speckle_type
         cls.speckle_type = cls._determine_speckle_type()
         if cls._full_name() in cls._type_registry:
@@ -188,7 +189,7 @@ class _RegisteringBase:
             cls._detachable = cls._detachable.union(detachable)
         if serialize_ignore:
             cls._serialize_ignore = cls._serialize_ignore.union(serialize_ignore)
-        super().__init_subclass__(**kwargs)
+        return super().__init_subclass__()
 
 
 # T = TypeVar("T")
