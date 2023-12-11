@@ -50,10 +50,11 @@ class SpeckleClient(CoreSpeckleClient):
     DEFAULT_HOST = "speckle.xyz"
     USE_SSL = True
 
-    def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL) -> None:
+    def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL, verify_certificate: bool = True) -> None:
         super().__init__(
             host=host,
             use_ssl=use_ssl,
+            verify_certificate: bool = VERIFY_CERTIFICATE,
         )
         self.account = Account()
 
