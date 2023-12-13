@@ -4,19 +4,56 @@ Provides mechanisms to execute any function,
  that conforms to the AutomateFunction "interface"
 """
 import json
-import os
 import sys
 import traceback
 from pathlib import Path
-from typing import Callable, Optional, TypeVar, Union, overload
+from typing import Callable, Optional, Tuple, TypeVar, Union, overload
+
+from pydantic import create_model
+from pydantic.json_schema import GenerateJsonSchema
 
 from speckle_automate.automation_context import AutomationContext
-from speckle_automate.schema import AutomateBase, AutomationStatus
+from speckle_automate.schema import AutomateBase, AutomationRunData, AutomationStatus
 
 T = TypeVar("T", bound=AutomateBase)
 
 AutomateFunction = Callable[[AutomationContext, T], None]
 AutomateFunctionWithoutInputs = Callable[[AutomationContext], None]
+
+
+def _read_input_data(inputs_location: str) -> str:
+    input_path = Path(inputs_location)
+    if not input_path.exists():
+        raise ValueError(f"Cannot find the function inputs file at {input_path}")
+
+    return input_path.read_text()
+
+
+def _parse_input_data(
+    input_location: str, input_schema: Optional[type[T]]
+) -> Tuple[AutomationRunData, Optional[T], str]:
+    input_json_string = _read_input_data(input_location)
+
+    class FunctionRunData(AutomateBase):
+        speckle_token: str
+        automation_run_data: AutomationRunData
+        function_inputs: None = None
+
+    parser_model = FunctionRunData
+
+    if input_schema:
+        parser_model = create_model(
+            "FunctionRunDataWithInputs",
+            function_inputs=(input_schema, ...),
+            __base__=FunctionRunData,
+        )
+
+    input_data = parser_model.model_validate_json(input_json_string)
+    return (
+        input_data.automation_run_data,
+        input_data.function_inputs,
+        input_data.speckle_token,
+    )
 
 
 @overload
@@ -32,6 +69,13 @@ def execute_automate_function(automate_function: AutomateFunctionWithoutInputs) 
     ...
 
 
+class AutomateGenerateJsonSchema(GenerateJsonSchema):
+    def generate(self, schema, mode="validation"):
+        json_schema = super().generate(schema, mode=mode)
+        json_schema["$schema"] = self.schema_dialect
+        return json_schema
+
+
 def execute_automate_function(
     automate_function: Union[AutomateFunction[T], AutomateFunctionWithoutInputs],
     input_schema: Optional[type[T]] = None,
@@ -40,49 +84,44 @@ def execute_automate_function(
     # first arg is the python file name, we do not need that
     args = sys.argv[1:]
 
-    if len(args) < 2:
-        raise ValueError("too few arguments specified need minimum 2")
-
-    if len(args) > 4:
-        raise ValueError("too many arguments specified, max supported is 4")
+    if len(args) != 2:
+        raise ValueError("Incorrect number of arguments specified need 2")
 
     # we rely on a command name convention to decide what to do.
     # this is here, so that the function authors do not see any of this
-    command = args[0]
+    command, argument = args
 
     if command == "generate_schema":
-        path = Path(args[1])
+        path = Path(argument)
         schema = json.dumps(
-            input_schema.model_json_schema(by_alias=True) if input_schema else {}
+            input_schema.model_json_schema(
+                by_alias=True, schema_generator=AutomateGenerateJsonSchema
+            )
+            if input_schema
+            else {}
         )
         path.write_text(schema)
 
     elif command == "run":
-        automation_run_data = args[1]
-        function_inputs = args[2]
+        automation_run_data, function_inputs, speckle_token = _parse_input_data(
+            argument, input_schema
+        )
 
-        speckle_token = os.environ.get("SPECKLE_TOKEN", None)
-        if not speckle_token and len(args) != 4:
-            raise ValueError("Cannot get speckle token from arguments or environment")
-
-        speckle_token = speckle_token if speckle_token else args[3]
         automation_context = AutomationContext.initialize(
             automation_run_data, speckle_token
         )
 
-        inputs = (
-            input_schema.model_validate_json(function_inputs)
-            if input_schema
-            else input_schema
-        )
-
-        if inputs:
+        if function_inputs:
             automation_context = run_function(
                 automation_context,
                 automate_function,  # type: ignore
-                inputs,
+                function_inputs,  # type: ignore
             )
+
         else:
+            automation_context = AutomationContext.initialize(
+                automation_run_data, speckle_token
+            )
             automation_context = run_function(
                 automation_context,
                 automate_function,  # type: ignore
