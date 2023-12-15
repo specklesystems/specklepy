@@ -58,13 +58,12 @@ class SpeckleClient:
 
     DEFAULT_HOST = "speckle.xyz"
     USE_SSL = True
-    VERIFY_CERTIFICATE = True
 
     def __init__(
         self,
         host: str = DEFAULT_HOST,
         use_ssl: bool = USE_SSL,
-        verify_certificate: bool = VERIFY_CERTIFICATE,
+        verify_certificate: bool = True,
     ) -> None:
         ws_protocol = "ws"
         http_protocol = "http"
