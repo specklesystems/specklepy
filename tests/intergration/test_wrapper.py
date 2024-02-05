@@ -8,6 +8,7 @@ import pytest
 
 from specklepy.api.wrapper import StreamWrapper
 from specklepy.core.helpers import speckle_path_provider
+from specklepy.logging.exceptions import SpeckleException
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -28,6 +29,22 @@ def user_path() -> Iterable[Path]:
     if path.exists():
         path.unlink()
     speckle_path_provider.override_application_data_path(None)
+
+
+def test_parse_empty():
+    try:
+        StreamWrapper("https://testing.speckle.dev/streams")
+        assert False
+    except SpeckleException:
+        assert True
+
+
+def test_parse_empty_fe2():
+    try:
+        StreamWrapper("https://latest.speckle.systems/projects")
+        assert False
+    except SpeckleException:
+        assert True
 
 
 def test_parse_stream():
@@ -141,6 +158,16 @@ def test_parse_model():
 
     assert wrap.branch_name == "building wrapper"
     assert wrap.type == "branch"
+
+
+def test_parse_multi_model():
+    try:
+        StreamWrapper(
+            "https://latest.speckle.systems/projects/2099ac4b5f/models/1870f279e3,a9cfdddc79"
+        )
+        assert False
+    except SpeckleException:
+        assert True
 
 
 def test_parse_object_fe2():

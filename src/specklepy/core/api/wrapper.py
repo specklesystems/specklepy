@@ -87,8 +87,10 @@ class StreamWrapper:
         # check for fe2 URL
         if "/projects/" in parsed.path:
             use_fe2 = True
+            key_stream = "project"
         else:
             use_fe2 = False
+            key_stream = "stream"
 
         while segments:
             segment = segments.pop(0)
@@ -161,7 +163,7 @@ class StreamWrapper:
 
         if not self.stream_id:
             raise SpeckleException(
-                f"Cannot parse {url} into a stream wrapper class - no stream id found."
+                f"Cannot parse {url} into a stream wrapper class - no {key_stream} id found."
             )
 
     @property
