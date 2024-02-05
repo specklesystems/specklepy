@@ -1,8 +1,7 @@
 import re
-import requests
-
 from typing import Any, Dict, List, Tuple
 
+import requests
 from gql import gql
 
 from specklepy.core.api.models import ServerInfo
