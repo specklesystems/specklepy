@@ -160,6 +160,16 @@ def test_parse_model():
     assert wrap.type == "branch"
 
 
+def test_parse_federated_model():
+    try:
+        wrap = StreamWrapper(
+            "https://latest.speckle.systems/projects/843d07eb10/models/$main"
+        )
+        assert False
+    except SpeckleException:
+        assert True
+
+
 def test_parse_multi_model():
     try:
         StreamWrapper(

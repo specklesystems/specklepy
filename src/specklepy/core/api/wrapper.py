@@ -118,10 +118,21 @@ class StreamWrapper:
                     self.stream_id = segments.pop(0)
                 elif segment.lower() == "models":
                     next_segment = segments.pop(0)
-                    if len(next_segment) == 32:
+                    if "," in next_segment:
+                        raise SpeckleException(
+                            "Multi-model urls are not supported yet"
+                        )
+                    elif unquote(next_segment).startswith("$"):
+                        raise SpeckleException(
+                            "Federation model urls are not supported"
+                        )
+                    elif len(next_segment) == 32:
                         self.object_id = next_segment
                     else:
-                        self.branch_name = unquote(next_segment)
+                        self.branch_name = unquote(next_segment).split("@")[0]
+                        if "@" in unquote(next_segment):
+                            self.commit_id = unquote(next_segment).split("@")[1]
+
                 else:
                     raise SpeckleException(
                         f"Cannot parse {url} into a stream wrapper class - invalid URL"
@@ -129,16 +140,8 @@ class StreamWrapper:
                     )
 
         if use_fe2 is True and self.branch_name is not None:
-            if "," in self.branch_name:
-                raise SpeckleException("Multi-model urls are not supported yet")
 
-            if "@" in self.branch_name:
-                model_id = self.branch_name.split("@")[0]
-                self.commit_id = self.branch_name.split("@")[1]
-            else:
-                model_id = self.branch_name
-            self.model_id = model_id
-
+            self.model_id = self.branch_name
             # get branch name
             query = gql(
                 """
@@ -153,7 +156,7 @@ class StreamWrapper:
             """
             )
             self._client = self.get_client()
-            params = {"project_id": self.stream_id, "model_id": model_id}
+            params = {"project_id": self.stream_id, "model_id": self.model_id}
             project = self._client.httpclient.execute(query, params)
 
             try:
