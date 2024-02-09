@@ -138,7 +138,6 @@ class StreamWrapper:
                     )
 
         if use_fe2 is True and self.branch_name is not None:
-
             self.model_id = self.branch_name
             # get branch name
             query = gql(
