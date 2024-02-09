@@ -119,9 +119,7 @@ class StreamWrapper:
                 elif segment.lower() == "models":
                     next_segment = segments.pop(0)
                     if "," in next_segment:
-                        raise SpeckleException(
-                            "Multi-model urls are not supported yet"
-                        )
+                        raise SpeckleException("Multi-model urls are not supported yet")
                     elif unquote(next_segment).startswith("$"):
                         raise SpeckleException(
                             "Federation model urls are not supported"
