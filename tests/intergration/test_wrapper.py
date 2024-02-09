@@ -162,7 +162,7 @@ def test_parse_model():
 
 def test_parse_federated_model():
     try:
-        wrap = StreamWrapper(
+        StreamWrapper(
             "https://latest.speckle.systems/projects/843d07eb10/models/$main"
         )
         assert False
