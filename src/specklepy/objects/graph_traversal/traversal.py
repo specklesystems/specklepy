@@ -3,7 +3,7 @@ from typing import Any, Callable, Collection, Iterable, Iterator, List, Optional
 from attrs import define
 from typing_extensions import Protocol, final
 
-from specklepy.objects import Base
+from specklepy.objects.base import Base
 
 
 class ITraversalRule(Protocol):

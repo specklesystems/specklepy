@@ -18,7 +18,7 @@ from speckle_automate.schema import (
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.objects import Base
+from specklepy.objects.base import Base
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
 

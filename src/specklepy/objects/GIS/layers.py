@@ -13,8 +13,8 @@ class Layer(Base, detachable={"features"}):
 
     def __init__(
         self,
-        name: str = None,
-        crs: CRS = None,
+        name: Optional[str] = None,
+        crs: Optional[CRS] = None,
         units: str = "m",
         features: Optional[List[Base]] = None,
         layerType: str = "None",
@@ -39,7 +39,6 @@ class VectorLayer(
     speckle_type="VectorLayer",
     serialize_ignore={"features"},
 ):
-
     """GIS Vector Layer"""
 
     name: Optional[str] = None
@@ -68,7 +67,6 @@ class RasterLayer(
     speckle_type="RasterLayer",
     serialize_ignore={"features"},
 ):
-
     """GIS Raster Layer"""
 
     name: Optional[str] = None
@@ -96,7 +94,6 @@ class VectorLayer(  # noqa: F811
     speckle_type="Objects.GIS.VectorLayer",
     serialize_ignore={"features"},
 ):
-
     """GIS Vector Layer"""
 
     name: Optional[str] = None
@@ -124,7 +121,6 @@ class RasterLayer(  # noqa: F811
     speckle_type="Objects.GIS.RasterLayer",
     serialize_ignore={"features"},
 ):
-
     """GIS Raster Layer"""
 
     name: Optional[str] = None

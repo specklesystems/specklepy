@@ -731,13 +731,13 @@ class Resource(ResourceBase):
                 "stream_id": stream_id,
                 "limit": limit,
                 "action_type": action_type,
-                "before": before.astimezone(timezone.utc).isoformat()
-                if before
-                else before,
+                "before": (
+                    before.astimezone(timezone.utc).isoformat() if before else before
+                ),
                 "after": after.astimezone(timezone.utc).isoformat() if after else after,
-                "cursor": cursor.astimezone(timezone.utc).isoformat()
-                if cursor
-                else cursor,
+                "cursor": (
+                    cursor.astimezone(timezone.utc).isoformat() if cursor else cursor
+                ),
             }
         except AttributeError as e:
             raise SpeckleException(
