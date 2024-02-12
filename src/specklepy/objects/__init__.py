@@ -1,13 +1,13 @@
 """Builtin Speckle object kit."""
 
 from specklepy.objects import (
+    GIS,
     encoding,
     geometry,
     other,
     primitive,
     structural,
     units,
-    GIS,
 )
 from specklepy.objects.base import Base
 
