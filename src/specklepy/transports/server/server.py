@@ -80,11 +80,6 @@ class ServerTransport(AbstractTransport):
                         f" for {url}. Receiving from private streams will fail."
                     )
                 )
-                self.account = get_default_account()
-                if self.account is None:
-                    raise SpeckleException(
-                        "No local default account found", PermissionError
-                    )
             else:
                 self.account = client.account
         else:
@@ -93,14 +88,15 @@ class ServerTransport(AbstractTransport):
         self.stream_id = stream_id
         self.url = url
 
-        self._batch_sender = BatchSender(
-            self.url, self.stream_id, self.account.token, max_batch_size_mb=1
-        )
-
         self.session = requests.Session()
-        self.session.headers.update(
-            {"Authorization": f"Bearer {self.account.token}", "Accept": "text/plain"}
-        )
+        
+        if self.account is not None:
+            self._batch_sender = BatchSender(
+                self.url, self.stream_id, self.account.token, max_batch_size_mb=1
+            )
+            self.session.headers.update(
+                {"Authorization": f"Bearer {self.account.token}", "Accept": "text/plain"}
+            )
 
     @property
     def name(self) -> str:
