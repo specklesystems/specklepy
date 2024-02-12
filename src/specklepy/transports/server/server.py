@@ -73,7 +73,7 @@ class ServerTransport(AbstractTransport):
                 warn(
                     SpeckleWarning(
                         "Unauthenticated Speckle Client provided to Server Transport"
-                        f" for {self.url}. Receiving from private streams will fail."
+                        f" for {url}. Receiving from private streams will fail."
                     )
                 )
             else:
@@ -84,14 +84,18 @@ class ServerTransport(AbstractTransport):
         self.stream_id = stream_id
         self.url = url
 
-        self._batch_sender = BatchSender(
-            self.url, self.stream_id, self.account.token, max_batch_size_mb=1
-        )
-
         self.session = requests.Session()
-        self.session.headers.update(
-            {"Authorization": f"Bearer {self.account.token}", "Accept": "text/plain"}
-        )
+
+        if self.account is not None:
+            self._batch_sender = BatchSender(
+                self.url, self.stream_id, self.account.token, max_batch_size_mb=1
+            )
+            self.session.headers.update(
+                {
+                    "Authorization": f"Bearer {self.account.token}",
+                    "Accept": "text/plain",
+                }
+            )
 
     @property
     def name(self) -> str:

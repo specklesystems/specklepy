@@ -167,9 +167,7 @@ class Resource(ResourceBase):
         """
         )
         if len(name) < 3 and len(name) != 0:
-            return SpeckleException(
-                message="Stream Name must be at least 3 characters"
-            )
+            return SpeckleException(message="Stream Name must be at least 3 characters")
         params = {
             "stream": {"name": name, "description": description, "isPublic": is_public}
         }
