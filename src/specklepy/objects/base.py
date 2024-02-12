@@ -188,7 +188,8 @@ class _RegisteringBase:
             cls._detachable = cls._detachable.union(detachable)
         if serialize_ignore:
             cls._serialize_ignore = cls._serialize_ignore.union(serialize_ignore)
-        super().__init_subclass__(**kwargs)
+        # we know, that the super here is object, that takes no args on init subclass
+        return super().__init_subclass__()
 
 
 # T = TypeVar("T")
