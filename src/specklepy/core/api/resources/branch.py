@@ -41,9 +41,7 @@ class Resource(ResourceBase):
           """
         )
         if len(name) < 3:
-            return SpeckleException(
-                message="Branch Name must be at least 3 characters"
-            )
+            return SpeckleException(message="Branch Name must be at least 3 characters")
         params = {
             "branch": {
                 "streamId": stream_id,
