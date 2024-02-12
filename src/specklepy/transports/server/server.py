@@ -8,7 +8,6 @@ from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import (
     Account,
     get_account_from_token,
-    get_default_account,
 )
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
@@ -89,13 +88,16 @@ class ServerTransport(AbstractTransport):
         self.url = url
 
         self.session = requests.Session()
-        
+
         if self.account is not None:
             self._batch_sender = BatchSender(
                 self.url, self.stream_id, self.account.token, max_batch_size_mb=1
             )
             self.session.headers.update(
-                {"Authorization": f"Bearer {self.account.token}", "Accept": "text/plain"}
+                {
+                    "Authorization": f"Bearer {self.account.token}",
+                    "Accept": "text/plain",
+                }
             )
 
     @property
