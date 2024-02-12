@@ -1,14 +1,15 @@
-from typing import Optional, Union, List
-from specklepy.objects.geometry import (
-    Point,
-    Line,
-    Polyline,
-    Circle,
-    Arc,
-    Polycurve,
-    Mesh,
-)
+from typing import List, Optional, Union
+
 from specklepy.objects import Base
+from specklepy.objects.geometry import (
+    Arc,
+    Circle,
+    Line,
+    Mesh,
+    Point,
+    Polycurve,
+    Polyline,
+)
 
 
 class GisPolygonGeometry(

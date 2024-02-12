@@ -1,5 +1,7 @@
-from urllib.parse import unquote, urlparse
+from urllib.parse import quote, unquote, urlparse
 from warnings import warn
+
+from gql import gql
 
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import (
@@ -45,6 +47,7 @@ class StreamWrapper:
     commit_id: str = None
     object_id: str = None
     branch_name: str = None
+    model_id: str = None
     _client: SpeckleClient = None
     _account: Account = None
 
@@ -81,29 +84,86 @@ class StreamWrapper:
                 " provided."
             )
 
+        # check for fe2 URL
+        if "/projects/" in parsed.path:
+            use_fe2 = True
+            key_stream = "project"
+        else:
+            use_fe2 = False
+            key_stream = "stream"
+
         while segments:
             segment = segments.pop(0)
-            if segments and segment.lower() == "streams":
-                self.stream_id = segments.pop(0)
-            elif segments and segment.lower() == "commits":
-                self.commit_id = segments.pop(0)
-            elif segments and segment.lower() == "branches":
-                self.branch_name = unquote(segments.pop(0))
-            elif segments and segment.lower() == "objects":
-                self.object_id = segments.pop(0)
-            elif segment.lower() == "globals":
-                self.branch_name = "globals"
-                if segments:
+
+            if use_fe2 is False:
+                if segments and segment.lower() == "streams":
+                    self.stream_id = segments.pop(0)
+                elif segments and segment.lower() == "commits":
                     self.commit_id = segments.pop(0)
-            else:
-                raise SpeckleException(
-                    f"Cannot parse {url} into a stream wrapper class - invalid URL"
-                    " provided."
-                )
+                elif segments and segment.lower() == "branches":
+                    self.branch_name = unquote(segments.pop(0))
+                elif segments and segment.lower() == "objects":
+                    self.object_id = segments.pop(0)
+                elif segment.lower() == "globals":
+                    self.branch_name = "globals"
+                    if segments:
+                        self.commit_id = segments.pop(0)
+                else:
+                    raise SpeckleException(
+                        f"Cannot parse {url} into a stream wrapper class - invalid URL"
+                        " provided."
+                    )
+            elif segments and use_fe2 is True:
+                if segment.lower() == "projects":
+                    self.stream_id = segments.pop(0)
+                elif segment.lower() == "models":
+                    next_segment = segments.pop(0)
+                    if "," in next_segment:
+                        raise SpeckleException("Multi-model urls are not supported yet")
+                    elif unquote(next_segment).startswith("$"):
+                        raise SpeckleException(
+                            "Federation model urls are not supported"
+                        )
+                    elif len(next_segment) == 32:
+                        self.object_id = next_segment
+                    else:
+                        self.branch_name = unquote(next_segment).split("@")[0]
+                        if "@" in unquote(next_segment):
+                            self.commit_id = unquote(next_segment).split("@")[1]
+
+                else:
+                    raise SpeckleException(
+                        f"Cannot parse {url} into a stream wrapper class - invalid URL"
+                        " provided."
+                    )
+
+        if use_fe2 is True and self.branch_name is not None:
+            self.model_id = self.branch_name
+            # get branch name
+            query = gql(
+                """
+                query Project($project_id: String!, $model_id: String!) {
+                    project(id: $project_id) {
+                        id
+                        model(id: $model_id) {
+                            name
+                        }
+                    }
+                }
+            """
+            )
+            self._client = self.get_client()
+            params = {"project_id": self.stream_id, "model_id": self.model_id}
+            project = self._client.httpclient.execute(query, params)
+
+            try:
+                self.branch_name = project["project"]["model"]["name"]
+            except KeyError as ke:
+                raise SpeckleException("Project model name is not found", ke)
 
         if not self.stream_id:
             raise SpeckleException(
-                f"Cannot parse {url} into a stream wrapper class - no stream id found."
+                f"Cannot parse {url} into a stream wrapper class - no {key_stream} id found."
             )
 
     @property
@@ -184,3 +244,46 @@ class StreamWrapper:
         if not self._account or not self._account.token:
             self.get_account(token)
         return ServerTransport(self.stream_id, account=self._account)
+
+    def to_string(self) -> str:
+        """
+        Constructs a URL depending on the StreamWrapper type and FE version.
+        """
+        use_fe2 = False
+        key_streams = "/streams/"
+        key_branches = "/branches/"
+        if isinstance(self.branch_name, str):
+            value_branch = quote(self.branch_name)
+            if self.branch_name == "globals":
+                key_branches = "/"
+        key_commits = "/commits/"
+        if isinstance(self.commit_id, str) and self.branch_name == "globals":
+            key_commits = "/globals/"
+        key_objects = "/objects/"
+
+        if "/projects/" in self.stream_url:
+            use_fe2 = True
+            key_streams = "/projects/"
+            key_branches = "/models/"
+            value_branch = self.model_id
+            key_commits = "@"
+            key_objects = "/models/"
+
+        wrapper_type = self.type
+        if use_fe2 is False or (use_fe2 is True and not self.model_id):
+            base_url = f"{self.server_url}{key_streams}{self.stream_id}"
+        else:  # fe2 is True and model_id available
+            base_url = f"{self.server_url}{key_streams}{self.stream_id}{key_branches}{value_branch}"
+
+        if wrapper_type == "object":
+            return f"{base_url}{key_objects}{self.object_id}"
+        elif wrapper_type == "commit":
+            return f"{base_url}{key_commits}{self.commit_id}"
+        elif wrapper_type == "branch":
+            return f"{self.server_url}{key_streams}{self.stream_id}{key_branches}{value_branch}"
+        elif wrapper_type == "stream":
+            return f"{self.server_url}{key_streams}{self.stream_id}"
+        else:
+            raise SpeckleException(
+                f"Cannot parse StreamWrapper of type '{wrapper_type}'"
+            )

@@ -2,11 +2,13 @@ import json
 import tempfile
 from pathlib import Path
 from typing import Iterable
+from urllib.parse import unquote
 
 import pytest
 
 from specklepy.api.wrapper import StreamWrapper
 from specklepy.core.helpers import speckle_path_provider
+from specklepy.logging.exceptions import SpeckleException
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -27,6 +29,22 @@ def user_path() -> Iterable[Path]:
     if path.exists():
         path.unlink()
     speckle_path_provider.override_application_data_path(None)
+
+
+def test_parse_empty():
+    try:
+        StreamWrapper("https://testing.speckle.dev/streams")
+        assert False
+    except SpeckleException:
+        assert True
+
+
+def test_parse_empty_fe2():
+    try:
+        StreamWrapper("https://latest.speckle.systems/projects")
+        assert False
+    except SpeckleException:
+        assert True
 
 
 def test_parse_stream():
@@ -126,3 +144,72 @@ def test_wrapper_url_match(user_path) -> None:
     account = wrap.get_account()
 
     assert account.userInfo.email is None
+
+
+def test_parse_project():
+    wrap = StreamWrapper("https://latest.speckle.systems/projects/843d07eb10")
+    assert wrap.type == "stream"
+
+
+def test_parse_model():
+    wrap = StreamWrapper(
+        "https://latest.speckle.systems/projects/843d07eb10/models/d9eb4918c8"
+    )
+
+    assert wrap.branch_name == "building wrapper"
+    assert wrap.type == "branch"
+
+
+def test_parse_federated_model():
+    try:
+        StreamWrapper("https://latest.speckle.systems/projects/843d07eb10/models/$main")
+        assert False
+    except SpeckleException:
+        assert True
+
+
+def test_parse_multi_model():
+    try:
+        StreamWrapper(
+            "https://latest.speckle.systems/projects/2099ac4b5f/models/1870f279e3,a9cfdddc79"
+        )
+        assert False
+    except SpeckleException:
+        assert True
+
+
+def test_parse_object_fe2():
+    wrap = StreamWrapper(
+        "https://latest.speckle.systems/projects/24c3741255/models/b48d1b10f5a732f4ca4144286391282c"
+    )
+    assert wrap.type == "object"
+
+
+def test_parse_version():
+    wrap = StreamWrapper(
+        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838@c42d5cbac1"
+    )
+    wrap_quoted = StreamWrapper(
+        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838%40c42d5cbac1"
+    )
+    assert wrap.type == "commit"
+    assert wrap_quoted.type == "commit"
+
+
+def test_to_string():
+    urls = [
+        "https://testing.speckle.dev/streams/a75ab4f10f",
+        "https://testing.speckle.dev/streams/4c3ce1459c/branches/%F0%9F%8D%95%E2%AC%85%F0%9F%8C%9F%20you%20wat%3F",
+        "https://testing.speckle.dev/streams/0c6ad366c4/globals",
+        "https://testing.speckle.dev/streams/0c6ad366c4/globals/abd3787893",
+        "https://testing.speckle.dev/streams/4c3ce1459c/commits/8b9b831792",
+        "https://testing.speckle.dev/streams/a75ab4f10f/objects/5530363e6d51c904903dafc3ea1d2ec6",
+        "https://latest.speckle.systems/projects/843d07eb10",
+        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838",
+        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838@c42d5cbac1",
+        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838%40c42d5cbac1",
+        "https://latest.speckle.systems/projects/24c3741255/models/b48d1b10f5a732f4ca4144286391282c",
+    ]
+    for url in urls:
+        wrap = StreamWrapper(url)
+        assert unquote(wrap.to_string()) == unquote(url)

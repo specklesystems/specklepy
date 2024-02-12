@@ -1,12 +1,9 @@
-from typing import List, Optional
-
-from gql import gql
+from typing import List, Optional, Union
 
 from specklepy.api.models import Commit
-from specklepy.api.resource import ResourceBase
-from specklepy.logging import metrics
-
 from specklepy.core.api.resources.commit import Resource as CoreResource
+from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 
 
 class Resource(CoreResource):
@@ -55,8 +52,8 @@ class Resource(CoreResource):
         branch_name: str = "main",
         message: str = "",
         source_application: str = "python",
-        parents: List[str] = None,
-    ) -> str:
+        parents: Optional[List[str]] = None,
+    ) -> Union[str, SpeckleException]:
         """
         Creates a commit on a branch
 
@@ -76,7 +73,9 @@ class Resource(CoreResource):
             str -- the id of the created commit
         """
         metrics.track(metrics.SDK, self.account, {"name": "Commit Create"})
-        return super().create(stream_id, object_id, branch_name, message, source_application, parents)
+        return super().create(
+            stream_id, object_id, branch_name, message, source_application, parents
+        )
 
     def update(self, stream_id: str, commit_id: str, message: str) -> bool:
         """

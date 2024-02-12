@@ -1,20 +1,14 @@
-import os
 from typing import List, Optional
 
-from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
-
-from specklepy.api.models import ServerInfo
-from specklepy.core.helpers import speckle_path_provider
-from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException
-from specklepy.transports.sqlite import SQLiteTransport
-
-# following imports seem to be unnecessary, but they need to stay 
+# following imports seem to be unnecessary, but they need to stay
 # to not break the scripts using these functions as non-core
-from specklepy.core.api.credentials import (Account, UserInfo, 
-                                            StreamWrapper, # deprecated 
-                                            get_local_accounts as core_get_local_accounts, 
-                                            get_account_from_token as core_get_account_from_token)
+from specklepy.core.api.credentials import StreamWrapper  # noqa: F401
+from specklepy.core.api.credentials import Account, UserInfo  # noqa: F401
+from specklepy.core.api.credentials import (
+    get_account_from_token as core_get_account_from_token,
+)
+from specklepy.core.api.credentials import get_local_accounts as core_get_local_accounts
+from specklepy.logging import metrics
 
 
 def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
@@ -35,10 +29,11 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
             (acc for acc in accounts if acc.isDefault),
             accounts[0] if accounts else None,
         ),
-        {"name": "Get Local Accounts"}
+        {"name": "Get Local Accounts"},
     )
 
     return accounts
+
 
 def get_default_account(base_path: Optional[str] = None) -> Optional[Account]:
     """
@@ -61,7 +56,8 @@ def get_default_account(base_path: Optional[str] = None) -> Optional[Account]:
     metrics.initialise_tracker(default)
 
     return default
-    
+
+
 def get_account_from_token(token: str, server_url: str = None) -> Account:
     """Gets the local account for the token if it exists
     Arguments:
@@ -73,5 +69,5 @@ def get_account_from_token(token: str, server_url: str = None) -> Account:
     """
     account = core_get_account_from_token(token, server_url)
 
-    metrics.track( metrics.SDK, account, {"name": "Get Account From Token"} )
+    metrics.track(metrics.SDK, account, {"name": "Get Account From Token"})
     return account

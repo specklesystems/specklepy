@@ -18,6 +18,7 @@ class TestServer:
         server = client.server.get()
 
         assert isinstance(server, ServerInfo)
+        assert isinstance(server.frontend2, bool)
 
     def test_server_version(self, client: SpeckleClient):
         version = client.server.version()

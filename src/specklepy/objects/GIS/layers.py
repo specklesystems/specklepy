@@ -1,9 +1,10 @@
-from typing import Any, Dict, List, Union, Optional
-from specklepy.objects.base import Base
-from specklepy.objects.other import Collection
+from typing import Any, Dict, List, Optional, Union
 
-from specklepy.objects.GIS.CRS import CRS
 from deprecated import deprecated
+
+from specklepy.objects.base import Base
+from specklepy.objects.GIS.CRS import CRS
+from specklepy.objects.other import Collection
 
 
 @deprecated(version="2.15", reason="Use VectorLayer or RasterLayer instead")
@@ -38,7 +39,6 @@ class VectorLayer(
     speckle_type="VectorLayer",
     serialize_ignore={"features"},
 ):
-
     """GIS Vector Layer"""
 
     name: Optional[str] = None
@@ -67,7 +67,6 @@ class RasterLayer(
     speckle_type="RasterLayer",
     serialize_ignore={"features"},
 ):
-
     """GIS Raster Layer"""
 
     name: Optional[str] = None
@@ -89,13 +88,12 @@ class RasterLayer(
         self.elements = value
 
 
-class VectorLayer(
+class VectorLayer(  # noqa: F811
     Collection,
     detachable={"elements"},
     speckle_type="Objects.GIS.VectorLayer",
     serialize_ignore={"features"},
 ):
-
     """GIS Vector Layer"""
 
     name: Optional[str] = None
@@ -117,13 +115,12 @@ class VectorLayer(
         self.elements = value
 
 
-class RasterLayer(
+class RasterLayer(  # noqa: F811
     Collection,
     detachable={"elements"},
     speckle_type="Objects.GIS.RasterLayer",
     serialize_ignore={"features"},
 ):
-
     """GIS Raster Layer"""
 
     name: Optional[str] = None

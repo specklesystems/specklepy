@@ -1,17 +1,7 @@
-import re
-from typing import Dict
-from warnings import warn
-
 from deprecated import deprecated
-from gql import Client
-from gql.transport.exceptions import TransportServerError
-from gql.transport.requests import RequestsHTTPTransport
-from gql.transport.websockets import WebsocketsTransport
 
-from specklepy.api import resources
-from specklepy.api.credentials import Account, get_account_from_token
+from specklepy.api.credentials import Account
 from specklepy.api.resources import (
-    user,
     active_user,
     branch,
     commit,
@@ -20,11 +10,10 @@ from specklepy.api.resources import (
     server,
     stream,
     subscriptions,
+    user,
 )
-from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
-
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
+from specklepy.logging import metrics
 
 
 class SpeckleClient(CoreSpeckleClient):
@@ -61,10 +50,16 @@ class SpeckleClient(CoreSpeckleClient):
     DEFAULT_HOST = "speckle.xyz"
     USE_SSL = True
 
-    def __init__(self, host: str = DEFAULT_HOST, use_ssl: bool = USE_SSL) -> None:
+    def __init__(
+        self,
+        host: str = DEFAULT_HOST,
+        use_ssl: bool = USE_SSL,
+        verify_certificate: bool = True,
+    ) -> None:
         super().__init__(
             host=host,
             use_ssl=use_ssl,
+            verify_certificate=verify_certificate,
         )
         self.account = Account()
 
@@ -131,7 +126,9 @@ class SpeckleClient(CoreSpeckleClient):
         Arguments:
             token {str} -- an api token
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate_deprecated"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Client Authenticate_deprecated"}
+        )
         return super().authenticate(token)
 
     def authenticate_with_token(self, token: str) -> None:
@@ -143,7 +140,9 @@ class SpeckleClient(CoreSpeckleClient):
         Arguments:
             token {str} -- an api token
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate With Token"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Client Authenticate With Token"}
+        )
         return super().authenticate_with_token(token)
 
     def authenticate_with_account(self, account: Account) -> None:
@@ -155,5 +154,7 @@ class SpeckleClient(CoreSpeckleClient):
             account {Account} -- the account object which can be found with
             `get_default_account` or `get_local_accounts`
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Client Authenticate With Account"})
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Client Authenticate With Account"}
+        )
         return super().authenticate_with_account(account)

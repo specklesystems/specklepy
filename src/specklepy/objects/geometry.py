@@ -40,9 +40,9 @@ class Point(Base, speckle_type=GEOMETRY + "Point"):
 
 
 class Pointcloud(
-    Base, 
+    Base,
     speckle_type=GEOMETRY + "Pointcloud",
-    chunkable={"points": 31250, "colors": 62500, "sizes": 62500},      
+    chunkable={"points": 31250, "colors": 62500, "sizes": 62500},
 ):
     points: Optional[List[float]] = None
     colors: Optional[List[int]] = None
@@ -319,7 +319,7 @@ class Spiral(Base, speckle_type=GEOMETRY + "Spiral", detachable={"displayValue"}
     startPoint: Optional[Point] = None
     endPoint: Optional[Point]
     plane: Optional[Plane]
-    turns: Optional[int]
+    turns: Optional[float]
     pitchAxis: Optional[Vector] = Vector()
     pitch: float = 0
     spiralType: Optional[SpiralType] = None

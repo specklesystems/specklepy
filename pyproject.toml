@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "specklepy"
-version = "2.9.1"
+version = "2.17.14"
 description = "The Python SDK for Speckle 2.0"
 readme = "README.md"
 authors = ["Speckle Systems <devops@speckle.systems>"]
@@ -10,21 +10,23 @@ documentation = "https://speckle.guide/dev/py-examples.html"
 homepage = "https://speckle.systems/"
 packages = [
   { include = "specklepy", from = "src" },
+  { include = "speckle_automate", from = "src" },
 ]
 
 
 [tool.poetry.dependencies]
-python = ">=3.7.2, <4.0"
-pydantic = "^2.0"
+python = ">=3.8.0, <4.0"
+pydantic = "^2.5"
 appdirs = "^1.4.4"
-gql = {extras = ["requests", "websockets"], version = "^3.3.0"}
+gql = { extras = ["requests", "websockets"], version = "^3.3.0" }
 ujson = "^5.3.0"
 Deprecated = "^1.2.13"
 stringcase = "^1.2.0"
 attrs = "^23.1.0"
+httpx = "^0.25.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.8.0"
+black = "23.11.0"
 isort = "^5.7.0"
 pytest = "^7.1.3"
 pytest-ordering = "^0.6"

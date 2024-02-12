@@ -196,3 +196,4 @@ class ServerInfo(BaseModel):
     scopes: Optional[List[dict]] = None
     authStrategies: Optional[List[dict]] = None
     version: Optional[str] = None
+    frontend2: Optional[bool] = None

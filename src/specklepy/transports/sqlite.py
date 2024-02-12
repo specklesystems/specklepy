@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from contextlib import closing
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging.exceptions import SpeckleException
