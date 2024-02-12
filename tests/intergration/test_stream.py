@@ -44,6 +44,17 @@ class TestStream:
 
         assert isinstance(stream.id, str)
 
+    def test_stream_create_short_name(self, client, stream, updated_stream):
+        try:
+            client.stream.create(
+                name="x",
+                description=stream.description,
+                is_public=stream.isPublic,
+            )
+            assert False
+        except SpeckleException:
+            assert True
+
     def test_stream_get(self, client, stream):
         fetched_stream = client.stream.get(stream.id)
 
