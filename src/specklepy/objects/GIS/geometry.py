@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from specklepy.objects import Base
+from specklepy.objects.base import Base
 from specklepy.objects.geometry import (
     Arc,
     Circle,
