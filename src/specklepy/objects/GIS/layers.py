@@ -19,7 +19,7 @@ class Layer(Base, detachable={"features"}):
         features: Optional[List[Base]] = None,
         layerType: str = "None",
         geomType: str = "None",
-        renderer: Optional[dict[str, Any]] = None,
+        renderer: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
