@@ -303,15 +303,15 @@ class Polyline(Base, speckle_type=GEOMETRY + "Polyline", chunkable={"value": 200
 
 
 class SpiralType(Enum):
-    Biquadratic = (0,)
-    BiquadraticParabola = (1,)
-    Bloss = (2,)
-    Clothoid = (3,)
-    Cosine = (4,)
-    Cubic = (5,)
-    CubicParabola = (6,)
-    Radioid = (7,)
-    Sinusoid = (8,)
+    Biquadratic = 0
+    BiquadraticParabola = 1
+    Bloss = 2
+    Clothoid = 3
+    Cosine = 4
+    Cubic = 5
+    CubicParabola = 6
+    Radioid = 7
+    Sinusoid = 8
     Unknown = 9
 
 
