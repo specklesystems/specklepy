@@ -123,8 +123,7 @@ class SpeckleClient:
         Arguments:
             token {str} -- an api token
         """
-        self.authenticate_with_token(token)
-        self._set_up_client()
+        self.authenticate_with_account(get_account_from_token(token))
 
     def authenticate_with_token(self, token: str) -> None:
         """
@@ -135,7 +134,7 @@ class SpeckleClient:
         Arguments:
             token {str} -- an api token
         """
-        self.account = get_account_from_token(token, self.url)
+        self.account = Account.from_token(token, self.url)
         self._set_up_client()
 
     def authenticate_with_account(self, account: Account) -> None:
