@@ -184,9 +184,11 @@ class ActivityCollection(BaseModel):
     def __str__(self) -> str:
         return self.__repr__()
 
+
 class ServerMigration(BaseModel):
     movedTo: Optional[str] = None
     movedFrom: Optional[str] = None
+
 
 class ServerInfo(BaseModel):
     name: Optional[str] = None

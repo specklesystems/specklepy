@@ -1,4 +1,3 @@
-from typing import Optional
 from urllib.parse import quote, unquote, urlparse
 from warnings import warn
 
