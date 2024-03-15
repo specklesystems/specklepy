@@ -1,8 +1,9 @@
-from urllib.parse import urlparse
-import uuid
-import pytest
 import os
+import uuid
 from typing import List, Optional, Tuple
+from urllib.parse import urlparse
+
+import pytest
 
 from specklepy.core.api.credentials import Account, UserInfo, get_accounts_for_server
 from specklepy.core.api.models import ServerInfo, ServerMigration
