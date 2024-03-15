@@ -184,6 +184,9 @@ class ActivityCollection(BaseModel):
     def __str__(self) -> str:
         return self.__repr__()
 
+class ServerMigration(BaseModel):
+    movedTo: Optional[str] = None
+    movedFrom: Optional[str] = None
 
 class ServerInfo(BaseModel):
     name: Optional[str] = None
@@ -197,3 +200,4 @@ class ServerInfo(BaseModel):
     authStrategies: Optional[List[dict]] = None
     version: Optional[str] = None
     frontend2: Optional[bool] = None
+    migration: Optional[ServerMigration] = None
