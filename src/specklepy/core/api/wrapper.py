@@ -179,7 +179,7 @@ class StreamWrapper:
         if self._account and self._account.token:
             return self._account
 
-        self._account = next(get_accounts_for_server(self.host))
+        self._account = next(iter(get_accounts_for_server(self.host)))
 
         if not self._account:
             self._account = get_account_from_token(token, self.server_url)
