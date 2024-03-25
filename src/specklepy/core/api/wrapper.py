@@ -7,7 +7,7 @@ from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import (
     Account,
     get_account_from_token,
-    get_local_accounts,
+    get_accounts_for_server,
 )
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.server.server import ServerTransport
@@ -178,14 +178,7 @@ class StreamWrapper:
         if self._account and self._account.token:
             return self._account
 
-        self._account = next(
-            (
-                a
-                for a in get_local_accounts()
-                if self.host == urlparse(a.serverInfo.url).netloc
-            ),
-            None,
-        )
+        self._account = next(iter(get_accounts_for_server(self.host)), None)
 
         if not self._account:
             self._account = get_account_from_token(token, self.server_url)

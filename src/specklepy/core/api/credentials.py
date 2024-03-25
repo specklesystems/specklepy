@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 
@@ -140,6 +141,28 @@ def get_account_from_token(token: str, server_url: str = None) -> Account:
             return acct
 
     return Account.from_token(token, server_url)
+
+
+def get_accounts_for_server(host: str) -> List[Account]:
+    all_accounts = get_local_accounts()
+    filtered: List[Account] = []
+
+    for acc in all_accounts:
+        moved_from = (
+            acc.serverInfo.migration.movedFrom if acc.serverInfo.migration else None
+        )
+
+        if moved_from and host == urlparse(moved_from).netloc:
+            filtered.append(acc)
+
+    for acc in all_accounts:
+        if any([x for x in filtered if x.userInfo.id == acc.userInfo.id]):
+            continue
+
+        if host == urlparse(acc.serverInfo.url).netloc:
+            filtered.append(acc)
+
+    return filtered
 
 
 class StreamWrapper:
