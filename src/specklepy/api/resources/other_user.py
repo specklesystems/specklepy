@@ -8,7 +8,11 @@ from specklepy.logging.exceptions import SpeckleException
 
 
 class Resource(CoreResource):
-    """API Access class for other users, that are not the currently active user."""
+    """
+    Provides API access to other users' profiles and activities on the platform. 
+    This class enables fetching limited information about users, searching for users by name or email, 
+    and accessing user activity logs with appropriate privacy and access control measures in place.
+    """
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
@@ -21,13 +25,13 @@ class Resource(CoreResource):
 
     def get(self, id: str) -> LimitedUser:
         """
-        Gets the profile of another user.
+        Retrieves the profile of a user specified by their user ID.
 
-        Arguments:
-            id {str} -- the user id
+        Args:
+            id (str): The unique identifier of the user.
 
         Returns:
-            LimitedUser -- the retrieved profile of another user
+            LimitedUser: The profile of the user with limited information.
         """
         metrics.track(metrics.SDK, self.account, {"name": "Other User Get"})
         return super().get(id)
@@ -35,18 +39,21 @@ class Resource(CoreResource):
     def search(
         self, search_query: str, limit: int = 25
     ) -> Union[List[LimitedUser], SpeckleException]:
-        """Searches for user by name or email. The search query must be at least
-        3 characters long
+        """
+        Searches for users by name or email. 
+        The search requires a minimum query length of 3 characters.
 
-        Arguments:
-            search_query {str} -- a string to search for
-            limit {int} -- the maximum number of results to return
+        Args:
+            search_query (str): The search string.
+            limit (int): Maximum number of search results to return.
+
         Returns:
-            List[LimitedUser] -- a list of User objects that match the search query
+            Union[List[LimitedUser], SpeckleException]: A list of users matching the search 
+                query or an exception if the query is too short.
         """
         if len(search_query) < 3:
             return SpeckleException(
-                message="User search query must be at least 3 characters"
+                message="User search query must be at least 3 characters."
             )
 
         metrics.track(metrics.SDK, self.account, {"name": "Other User Search"})
@@ -62,21 +69,19 @@ class Resource(CoreResource):
         cursor: Optional[datetime] = None,
     ) -> ActivityCollection:
         """
-        Get the activity from a given stream in an Activity collection.
-        Step into the activity `items` for the list of activity.
+        Retrieves a collection of activities for a specified user, with optional filters for activity type, 
+        time frame, and pagination.
 
-        Note: all timestamps arguments should be `datetime` of
-        any tz as they will be converted to UTC ISO format strings
+        Args:
+            user_id (str): The ID of the user whose activities are being requested.
+            limit (int): The maximum number of activity items to return.
+            action_type (Optional[str]): A specific type of activity to filter.
+            before (Optional[datetime]): Latest timestamp to include activities before.
+            after (Optional[datetime]): Earliest timestamp to include activities after.
+            cursor (Optional[datetime]): Timestamp for pagination cursor.
 
-        user_id {str} -- the id of the user to get the activity from
-        action_type {str} -- filter results to a single action type
-            (eg: `commit_create` or `commit_receive`)
-        limit {int} -- max number of Activity items to return
-        before {datetime} -- latest cutoff for activity
-            (ie: return all activity _before_ this time)
-        after {datetime} -- oldest cutoff for activity
-            (ie: return all activity _after_ this time)
-        cursor {datetime} -- timestamp cursor for pagination
+        Returns:
+            ActivityCollection: A collection of user activities filtered according to specified criteria.
         """
         metrics.track(metrics.SDK, self.account, {"name": "Other User Activity"})
         return super().activity(user_id, limit, action_type, before, after, cursor)
