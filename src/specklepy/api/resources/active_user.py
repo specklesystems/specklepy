@@ -59,9 +59,9 @@ class Resource(CoreResource):
         cursor: Optional[datetime] = None,
     ):
         """
-        Fetches collection the current authenticated user's activity 
+        Fetches collection the current authenticated user's activity
         as filtered by given parameters
-        
+
         Note: all timestamps arguments should be `datetime` of any tz as they will be
         converted to UTC ISO format strings
 

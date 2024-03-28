@@ -9,8 +9,8 @@ from specklepy.logging.exceptions import SpeckleException
 
 class Resource(CoreResource):
     """
-    Provides API access to other users' profiles and activities on the platform. 
-    This class enables fetching limited information about users, searching for users by name or email, 
+    Provides API access to other users' profiles and activities on the platform.
+    This class enables fetching limited information about users, searching for users by name or email,
     and accessing user activity logs with appropriate privacy and access control measures in place.
     """
 
@@ -40,7 +40,7 @@ class Resource(CoreResource):
         self, search_query: str, limit: int = 25
     ) -> Union[List[LimitedUser], SpeckleException]:
         """
-        Searches for users by name or email. 
+        Searches for users by name or email.
         The search requires a minimum query length of 3 characters.
 
         Args:
@@ -48,7 +48,7 @@ class Resource(CoreResource):
             limit (int): Maximum number of search results to return.
 
         Returns:
-            Union[List[LimitedUser], SpeckleException]: A list of users matching the search 
+            Union[List[LimitedUser], SpeckleException]: A list of users matching the search
                 query or an exception if the query is too short.
         """
         if len(search_query) < 3:
@@ -69,7 +69,7 @@ class Resource(CoreResource):
         cursor: Optional[datetime] = None,
     ) -> ActivityCollection:
         """
-        Retrieves a collection of activities for a specified user, with optional filters for activity type, 
+        Retrieves a collection of activities for a specified user, with optional filters for activity type,
         time frame, and pagination.
 
         Args:
