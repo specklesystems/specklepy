@@ -7,7 +7,8 @@ from specklepy.logging import metrics
 
 
 class Resource(CoreResource):
-    """API Access class for users"""
+    """API Access class for users. This class provides methods to get and update
+    the user profile, fetch user activity, and manage pending stream invitations."""
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
@@ -19,12 +20,8 @@ class Resource(CoreResource):
         self.schema = User
 
     def get(self) -> User:
-        """Gets the profile of a user. If no id argument is provided,
-        will return the current authenticated user's profile
+        """Gets the profile of the current authenticated user's profile
         (as extracted from the authorization header).
-
-        Arguments:
-            id {str} -- the user id
 
         Returns:
             User -- the retrieved user
@@ -41,11 +38,11 @@ class Resource(CoreResource):
     ):
         """Updates your user profile. All arguments are optional.
 
-        Arguments:
-            name {str} -- your name
-            company {str} -- the company you may or may not work for
-            bio {str} -- tell us about yourself
-            avatar {str} -- a nice photo of yourself
+        Args:
+            name (Optional[str]): The user's name.
+            company (Optional[str]): The company the user works for.
+            bio (Optional[str]): A brief user biography.
+            avatar (Optional[str]): A URL to an avatar image for the user.
 
         Returns    @deprecated(version=DEPRECATION_VERSION, reason=DEPRECATION_TEXT):
             bool -- True if your profile was updated successfully
@@ -62,35 +59,30 @@ class Resource(CoreResource):
         cursor: Optional[datetime] = None,
     ):
         """
-        Get the activity from a given stream in an Activity collection.
-        Step into the activity `items` for the list of activity.
-        If no id argument is provided, will return the current authenticated user's
-        activity (as extracted from the authorization header).
+        Fetches collection the current authenticated user's activity
+        as filtered by given parameters
 
         Note: all timestamps arguments should be `datetime` of any tz as they will be
         converted to UTC ISO format strings
 
-        user_id {str} -- the id of the user to get the activity from
-        action_type {str} -- filter results to a single action type
-            (eg: `commit_create` or `commit_receive`)
-        limit {int} -- max number of Activity items to return
-        before {datetime} -- latest cutoff for activity
-            (ie: return all activity _before_ this time)
-        after {datetime} -- oldest cutoff for activity
-            (ie: return all activity _after_ this time)
-        cursor {datetime} -- timestamp cursor for pagination
+        Args:
+            limit (int): The maximum number of activity items to return.
+            action_type (Optional[str]): Filter results to a single action type.
+            before (Optional[datetime]): Latest cutoff for activity to include.
+            after (Optional[datetime]): Oldest cutoff for an activity to include.
+            cursor (Optional[datetime]): Timestamp cursor for pagination.
+
+        Returns:
+            Activity collection, filtered according to the provided parameters.
         """
         metrics.track(metrics.SDK, self.account, {"name": "User Active Activity"})
         return super().activity(limit, action_type, before, after, cursor)
 
     def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
-        """Get all of the active user's pending stream invites
-
-        Requires Speckle Server version >= 2.6.4
+        """Fetches all of the current user's pending stream invitations.
 
         Returns:
-            List[PendingStreamCollaborator]
-            -- a list of pending invites for the current user
+            List[PendingStreamCollaborator]: A list of pending stream invitations.
         """
         metrics.track(
             metrics.SDK, self.account, {"name": "User Active Invites All Get"}
@@ -100,18 +92,14 @@ class Resource(CoreResource):
     def get_pending_invite(
         self, stream_id: str, token: Optional[str] = None
     ) -> Optional[PendingStreamCollaborator]:
-        """Get a particular pending invite for the active user on a given stream.
-        If no invite_id is provided, any valid invite will be returned.
+        """Fetches a specific pending invite for the current user on a given stream.
 
-        Requires Speckle Server version >= 2.6.4
-
-        Arguments:
-            stream_id {str} -- the id of the stream to look for invites on
-            token {str} -- the token of the invite to look for (optional)
+        Args:
+            stream_id (str): The ID of the stream to look for invites on.
+            token (Optional[str]): The token of the invite to look for (optional).
 
         Returns:
-            PendingStreamCollaborator
-            -- the invite for the given stream (or None if it isn't found)
+            Optional[PendingStreamCollaborator]: The invite for the given stream, or None if not found.
         """
         metrics.track(metrics.SDK, self.account, {"name": "User Active Invite Get"})
         return super().get_pending_invite(stream_id, token)
