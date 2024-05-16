@@ -1,6 +1,7 @@
 """"""
+
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from stringcase import camelcase
@@ -12,22 +13,30 @@ class AutomateBase(BaseModel):
     model_config = ConfigDict(alias_generator=camelcase, populate_by_name=True)
 
 
+class VersionCreationTriggerPayload(AutomateBase):
+    """Represents the version creation trigger payload."""
+
+    model_id: str
+    version_id: str
+
+
+class VersionCreationTrigger(AutomateBase):
+    """Represents a single version creation trigger for the automation run."""
+
+    trigger_type: Literal["versionCreation"]
+    payload: VersionCreationTriggerPayload
+
+
 class AutomationRunData(BaseModel):
     """Values of the project / model that triggered the run of this function."""
 
     project_id: str
-    model_id: str
-    branch_name: str
-    version_id: str
     speckle_server_url: str
-
     automation_id: str
-    automation_revision_id: str
     automation_run_id: str
+    function_run_id: str
 
-    function_id: str
-    function_name: str
-    function_logo: Optional[str]
+    triggers: List[VersionCreationTrigger]
 
     model_config = ConfigDict(
         alias_generator=camelcase, populate_by_name=True, protected_namespaces=()

@@ -1,4 +1,5 @@
 """This module provides an abstraction layer above the Speckle Automate runtime."""
+
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -17,6 +18,7 @@ from speckle_automate.schema import (
 )
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
+from specklepy.core.api.models import Branch
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.transports.memory import MemoryTransport
@@ -94,8 +96,10 @@ class AutomationContext:
 
     def receive_version(self) -> Base:
         """Receive the Speckle project version that triggered this automation run."""
+        # TODO: this is a quick hack to keep implementation consistency. Move to proper receive many versions
+        version_id = self.automation_run_data.triggers[0].payload.version_id
         commit = self.speckle_client.commit.get(
-            self.automation_run_data.project_id, self.automation_run_data.version_id
+            self.automation_run_data.project_id, version_id
         )
         if not commit.referencedObject:
             raise ValueError("The commit has no referencedObject, cannot receive it.")
@@ -104,7 +108,7 @@ class AutomationContext:
         )
         print(
             f"It took {self.elapsed():.2f} seconds to receive",
-            f" the speckle version {self.automation_run_data.version_id}",
+            f" the speckle version {version_id}",
         )
         return base
 
@@ -119,19 +123,27 @@ class AutomationContext:
             version_message (str): The message for the new version.
         """
 
-        if model_name == self.automation_run_data.branch_name:
-            raise ValueError(
-                f"The target model: {model_name} cannot match the model"
-                f" that triggered this automation:"
-                f" {self.automation_run_data.model_id} /"
-                f" {self.automation_run_data.branch_name}"
-            )
-
         branch = self.speckle_client.branch.get(
             self.automation_run_data.project_id, model_name, 1
         )
-        # we just check if it exists
-        if (not branch) or isinstance(branch, SpeckleException):
+        if isinstance(branch, Branch):
+            if not branch.id:
+                raise ValueError("Cannot use the branch without its id")
+            matching_trigger = [
+                t
+                for t in self.automation_run_data.triggers
+                if t.payload.model_id == branch.id
+            ]
+            if matching_trigger:
+                raise ValueError(
+                    f"The target model: {model_name} cannot match the model"
+                    f" that triggered this automation:"
+                    f" {matching_trigger[0].payload.model_id}"
+                )
+            model_id = branch.id
+
+        else:
+            # we just check if it exists
             branch_create = self.speckle_client.branch.create(
                 self.automation_run_data.project_id,
                 model_name,
@@ -139,8 +151,6 @@ class AutomationContext:
             if isinstance(branch_create, Exception):
                 raise branch_create
             model_id = branch_create
-        else:
-            model_id = branch.id
 
         root_object_id = operations.send(
             root_object,
@@ -174,7 +184,8 @@ class AutomationContext:
     ) -> None:
         link_resources = (
             [
-                f"{self.automation_run_data.model_id}@{self.automation_run_data.version_id}"
+                f"{t.payload.model_id}@{t.payload.version_id}"
+                for t in self.automation_run_data.triggers
             ]
             if include_source_model_version
             else []
@@ -194,47 +205,26 @@ class AutomationContext:
         """Report the current run status to the project of this automation."""
         query = gql(
             """
-            mutation ReportFunctionRunStatus(
-                $automationId: String!,
-                $automationRevisionId: String!,
-                $automationRunId: String!,
-                $versionId: String!,
-                $functionId: String!,
-                $functionName: String!,
-                $functionLogo: String,
-                $runStatus: AutomationRunStatus!
-                $elapsed: Float!
-                $contextView: String
-                $resultVersionIds: [String!]!
+            mutation AutomateFunctionRunStatusReport(
+                $functionRunId: String!
+                $status: AutomateRunStatus!
                 $statusMessage: String
-                $objectResults: JSONObject
+                $results: JSONObject
+                $contextView: String
             ){
-                automationMutations {
-                    functionRunStatusReport(input: {
-                        automationId: $automationId
-                        automationRevisionId: $automationRevisionId
-                        automationRunId: $automationRunId
-                        versionId: $versionId
-                        functionRuns: [
-                        {
-                            functionId: $functionId
-                            functionName: $functionName
-                            functionLogo: $functionLogo
-                            status: $runStatus,
-                            contextView: $contextView,
-                            elapsed: $elapsed,
-                            resultVersionIds: $resultVersionIds,
-                            statusMessage: $statusMessage
-                            results: $objectResults
-                        }]
-                   })
-                }
+                automateFunctionRunStatusReport(input: {
+                    functionRunId: $functionRunId
+                    status: $status
+                    statusMessage: $statusMessage
+                    contextView: $contextView
+                    results: $results
+                })
             }
-            """
+        """
         )
         if self.run_status in [AutomationStatus.SUCCEEDED, AutomationStatus.FAILED]:
             object_results = {
-                "version": "1.0.0",
+                "version": 1,
                 "values": {
                     "objectResults": self._automation_result.model_dump(by_alias=True)[
                         "objectResults"
@@ -246,19 +236,11 @@ class AutomationContext:
             object_results = None
 
         params = {
-            "automationId": self.automation_run_data.automation_id,
-            "automationRevisionId": self.automation_run_data.automation_revision_id,
-            "automationRunId": self.automation_run_data.automation_run_id,
-            "versionId": self.automation_run_data.version_id,
-            "functionId": self.automation_run_data.function_id,
-            "functionName": self.automation_run_data.function_name,
-            "functionLogo": self.automation_run_data.function_logo,
-            "runStatus": self.run_status.value,
+            "functionRunId": self.automation_run_data.function_run_id,
+            "status": self.run_status.value,
             "statusMessage": self._automation_result.status_message,
+            "results": object_results,
             "contextView": self._automation_result.result_view,
-            "elapsed": self.elapsed(),
-            "resultVersionIds": self._automation_result.result_versions,
-            "objectResults": object_results,
         }
         print(f"Reporting run status with content: {params}")
         self.speckle_client.httpclient.execute(query, params)
