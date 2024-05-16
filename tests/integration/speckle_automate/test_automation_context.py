@@ -189,7 +189,9 @@ def automate_function(
         automation_context.mark_run_success("No forbidden types found.")
 
 
-@pytest.skip
+@pytest.mark.skip(
+    "currently the function run cannot be integration tested with the server"
+)
 def test_function_run(automation_context: AutomationContext) -> None:
     """Run an integration test for the automate function."""
     automation_context = run_function(
@@ -216,7 +218,9 @@ def test_file_path():
     os.remove(path)
 
 
-@pytest.skip
+@pytest.mark.skip(
+    "currently the function run cannot be integration tested with the server"
+)
 def test_file_uploads(
     automation_run_data: AutomationRunData, speckle_token: str, test_file_path: Path
 ):
@@ -232,7 +236,9 @@ def test_file_uploads(
     assert len(automation_context._automation_result.blobs) == 1
 
 
-@pytest.skip
+@pytest.mark.skip(
+    "currently the function run cannot be integration tested with the server"
+)
 def test_create_version_in_project_raises_error_for_same_model(
     automation_context: AutomationContext,
 ) -> None:
@@ -242,7 +248,9 @@ def test_create_version_in_project_raises_error_for_same_model(
         )
 
 
-@pytest.skip
+@pytest.mark.skip(
+    "currently the function run cannot be integration tested with the server"
+)
 def test_create_version_in_project(
     automation_context: AutomationContext,
 ) -> None:
@@ -256,7 +264,9 @@ def test_create_version_in_project(
     assert version_id is not None
 
 
-@pytest.skip
+@pytest.mark.skip(
+    "currently the function run cannot be integration tested with the server"
+)
 def test_set_context_view(automation_context: AutomationContext) -> None:
     automation_context.set_context_view()
 
