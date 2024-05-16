@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Optional, Union
 
 from specklepy.api.models import Branch
 from specklepy.core.api.resources.branch import Resource as CoreResource
 from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 
 
 class Resource(CoreResource):
@@ -31,7 +32,9 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Branch Create"})
         return super().create(stream_id, name, description)
 
-    def get(self, stream_id: str, name: str, commits_limit: int = 10):
+    def get(
+        self, stream_id: str, name: str, commits_limit: int = 10
+    ) -> Union[Branch, None, SpeckleException]:
         """Get a branch by name from a stream
 
         Arguments:
