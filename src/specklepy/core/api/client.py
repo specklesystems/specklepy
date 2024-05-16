@@ -1,5 +1,5 @@
 import re
-from typing import Dict
+from typing import Dict, Optional
 from warnings import warn
 
 from deprecated import deprecated
@@ -64,6 +64,7 @@ class SpeckleClient:
         host: str = DEFAULT_HOST,
         use_ssl: bool = USE_SSL,
         verify_certificate: bool = True,
+        connection_timeout: Optional[int] = None,
     ) -> None:
         ws_protocol = "ws"
         http_protocol = "http"
@@ -80,10 +81,11 @@ class SpeckleClient:
         self.ws_url = f"{ws_protocol}://{host}/graphql"
         self.account = Account()
         self.verify_certificate = verify_certificate
+        self.connection_timeout = connection_timeout
 
         self.httpclient = Client(
             transport=RequestsHTTPTransport(
-                url=self.graphql, verify=self.verify_certificate, retries=3
+                url=self.graphql, verify=self.verify_certificate, retries=3, timeout=self.connection_timeout
             )
         )
         self.wsclient = None
