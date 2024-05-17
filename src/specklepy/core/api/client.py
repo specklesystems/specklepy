@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Optional
+from typing import Dict
 from warnings import warn
 
 from deprecated import deprecated
@@ -64,7 +64,7 @@ class SpeckleClient:
         host: str = DEFAULT_HOST,
         use_ssl: bool = USE_SSL,
         verify_certificate: bool = True,
-        connection_timeout: Optional[int] = None,
+        connection_timeout: int = 10,
     ) -> None:
         ws_protocol = "ws"
         http_protocol = "http"
