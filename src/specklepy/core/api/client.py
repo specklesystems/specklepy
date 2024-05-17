@@ -85,7 +85,10 @@ class SpeckleClient:
 
         self.httpclient = Client(
             transport=RequestsHTTPTransport(
-                url=self.graphql, verify=self.verify_certificate, retries=3, timeout=self.connection_timeout
+                url=self.graphql,
+                verify=self.verify_certificate,
+                retries=3,
+                timeout=self.connection_timeout,
             )
         )
         self.wsclient = None
