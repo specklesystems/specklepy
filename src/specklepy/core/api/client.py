@@ -64,6 +64,8 @@ class SpeckleClient:
         host: str = DEFAULT_HOST,
         use_ssl: bool = USE_SSL,
         verify_certificate: bool = True,
+        connection_retries: int = 3,
+        connection_timeout: int = 10,
     ) -> None:
         ws_protocol = "ws"
         http_protocol = "http"
@@ -80,10 +82,15 @@ class SpeckleClient:
         self.ws_url = f"{ws_protocol}://{host}/graphql"
         self.account = Account()
         self.verify_certificate = verify_certificate
+        self.connection_retries = connection_retries
+        self.connection_timeout = connection_timeout
 
         self.httpclient = Client(
             transport=RequestsHTTPTransport(
-                url=self.graphql, verify=self.verify_certificate, retries=3
+                url=self.graphql,
+                verify=self.verify_certificate,
+                retries=self.connection_retries,
+                timeout=self.connection_timeout,
             )
         )
         self.wsclient = None
