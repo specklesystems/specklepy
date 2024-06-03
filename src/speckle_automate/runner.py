@@ -3,6 +3,7 @@
 Provides mechanisms to execute any function,
  that conforms to the AutomateFunction "interface"
 """
+
 import json
 import sys
 import traceback
@@ -65,7 +66,9 @@ def execute_automate_function(
 
 
 @overload
-def execute_automate_function(automate_function: AutomateFunctionWithoutInputs) -> None:
+def execute_automate_function(
+    automate_function: AutomateFunctionWithoutInputs,
+) -> None:
     ...
 
 
@@ -127,10 +130,9 @@ def execute_automate_function(
                 automate_function,  # type: ignore
             )
 
-        exit_code = (
-            0 if automation_context.run_status == AutomationStatus.SUCCEEDED else 1
-        )
-        exit(exit_code)
+        # if we've gotten this far, the execution should technically be completed as expected
+        # thus exiting with 0 is the schemantically correct thing to do
+        exit(0)
 
     else:
         raise NotImplementedError(f"Command: '{command}' is not supported.")
