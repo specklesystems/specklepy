@@ -130,7 +130,8 @@ def execute_automate_function(
                 automate_function,  # type: ignore
             )
 
-        # if we've gotten this far, the
+        # if we've gotten this far, the execution should technically be completed as expected
+        # thus exiting with 0 is the schemantically correct thing to do
         exit(0)
 
     else:
