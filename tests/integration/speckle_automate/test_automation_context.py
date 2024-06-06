@@ -12,7 +12,7 @@ from speckle_automate import (
     AutomationStatus,
     run_function,
 )
-from speckle_automate.helpers import (
+from speckle_automate.fixtures import (
     create_test_automation_run_data,
     crypto_random_string,
 )
