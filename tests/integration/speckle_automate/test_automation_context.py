@@ -12,12 +12,13 @@ from speckle_automate import (
     AutomationStatus,
     run_function,
 )
-from speckle_automate.helpers import crypto_random_string, register_new_automation
+from speckle_automate.fixtures import (
+    create_test_automation_run_data,
+    crypto_random_string,
+)
 from speckle_automate.schema import AutomateBase
-from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.objects.base import Base
-from specklepy.transports.server import ServerTransport
 
 
 @pytest.fixture
@@ -41,57 +42,15 @@ def test_client(speckle_server_url: str, speckle_token: str) -> SpeckleClient:
 
 
 @pytest.fixture
-def test_object() -> Base:
-    """Create a Base model for testing."""
-    root_object = Base()
-    root_object.foo = "bar"
-    return root_object
-
-
-@pytest.fixture
 def automation_run_data(
-    test_object: Base, test_client: SpeckleClient, speckle_server_url: str
+    test_client: SpeckleClient, speckle_server_url: str
 ) -> AutomationRunData:
-    """Set up an automation context for testing."""
-    project_id = test_client.stream.create("Automate function e2e test")
-    branch_name = "main"
+    """TODO: Set up a test automation for integration testing"""
+    project_id = crypto_random_string(10)
+    test_automation_id = crypto_random_string(10)
 
-    model = test_client.branch.get(project_id, branch_name, commits_limit=1)
-    model_id: str = model.id
-
-    root_obj_id = operations.send(
-        test_object, [ServerTransport(project_id, test_client)]
-    )
-    version_id = test_client.commit.create(project_id, root_obj_id)
-
-    automation_name = crypto_random_string(10)
-    automation_id = crypto_random_string(10)
-    automation_revision_id = crypto_random_string(10)
-
-    register_new_automation(
-        test_client,
-        project_id,
-        model_id,
-        automation_id,
-        automation_name,
-        automation_revision_id,
-    )
-
-    automation_run_id = crypto_random_string(10)
-    function_id = crypto_random_string(10)
-    function_name = f"automate test {crypto_random_string(3)}"
-    return AutomationRunData(
-        project_id=project_id,
-        model_id=model_id,
-        branch_name=branch_name,
-        version_id=version_id,
-        speckle_server_url=speckle_server_url,
-        automation_id=automation_id,
-        automation_revision_id=automation_revision_id,
-        automation_run_id=automation_run_id,
-        function_id=function_id,
-        function_name=function_name,
-        function_logo=None,
+    return create_test_automation_run_data(
+        test_client, speckle_server_url, project_id, test_automation_id
     )
 
 

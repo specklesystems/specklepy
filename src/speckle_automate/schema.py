@@ -43,6 +43,19 @@ class AutomationRunData(BaseModel):
     )
 
 
+class TestAutomationRunData(BaseModel):
+    """Values of the run created in the test automation for local test results."""
+
+    automation_run_id: str
+    function_run_id: str
+
+    triggers: List[VersionCreationTrigger]
+
+    model_config = ConfigDict(
+        alias_generator=camelcase, populate_by_name=True, protected_namespaces=()
+    )
+
+
 class AutomationStatus(str, Enum):
     """Set the status of the automation."""
 
