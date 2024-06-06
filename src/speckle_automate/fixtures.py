@@ -2,6 +2,7 @@
 import secrets
 import string
 
+import pytest
 from gql import gql
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -11,6 +12,8 @@ from specklepy.api.client import SpeckleClient
 
 
 class TestAutomationEnvironment(BaseSettings):
+    """Get known environment variables from local `.env` file"""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -24,10 +27,31 @@ class TestAutomationEnvironment(BaseSettings):
     automation_id: str = Field()
 
 
-def get_test_automation_environment() -> TestAutomationEnvironment:
-    """Get known environment variables from local `.env` file"""
+@pytest.fixture()
+def test_automation_environment() -> TestAutomationEnvironment:
+    return TestAutomationEnvironment()
 
-    return TestAutomationEnvironment().model_dump()
+
+@pytest.fixture()
+def test_automation_token(
+    test_automation_environment: TestAutomationEnvironment,
+) -> str:
+    """Provide a speckle token for the test suite."""
+
+    return test_automation_environment.token
+
+
+@pytest.fixture()
+def speckle_client(
+    test_automation_environment: TestAutomationEnvironment,
+) -> SpeckleClient:
+    """Initialize a SpeckleClient for testing."""
+    speckle_client = SpeckleClient(
+        test_automation_environment.server_url,
+        test_automation_environment.server_url.startswith("https"),
+    )
+    speckle_client.authenticate_with_token(test_automation_environment.token)
+    return speckle_client
 
 
 def create_test_automation_run(
@@ -64,6 +88,8 @@ def create_test_automation_run(
 
     result = speckle_client.httpclient.execute(query, params)
 
+    print(result)
+
     return (
         result.get("projectMutations")
         .get("automationMutations")
@@ -71,29 +97,58 @@ def create_test_automation_run(
     )
 
 
+@pytest.fixture()
+def test_automation_run(
+    speckle_client: SpeckleClient,
+    test_automation_environment: TestAutomationEnvironment,
+) -> TestAutomationRunData:
+    return create_test_automation_run(
+        speckle_client,
+        test_automation_environment.project_id,
+        test_automation_environment.automation_id,
+    )
+
+
 def create_test_automation_run_data(
     speckle_client: SpeckleClient,
-    speckle_server_url: str,
-    project_id: str,
-    test_automation_id: str,
+    test_automation_environment: TestAutomationEnvironment,
 ) -> AutomationRunData:
     """Create automation run data for a new run for a given test automation"""
 
     test_automation_run_data = create_test_automation_run(
-        speckle_client, project_id, test_automation_id
+        speckle_client,
+        test_automation_environment.project_id,
+        test_automation_environment.automation_id,
     )
 
     return AutomationRunData(
-        project_id=project_id,
-        speckle_server_url=speckle_server_url,
-        automation_id=test_automation_id,
-        automation_run_id=test_automation_run_data.get("automation_run_id"),
-        function_run_id=test_automation_run_data.get("function_run_id"),
-        triggers=test_automation_run_data.get("triggers"),
+        project_id=test_automation_environment.project_id,
+        speckle_server_url=test_automation_environment.server_url,
+        automation_id=test_automation_environment.automation_id,
+        automation_run_id=test_automation_run_data["automationRunId"],
+        function_run_id=test_automation_run_data["functionRunId"],
+        triggers=test_automation_run_data["triggers"],
     )
+
+
+@pytest.fixture()
+def test_automation_run_data(
+    speckle_client: SpeckleClient,
+    test_automation_environment: TestAutomationEnvironment,
+) -> AutomationRunData:
+    return create_test_automation_run_data(speckle_client, test_automation_environment)
 
 
 def crypto_random_string(length: int) -> str:
     """Generate a semi crypto random string of a given length."""
     alphabet = string.ascii_letters + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(length)).lower()
+
+
+__all__ = [
+    "test_automation_environment",
+    "test_automation_token",
+    "speckle_client",
+    "test_automation_run",
+    "test_automation_run_data",
+]
