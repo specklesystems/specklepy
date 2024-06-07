@@ -21,5 +21,4 @@ __all__ = [
     "ObjectResultLevel",
     "run_function",
     "execute_automate_function",
-    "fixtures",
 ]
