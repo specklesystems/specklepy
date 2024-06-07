@@ -290,6 +290,10 @@ class AutomationContext:
         """Mark the current run a failure."""
         self._mark_run(AutomationStatus.FAILED, status_message)
 
+    def mark_run_exception(self, status_message: str) -> None:
+        """Mark the current run a failure."""
+        self._mark_run(AutomationStatus.EXCEPTION, status_message)
+
     def mark_run_success(self, status_message: Optional[str]) -> None:
         """Mark the current run a success with an optional message."""
         self._mark_run(AutomationStatus.SUCCEEDED, status_message)

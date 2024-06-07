@@ -132,7 +132,10 @@ def execute_automate_function(
 
         # if we've gotten this far, the execution should technically be completed as expected
         # thus exiting with 0 is the schemantically correct thing to do
-        exit(0)
+        exit_code = (
+            1 if automation_context.run_status == AutomationStatus.EXCEPTION else 0
+        )
+        exit(exit_code)
 
     else:
         raise NotImplementedError(f"Command: '{command}' is not supported.")
@@ -175,6 +178,7 @@ def run_function(
         if automation_context.run_status not in [
             AutomationStatus.FAILED,
             AutomationStatus.SUCCEEDED,
+            AutomationStatus.EXCEPTION,
         ]:
             automation_context.mark_run_success(
                 "WARNING: Automate assumed a success status,"
@@ -183,7 +187,7 @@ def run_function(
     except Exception:
         trace = traceback.format_exc()
         print(trace)
-        automation_context.mark_run_failed(
+        automation_context.mark_run_exception(
             "Function error. Check the automation run logs for details."
         )
     finally:

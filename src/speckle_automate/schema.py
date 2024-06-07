@@ -63,6 +63,7 @@ class AutomationStatus(str, Enum):
     RUNNING = "RUNNING"
     FAILED = "FAILED"
     SUCCEEDED = "SUCCEEDED"
+    EXCEPTION = "EXCEPTION"
 
 
 class ObjectResultLevel(str, Enum):
