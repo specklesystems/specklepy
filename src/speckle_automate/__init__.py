@@ -1,5 +1,5 @@
 """This module contains an SDK for working with Speckle Automate."""
-from speckle_automate import fixtures
+
 from speckle_automate.automation_context import AutomationContext
 from speckle_automate.runner import execute_automate_function, run_function
 from speckle_automate.schema import (
@@ -21,5 +21,4 @@ __all__ = [
     "ObjectResultLevel",
     "run_function",
     "execute_automate_function",
-    "fixtures",
 ]
