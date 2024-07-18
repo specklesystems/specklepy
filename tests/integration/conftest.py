@@ -17,7 +17,7 @@ metrics.disable()
 
 @pytest.fixture(scope="session")
 def host():
-    return "localhost:3000"
+    return "localhost:3001"
 
 
 def seed_user(host):
