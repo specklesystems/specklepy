@@ -23,7 +23,7 @@ def host():
 def seed_user(host):
     seed = uuid.uuid4().hex
     user_dict = {
-        "email": f"{seed[0:7]}@spockle.com",
+        "email": f"{seed[0:7]}@example.org",
         "password": "$uper$3cr3tP@ss",
         "name": f"{seed[0:7]} Name",
         "company": "test spockle",

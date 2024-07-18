@@ -183,7 +183,7 @@ class TestStream:
         # NOTE: only works for server admins
         # invited = client.stream.invite_batch(
         #     stream_id=stream.id,
-        #     emails=["userA@speckle.xyz", "userB@speckle.xyz"],
+        #     emails=["userA@example.org", "userB@example.org"],
         #     user_ids=[second_user.id],
         #     message="yeehaw 🤠",
         # )
@@ -192,7 +192,7 @@ class TestStream:
 
         # invited_only_email = client.stream.invite_batch(
         #     stream_id=stream.id,
-        #     emails=["userC@speckle.xyz"],
+        #     emails=["userC@example.org"],
         #     message="yeehaw 🤠",
         # )
 

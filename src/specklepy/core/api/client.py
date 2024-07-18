@@ -30,7 +30,7 @@ class SpeckleClient:
     The `SpeckleClient` is your entry point for interacting with
     your Speckle Server's GraphQL API.
     You'll need to have access to a server to use it,
-    or you can use our public server `speckle.xyz`.
+    or you can use our public server `app.speckle.systems`.
 
     To authenticate the client, you'll need to have downloaded
     the [Speckle Manager](https://speckle.guide/#speckle-manager)
@@ -41,7 +41,7 @@ class SpeckleClient:
     from specklepy.api.credentials import get_default_account
 
     # initialise the client
-    client = SpeckleClient(host="speckle.xyz") # or whatever your host is
+    client = SpeckleClient(host="app.speckle.systems") # or whatever your host is
     # client = SpeckleClient(host="localhost:3000", use_ssl=False) or use local server
 
     # authenticate the client with an account (account has been added in Speckle Manager)
@@ -56,7 +56,7 @@ class SpeckleClient:
     ```
     """
 
-    DEFAULT_HOST = "speckle.xyz"
+    DEFAULT_HOST = "app.speckle.systems"
     USE_SSL = True
 
     def __init__(
