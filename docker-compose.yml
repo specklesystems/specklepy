@@ -52,6 +52,14 @@ services:
   ####
   # Speckle Server
   #######
+  speckle-frontend:
+    image: speckle/speckle-frontend:latest
+    restart: always
+    ports:
+      - "0.0.0.0:8080:8080"
+    environment:
+      FILE_SIZE_LIMIT_MB: 100
+
   speckle-server:
     image: speckle/speckle-server:latest
     restart: always
