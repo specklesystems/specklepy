@@ -100,16 +100,20 @@ def test_parse_globals_as_commit():
 
 
 #! NOTE: the following three tests may not pass locally
-# if you have a `speckle.xyz` account in manager
+# if you have a `app.speckle.systems` account in manager
 def test_get_client_without_auth():
-    wrap = StreamWrapper("https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792")
+    wrap = StreamWrapper(
+        "https://app.speckle.systems/streams/4c3ce1459c/commits/8b9b831792"
+    )
     client = wrap.get_client()
 
     assert client is not None
 
 
 def test_get_new_client_with_token(user_path):
-    wrap = StreamWrapper("https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792")
+    wrap = StreamWrapper(
+        "https://app.speckle.systems/streams/4c3ce1459c/commits/8b9b831792"
+    )
     client = wrap.get_client()
     client = wrap.get_client(token="super-secret-token")
 
@@ -117,7 +121,9 @@ def test_get_new_client_with_token(user_path):
 
 
 def test_get_transport_with_token():
-    wrap = StreamWrapper("https://speckle.xyz/streams/4c3ce1459c/commits/8b9b831792")
+    wrap = StreamWrapper(
+        "https://app.speckle.systems/streams/4c3ce1459c/commits/8b9b831792"
+    )
     client = wrap.get_client()
     assert not client.account.token  # unauthenticated bc no local accounts
 

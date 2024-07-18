@@ -22,7 +22,7 @@ class StreamWrapper(CoreStreamWrapper):
     from specklepy.api.wrapper import StreamWrapper
 
     # provide any stream, branch, commit, object, or globals url
-    wrapper = StreamWrapper("https://speckle.xyz/streams/3073b96e86/commits/604bea8cc6")
+    wrapper = StreamWrapper("https://app.speckle.systems/streams/3073b96e86/commits/604bea8cc6")
 
     # get an authenticated SpeckleClient if you have a local account for the server
     client = wrapper.get_client()
