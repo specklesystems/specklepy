@@ -1435,16 +1435,6 @@ files = [
 ]
 
 [[package]]
-name = "stringcase"
-version = "1.2.0"
-description = "String case converter."
-optional = false
-python-versions = "*"
-files = [
-    {file = "stringcase-1.2.0.tar.gz", hash = "sha256:48a06980661908efe8d9d34eab2b6c13aefa2163b3ced26972902e3bdfd87008"},
-]
-
-[[package]]
 name = "termcolor"
 version = "2.4.0"
 description = "ANSI color formatting for output in terminal"
@@ -1504,17 +1494,6 @@ files = [
 
 [package.dependencies]
 urllib3 = ">=2"
-
-[[package]]
-name = "types-ujson"
-version = "5.10.0.20240515"
-description = "Typing stubs for ujson"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "types-ujson-5.10.0.20240515.tar.gz", hash = "sha256:ceae7127f0dafe4af5dd0ecf98ee13e9d75951ef963b5c5a9b7ea92e0d71f0d7"},
-    {file = "types_ujson-5.10.0.20240515-py3-none-any.whl", hash = "sha256:02bafc36b3a93d2511757a64ff88bd505e0a57fba08183a9150fbcfcb2015310"},
-]
 
 [[package]]
 name = "typing-extensions"
@@ -1839,4 +1818,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.0, <4.0"
-content-hash = "b2e995e3a437f2242438eb3b070bfda37685ad14b36eef09bfd11ad2391617a6"
+content-hash = "6e12827fb862ee29734e3eab4d61fed205ff8611ec707d916d5aa4a22acc8285"
