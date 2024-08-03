@@ -24,6 +24,7 @@ stringcase = "^1.2.0"
 attrs = "^23.1.0"
 httpx = "^0.25.0"
 orjson = "^3.10.6"
+casefy = "^0.1.7"
 
 [tool.poetry.group.dev.dependencies]
 black = "23.11.0"

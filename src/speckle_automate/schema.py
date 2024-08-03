@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-from stringcase import camelcase
+from casefy import camelcase
 
 
 class AutomateBase(BaseModel):

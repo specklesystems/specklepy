@@ -172,6 +172,17 @@ jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
+name = "casefy"
+version = "0.1.7"
+description = "Utilities for string case conversion."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "casefy-0.1.7-py3-none-any.whl", hash = "sha256:ab05ff1c67f2a8e62d9f8986fa9a849416d61ac5413ec57d1f827b4f36589cf6"},
+    {file = "casefy-0.1.7.tar.gz", hash = "sha256:6accce985a64b9edb2a610a29ac489d78fac80e52ff8f2d137e294f2f92b8027"},
+]
+
+[[package]]
 name = "certifi"
 version = "2024.6.2"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -1828,4 +1839,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.0, <4.0"
-content-hash = "179fbca7e9c9fb950db295b294ea33c543f83e1168e55f87f620e768f640c84f"
+content-hash = "b2e995e3a437f2242438eb3b070bfda37685ad14b36eef09bfd11ad2391617a6"
