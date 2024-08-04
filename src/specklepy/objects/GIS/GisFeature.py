@@ -1,4 +1,5 @@
 from typing import List, Optional, Union
+
 from specklepy.objects.base import Base
 
 
