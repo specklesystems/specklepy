@@ -70,7 +70,7 @@ class BaseObjectSerializer:
 
         obj_id, obj = self.traverse_base(base)
 
-        return obj_id, orjson.dumps(obj)
+        return obj_id, orjson.dumps(obj).decode("utf-8")
 
     def traverse_base(self, base: Base) -> Tuple[str, Dict[str, Any]]:
         """Decomposes the given base object and builds a serializable dictionary
@@ -198,7 +198,10 @@ class BaseObjectSerializer:
         # write detached or root objects to transports
         if detached and self.write_transports:
             for t in self.write_transports:
-                t.save_object(id=obj_id, serialized_object=orjson.dumps(object_builder))
+                t.save_object(
+                    id=obj_id,
+                    serialized_object=orjson.dumps(object_builder).decode("utf-8"),
+                )
 
         del self.lineage[-1]
 
