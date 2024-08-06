@@ -3,8 +3,8 @@
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
 from casefy import camelcase
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AutomateBase(BaseModel):
