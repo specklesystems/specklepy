@@ -264,7 +264,7 @@ class AutomationContext:
         files = {path_obj.name: open(str(path_obj), "rb")}
 
         url = (
-            f"{self.automation_run_data.speckle_server_url}/api/stream/"
+            f"{self.automation_run_data.speckle_server_url}api/stream/"
             f"{self.automation_run_data.project_id}/blob"
         )
         data = (
