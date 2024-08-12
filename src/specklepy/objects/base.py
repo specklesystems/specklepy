@@ -16,7 +16,7 @@ from typing import (
 )
 from warnings import warn
 
-from stringcase import pascalcase
+from casefy import pascalcase
 
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from specklepy.objects.units import Units

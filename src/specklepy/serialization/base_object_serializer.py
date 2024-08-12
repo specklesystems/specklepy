@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
 from warnings import warn
 
-import ujson
+import orjson
 
 # import for serialization
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
@@ -17,12 +17,12 @@ PRIMITIVES = (int, float, str, bool)
 
 
 def hash_obj(obj: Any) -> str:
-    return hashlib.sha256(ujson.dumps(obj).encode()).hexdigest()[:32]
+    return hashlib.sha256(orjson.dumps(obj)).hexdigest()[:32]
 
 
 def safe_json_loads(obj: str, obj_id=None) -> Any:
     try:
-        return ujson.loads(obj)
+        return orjson.loads(obj)
     except ValueError as err:
         import json
 
@@ -70,7 +70,7 @@ class BaseObjectSerializer:
 
         obj_id, obj = self.traverse_base(base)
 
-        return obj_id, ujson.dumps(obj)
+        return obj_id, orjson.dumps(obj).decode("utf-8")
 
     def traverse_base(self, base: Base) -> Tuple[str, Dict[str, Any]]:
         """Decomposes the given base object and builds a serializable dictionary
@@ -198,7 +198,10 @@ class BaseObjectSerializer:
         # write detached or root objects to transports
         if detached and self.write_transports:
             for t in self.write_transports:
-                t.save_object(id=obj_id, serialized_object=ujson.dumps(object_builder))
+                t.save_object(
+                    id=obj_id,
+                    serialized_object=orjson.dumps(object_builder).decode("utf-8"),
+                )
 
         del self.lineage[-1]
 
