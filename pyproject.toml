@@ -22,7 +22,7 @@ gql = { extras = ["requests", "websockets"], version = "^3.3.0" }
 Deprecated = "^1.2.13"
 attrs = "^23.1.0"
 httpx = "^0.25.0"
-orjson = "^3.10.6"
+orjson = "^3.10.1"
 casefy = "^0.1.7"
 
 [tool.poetry.group.dev.dependencies]
