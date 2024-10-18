@@ -2,9 +2,7 @@ from typing import Optional
 
 from gql import gql
 
-from specklepy.core.api.inputs.project_inputs import (
-    ProjectInviteCreateInput,
-)
+from specklepy.core.api.inputs.project_inputs import ProjectInviteCreateInput
 from specklepy.core.api.models import Project, ProjectMutation
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse

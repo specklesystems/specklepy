@@ -18,5 +18,3 @@ class Resource(CoreResource):
         )
 
         self.schema = Stream
-
-

@@ -1,4 +1,5 @@
 from typing import Optional, Sequence
+
 from pydantic import BaseModel
 
 from specklepy.core.api.models import ProjectVisibility

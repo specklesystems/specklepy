@@ -3,14 +3,14 @@ from deprecated import deprecated
 from specklepy.api.credentials import Account
 from specklepy.api.resources import (
     active_user,
-    other_user,
-    server,
-    user,
     branch,
     commit,
     object,
+    other_user,
+    server,
     stream,
     subscriptions,
+    user,
 )
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.core.api.resources.project import ProjectResource
