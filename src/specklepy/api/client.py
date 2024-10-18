@@ -3,16 +3,17 @@ from deprecated import deprecated
 from specklepy.api.credentials import Account
 from specklepy.api.resources import (
     active_user,
+    other_user,
+    server,
+    user,
     branch,
     commit,
     object,
-    other_user,
-    server,
     stream,
     subscriptions,
-    user,
 )
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
+from specklepy.core.api.resources.project import ProjectResource
 from specklepy.logging import metrics
 
 
@@ -67,17 +68,13 @@ class SpeckleClient(CoreSpeckleClient):
         self.server = server.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
+
         server_version = None
         try:
             server_version = self.server.version()
         except Exception:
             pass
-        self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
+
         self.other_user = other_user.Resource(
             account=self.account,
             basepath=self.url,
@@ -85,6 +82,19 @@ class SpeckleClient(CoreSpeckleClient):
             server_version=server_version,
         )
         self.active_user = active_user.Resource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.project = ProjectResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        # Deprecated Resources
+        self.user = user.Resource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

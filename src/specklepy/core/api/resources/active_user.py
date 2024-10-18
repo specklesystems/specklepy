@@ -66,7 +66,7 @@ class Resource(ResourceBase):
         company: Optional[str] = None,
         bio: Optional[str] = None,
         avatar: Optional[str] = None,
-    ):
+    ) -> bool:
         """Updates your user profile. All arguments are optional.
 
         Arguments:
@@ -107,7 +107,7 @@ class Resource(ResourceBase):
         before: Optional[datetime] = None,
         after: Optional[datetime] = None,
         cursor: Optional[datetime] = None,
-    ):
+    ) -> ActivityCollection:
         """
         Get the activity from a given stream in an Activity collection.
         Step into the activity `items` for the list of activity.

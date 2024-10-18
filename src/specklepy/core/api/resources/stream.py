@@ -1,9 +1,12 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 
+from deprecated import deprecated
 from gql import gql
 
 from specklepy.core.api.models import (
+    FE1_DEPRECATION_REASON,
+    FE1_DEPRECATION_VERSION,
     ActivityCollection,
     PendingStreamCollaborator,
     Stream,
@@ -14,6 +17,7 @@ from specklepy.logging.exceptions import SpeckleException, UnsupportedException
 NAME = "stream"
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Resource(ResourceBase):
     """API Access class for streams"""
 

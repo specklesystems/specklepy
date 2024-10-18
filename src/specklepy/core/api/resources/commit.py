@@ -1,14 +1,20 @@
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
+from deprecated import deprecated
 from gql import gql
 
-from specklepy.core.api.models import Commit
+from specklepy.core.api.models import (
+    FE1_DEPRECATION_REASON,
+    FE1_DEPRECATION_VERSION,
+    Commit,
+)
 from specklepy.core.api.resource import ResourceBase
 from specklepy.logging.exceptions import SpeckleException
 
 NAME = "commit"
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Resource(ResourceBase):
     """API Access class for commits"""
 
@@ -133,7 +139,7 @@ class Resource(ResourceBase):
                 { commitCreate(commit: $commit)}
             """
         )
-        params = {
+        params: dict[str, dict[str, Any]] = {
             "commit": {
                 "streamId": stream_id,
                 "branchName": branch_name,

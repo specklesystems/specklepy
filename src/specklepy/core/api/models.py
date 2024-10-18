@@ -1,9 +1,39 @@
 from datetime import datetime
 from typing import List, Optional
 
+from deprecated import deprecated
 from pydantic import BaseModel, Field
+from specklepy.core.api.responses import ResourceCollection
+
+FE1_DEPRECATION_REASON = "Stream/Branch/Commit API is now deprecated, Use the new Project/Model/Version API functions in Client}"
+FE1_DEPRECATION_VERSION = "2.20"
+
+from specklepy.core.api.new_models import *
 
 
+class User(BaseModel):
+    id: str
+    email: Optional[str] = None
+    name: str
+    bio: Optional[str] = None
+    company: Optional[str] = None
+    avatar: Optional[str] = None
+    verified: Optional[bool] = None
+    role: Optional[str] = None
+    streams: Optional["Streams"] = None
+    projects: ResourceCollection[Project]
+
+    def __repr__(self):
+        return (
+            f"User( id: {self.id}, name: {self.name}, email: {self.email}, company:"
+            f" {self.company} )"
+        )
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Collaborator(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
@@ -11,6 +41,7 @@ class Collaborator(BaseModel):
     avatar: Optional[str] = None
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Commit(BaseModel):
     id: Optional[str] = None
     message: Optional[str] = None
@@ -35,12 +66,14 @@ class Commit(BaseModel):
         return self.__repr__()
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Commits(BaseModel):
     totalCount: Optional[int] = None
     cursor: Optional[datetime] = None
     items: List[Commit] = []
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Object(BaseModel):
     id: Optional[str] = None
     speckleType: Optional[str] = None
@@ -49,6 +82,7 @@ class Object(BaseModel):
     createdAt: Optional[datetime] = None
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Branch(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
@@ -56,12 +90,14 @@ class Branch(BaseModel):
     commits: Optional[Commits] = None
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Branches(BaseModel):
     totalCount: Optional[int] = None
     cursor: Optional[datetime] = None
     items: List[Branch] = []
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Stream(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
@@ -88,67 +124,14 @@ class Stream(BaseModel):
         return self.__repr__()
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Streams(BaseModel):
     totalCount: Optional[int] = None
     cursor: Optional[datetime] = None
     items: List[Stream] = []
 
 
-class User(BaseModel):
-    id: Optional[str] = None
-    email: Optional[str] = None
-    name: Optional[str] = None
-    bio: Optional[str] = None
-    company: Optional[str] = None
-    avatar: Optional[str] = None
-    verified: Optional[bool] = None
-    role: Optional[str] = None
-    streams: Optional[Streams] = None
-
-    def __repr__(self):
-        return (
-            f"User( id: {self.id}, name: {self.name}, email: {self.email}, company:"
-            f" {self.company} )"
-        )
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-
-class LimitedUser(BaseModel):
-    """Limited user type, for showing public info about a user to another user."""
-
-    id: str
-    name: Optional[str] = None
-    bio: Optional[str] = None
-    company: Optional[str] = None
-    avatar: Optional[str] = None
-    verified: Optional[bool] = None
-    role: Optional[str] = None
-
-
-class PendingStreamCollaborator(BaseModel):
-    id: Optional[str] = None
-    inviteId: Optional[str] = None
-    streamId: Optional[str] = None
-    streamName: Optional[str] = None
-    title: Optional[str] = None
-    role: Optional[str] = None
-    invitedBy: Optional[User] = None
-    user: Optional[User] = None
-    token: Optional[str] = None
-
-    def __repr__(self):
-        return (
-            f"PendingStreamCollaborator( inviteId: {self.inviteId}, streamId:"
-            f" {self.streamId}, role: {self.role}, title: {self.title}, invitedBy:"
-            f" {self.user.name if self.user else None})"
-        )
-
-    def __str__(self) -> str:
-        return self.__repr__()
-
-
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Activity(BaseModel):
     actionType: Optional[str] = None
     info: Optional[dict] = None
@@ -169,6 +152,7 @@ class Activity(BaseModel):
         return self.__repr__()
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class ActivityCollection(BaseModel):
     totalCount: Optional[int] = None
     items: Optional[List[Activity]] = None
@@ -183,23 +167,3 @@ class ActivityCollection(BaseModel):
 
     def __str__(self) -> str:
         return self.__repr__()
-
-
-class ServerMigration(BaseModel):
-    movedTo: Optional[str] = None
-    movedFrom: Optional[str] = None
-
-
-class ServerInfo(BaseModel):
-    name: Optional[str] = None
-    company: Optional[str] = None
-    url: Optional[str] = None
-    description: Optional[str] = None
-    adminContact: Optional[str] = None
-    canonicalUrl: Optional[str] = None
-    roles: Optional[List[dict]] = None
-    scopes: Optional[List[dict]] = None
-    authStrategies: Optional[List[dict]] = None
-    version: Optional[str] = None
-    frontend2: Optional[bool] = None
-    migration: Optional[ServerMigration] = None
