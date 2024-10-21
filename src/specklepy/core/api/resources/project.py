@@ -73,6 +73,7 @@ class ProjectResource(ResourceBase):
                 createdAt
                 updatedAt
                 sourceApps
+                workspaceId
                 models(limit: $modelsLimit, cursor: $modelsCursor, filter: $modelsFilter) {
                   items {
                     id
@@ -82,6 +83,15 @@ class ProjectResource(ResourceBase):
                     displayName
                     description
                     createdAt
+                    author {
+                      avatar
+                      bio
+                      company
+                      id
+                      name
+                      role
+                      verified
+                    }
                   }
                   cursor
                   totalCount

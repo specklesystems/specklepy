@@ -12,12 +12,12 @@ from specklepy.core.api.responses import ResourceCollection
 
 
 class ServerMigration(BaseModel):
-    movedFrom: Optional[str] = None
-    movedTo: Optional[str] = None
+    movedFrom: Optional[str]
+    movedTo: Optional[str]
 
 
 class AuthStrategy(BaseModel):
-    color: Optional[str] = None
+    color: Optional[str]
     icon: str
     id: str
     name: str
@@ -53,11 +53,11 @@ class LimitedUser(BaseModel):
 
     id: str
     name: str
-    bio: Optional[str] = None
-    company: Optional[str] = None
-    avatar: Optional[str] = None
-    verified: Optional[bool] = None
-    role: Optional[str] = None
+    bio: Optional[str]
+    company: Optional[str]
+    avatar: Optional[str]
+    verified: Optional[bool]
+    role: Optional[str]
 
 
 class PendingStreamCollaborator(BaseModel):
@@ -96,9 +96,9 @@ class ResourceIdentifier(BaseModel):
 
 
 class ViewerResourceItem(BaseModel):
-    modelId: Optional[str] = None
+    modelId: Optional[str]
     objectId: str
-    versionId: Optional[str] = None
+    versionId: Optional[str]
 
 
 class ViewerResourceGroup(BaseModel):
@@ -118,22 +118,22 @@ class Comment(BaseModel):
     replies: ResourceCollection["Comment"]
     replyAuthors: ResourceCollection[LimitedUser]
     resources: List[ResourceIdentifier]
-    screenshot: Optional[str] = None
+    screenshot: Optional[str]
     updatedAt: datetime
-    viewedAt: Optional[datetime] = None
+    viewedAt: Optional[datetime]
     viewerResources: List[ViewerResourceItem]
 
 
 class Version(BaseModel):
-    authorUser: Optional[LimitedUser] = None
+    authorUser: Optional[LimitedUser]
     commentThreads: List[Comment]
     createdAt: datetime
     id: str
-    message: Optional[str] = None
+    message: Optional[str]
     model: "Model"
     previewUrl: str
     referencedObject: str
-    sourceApplication: Optional[str] = None
+    sourceApplication: Optional[str]
 
 
 class ModelsTreeItem(BaseModel):
@@ -147,11 +147,11 @@ class ModelsTreeItem(BaseModel):
 
 
 class FileUpload(BaseModel):
-    convertedCommitId: Optional[str] = None
+    convertedCommitId: Optional[str]
     convertedLastUpdate: datetime
-    convertedMessage: Optional[str] = None
+    convertedMessage: Optional[str]
     convertedStatus: FileUploadConversionStatus
-    convertedVersionId: Optional[str] = None
+    convertedVersionId: Optional[str]
     fileName: str
     fileSize: int
     fileType: str
@@ -166,31 +166,30 @@ class FileUpload(BaseModel):
 
 class Model(BaseModel):
     author: LimitedUser
-    childrenTree: List[ModelsTreeItem]
-    commentThreads: ResourceCollection[Comment]
     createdAt: datetime
-    description: str
+    description: Optional[str]
     displayName: str
     id: str
     name: str
-    pendingImportedVersions: List[FileUpload]
-    previewUrl: Optional[str] = None
+    previewUrl: Optional[str]
     updatedAt: datetime
+
+
+class ModelWithVersions(BaseModel):
     versions: ResourceCollection[Version]
-    version: Version
 
 
 class Project(BaseModel):
     allowPublicComments: bool
     createdAt: datetime
-    description: Optional[str] = None
+    description: Optional[str]
     id: str
     name: str
-    role: Optional[str] = None
+    role: Optional[str]
     sourceApps: List[str]
     updatedAt: datetime
     visibility: ProjectVisibility
-    workspaceId: Optional[str] = None
+    workspaceId: Optional[str]
 
 
 class ProjectWithModels(Project):

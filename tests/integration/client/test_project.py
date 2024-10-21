@@ -10,7 +10,7 @@ from specklepy.core.api.models import Project
 from specklepy.logging.exceptions import GraphQLException
 
 
-@pytest.mark.run(order=3)
+@pytest.mark.run()
 class TestProject:
     @pytest.fixture(scope="session")
     def test_project(self, client: SpeckleClient) -> Project:
@@ -89,89 +89,3 @@ class TestProject:
 
         with pytest.raises(GraphQLException):
             client.project.get(project_to_delete.id)
-
-    # @pytest.fixture(scope="session")
-    # def (self) -> Project:
-    #     return Project(
-    #         id= "TO BE SET LATER",
-    #         name="a wonderful project",
-    #         description="a project created for testing",
-    #         visibility=ProjectVisibility.PUBLIC,
-    #         allowPublicComments=false,
-    #         createdAt=None,
-    #         sourceApps=[]
-
-    #     )
-
-    # @pytest.fixture(scope="module")
-    # def updated_project(
-    #     self,
-    # ) -> Project:
-    #     return Project(
-    #         name="a wonderful updated project",
-    #         description="an updated project description for testing",
-    #         visibility=ProjectVisibility.PRIVATE,
-    #     )
-
-    # def test_project_create(
-    #     self, client: SpeckleClient, project: Project, updated_project: Project
-    # ):
-    #     result = client.project.create(
-    #         ProjectCreateInput(
-    #             name=project.name,
-    #             description=project.description,
-    #             visibility=project.visibility,
-    #         )
-    #     )
-
-    #     assert isinstance(result.id, str)
-    #     assert result.name == project.name
-    #     assert result.description == project.description
-    #     assert result.visibility == project.visibility
-
-    #     project = updated_project = result
-
-    #     _ = updated_project  # check if this actually is needed, are we mutating the right instance
-
-    # def test_project_create_short_name(
-    #     self, client: SpeckleClient, project: Project, updated_project: Project
-    # ):
-    #     new_project_id = client.project.create(
-    #         ProjectCreateInput(
-    #             name="x",
-    #             description=project.description,
-    #             visibility=project.visibility,
-    #         )
-    #     )
-    #     assert isinstance(new_project_id, SpeckleException)
-
-    # def test_project_get(self, client: SpeckleClient, project: Project):
-    #     result = client.project.get(project.id)
-
-    #     assert result.id == project.id
-    #     assert result.name == project.name
-    #     assert result.description == project.description
-    #     assert result.visibility == project.visibility
-    #     assert result.createdAt == project.createdAt
-
-    # def test_stream_update(self, client, updated_stream):
-    #     updated = client.stream.update(
-    #         id=updated_stream.id,
-    #         name=updated_stream.name,
-    #         description=updated_stream.description,
-    #         is_public=updated_stream.isPublic,
-    #     )
-    #     fetched_stream = client.stream.get(updated_stream.id)
-
-    #     assert updated is True
-    #     assert fetched_stream.name == updated_stream.name
-    #     assert fetched_stream.description == updated_stream.description
-    #     assert fetched_stream.isPublic == updated_stream.isPublic
-
-    # def test_stream_delete(self, client: SpeckleClient, project: Project):
-    #     deleted = client.project.delete(project.id)
-
-    #     stream_get = client.project.get(project.id)
-
-    #     assert deleted is True
-    #     assert isinstance(stream_get, GraphQLException)

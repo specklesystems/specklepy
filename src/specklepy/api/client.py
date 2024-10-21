@@ -13,6 +13,7 @@ from specklepy.api.resources import (
     user,
 )
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
+from specklepy.core.api.resources.model import ModelResource
 from specklepy.core.api.resources.project import ProjectResource
 from specklepy.logging import metrics
 
@@ -88,6 +89,12 @@ class SpeckleClient(CoreSpeckleClient):
             server_version=server_version,
         )
         self.project = ProjectResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.model = ModelResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,
