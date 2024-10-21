@@ -120,3 +120,4 @@ volumes:
   postgres-data:
   redis-data:
   minio-data:
+  
