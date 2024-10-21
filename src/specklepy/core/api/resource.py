@@ -73,7 +73,7 @@ class ResourceBase(object):
                 exception=ex,
             ) from ex
 
-        return schema.model_validate(response, strict=True)
+        return schema.model_validate(response)
 
     def _parse_response(self, response: Union[dict, list, None], schema=None):
         """Try to create a class instance from the response"""

@@ -198,13 +198,18 @@ class Resource(ResourceBase):
                     inviteId
                     streamId
                     streamName
+                    projectId
+                    projectName
                     title
                     role
                     invitedBy {
                         id
                         name
+                        bio
                         company
                         avatar
+                        verified
+                        role
                     }
                 }
             }
@@ -241,15 +246,21 @@ class Resource(ResourceBase):
                 streamInvite(streamId: $streamId, token: $token) {
                     id
                     token
+                    inviteId
                     streamId
                     streamName
+                    projectId
+                    projectName
                     title
                     role
                     invitedBy {
                         id
                         name
+                        bio
                         company
                         avatar
+                        verified
+                        role
                     }
                 }
             }

@@ -11,7 +11,7 @@ class FileUploadConversionStatus(Enum):
 class ProjectVisibility(str, Enum):
     PRIVATE = "PRIVATE"
     PUBLIC = "PUBLIC"
-    UNLISTEd = "UNLISTEd"
+    UNLISTEd = "UNLISTED"
 
 
 class ResourceType(str, Enum):

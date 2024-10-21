@@ -71,7 +71,7 @@ class PendingStreamCollaborator(BaseModel):
     role: str
     invitedBy: LimitedUser
     user: Optional[LimitedUser] = None
-    token: str
+    token: Optional[str]
 
     def __repr__(self):
         return (

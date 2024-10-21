@@ -22,7 +22,6 @@ class User(BaseModel):
     verified: Optional[bool] = None
     role: Optional[str] = None
     streams: Optional["Streams"] = None
-    projects: ResourceCollection[Project]
 
     def __repr__(self):
         return (

@@ -382,19 +382,27 @@ class Resource(ResourceBase):
                         inviteId
                         streamId
                         streamName
+                        projectName
+                        projectId
                         title
                         role
                         invitedBy{
                             id
                             name
+                            bio
                             company
                             avatar
+                            verified
+                            role
                         }
                         user {
                             id
                             name
+                            bio
                             company
                             avatar
+                            verified
+                            role
                         }
                     }
                 }
