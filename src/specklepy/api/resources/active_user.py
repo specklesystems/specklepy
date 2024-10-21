@@ -35,7 +35,7 @@ class Resource(CoreResource):
         company: Optional[str] = None,
         bio: Optional[str] = None,
         avatar: Optional[str] = None,
-    ):
+    ) -> bool:
         """Updates your user profile. All arguments are optional.
 
         Args:
