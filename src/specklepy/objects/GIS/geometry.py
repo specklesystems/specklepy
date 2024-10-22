@@ -35,7 +35,7 @@ GisPolygonGeometry = PolygonGeometry
 class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
     """GIS Polygon element"""
 
-    geometry: Optional[List[PolygonGeometry]] = None
+    geometry: Optional[List[GisPolygonGeometry]] = None
     attributes: Optional[Base] = None
 
 
