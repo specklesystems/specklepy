@@ -295,17 +295,33 @@ class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter")
     value: Any = None
     applicationUnitType: Optional[str] = None  # eg UnitType UT_Length
     applicationUnit: Optional[str] = None  # DisplayUnitType eg DUT_MILLIMITERS
-    applicationInternalName: Optional[
-        str
-    ] = None  # BuiltInParameterName or GUID for shared parameter
+    applicationInternalName: Optional[str] = (
+        None  # BuiltInParameterName or GUID for shared parameter
+    )
     isShared: bool = False
     isReadOnly: bool = False
     isTypeParameter: bool = False
 
 
+@deprecated(
+    version="2.20", reason="Collections namespace changed, collectionType deprecated"
+)
 class Collection(
     Base, speckle_type="Speckle.Core.Models.Collection", detachable={"elements"}
 ):
     name: Optional[str] = None
     collectionType: Optional[str] = None
     elements: Optional[List[Base]] = None
+
+
+class Collection(  # noqa: F811
+    Base,
+    speckle_type="Speckle.Core.Models.Collections.Collection",
+    detachable={"elements"},
+):
+    name: str
+    elements: List[Base]
+
+    def init(self, name: str, elements: Optional[List[Base]] = None):
+        self.name = name
+        self.elements = elements or []
