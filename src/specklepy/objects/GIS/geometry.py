@@ -1,7 +1,5 @@
 from typing import List, Optional, Union
 
-from deprecated import deprecated
-
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import (
     Arc,
@@ -15,7 +13,7 @@ from specklepy.objects.geometry import (
 
 
 class PolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry"):
-    """GIS Polygon Geometry - expected to be in 2d only"""
+    """GIS Polygon Geometry"""
 
     boundary: Optional[Polyline]
     voids: List[Polyline]
