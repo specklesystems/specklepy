@@ -22,9 +22,11 @@ class PolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry"):
 
     def __init__(
         self,
+        units: str,
         boundary: Polyline,
         voids: Optional[List[Polyline]] = None,
     ) -> None:
+        super().__init__(units=units)
         self.boundary = boundary
         self.voids = voids or []
 
@@ -40,10 +42,30 @@ class PolygonGeometry3d(
 
     def __init__(
         self,
+        units: str,
         boundary: Polyline,
         voids: Optional[List[Polyline]] = None,
     ) -> None:
-        super().__init__(boundary=boundary, voids=voids)
+        super().__init__(units=units, boundary=boundary, voids=voids)
+
+
+class GisMultipatchGeometry(
+    Base,
+    speckle_type="Objects.GIS.GisMultipatchGeometry",
+):
+    """GIS Polygon3d Geometry"""
+
+    def __init__(
+        self,
+        units: str,
+        faces: List[int],
+        vertices: List[float],
+        colors: Optional[List[int]],
+    ) -> None:
+        super().__init__(units=units)
+        self.faces = faces
+        self.vertices = vertices
+        self.colors = colors or []
 
 
 @deprecated(version="2.20", reason="Replaced with GisPolygonFeature")
