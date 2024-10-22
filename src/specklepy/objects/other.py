@@ -321,7 +321,11 @@ class Collection(  # noqa: F811
     elements: List[Base]
 
     def __init__(
-        self, name: Optional[str] = None, elements: Optional[List[Base]] = None
-    ):
+        self,
+        name: Optional[str] = None,
+        elements: Optional[List[Base]] = None,
+        units: Optional[str] = None,
+    ) -> None:
+        super().__init__(units=units)
         self.name = name
         self.elements = elements or []
