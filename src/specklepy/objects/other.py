@@ -318,15 +318,4 @@ class Collection(  # noqa: F811
     detachable={"elements"},
 ):
     name: Optional[str] = None
-    elements: List[Base]
-
-    def __init__(
-        self,
-        name: Optional[str] = None,
-        elements: Optional[List[Base]] = None,
-        units: Optional[str] = None,
-        applicationId: Optional[str] = None,
-    ) -> None:
-        super().__init__(units=units, applicationId=applicationId)
-        self.name = name
-        self.elements = elements or []
+    elements: Optional[List[Base]]
