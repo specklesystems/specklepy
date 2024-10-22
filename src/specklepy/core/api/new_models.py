@@ -126,11 +126,9 @@ class Comment(BaseModel):
 
 class Version(BaseModel):
     authorUser: Optional[LimitedUser]
-    commentThreads: List[Comment]
     createdAt: datetime
     id: str
     message: Optional[str]
-    model: "Model"
     previewUrl: str
     referencedObject: str
     sourceApplication: Optional[str]
@@ -175,7 +173,7 @@ class Model(BaseModel):
     updatedAt: datetime
 
 
-class ModelWithVersions(BaseModel):
+class ModelWithVersions(Model):
     versions: ResourceCollection[Version]
 
 

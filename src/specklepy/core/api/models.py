@@ -4,8 +4,6 @@ from typing import List, Optional
 from deprecated import deprecated
 from pydantic import BaseModel, Field
 
-from specklepy.core.api.responses import ResourceCollection
-
 FE1_DEPRECATION_REASON = "Stream/Branch/Commit API is now deprecated, Use the new Project/Model/Version API functions in Client}"
 FE1_DEPRECATION_VERSION = "2.20"
 

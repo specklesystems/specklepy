@@ -1,16 +1,17 @@
 import pytest
+
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.model_inputs import (
     CreateModelInput,
-    UpdateModelInput,
     DeleteModelInput,
+    UpdateModelInput,
 )
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.models import Model, Project
 from specklepy.logging.exceptions import GraphQLException
 
 
-@pytest.mark.run(order=1)
+@pytest.mark.run()
 class TestModel:
     @pytest.fixture()
     def test_project(self, client: SpeckleClient) -> Project:

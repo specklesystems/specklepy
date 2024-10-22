@@ -8,14 +8,9 @@ from specklepy.core.api.inputs.model_inputs import (
     ModelVersionsFilter,
     UpdateModelInput,
 )
-from specklepy.core.api.inputs.project_inputs import (
-    ProjectModelsFilter,
-)
+from specklepy.core.api.inputs.project_inputs import ProjectModelsFilter
 from specklepy.core.api.models import Project
-from specklepy.core.api.new_models import (
-    Model,
-    ModelWithVersions,
-)
+from specklepy.core.api.new_models import Model, ModelWithVersions
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse, ResourceCollection
 
@@ -93,6 +88,7 @@ class ModelResource(ResourceBase):
                       createdAt
                       previewUrl
                       authorUser {
+                        avatar
                         id
                         name
                         bio
