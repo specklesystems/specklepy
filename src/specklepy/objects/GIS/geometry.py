@@ -15,15 +15,15 @@ from specklepy.objects.geometry import (
 
 
 class PolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry"):
-    """GIS Polygon Geometry"""
+    """GIS Polygon Geometry - expected to be in 2d only"""
 
-    boundary: Polyline
+    boundary: Optional[Polyline]
     voids: List[Polyline]
 
     def __init__(
         self,
-        units: str,
-        boundary: Polyline,
+        units: Optional[str] = None,
+        boundary: Optional[Polyline] = None,
         voids: Optional[List[Polyline]] = None,
     ) -> None:
         super().__init__(units=units)
@@ -34,41 +34,6 @@ class PolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry"):
 GisPolygonGeometry = PolygonGeometry
 
 
-class PolygonGeometry3d(
-    PolygonGeometry,
-    speckle_type="Objects.GIS.PolygonGeometry3d",
-):
-    """GIS Polygon3d Geometry"""
-
-    def __init__(
-        self,
-        units: str,
-        boundary: Polyline,
-        voids: Optional[List[Polyline]] = None,
-    ) -> None:
-        super().__init__(units=units, boundary=boundary, voids=voids)
-
-
-class GisMultipatchGeometry(
-    Base,
-    speckle_type="Objects.GIS.GisMultipatchGeometry",
-):
-    """GIS Polygon3d Geometry"""
-
-    def __init__(
-        self,
-        units: str,
-        faces: List[int],
-        vertices: List[float],
-        colors: Optional[List[int]],
-    ) -> None:
-        super().__init__(units=units)
-        self.faces = faces
-        self.vertices = vertices
-        self.colors = colors or []
-
-
-@deprecated(version="2.20", reason="Replaced with GisPolygonFeature")
 class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
     """GIS Polygon element"""
 
@@ -76,7 +41,6 @@ class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
     attributes: Optional[Base] = None
 
 
-@deprecated(version="2.20", reason="Replaced with GisPolyineFeature")
 class GisLineElement(Base, speckle_type="Objects.GIS.LineElement"):
     """GIS Polyline element"""
 
@@ -84,7 +48,6 @@ class GisLineElement(Base, speckle_type="Objects.GIS.LineElement"):
     attributes: Optional[Base] = None
 
 
-@deprecated(version="2.20", reason="Replaced with GisPointFeature")
 class GisPointElement(Base, speckle_type="Objects.GIS.PointElement"):
     """GIS Point element"""
 
@@ -117,7 +80,6 @@ class GisTopography(
     """GIS Raster element with 3d Topography representation"""
 
 
-@deprecated(version="2.20", reason="Replaced with GisNonGeometricFeature")
 class GisNonGeometryElement(Base, speckle_type="Objects.GIS.NonGeometryElement"):
     """GIS Table feature"""
 
