@@ -36,22 +36,11 @@ class PolygonGeometry3d(
     displayValue: List[Mesh]
 
 
-@deprecated(version="2.20", reason="Replaced with PolygonGeometry")
-class GisPolygonGeometry(
-    Base, speckle_type="Objects.GIS.PolygonGeometry", detachable={"displayValue"}
-):
-    """GIS Polygon Geometry"""
-
-    boundary: Optional[Union[Polyline, Arc, Line, Circle, Polycurve]] = None
-    voids: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]]] = None
-    displayValue: Optional[List[Mesh]] = None
-
-
 @deprecated(version="2.20", reason="Replaced with GisPolygonFeature")
 class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
     """GIS Polygon element"""
 
-    geometry: Optional[List[GisPolygonGeometry]] = None
+    geometry: Optional[List[PolygonGeometry]] = None
     attributes: Optional[Base] = None
 
 
