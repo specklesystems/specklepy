@@ -317,9 +317,11 @@ class Collection(  # noqa: F811
     speckle_type="Speckle.Core.Models.Collections.Collection",
     detachable={"elements"},
 ):
-    name: str
+    name: Optional[str] = None
     elements: List[Base]
 
-    def init(self, name: str, elements: Optional[List[Base]] = None):
+    def __init__(
+        self, name: Optional[str] = None, elements: Optional[List[Base]] = None
+    ):
         self.name = name
         self.elements = elements or []
