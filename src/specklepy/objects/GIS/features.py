@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Mesh, Point, Polyline
@@ -9,6 +9,12 @@ class GisNonGeometricFeature(Base, speckle_type="Objects.GIS.GisNonGeometricFeat
     """GIS Table feature"""
 
     attributes: Base
+
+    def __init__(
+        self,
+        attributes: Optional[Base] = None,
+    ) -> None:
+        self.attributes = attributes or Base()
 
 
 class GisPointFeature(
@@ -25,6 +31,14 @@ class GisPointFeature(
     def geometry(self) -> List[Point]:
         return self.displayValue
 
+    def __init__(
+        self,
+        attributes: Optional[Base] = None,
+        displayValue: Optional[List[Point]] = None,
+    ) -> None:
+        self.attributes = attributes or Base()
+        displayValue = displayValue or []
+
 
 class GisPolylineFeature(
     Base,
@@ -40,6 +54,14 @@ class GisPolylineFeature(
     def geometry(self) -> List[Polyline]:
         return self.displayValue
 
+    def __init__(
+        self,
+        attributes: Optional[Base] = None,
+        displayValue: Optional[List[Point]] = None,
+    ) -> None:
+        self.attributes = attributes or Base()
+        displayValue = displayValue or []
+
 
 class GisPolygonFeature(
     Base,
@@ -52,6 +74,16 @@ class GisPolygonFeature(
     displayValue: List[Mesh]
     geometry: List[PolygonGeometry]
 
+    def __init__(
+        self,
+        geometry: List[PolygonGeometry],
+        attributes: Optional[Base] = None,
+        displayValue: Optional[List[Point]] = None,
+    ) -> None:
+        self.geometry = geometry
+        self.attributes = attributes or Base()
+        displayValue = displayValue or []
+
 
 class GisMultipatchFeature(
     Base,
@@ -63,3 +95,13 @@ class GisMultipatchFeature(
     attributes: Base
     displayValue: List[Mesh]
     geometry: List[Base]  # GisMultipatchGeometry or PolygonGeometry3d
+
+    def __init__(
+        self,
+        geometry: List[Base],
+        attributes: Optional[Base] = None,
+        displayValue: Optional[List[Point]] = None,
+    ) -> None:
+        self.geometry = geometry
+        self.attributes = attributes or Base()
+        displayValue = displayValue or []

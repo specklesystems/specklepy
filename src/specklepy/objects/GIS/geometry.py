@@ -14,26 +14,36 @@ from specklepy.objects.geometry import (
 )
 
 
-class PolygonGeometry(
-    Base, speckle_type="Objects.GIS.PolygonGeometry", detachable={"displayValue"}
-):
+class PolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry"):
     """GIS Polygon Geometry"""
 
     boundary: Polyline
     voids: List[Polyline]
-    displayValue: List[Mesh]
+
+    def __init__(
+        self,
+        boundary: Polyline,
+        voids: Optional[List[Polyline]] = None,
+    ) -> None:
+        self.boundary = boundary
+        self.voids = voids or []
+
+
+GisPolygonGeometry = PolygonGeometry
 
 
 class PolygonGeometry3d(
     PolygonGeometry,
     speckle_type="Objects.GIS.PolygonGeometry3d",
-    detachable={"displayValue"},
 ):
     """GIS Polygon3d Geometry"""
 
-    boundary: Polyline
-    voids: List[Polyline]
-    displayValue: List[Mesh]
+    def __init__(
+        self,
+        boundary: Polyline,
+        voids: Optional[List[Polyline]] = None,
+    ) -> None:
+        super().__init__(boundary=boundary, voids=voids)
 
 
 @deprecated(version="2.20", reason="Replaced with GisPolygonFeature")

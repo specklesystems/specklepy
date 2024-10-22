@@ -12,6 +12,7 @@ from specklepy.objects.GIS.geometry import (
     GisLineElement,
     GisPointElement,
     GisPolygonElement,
+    GisPolygonGeometry,
     GisRasterElement,
     PolygonGeometry,
     PolygonGeometry3d,
@@ -21,6 +22,7 @@ from specklepy.objects.GIS.layers import RasterLayer, VectorLayer
 __all__ = [
     "VectorLayer",
     "RasterLayer",
+    "GisPolygonGeometry",
     "PolygonGeometry",
     "PolygonGeometry3d",
     "GisPolygonElement",
