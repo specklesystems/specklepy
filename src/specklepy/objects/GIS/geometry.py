@@ -1,5 +1,7 @@
 from typing import List, Optional, Union
 
+from deprecated import deprecated
+
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import (
     Arc,
@@ -12,16 +14,29 @@ from specklepy.objects.geometry import (
 )
 
 
-class GisPolygonGeometry(
+class PolygonGeometry(
     Base, speckle_type="Objects.GIS.PolygonGeometry", detachable={"displayValue"}
 ):
     """GIS Polygon Geometry"""
 
-    boundary: Optional[Union[Polyline, Arc, Line, Circle, Polycurve]] = None
-    voids: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]]] = None
-    displayValue: Optional[List[Mesh]] = None
+    boundary: Polyline
+    voids: List[Polyline]
+    displayValue: List[Mesh]
 
 
+class PolygonGeometry3d(
+    PolygonGeometry,
+    speckle_type="Objects.GIS.PolygonGeometry3d",
+    detachable={"displayValue"},
+):
+    """GIS Polygon3d Geometry"""
+
+    boundary: Polyline
+    voids: List[Polyline]
+    displayValue: List[Mesh]
+
+
+@deprecated(version="2.20", reason="Replaced with GisPolygonFeature")
 class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
     """GIS Polygon element"""
 
@@ -29,6 +44,7 @@ class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
     attributes: Optional[Base] = None
 
 
+@deprecated(version="2.20", reason="Replaced with GisPolyineFeature")
 class GisLineElement(Base, speckle_type="Objects.GIS.LineElement"):
     """GIS Polyline element"""
 
@@ -36,6 +52,7 @@ class GisLineElement(Base, speckle_type="Objects.GIS.LineElement"):
     attributes: Optional[Base] = None
 
 
+@deprecated(version="2.20", reason="Replaced with GisPointFeature")
 class GisPointElement(Base, speckle_type="Objects.GIS.PointElement"):
     """GIS Point element"""
 
@@ -68,6 +85,7 @@ class GisTopography(
     """GIS Raster element with 3d Topography representation"""
 
 
+@deprecated(version="2.20", reason="Replaced with GisNonGeometricFeature")
 class GisNonGeometryElement(Base, speckle_type="Objects.GIS.NonGeometryElement"):
     """GIS Table feature"""
 
