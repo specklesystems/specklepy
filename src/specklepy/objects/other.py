@@ -325,7 +325,8 @@ class Collection(  # noqa: F811
         name: Optional[str] = None,
         elements: Optional[List[Base]] = None,
         units: Optional[str] = None,
+        applicationId: Optional[str] = None,
     ) -> None:
-        super().__init__(units=units)
+        super().__init__(units=units, applicationId=applicationId)
         self.name = name
         self.elements = elements or []
