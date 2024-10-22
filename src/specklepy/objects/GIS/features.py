@@ -1,7 +1,8 @@
 from typing import List
-from specklepy.objects.GIS.geometry import PolygonGeometry
+
 from specklepy.objects.base import Base
-from specklepy.objects.geometry import Point, Polyline, Mesh
+from specklepy.objects.geometry import Mesh, Point, Polyline
+from specklepy.objects.GIS.geometry import PolygonGeometry
 
 
 class GisNonGeometricFeature(Base, speckle_type="Objects.GIS.GisNonGeometricFeature"):

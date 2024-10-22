@@ -1,22 +1,22 @@
 """Builtin Speckle object kit."""
 
 from specklepy.objects.GIS.CRS import CRS
+from specklepy.objects.GIS.features import (
+    GisMultipatchFeature,
+    GisNonGeometricFeature,
+    GisPointFeature,
+    GisPolygonFeature,
+    GisPolylineFeature,
+)
 from specklepy.objects.GIS.geometry import (
-    PolygonGeometry,
-    PolygonGeometry3d,
     GisLineElement,
     GisPointElement,
     GisPolygonElement,
     GisRasterElement,
+    PolygonGeometry,
+    PolygonGeometry3d,
 )
 from specklepy.objects.GIS.layers import RasterLayer, VectorLayer
-from specklepy.objects.GIS.features import (
-    GisPointFeature,
-    GisPolylineFeature,
-    GisPolygonFeature,
-    GisMultipatchFeature,
-    GisNonGeometricFeature,
-)
 
 __all__ = [
     "VectorLayer",
