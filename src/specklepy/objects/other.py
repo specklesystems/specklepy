@@ -303,9 +303,19 @@ class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter")
     isTypeParameter: bool = False
 
 
+@deprecated(version="2.20", reason="Namespace changed, collectionType deprecated")
 class Collection(
     Base, speckle_type="Speckle.Core.Models.Collection", detachable={"elements"}
 ):
     name: Optional[str] = None
     collectionType: Optional[str] = None
     elements: Optional[List[Base]] = None
+
+
+class Collection(  # noqa: F811
+    Base,
+    speckle_type="Speckle.Core.Models.Collections.Collection",
+    detachable={"elements"},
+):
+    name: Optional[str] = None
+    elements: Optional[List[Base]]

@@ -12,14 +12,14 @@ from specklepy.objects.geometry import (
 )
 
 
-class GisPolygonGeometry(
-    Base, speckle_type="Objects.GIS.PolygonGeometry", detachable={"displayValue"}
-):
+class PolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry"):
     """GIS Polygon Geometry"""
 
-    boundary: Optional[Union[Polyline, Arc, Line, Circle, Polycurve]] = None
-    voids: Optional[List[Union[Polyline, Arc, Line, Circle, Polycurve]]] = None
-    displayValue: Optional[List[Mesh]] = None
+    boundary: Optional[Polyline]
+    voids: Optional[List[Polyline]]
+
+
+GisPolygonGeometry = PolygonGeometry
 
 
 class GisPolygonElement(Base, speckle_type="Objects.GIS.PolygonElement"):
