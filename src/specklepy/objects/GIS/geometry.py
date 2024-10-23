@@ -16,17 +16,7 @@ class PolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry"):
     """GIS Polygon Geometry"""
 
     boundary: Optional[Polyline]
-    voids: List[Polyline]
-
-    def __init__(
-        self,
-        units: Optional[str] = None,
-        boundary: Optional[Polyline] = None,
-        voids: Optional[List[Polyline]] = None,
-    ) -> None:
-        super().__init__(units=units)
-        self.boundary = boundary
-        self.voids = voids or []
+    voids: Optional[List[Polyline]]
 
 
 GisPolygonGeometry = PolygonGeometry
