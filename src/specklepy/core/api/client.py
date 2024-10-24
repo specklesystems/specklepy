@@ -11,7 +11,6 @@ from gql.transport.websockets import WebsocketsTransport
 from specklepy.core.api import resources
 from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.core.api.resources import (
-    active_user,
     branch,
     commit,
     object,
@@ -21,6 +20,10 @@ from specklepy.core.api.resources import (
     subscriptions,
     user,
 )
+from specklepy.core.api.resources.active_user_resource import ActiveUserResource
+from specklepy.core.api.resources.model_resource import ModelResource
+from specklepy.core.api.resources.project_resource import ProjectResource
+from specklepy.core.api.resources.version_resource import VersionResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
@@ -200,24 +203,45 @@ class SpeckleClient:
         self.server = server.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
+
         server_version = None
         try:
             server_version = self.server.version()
         except Exception:
             pass
-        self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
+
         self.other_user = other_user.Resource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,
             server_version=server_version,
         )
-        self.active_user = active_user.Resource(
+        self.active_user = ActiveUserResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.project = ProjectResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.model = ModelResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.version = VersionResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        # Deprecated Resources
+        self.user = user.Resource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

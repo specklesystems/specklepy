@@ -1,14 +1,20 @@
 from typing import Optional
 
+from deprecated import deprecated
 from gql import gql
 
-from specklepy.core.api.models import Branch
+from specklepy.core.api.models import (
+    FE1_DEPRECATION_REASON,
+    FE1_DEPRECATION_VERSION,
+    Branch,
+)
 from specklepy.core.api.resource import ResourceBase
 from specklepy.logging.exceptions import SpeckleException
 
 NAME = "branch"
 
 
+@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Resource(ResourceBase):
     """API Access class for branches"""
 
@@ -41,7 +47,7 @@ class Resource(ResourceBase):
           """
         )
         if len(name) < 3:
-            return SpeckleException(message="Branch Name must be at least 3 characters")
+            raise SpeckleException(message="Branch Name must be at least 3 characters")
         params = {
             "branch": {
                 "streamId": stream_id,
