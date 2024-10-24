@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from specklepy.api.models import PendingStreamCollaborator, User
-from specklepy.core.api.resources.active_user import Resource as CoreResource
+from specklepy.core.api.resources.active_user_resource import (
+    ActiveUserResource as CoreResource,
+)
 from specklepy.logging import metrics
 
 

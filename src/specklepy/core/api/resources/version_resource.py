@@ -3,12 +3,8 @@ from typing import Optional
 from gql import gql
 
 from specklepy.core.api.inputs.model_inputs import (
-    CreateModelInput,
-    DeleteModelInput,
     ModelVersionsFilter,
-    UpdateModelInput,
 )
-from specklepy.core.api.inputs.project_inputs import ProjectModelsFilter
 from specklepy.core.api.inputs.version_inputs import (
     CreateVersionInput,
     DeleteVersionsInput,
@@ -16,8 +12,7 @@ from specklepy.core.api.inputs.version_inputs import (
     MoveVersionsInput,
     UpdateVersionInput,
 )
-from specklepy.core.api.models import Project
-from specklepy.core.api.new_models import Model, ModelWithVersions, Version
+from specklepy.core.api.new_models import Version
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse, ResourceCollection
 
@@ -72,6 +67,7 @@ class VersionResource(ResourceBase):
         self,
         model_id: str,
         project_id: str,
+        *,
         limit: int = 25,
         cursor: Optional[str] = None,
         filter: Optional[ModelVersionsFilter] = None,

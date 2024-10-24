@@ -56,6 +56,7 @@ class ProjectResource(ResourceBase):
     def get_with_models(
         self,
         project_id: str,
+        *,
         models_limit: int = 25,
         models_cursor: Optional[str] = None,
         models_filter: Optional[ProjectModelsFilter] = None,

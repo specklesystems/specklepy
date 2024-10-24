@@ -1,10 +1,13 @@
+from deprecated import deprecated
 import pytest
 
 from specklepy.api.client import SpeckleClient
 from specklepy.api.models import Activity, ActivityCollection, User
-from specklepy.logging.exceptions import SpeckleException
+from specklepy.core.api.inputs.user_inputs import UserUpdateInput
+from specklepy.logging.exceptions import GraphQLException
 
 
+@deprecated
 @pytest.mark.run(order=2)
 class TestUser:
     def test_user_get_self(self, client: SpeckleClient, user_dict):
@@ -19,15 +22,14 @@ class TestUser:
     def test_user_update(self, client: SpeckleClient):
         bio = "i am a ghost in the machine"
 
-        failed_update = client.active_user.update()
-        assert isinstance(failed_update, SpeckleException)
+        with pytest.raises(GraphQLException):
+            client.active_user.update(UserUpdateInput())
 
-        updated = client.active_user.update(bio=bio)
+        updated = client.active_user.update(UserUpdateInput(bio=bio))
 
-        me = client.active_user.get()
-
-        assert updated is True
-        assert me.bio == bio
+        assert isinstance(updated, User)
+        assert isinstance(updated, User)
+        assert updated.bio == bio
 
     def test_user_activity(self, client: SpeckleClient, second_user_dict):
         my_activity = client.active_user.activity(limit=10)

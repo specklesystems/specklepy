@@ -8,11 +8,13 @@ from specklepy.core.api.inputs.model_inputs import (
 )
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.models import Model, Project
+from specklepy.core.api.new_models import ProjectWithModels
+from specklepy.core.api.responses import ResourceCollection
 from specklepy.logging.exceptions import GraphQLException
 
 
 @pytest.mark.run()
-class TestModel:
+class TestModelResource:
     @pytest.fixture()
     def test_project(self, client: SpeckleClient) -> Project:
         project = client.project.create(
@@ -44,8 +46,7 @@ class TestModel:
         )
         result = client.model.create(input_data)
 
-        assert result is not None
-        assert result.id is not None
+        assert isinstance(result, Model)
         assert result.name.lower() == name.lower()
         assert result.description == description
 
@@ -54,6 +55,7 @@ class TestModel:
     ):
         result = client.model.get(test_model.id, test_project.id)
 
+        assert isinstance(result, Model)
         assert result.id == test_model.id
         assert result.name == test_model.name
         assert result.description == test_model.description
@@ -65,6 +67,7 @@ class TestModel:
     ):
         result = client.model.get_models(test_project.id)
 
+        assert isinstance(result, ResourceCollection)
         assert len(result.items) == 1
         assert result.totalCount == 1
         assert result.items[0].id == test_model.id
@@ -74,6 +77,7 @@ class TestModel:
     ):
         result = client.project.get_with_models(test_project.id)
 
+        assert isinstance(result, ProjectWithModels)
         assert result.id == test_project.id
         assert len(result.models.items) == 1
         assert result.models.totalCount == 1
@@ -94,6 +98,7 @@ class TestModel:
 
         updated_model = client.model.update(update_data)
 
+        assert isinstance(updated_model, Model)
         assert updated_model.id == test_model.id
         assert updated_model.name.lower() == new_name.lower()
         assert updated_model.description == new_description

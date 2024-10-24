@@ -1,3 +1,4 @@
+from deprecated import deprecated
 import pytest
 
 from specklepy.api.models import Stream
@@ -7,6 +8,7 @@ from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.sqlite import SQLiteTransport
 
 
+@deprecated
 class TestObject:
     @pytest.fixture(scope="module")
     def stream(self, client):

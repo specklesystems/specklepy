@@ -66,6 +66,7 @@ class ModelResource(ResourceBase):
         self,
         model_id: str,
         project_id: str,
+        *,
         versions_limit: int = 25,
         versions_cursor: Optional[str] = None,
         versions_filter: Optional[ModelVersionsFilter] = None,
@@ -135,6 +136,7 @@ class ModelResource(ResourceBase):
     def get_models(
         self,
         project_id: str,
+        *,
         models_limit: int = 25,
         models_cursor: Optional[str] = None,
         models_filter: Optional[ProjectModelsFilter] = None,

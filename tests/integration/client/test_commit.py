@@ -1,3 +1,4 @@
+from deprecated import deprecated
 import pytest
 
 from specklepy.api import operations
@@ -5,6 +6,7 @@ from specklepy.api.models import Commit, Stream
 from specklepy.transports.server.server import ServerTransport
 
 
+@deprecated
 @pytest.mark.run(order=6)
 class TestCommit:
     @pytest.fixture(scope="module")

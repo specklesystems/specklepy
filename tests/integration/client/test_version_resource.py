@@ -12,13 +12,15 @@ from specklepy.core.api.inputs.version_inputs import (
     UpdateVersionInput,
 )
 from specklepy.core.api.models import Model, Project, Version
+from specklepy.core.api.new_models import ModelWithVersions
+from specklepy.core.api.responses import ResourceCollection
 from specklepy.logging.exceptions import GraphQLException
 from specklepy.objects.base import Base
 from specklepy.transports.server.server import ServerTransport
 
 
-@pytest.mark.run(order=4)
-class TestVersion:
+@pytest.mark.run()
+class TestVersionResource:
     @pytest.fixture
     def test_project(self, client: SpeckleClient) -> Project:
         project = client.project.create(
@@ -63,6 +65,7 @@ class TestVersion:
     ):
         result = client.version.get(test_version.id, test_project.id)
 
+        assert isinstance(result, Version)
         assert result.id == test_version.id
         assert result.message == test_version.message
 
@@ -75,6 +78,7 @@ class TestVersion:
     ):
         result = client.version.get_versions(test_model_1.id, test_project.id)
 
+        assert isinstance(result, ResourceCollection)
         assert len(result.items) == 1
         assert result.totalCount == 1
         assert result.items[0].id == test_version.id
@@ -100,6 +104,7 @@ class TestVersion:
     ):
         result = client.model.get_with_versions(test_model_1.id, test_project.id)
 
+        assert isinstance(result, ModelWithVersions)
         assert result.id == test_model_1.id
         assert len(result.versions.items) == 1
         assert result.versions.totalCount == 1
@@ -110,6 +115,7 @@ class TestVersion:
         input_data = UpdateVersionInput(versionId=test_version.id, message=new_message)
         updated_version = client.version.update(input_data)
 
+        assert isinstance(updated_version, Version)
         assert updated_version.id == test_version.id
         assert updated_version.message == new_message
         assert updated_version.previewUrl == test_version.previewUrl
@@ -126,9 +132,11 @@ class TestVersion:
         )
         moved_model_id = client.version.move_to_model(input_data)
 
+        assert isinstance(moved_model_id, str)
         assert moved_model_id == test_model_2.id
         moved_version = client.version.get(test_version.id, test_project.id)
 
+        assert isinstance(moved_version, Version)
         assert moved_version.id == test_version.id
         assert moved_version.message == test_version.message
         assert moved_version.previewUrl == test_version.previewUrl

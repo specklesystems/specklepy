@@ -11,8 +11,8 @@ from specklepy.logging.exceptions import GraphQLException
 
 
 @pytest.mark.run()
-class TestProject:
-    @pytest.fixture(scope="session")
+class TestProjectResource:
+    @pytest.fixture()
     def test_project(self, client: SpeckleClient) -> Project:
         project = client.project.create(
             ProjectCreateInput(
@@ -44,7 +44,7 @@ class TestProject:
         )
         result = client.project.create(input_data)
 
-        assert result is not None
+        assert isinstance(result, Project)
         assert result.id is not None
         assert result.name == name
         assert result.description == (description or "")
@@ -53,6 +53,7 @@ class TestProject:
     def test_project_get(self, client: SpeckleClient, test_project: Project):
         result = client.project.get(test_project.id)
 
+        assert isinstance(result, Project)
         assert result.id == test_project.id
         assert result.name == test_project.name
         assert result.description == test_project.description
@@ -73,6 +74,7 @@ class TestProject:
 
         updated_project = client.project.update(update_data)
 
+        assert isinstance(updated_project, Project)
         assert updated_project.id == test_project.id
         assert updated_project.name == new_name
         assert updated_project.description == new_description
