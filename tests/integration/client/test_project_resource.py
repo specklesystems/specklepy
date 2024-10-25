@@ -37,12 +37,12 @@ class TestProjectResource:
         description: str,
         visibility: ProjectVisibility,
     ):
-        input_data = ProjectCreateInput(
+        input = ProjectCreateInput(
             name=name,
             description=description,
             visibility=visibility,
         )
-        result = client.project.create(input_data)
+        result = client.project.create(input)
 
         assert isinstance(result, Project)
         assert result.id is not None

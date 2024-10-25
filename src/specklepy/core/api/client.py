@@ -14,7 +14,7 @@ from specklepy.core.api.resources import (
     branch,
     commit,
     object,
-    other_user,
+    other_user_resource,
     server,
     stream,
     subscriptions,
@@ -210,7 +210,7 @@ class SpeckleClient:
         except Exception:
             pass
 
-        self.other_user = other_user.Resource(
+        self.other_user = other_user_resource.Resource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

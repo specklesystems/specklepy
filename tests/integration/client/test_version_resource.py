@@ -86,12 +86,12 @@ class TestVersionResource:
     def test_version_received(
         self, client: SpeckleClient, test_version: Version, test_project: Project
     ):
-        input_data = MarkReceivedVersionInput(
+        input = MarkReceivedVersionInput(
             versionId=test_version.id,
             projectId=test_project.id,
             sourceApplication="Integration test",
         )
-        result = client.version.received(input_data)
+        result = client.version.received(input)
 
         assert result is True
 
@@ -112,8 +112,8 @@ class TestVersionResource:
 
     def test_version_update(self, client: SpeckleClient, test_version: Version):
         new_message = "MY new version message"
-        input_data = UpdateVersionInput(versionId=test_version.id, message=new_message)
-        updated_version = client.version.update(input_data)
+        input = UpdateVersionInput(versionId=test_version.id, message=new_message)
+        updated_version = client.version.update(input)
 
         assert isinstance(updated_version, Version)
         assert updated_version.id == test_version.id
@@ -127,10 +127,10 @@ class TestVersionResource:
         test_version: Version,
         test_model_2: Model,
     ):
-        input_data = MoveVersionsInput(
+        input = MoveVersionsInput(
             targetModelName=test_model_2.name, versionIds=[test_version.id]
         )
-        moved_model_id = client.version.move_to_model(input_data)
+        moved_model_id = client.version.move_to_model(input)
 
         assert isinstance(moved_model_id, str)
         assert moved_model_id == test_model_2.id
@@ -144,13 +144,13 @@ class TestVersionResource:
     def test_version_delete(
         self, client: SpeckleClient, test_version: Version, test_project: Project
     ):
-        input_data = DeleteVersionsInput(versionIds=[test_version.id])
+        input = DeleteVersionsInput(versionIds=[test_version.id])
 
-        response = client.version.delete(input_data)
+        response = client.version.delete(input)
         assert response is True
 
         with pytest.raises(GraphQLException):
             client.version.get(test_version.id, test_project.id)
 
         with pytest.raises(GraphQLException):
-            client.version.delete(input_data)
+            client.version.delete(input)

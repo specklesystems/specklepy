@@ -23,9 +23,9 @@ class TestUser:
         bio = "i am a ghost in the machine"
 
         with pytest.raises(GraphQLException):
-            client.active_user.update(UserUpdateInput())
+            client.active_user.update(input=UserUpdateInput())
 
-        updated = client.active_user.update(UserUpdateInput(bio=bio))
+        updated = client.active_user.update(input=UserUpdateInput(bio=bio))
 
         assert isinstance(updated, User)
         assert isinstance(updated, User)

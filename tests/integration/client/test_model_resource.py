@@ -41,10 +41,10 @@ class TestModelResource:
     def test_model_create(
         self, client: SpeckleClient, test_project: Project, name: str, description: str
     ):
-        input_data = CreateModelInput(
+        input = CreateModelInput(
             name=name, description=description, projectId=test_project.id
         )
-        result = client.model.create(input_data)
+        result = client.model.create(input)
 
         assert isinstance(result, Model)
         assert result.name.lower() == name.lower()

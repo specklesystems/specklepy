@@ -97,12 +97,10 @@ class ActiveUserResource(ResourceBase):
         company: Optional[str] = None,
         bio: Optional[str] = None,
         avatar: Optional[str] = None,
-    ) -> User:
-        ...
+    ) -> User: ...
 
     @overload
-    def update(self, *, input: UserUpdateInput) -> User:
-        ...
+    def update(self, *, input: UserUpdateInput) -> User: ...
 
     def update(
         self,
@@ -138,6 +136,7 @@ class ActiveUserResource(ResourceBase):
               data:activeUser {
                 data:projects(limit: $limit, cursor: $cursor, filter: $filter) {
                    totalCount
+                   cursor
                    items {
                       id
                       name

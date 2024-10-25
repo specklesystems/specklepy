@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import List, Optional, Union
 
 from specklepy.api.models import ActivityCollection, LimitedUser
-from specklepy.core.api.resources.other_user import Resource as CoreResource
+from specklepy.core.api.resources.other_user_resource import (
+    OtherUserResource as CoreResource,
+)
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 
@@ -23,7 +25,7 @@ class Resource(CoreResource):
         )
         self.schema = LimitedUser
 
-    def get(self, id: str) -> LimitedUser:
+    def get(self, id: str) -> Optional[LimitedUser]:
         """
         Retrieves the profile of a user specified by their user ID.
 

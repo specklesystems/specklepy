@@ -19,8 +19,8 @@ class TestActiveUserResource:
         NEW_BIO = "Now I have a bio, isn't that nice!"
         NEW_COMPANY = "Limited Cooperation Organization Inc"
 
-        input_data = UserUpdateInput(name=NEW_NAME, bio=NEW_BIO, company=NEW_COMPANY)
-        res = client.active_user.update(input_data)
+        input = UserUpdateInput(name=NEW_NAME, bio=NEW_BIO, company=NEW_COMPANY)
+        res = client.active_user.update(input=input)
 
         assert isinstance(res, User)
         assert res.name == NEW_NAME
