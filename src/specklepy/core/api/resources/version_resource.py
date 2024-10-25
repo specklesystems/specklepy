@@ -2,9 +2,7 @@ from typing import Optional
 
 from gql import gql
 
-from specklepy.core.api.inputs.model_inputs import (
-    ModelVersionsFilter,
-)
+from specklepy.core.api.inputs.model_inputs import ModelVersionsFilter
 from specklepy.core.api.inputs.version_inputs import (
     CreateVersionInput,
     DeleteVersionsInput,

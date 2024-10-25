@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, overload
 
 from deprecated import deprecated
 from gql import gql
@@ -63,8 +63,7 @@ class ActiveUserResource(ResourceBase):
             DataResponse[Optional[User]], QUERY, variables
         ).data
 
-    # todo: breaking change, can we make this not?
-    def update(self, input: UserUpdateInput) -> User:
+    def _update(self, input: UserUpdateInput) -> User:
         QUERY = gql(
             """
             mutation ActiveUserMutations($input: UserUpdateInput!) {
@@ -89,6 +88,42 @@ class ActiveUserResource(ResourceBase):
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[User]], QUERY, variables
         ).data.data
+
+    @deprecated("Use UserUpdateInput overload", version=FE1_DEPRECATION_VERSION)
+    @overload
+    def update(
+        self,
+        name: Optional[str] = None,
+        company: Optional[str] = None,
+        bio: Optional[str] = None,
+        avatar: Optional[str] = None,
+    ) -> User:
+        ...
+
+    @overload
+    def update(self, *, input: UserUpdateInput) -> User:
+        ...
+
+    def update(
+        self,
+        name: Optional[str] = None,
+        company: Optional[str] = None,
+        bio: Optional[str] = None,
+        avatar: Optional[str] = None,
+        *,
+        input: Optional[UserUpdateInput] = None,
+    ) -> User:
+        if isinstance(input, UserUpdateInput):
+            return self._update(input=input)
+        else:
+            return self._update(
+                input=UserUpdateInput(
+                    name=name,
+                    company=company,
+                    bio=bio,
+                    avatar=avatar,
+                )
+            )
 
     def get_projects(
         self,

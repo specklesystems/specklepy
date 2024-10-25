@@ -1,5 +1,5 @@
-from deprecated import deprecated
 import pytest
+from deprecated import deprecated
 
 from specklepy.api import operations
 from specklepy.api.models import Commit, Stream

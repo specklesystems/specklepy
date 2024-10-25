@@ -2,16 +2,12 @@ from typing import Any, Optional, Tuple
 
 from gql import Client, gql
 
-from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import Account
 from specklepy.core.api.inputs.project_inputs import (
     ProjectInviteCreateInput,
     ProjectInviteUseInput,
 )
-from specklepy.core.api.new_models import (
-    PendingStreamCollaborator,
-    ProjectWithTeam,
-)
+from specklepy.core.api.new_models import PendingStreamCollaborator, ProjectWithTeam
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 
