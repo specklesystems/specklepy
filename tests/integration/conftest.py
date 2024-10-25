@@ -71,6 +71,13 @@ def second_user_dict(host):
 def client(host, user_dict):
     client = SpeckleClient(host=host, use_ssl=False)
     client.authenticate_with_token(user_dict["token"])
+    user = client.active_user.get()
+    assert user
+    client.account.userInfo.id = user.id
+    client.account.userInfo.email = user.email
+    client.account.userInfo.name = user.name
+    client.account.userInfo.company = user.company
+    client.account.userInfo.avatar = user.avatar
     return client
 
 
@@ -78,6 +85,13 @@ def client(host, user_dict):
 def second_client(host, second_user_dict):
     client = SpeckleClient(host=host, use_ssl=False)
     client.authenticate_with_token(second_user_dict["token"])
+    user = client.active_user.get()
+    assert user
+    client.account.userInfo.id = user.id
+    client.account.userInfo.email = user.email
+    client.account.userInfo.name = user.name
+    client.account.userInfo.company = user.company
+    client.account.userInfo.avatar = user.avatar
     return client
 
 

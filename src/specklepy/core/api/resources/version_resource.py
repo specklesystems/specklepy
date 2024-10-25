@@ -58,7 +58,11 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {"projectId": project_id, "versionId": version_id}
+        variables = {
+            "projectId": project_id,
+            "versionId": version_id,
+        }
+
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Version]], QUERY, variables
         ).data.data
@@ -131,7 +135,9 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[str]]], QUERY, variables
@@ -183,7 +189,9 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[str]]], QUERY, variables
@@ -200,7 +208,9 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[bool]], QUERY, variables
@@ -217,7 +227,9 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[bool]], QUERY, variables

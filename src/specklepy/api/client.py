@@ -16,6 +16,7 @@ from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 # TODO: re-reference core.api resources
 from specklepy.core.api.resources.active_user_resource import ActiveUserResource
 from specklepy.core.api.resources.model_resource import ModelResource
+from specklepy.core.api.resources.project_invite_resource import ProjectInviteResource
 from specklepy.core.api.resources.project_resource import ProjectResource
 from specklepy.core.api.resources.version_resource import VersionResource
 from specklepy.logging import metrics
@@ -92,6 +93,12 @@ class SpeckleClient(CoreSpeckleClient):
             server_version=server_version,
         )
         self.project = ProjectResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.project_invite = ProjectInviteResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

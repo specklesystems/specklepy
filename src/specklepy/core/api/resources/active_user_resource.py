@@ -163,12 +163,13 @@ class ActiveUserResource(ResourceBase):
                   title
                   token
                   user {
-                    id,
-                    name,
-                    bio,
-                    company,
-                    verified,
-                    role,
+                    id
+                    name
+                    bio
+                    company
+                    verified
+                    avatar
+                    role
                   }
                 }
               }

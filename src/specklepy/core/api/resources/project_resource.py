@@ -48,7 +48,10 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {"projectId": project_id}
+        variables = {
+            "projectId": project_id,
+        }
+
         return self.make_request_and_parse_response(
             DataResponse[Project], QUERY, variables
         ).data
@@ -128,7 +131,10 @@ class ProjectResource(ResourceBase):
                 role
                 createdAt
                 updatedAt
+                workspaceId
+                sourceApps
                 team {
+                  id
                   role
                   user {
                     id
@@ -173,7 +179,9 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {"projectId": project_id}
+        variables = {
+            "projectId": project_id,
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[ProjectWithTeam], QUERY, variables
@@ -201,7 +209,9 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Project]], QUERY, variables
@@ -229,7 +239,9 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Project]], QUERY, variables
@@ -246,7 +258,9 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {"projectId": project_id}
+        variables = {
+            "projectId": project_id,
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[bool]], QUERY, variables
@@ -266,7 +280,10 @@ class ProjectResource(ResourceBase):
                   role
                   createdAt
                   updatedAt
+                  sourceApps
+                  workspaceId
                   team {
+                    id
                     role
                     user {
                       id
@@ -305,14 +322,15 @@ class ProjectResource(ResourceBase):
                       role
                     }
                   }
-                  workspaceId
                 }
               }
             }
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[ProjectWithTeam]], QUERY, variables

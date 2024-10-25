@@ -57,7 +57,11 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {"modelId": model_id, "projectId": project_id}
+        variables = {
+            "modelId": model_id,
+            "projectId": project_id,
+        }
+
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Model]], QUERY, variables
         ).data.data
@@ -176,7 +180,9 @@ class ModelResource(ResourceBase):
             "projectId": project_id,
             "modelsLimit": models_limit,
             "modelsCursor": models_cursor,
-            "modelsFilter": models_filter,
+            "modelsFilter": models_filter.model_dump(warnings="error")
+            if models_filter
+            else None,
         }
 
         return self.make_request_and_parse_response(
@@ -211,7 +217,9 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Model]], QUERY, variables
@@ -262,7 +270,9 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {
+            "input": input.model_dump(warnings="error"),
+        }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Model]], QUERY, variables
