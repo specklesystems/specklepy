@@ -14,7 +14,6 @@ from specklepy.core.api.resources import (
     branch,
     commit,
     object,
-    other_user_resource,
     server,
     stream,
     subscriptions,
@@ -22,6 +21,7 @@ from specklepy.core.api.resources import (
 )
 from specklepy.core.api.resources.active_user_resource import ActiveUserResource
 from specklepy.core.api.resources.model_resource import ModelResource
+from specklepy.core.api.resources.other_user_resource import OtherUserResource
 from specklepy.core.api.resources.project_resource import ProjectResource
 from specklepy.core.api.resources.version_resource import VersionResource
 from specklepy.logging import metrics
@@ -210,7 +210,7 @@ class SpeckleClient:
         except Exception:
             pass
 
-        self.other_user = other_user_resource.Resource(
+        self.other_user = OtherUserResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

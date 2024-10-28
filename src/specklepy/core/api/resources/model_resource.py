@@ -9,9 +9,9 @@ from specklepy.core.api.inputs.model_inputs import (
     UpdateModelInput,
 )
 from specklepy.core.api.inputs.project_inputs import ProjectModelsFilter
-from specklepy.core.api.new_models import Model, ModelWithVersions
+from specklepy.core.api.new_models import Model, ModelWithVersions, ResourceCollection
 from specklepy.core.api.resource import ResourceBase
-from specklepy.core.api.responses import DataResponse, ResourceCollection
+from specklepy.core.api.responses import DataResponse
 
 NAME = "model"
 

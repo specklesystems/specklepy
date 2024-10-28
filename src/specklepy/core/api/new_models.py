@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Generic, List, Optional, TypeVar
 
 from pydantic import BaseModel
 
@@ -8,7 +8,14 @@ from specklepy.core.api.enums import (
     ProjectVisibility,
     ResourceType,
 )
-from specklepy.core.api.responses import ResourceCollection
+
+T = TypeVar("T")
+
+
+class ResourceCollection(BaseModel, Generic[T]):
+    totalCount: int
+    items: List[T]
+    cursor: Optional[str] = None
 
 
 class ServerMigration(BaseModel):
@@ -197,3 +204,12 @@ class ProjectWithModels(Project):
 class ProjectWithTeam(Project):
     invitedTeam: List[PendingStreamCollaborator]
     team: List[ProjectCollaborator]
+
+
+class ProjectCommentCollection(ResourceCollection[T], Generic[T]):
+    totalArchivedCount: int
+
+
+class UserSearchResultCollection(BaseModel):
+    items: List[LimitedUser]
+    cursor: Optional[str] = None

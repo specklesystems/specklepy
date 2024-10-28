@@ -10,9 +10,9 @@ from specklepy.core.api.inputs.version_inputs import (
     MoveVersionsInput,
     UpdateVersionInput,
 )
-from specklepy.core.api.new_models import Version
+from specklepy.core.api.new_models import ResourceCollection, Version
 from specklepy.core.api.resource import ResourceBase
-from specklepy.core.api.responses import DataResponse, ResourceCollection
+from specklepy.core.api.responses import DataResponse
 
 NAME = "model"
 

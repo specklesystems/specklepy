@@ -21,7 +21,7 @@ class Resource(CoreResource):
         )
         self.schema = User
 
-    def get(self) -> User:
+    def get(self) -> Optional[User]:
         """Gets the profile of the current authenticated user's profile
         (as extracted from the authorization header).
 
@@ -37,7 +37,7 @@ class Resource(CoreResource):
         company: Optional[str] = None,
         bio: Optional[str] = None,
         avatar: Optional[str] = None,
-    ) -> bool:
+    ) -> User:
         """Updates your user profile. All arguments are optional.
 
         Args:

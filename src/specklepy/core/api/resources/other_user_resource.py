@@ -10,8 +10,9 @@ from specklepy.core.api.models import (
     ActivityCollection,
     LimitedUser,
 )
+from specklepy.core.api.new_models import UserSearchResultCollection
 from specklepy.core.api.resource import ResourceBase
-from specklepy.core.api.responses import DataResponse, ResourceCollection
+from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
 
 NAME = "other_user"
@@ -70,7 +71,7 @@ class OtherUserResource(ResourceBase):
         cursor: Optional[str] = None,
         archived: bool = False,
         emailOnly: bool = False,
-    ) -> ResourceCollection[LimitedUser]:
+    ) -> UserSearchResultCollection:
         """Searches for a user on the server, by name or email. The search query must be at least
         3 characters long
 
@@ -111,7 +112,7 @@ class OtherUserResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[ResourceCollection[LimitedUser]], QUERY, variables
+            DataResponse[UserSearchResultCollection], QUERY, variables
         ).data
 
     @deprecated(reason="Use user_search instead", version=FE1_DEPRECATION_VERSION)

@@ -4,10 +4,10 @@ from typing import List, Optional
 from deprecated import deprecated
 from pydantic import BaseModel, Field
 
+from specklepy.core.api.new_models import *  # noqa: F403
+
 FE1_DEPRECATION_REASON = "Stream/Branch/Commit API is now deprecated, Use the new Project/Model/Version API functions in Client}"
 FE1_DEPRECATION_VERSION = "2.20"
-
-from specklepy.core.api.new_models import *
 
 
 class User(BaseModel):

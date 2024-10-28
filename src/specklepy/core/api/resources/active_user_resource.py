@@ -11,11 +11,12 @@ from specklepy.core.api.models import (
     FE1_DEPRECATION_VERSION,
     ActivityCollection,
     PendingStreamCollaborator,
+    ResourceCollection,
     User,
 )
 from specklepy.core.api.new_models import Project
 from specklepy.core.api.resource import ResourceBase
-from specklepy.core.api.responses import DataResponse, ResourceCollection
+from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import GraphQLException
 
 NAME = "active_user"
@@ -97,10 +98,12 @@ class ActiveUserResource(ResourceBase):
         company: Optional[str] = None,
         bio: Optional[str] = None,
         avatar: Optional[str] = None,
-    ) -> User: ...
+    ) -> User:
+        ...
 
     @overload
-    def update(self, *, input: UserUpdateInput) -> User: ...
+    def update(self, *, input: UserUpdateInput) -> User:
+        ...
 
     def update(
         self,

@@ -5,7 +5,6 @@ from specklepy.api.resources import (
     branch,
     commit,
     object,
-    other_user,
     server,
     stream,
     subscriptions,
