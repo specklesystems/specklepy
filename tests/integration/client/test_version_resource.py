@@ -12,8 +12,7 @@ from specklepy.core.api.inputs.version_inputs import (
     UpdateVersionInput,
 )
 from specklepy.core.api.models import Model, Project, Version
-from specklepy.core.api.new_models import ModelWithVersions
-from specklepy.core.api.responses import ResourceCollection
+from specklepy.core.api.new_models import ModelWithVersions, ResourceCollection
 from specklepy.logging.exceptions import GraphQLException
 from specklepy.objects.base import Base
 from specklepy.transports.server.server import ServerTransport

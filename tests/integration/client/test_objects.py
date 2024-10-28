@@ -1,5 +1,4 @@
 import pytest
-from deprecated import deprecated
 
 from specklepy.api.models import Stream
 from specklepy.objects import Base

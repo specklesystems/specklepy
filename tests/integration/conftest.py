@@ -1,12 +1,13 @@
 import random
 import uuid
+from typing import Dict
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 import requests
 
-from specklepy.api.client import SpeckleClient
-from specklepy.api.models import Stream
+from specklepy.core.api.client import SpeckleClient
+from specklepy.core.api.models import Stream
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.objects.fakemesh import FakeDirection, FakeMesh
@@ -16,11 +17,11 @@ metrics.disable()
 
 
 @pytest.fixture(scope="session")
-def host():
+def host() -> str:
     return "localhost:3000"
 
 
-def seed_user(host):
+def seed_user(host: str) -> Dict[str, str]:
     seed = uuid.uuid4().hex
     user_dict = {
         "email": f"{seed[0:7]}@example.org",
@@ -58,17 +59,17 @@ def seed_user(host):
 
 
 @pytest.fixture(scope="session")
-def user_dict(host):
+def user_dict(host: str) -> Dict[str, str]:
     return seed_user(host)
 
 
 @pytest.fixture(scope="session")
-def second_user_dict(host):
+def second_user_dict(host: str) -> Dict[str, str]:
     return seed_user(host)
 
 
 @pytest.fixture(scope="session")
-def client(host, user_dict):
+def client(host: str, user_dict: Dict[str, str]) -> SpeckleClient:
     client = SpeckleClient(host=host, use_ssl=False)
     client.authenticate_with_token(user_dict["token"])
     user = client.active_user.get()
@@ -82,7 +83,7 @@ def client(host, user_dict):
 
 
 @pytest.fixture(scope="session")
-def second_client(host, second_user_dict):
+def second_client(host: str, second_user_dict: Dict[str, str]):
     client = SpeckleClient(host=host, use_ssl=False)
     client.authenticate_with_token(second_user_dict["token"])
     user = client.active_user.get()
@@ -96,7 +97,7 @@ def second_client(host, second_user_dict):
 
 
 @pytest.fixture(scope="session")
-def sample_stream(client):
+def sample_stream(client: SpeckleClient) -> Stream:
     stream = Stream(
         name="a sample stream for testing",
         description="a stream created for testing",
@@ -107,7 +108,7 @@ def sample_stream(client):
 
 
 @pytest.fixture(scope="session")
-def mesh():
+def mesh() -> FakeMesh:
     mesh = FakeMesh()
     mesh.name = "my_mesh"
     mesh.vertices = [random.uniform(0, 10) for _ in range(1, 210)]

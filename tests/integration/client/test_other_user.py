@@ -1,5 +1,4 @@
 import pytest
-from deprecated import deprecated
 
 from specklepy.api.client import SpeckleClient
 from specklepy.api.models import Activity, ActivityCollection, LimitedUser
