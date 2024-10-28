@@ -138,12 +138,13 @@ class OtherUserResource(ResourceBase):
             query UserSearch($search_query: String!, $limit: Int!) {
                 userSearch(query: $search_query, limit: $limit) {
                     items {
-                        id
-                        name
-                        bio
-                        company
-                        avatar
-                        verified
+                      id
+                      name
+                      bio
+                      company
+                      avatar
+                      verified
+                      role
                     }
                 }
             }

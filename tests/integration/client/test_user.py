@@ -6,7 +6,6 @@ from specklepy.api.models import Activity, ActivityCollection, User
 from specklepy.logging.exceptions import SpeckleException
 
 
-@deprecated
 @pytest.mark.run(order=1)
 class TestUser:
     def test_user_get_self(self, client: SpeckleClient, user_dict):

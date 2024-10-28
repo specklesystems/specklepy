@@ -5,7 +5,6 @@ from specklepy.api.client import SpeckleClient
 from specklepy.api.models import Activity, ActivityCollection, LimitedUser
 
 
-@deprecated()
 @pytest.mark.run(order=4)
 class TestOtherUser:
     def test_user_get_self(self, client):
@@ -15,7 +14,7 @@ class TestOtherUser:
         with pytest.raises(TypeError):
             client.other_user.get()
 
-    def test_user_search(self, client, second_user_dict):
+    def test_user_search(self, client: SpeckleClient, second_user_dict):
         search_results = client.other_user.search(
             search_query=second_user_dict["name"][:5]
         )
@@ -29,7 +28,7 @@ class TestOtherUser:
         second_user_dict["id"] = result_user.id
         assert getattr(result_user, "email", None) is None
 
-    def test_user_get(self, client, second_user_dict):
+    def test_user_get(self, client: SpeckleClient, second_user_dict):
         fetched_user = client.other_user.get(id=second_user_dict["id"])
 
         assert isinstance(fetched_user, LimitedUser)

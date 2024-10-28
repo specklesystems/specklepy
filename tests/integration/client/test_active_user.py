@@ -7,7 +7,6 @@ from specklepy.core.api.inputs.user_inputs import UserUpdateInput
 from specklepy.logging.exceptions import GraphQLException
 
 
-@deprecated
 @pytest.mark.run(order=2)
 class TestUser:
     def test_user_get_self(self, client: SpeckleClient, user_dict):

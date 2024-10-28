@@ -12,7 +12,6 @@ from specklepy.api.models import (
 from specklepy.logging.exceptions import GraphQLException, SpeckleException
 
 
-@deprecated
 @pytest.mark.run(order=3)
 class TestStream:
     @pytest.fixture(scope="session")

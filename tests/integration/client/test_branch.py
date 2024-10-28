@@ -6,7 +6,6 @@ from specklepy.api.models import Branch, Commit, Stream
 from specklepy.transports.server import ServerTransport
 
 
-@deprecated
 class TestBranch:
     @pytest.fixture(scope="module")
     def branch(self):
