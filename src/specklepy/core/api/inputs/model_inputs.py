@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class CreateModelInput(BaseModel):
     name: str
-    description: Optional[str]
+    description: Optional[str] = None
     projectId: str
 
 
@@ -16,11 +16,11 @@ class DeleteModelInput(BaseModel):
 
 class UpdateModelInput(BaseModel):
     id: str
-    name: Optional[str]
-    description: Optional[str]
+    name: Optional[str] = None
+    description: Optional[str] = None
     projectId: str
 
 
 class ModelVersionsFilter(BaseModel):
     priorityIds: Sequence[str]
-    priorityIdsOnly: Optional[bool]
+    priorityIdsOnly: Optional[bool] = None

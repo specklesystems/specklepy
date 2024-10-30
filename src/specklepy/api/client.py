@@ -1,9 +1,8 @@
 from deprecated import deprecated
 
 from specklepy.api.credentials import Account
-from specklepy.api.resources import branch, commit, object, server, stream, user
+from specklepy.api.resources import branch, commit, object, server, stream, subscriptions, user
 
-# TODO: re-reference core.api resources
 from specklepy.api.resources.active_user_resource import ActiveUserResource
 from specklepy.api.resources.model_resource import ModelResource
 from specklepy.api.resources.other_user_resource import OtherUserResource
@@ -136,7 +135,11 @@ class SpeckleClient(CoreSpeckleClient):
         self.object = object.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
-        self.subscribe = self.subscription
+        self.subscribe = subscriptions.Resource(
+            account=self.account,
+            basepath=self.ws_url,
+            client=self.wsclient,
+        )
 
     @deprecated(
         version="2.6.0",

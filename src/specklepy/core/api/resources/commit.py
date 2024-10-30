@@ -144,7 +144,7 @@ class Resource(ResourceBase):
                 { commitCreate(commit: $commit)}
             """
         )
-        params: dict[str, dict[str, Any]] = {
+        params = {
             "commit": {
                 "streamId": stream_id,
                 "branchName": branch_name,

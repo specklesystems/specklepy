@@ -5,12 +5,6 @@ from pydantic import BaseModel
 from specklepy.core.api.models import ProjectVisibility
 
 
-class ProjectCommentsFilter(BaseModel):
-    includeArchived: Optional[bool]
-    loadedVersionsOnly: Optional[bool]
-    resourceIdString: Optional[str]
-
-
 class ProjectCreateInput(BaseModel):
     name: Optional[str]
     description: Optional[str]
@@ -31,18 +25,12 @@ class ProjectInviteUseInput(BaseModel):
 
 
 class ProjectModelsFilter(BaseModel):
-    contributors: Optional[Sequence[str]]
-    excludeIds: Optional[Sequence[str]]
-    ids: Optional[Sequence[str]]
-    onlyWithVersions: Optional[bool]
-    search: Optional[str]
-    sourceApps: Sequence[str]
-
-
-class ProjectModelsTreeFilter(BaseModel):
-    contributors: Optional[Sequence[str]]
-    search: Optional[str]
-    sourceApps: Sequence[str]
+    contributors: Optional[Sequence[str]] = None
+    excludeIds: Optional[Sequence[str]] = None
+    ids: Optional[Sequence[str]] = None
+    onlyWithVersions: Optional[bool] = None
+    search: Optional[str] = None
+    sourceApps: Optional[Sequence[str]] = None
 
 
 class ProjectUpdateInput(BaseModel):

@@ -4,13 +4,10 @@ from typing import Generic, List, Optional, TypeVar
 from pydantic import BaseModel
 
 from specklepy.core.api.enums import (
-    FileUploadConversionStatus,
-    ProjectCommentsUpdatedMessageType,
     ProjectModelsUpdatedMessageType,
     ProjectUpdatedMessageType,
     ProjectVersionsUpdatedMessageType,
     ProjectVisibility,
-    ResourceType,
     UserProjectsUpdatedMessageType,
 )
 
@@ -102,40 +99,6 @@ class ProjectCollaborator(BaseModel):
     user: LimitedUser
 
 
-class ResourceIdentifier(BaseModel):
-    resourceId: str
-    resourceType: ResourceType
-
-
-class ViewerResourceItem(BaseModel):
-    modelId: Optional[str]
-    objectId: str
-    versionId: Optional[str]
-
-
-class ViewerResourceGroup(BaseModel):
-    identifier: str
-    items: List[ViewerResourceItem]
-
-
-class Comment(BaseModel):
-    archived: bool
-    author: LimitedUser
-    authorId: str
-    createdAt: datetime
-    hasParent: bool
-    id: str
-    parent: Optional["Comment"] = None
-    rawText: str
-    replies: ResourceCollection["Comment"]
-    replyAuthors: ResourceCollection[LimitedUser]
-    resources: List[ResourceIdentifier]
-    screenshot: Optional[str]
-    updatedAt: datetime
-    viewedAt: Optional[datetime]
-    viewerResources: List[ViewerResourceItem]
-
-
 class Version(BaseModel):
     authorUser: Optional[LimitedUser]
     createdAt: datetime
@@ -144,34 +107,6 @@ class Version(BaseModel):
     previewUrl: str
     referencedObject: str
     sourceApplication: Optional[str]
-
-
-class ModelsTreeItem(BaseModel):
-    children: List["ModelsTreeItem"]
-    fullName: str
-    hasChildren: bool
-    id: str
-    model: Optional["Model"] = None
-    name: str
-    updatedAt: datetime
-
-
-class FileUpload(BaseModel):
-    convertedCommitId: Optional[str]
-    convertedLastUpdate: datetime
-    convertedMessage: Optional[str]
-    convertedStatus: FileUploadConversionStatus
-    convertedVersionId: Optional[str]
-    fileName: str
-    fileSize: int
-    fileType: str
-    id: str
-    model: Optional["Model"] = None
-    modelName: str
-    projectId: str
-    uploadComplete: bool
-    uploadDate: datetime
-    userId: str
 
 
 class Model(BaseModel):
@@ -224,12 +159,6 @@ class UserProjectsUpdatedMessage(BaseModel):
     id: str
     type: UserProjectsUpdatedMessageType
     project: Optional[Project]
-
-
-class ProjectCommentsUpdatedMessage(BaseModel):
-    id: str
-    type: ProjectCommentsUpdatedMessageType
-    comment: Optional[Comment]
 
 
 class ProjectModelsUpdatedMessage(BaseModel):
