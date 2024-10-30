@@ -187,16 +187,17 @@ class SpeckleClient:
                     raise user_or_error.exception
                 else:
                     raise user_or_error
-        except TransportServerError as ex:
-            if ex.code == 403:
-                warn(
-                    SpeckleWarning(
-                        "Possibly invalid token - could not authenticate Speckle Client"
-                        f" for server {self.url}"
+        except SpeckleException as ex:
+            if isinstance(ex.exception, TransportServerError):
+                if ex.exception.code == 403:
+                    warn(
+                        SpeckleWarning(
+                            "Possibly invalid token - could not authenticate Speckle Client"
+                            f" for server {self.url}"
+                        )
                     )
-                )
-            else:
-                raise ex
+                else:
+                    raise ex
 
     def execute_query(self, query: str) -> Dict:
         return self.httpclient.execute(query)
