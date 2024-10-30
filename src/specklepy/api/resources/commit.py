@@ -1,6 +1,9 @@
 from typing import List, Optional, Union
 
+from deprecated import deprecated
+
 from specklepy.api.models import Commit
+from specklepy.core.api.models import FE1_DEPRECATION_REASON, FE1_DEPRECATION_VERSION
 from specklepy.core.api.resources.commit import Resource as CoreResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
@@ -17,6 +20,7 @@ class Resource(CoreResource):
         )
         self.schema = Commit
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get(self, stream_id: str, commit_id: str) -> Commit:
         """
         Gets a commit given a stream and the commit id
@@ -31,6 +35,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Commit Get"})
         return super().get(stream_id, commit_id)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def list(self, stream_id: str, limit: int = 10) -> List[Commit]:
         """
         Get a list of commits on a given stream
@@ -45,6 +50,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Commit List"})
         return super().list(stream_id, limit)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def create(
         self,
         stream_id: str,
@@ -77,6 +83,7 @@ class Resource(CoreResource):
             stream_id, object_id, branch_name, message, source_application, parents
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def update(self, stream_id: str, commit_id: str, message: str) -> bool:
         """
         Update a commit
@@ -93,6 +100,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Commit Update"})
         return super().update(stream_id, commit_id, message)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def delete(self, stream_id: str, commit_id: str) -> bool:
         """
         Delete a commit
@@ -108,6 +116,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Commit Delete"})
         return super().delete(stream_id, commit_id)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def received(
         self,
         stream_id: str,

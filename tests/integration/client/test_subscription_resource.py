@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional
+from typing import Dict, Optional
 
 import pytest
 
@@ -24,23 +24,31 @@ from specklepy.core.api.new_models import (
     UserProjectsUpdatedMessage,
     Version,
 )
-from tests.integration.conftest import create_version
+from tests.integration.conftest import create_client, create_version
 
-WAIT_PERIOD = 5  # time in seconds
+WAIT_PERIOD = 0.4  # time in seconds
 
 
 @pytest.mark.run()
 class TestSubscriptionResource:
     @pytest.fixture
-    def test_project(self, client: SpeckleClient) -> Project:
-        project = client.project.create(
+    def subscription_client(
+        self, host: str, user_dict: Dict[str, str]
+    ) -> SpeckleClient:
+        return create_client(host, user_dict["token"])
+
+    @pytest.fixture
+    def test_project(self, subscription_client: SpeckleClient) -> Project:
+        project = subscription_client.project.create(
             ProjectCreateInput(name="Test project", description="", visibility=None)
         )
         return project
 
     @pytest.fixture
-    def test_model(self, client: SpeckleClient, test_project: Project) -> Model:
-        model1 = client.model.create(
+    def test_model(
+        self, subscription_client: SpeckleClient, test_project: Project
+    ) -> Model:
+        model1 = subscription_client.model.create(
             CreateModelInput(
                 name="Test Model 1", description="", projectId=test_project.id
             )
@@ -50,7 +58,7 @@ class TestSubscriptionResource:
     @pytest.mark.asyncio
     async def test_user_projects_updated(
         self,
-        client: SpeckleClient,
+        subscription_client: SpeckleClient,
     ) -> None:
         message: Optional[UserProjectsUpdatedMessage] = None
 
@@ -60,12 +68,14 @@ class TestSubscriptionResource:
             nonlocal message
             message = d
 
-        task = asyncio.create_task(client.subscribe.user_projects_updated(callback))
+        task = asyncio.create_task(
+            subscription_client.subscribe.user_projects_updated(callback)
+        )
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time to subscription to be setup
 
         input = ProjectCreateInput(name=None, description=None, visibility=None)
-        created = client.project.create(input)
+        created = subscription_client.project.create(input)
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time for subscription to be triggered
 
@@ -74,10 +84,11 @@ class TestSubscriptionResource:
         assert message.type == UserProjectsUpdatedMessageType.ADDED
         assert isinstance(message.project, Project)
         task.cancel()
+        await task
 
     @pytest.mark.asyncio
     async def test_project_models_updated(
-        self, client: SpeckleClient, test_project: Project
+        self, subscription_client: SpeckleClient, test_project: Project
     ) -> None:
         message: Optional[ProjectModelsUpdatedMessage] = None
 
@@ -88,7 +99,9 @@ class TestSubscriptionResource:
             message = d
 
         task = asyncio.create_task(
-            client.subscribe.project_models_updated(callback, test_project.id)
+            subscription_client.subscribe.project_models_updated(
+                callback, test_project.id
+            )
         )
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time to subscription to be setup
@@ -96,7 +109,7 @@ class TestSubscriptionResource:
         input = CreateModelInput(
             name="my model", description="myDescription", projectId=test_project.id
         )
-        created = client.model.create(input)
+        created = subscription_client.model.create(input)
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time for subscription to be triggered
 
@@ -105,10 +118,11 @@ class TestSubscriptionResource:
         assert message.type == ProjectModelsUpdatedMessageType.CREATED
         assert isinstance(message.model, Model)
         task.cancel()
+        await task
 
     @pytest.mark.asyncio
     async def test_project_updated(
-        self, client: SpeckleClient, test_project: Project
+        self, subscription_client: SpeckleClient, test_project: Project
     ) -> None:
         message: Optional[ProjectUpdatedMessage] = None
 
@@ -119,13 +133,13 @@ class TestSubscriptionResource:
             message = d
 
         task = asyncio.create_task(
-            client.subscribe.project_updated(callback, test_project.id)
+            subscription_client.subscribe.project_updated(callback, test_project.id)
         )
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time to subscription to be setup
 
         input = ProjectUpdateInput(id=test_project.id, name="This is my new name")
-        created = client.project.update(input)
+        created = subscription_client.project.update(input)
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time for subscription to be triggered
 
@@ -134,11 +148,12 @@ class TestSubscriptionResource:
         assert message.type == ProjectUpdatedMessageType.UPDATED
         assert isinstance(message.project, Project)
         task.cancel()
+        await task
 
     @pytest.mark.asyncio
     async def test_project_versions_updated(
         self,
-        client: SpeckleClient,
+        subscription_client: SpeckleClient,
         test_project: Project,
         test_model: Model,
     ) -> None:
@@ -151,17 +166,20 @@ class TestSubscriptionResource:
             message = d
 
         task = asyncio.create_task(
-            client.subscribe.project_versions_updated(callback, test_project.id)
+            subscription_client.subscribe.project_versions_updated(
+                callback, test_project.id
+            )
         )
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time to subscription to be setup
 
-        created = create_version(client, test_project.id, test_model.id)
+        created = create_version(subscription_client, test_project.id, test_model.id)
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time for subscription to be triggered
 
         assert isinstance(message, ProjectVersionsUpdatedMessage)
         assert message.id == created.id
-        assert message.type == ProjectVersionsUpdatedMessageType.UPDATED
+        assert message.type == ProjectVersionsUpdatedMessageType.CREATED
         assert isinstance(message.version, Version)
         task.cancel()
+        await task

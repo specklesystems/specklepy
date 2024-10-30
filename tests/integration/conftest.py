@@ -6,8 +6,8 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 import requests
 
+from specklepy.api.client import SpeckleClient
 from specklepy.core.api import operations
-from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.core.api.models import Stream
 from specklepy.core.api.new_models import Version
@@ -84,10 +84,9 @@ def second_user_dict(host: str) -> Dict[str, str]:
     return seed_user(host)
 
 
-@pytest.fixture(scope="session")
-def client(host: str, user_dict: Dict[str, str]) -> SpeckleClient:
+def create_client(host: str, token: str) -> SpeckleClient:
     client = SpeckleClient(host=host, use_ssl=False)
-    client.authenticate_with_token(user_dict["token"])
+    client.authenticate_with_token(token)
     user = client.active_user.get()
     assert user
     client.account.userInfo.id = user.id
@@ -96,20 +95,16 @@ def client(host: str, user_dict: Dict[str, str]) -> SpeckleClient:
     client.account.userInfo.company = user.company
     client.account.userInfo.avatar = user.avatar
     return client
+
+
+@pytest.fixture(scope="session")
+def client(host: str, user_dict: Dict[str, str]) -> SpeckleClient:
+    return create_client(host, user_dict["token"])
 
 
 @pytest.fixture(scope="session")
 def second_client(host: str, second_user_dict: Dict[str, str]):
-    client = SpeckleClient(host=host, use_ssl=False)
-    client.authenticate_with_token(second_user_dict["token"])
-    user = client.active_user.get()
-    assert user
-    client.account.userInfo.id = user.id
-    client.account.userInfo.email = user.email
-    client.account.userInfo.name = user.name
-    client.account.userInfo.company = user.company
-    client.account.userInfo.avatar = user.avatar
-    return client
+    return create_client(host, second_user_dict["token"])
 
 
 @pytest.fixture(scope="session")

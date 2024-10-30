@@ -9,9 +9,12 @@ from specklepy.core.api.inputs.model_inputs import (
 from specklepy.core.api.inputs.project_inputs import ProjectModelsFilter
 from specklepy.core.api.new_models import Model, ModelWithVersions, ResourceCollection
 from specklepy.core.api.resources.model_resource import ModelResource as CoreResource
+from specklepy.logging import metrics
 
 
 class ModelResource(CoreResource):
+    """API Access class for models"""
+
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,
@@ -21,6 +24,7 @@ class ModelResource(CoreResource):
         )
 
     def get(self, model_id: str, project_id: str) -> Model:
+        metrics.track(metrics.SDK, self.account, {"name": "Model Get"})
         return super().get(model_id, project_id)
 
     def get_with_versions(
@@ -32,6 +36,7 @@ class ModelResource(CoreResource):
         versions_cursor: Optional[str] = None,
         versions_filter: Optional[ModelVersionsFilter] = None,
     ) -> ModelWithVersions:
+        metrics.track(metrics.SDK, self.account, {"name": "Model Get With Versions"})
         return super().get_with_versions(
             model_id,
             project_id,
@@ -48,6 +53,7 @@ class ModelResource(CoreResource):
         models_cursor: Optional[str] = None,
         models_filter: Optional[ProjectModelsFilter] = None,
     ) -> ResourceCollection[Model]:
+        metrics.track(metrics.SDK, self.account, {"name": "Model Get Models"})
         return super().get_models(
             project_id,
             models_limit=models_limit,
@@ -56,10 +62,13 @@ class ModelResource(CoreResource):
         )
 
     def create(self, input: CreateModelInput) -> Model:
+        metrics.track(metrics.SDK, self.account, {"name": "Model Create"})
         return super().create(input)
 
     def delete(self, input: DeleteModelInput) -> bool:
+        metrics.track(metrics.SDK, self.account, {"name": "Model Delete"})
         return super().delete(input)
 
     def update(self, input: UpdateModelInput) -> Model:
+        metrics.track(metrics.SDK, self.account, {"name": "Model Update"})
         return super().update(input)

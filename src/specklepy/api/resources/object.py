@@ -1,5 +1,8 @@
 from typing import Dict, List
 
+from deprecated import deprecated
+
+from specklepy.core.api.models import FE1_DEPRECATION_REASON, FE1_DEPRECATION_VERSION
 from specklepy.core.api.resources.object import Resource as CoreResource
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
@@ -16,6 +19,7 @@ class Resource(CoreResource):
         )
         self.schema = Base
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get(self, stream_id: str, object_id: str) -> Base:
         """
         Get a stream object
@@ -30,6 +34,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Object Get"})
         return super().get(stream_id, object_id)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def create(self, stream_id: str, objects: List[Dict]) -> str:
         """
         Not advised - generally, you want to use `operations.send()`.

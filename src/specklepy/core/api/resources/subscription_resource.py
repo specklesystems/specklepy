@@ -148,6 +148,7 @@ class SubscriptionResource(ResourceBase):
                   createdAt
                   updatedAt
                   sourceApps
+                  workspaceId
                 }
                 type
               }

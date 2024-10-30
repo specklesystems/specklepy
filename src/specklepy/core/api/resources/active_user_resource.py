@@ -23,7 +23,7 @@ NAME = "active_user"
 
 
 class ActiveUserResource(ResourceBase):
-    """API Access class for users"""
+    """API Access class for the active user"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(

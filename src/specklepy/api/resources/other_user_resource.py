@@ -18,6 +18,12 @@ from specklepy.logging.exceptions import SpeckleException
 
 
 class OtherUserResource(CoreResource):
+    """
+    Provides API access to other users' profiles and activities on the platform.
+    This class enables fetching limited information about users, searching for users by name or email,
+    and accessing user activity logs with appropriate privacy and access control measures in place.
+    """
+
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,

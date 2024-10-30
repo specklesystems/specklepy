@@ -20,6 +20,9 @@ from specklepy.logging import metrics
 
 
 class ActiveUserResource(CoreResource):
+    """API Access class for users. This class provides methods to get and update
+    the user profile, fetch user activity, and manage pending stream invitations."""
+
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,
@@ -30,6 +33,7 @@ class ActiveUserResource(CoreResource):
         self.schema = User
 
     def get(self) -> Optional[User]:
+        metrics.track(metrics.SDK, self.account, {"name": "Active User Get"})
         return super().get()
 
     @deprecated("Use UserUpdateInput overload", version=FE1_DEPRECATION_VERSION)
@@ -56,6 +60,7 @@ class ActiveUserResource(CoreResource):
         *,
         input: Optional[UserUpdateInput] = None,
     ) -> User:
+        metrics.track(metrics.SDK, self.account, {"name": "Active User Update"})
         if isinstance(input, UserUpdateInput):
             return super()._update(input=input)
         else:
@@ -75,9 +80,13 @@ class ActiveUserResource(CoreResource):
         cursor: Optional[str] = None,
         filter: Optional[UserProjectsFilter] = None,
     ) -> ResourceCollection[Project]:
+        metrics.track(metrics.SDK, self.account, {"name": "Active User Get Projects"})
         return super().get_projects(limit=limit, cursor=cursor, filter=filter)
 
     def get_project_invites(self) -> List[PendingStreamCollaborator]:
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Active User Get Project Invites"}
+        )
         return super().get_project_invites()
 
     @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)

@@ -1,6 +1,9 @@
 from typing import Optional, Union
 
+from deprecated import deprecated
+
 from specklepy.api.models import Branch
+from specklepy.core.api.models import FE1_DEPRECATION_REASON, FE1_DEPRECATION_VERSION
 from specklepy.core.api.resources.branch import Resource as CoreResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
@@ -17,6 +20,7 @@ class Resource(CoreResource):
         )
         self.schema = Branch
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def create(
         self, stream_id: str, name: str, description: str = "No description provided"
     ) -> str:
@@ -32,6 +36,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Branch Create"})
         return super().create(stream_id, name, description)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get(
         self, stream_id: str, name: str, commits_limit: int = 10
     ) -> Union[Branch, None, SpeckleException]:
@@ -48,6 +53,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Branch Get"})
         return super().get(stream_id, name, commits_limit)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def list(self, stream_id: str, branches_limit: int = 10, commits_limit: int = 10):
         """Get a list of branches from a given stream
 
@@ -62,6 +68,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Branch List"})
         return super().list(stream_id, branches_limit, commits_limit)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def update(
         self,
         stream_id: str,
@@ -83,6 +90,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Branch Update"})
         return super().update(stream_id, branch_id, name, description)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def delete(self, stream_id: str, branch_id: str):
         """Delete a branch
 

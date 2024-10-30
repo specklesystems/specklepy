@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import List, Optional
 
+from deprecated import deprecated
+
 from specklepy.api.models import PendingStreamCollaborator, Stream
+from specklepy.core.api.models import FE1_DEPRECATION_REASON, FE1_DEPRECATION_VERSION
 from specklepy.core.api.resources.stream import Resource as CoreResource
 from specklepy.logging import metrics
 
@@ -19,6 +22,7 @@ class Resource(CoreResource):
 
         self.schema = Stream
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get(self, id: str, branch_limit: int = 10, commit_limit: int = 10) -> Stream:
         """Get the specified stream from the server
 
@@ -33,6 +37,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Get"})
         return super().get(id, branch_limit, commit_limit)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def list(self, stream_limit: int = 10) -> List[Stream]:
         """Get a list of the user's streams
 
@@ -45,6 +50,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream List"})
         return super().list(stream_limit)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def create(
         self,
         name: str = "Anonymous Python Stream",
@@ -65,6 +71,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Create"})
         return super().create(name, description, is_public)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def update(
         self,
         id: str,
@@ -87,6 +94,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Update"})
         return super().update(id, name, description, is_public)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def delete(self, id: str) -> bool:
         """Delete a stream given its id
 
@@ -99,6 +107,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Delete"})
         return super().delete(id)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def search(
         self,
         search_query: str,
@@ -120,6 +129,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Search"})
         return super().search(search_query, limit, branch_limit, commit_limit)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def favorite(self, stream_id: str, favorited: bool = True):
         """Favorite or unfavorite the given stream.
 
@@ -134,6 +144,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Favorite"})
         return super().favorite(stream_id, favorited)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get_all_pending_invites(
         self, stream_id: str
     ) -> List[PendingStreamCollaborator]:
@@ -152,6 +163,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Get"})
         return super().get_all_pending_invites(stream_id)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def invite(
         self,
         stream_id: str,
@@ -179,6 +191,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Create"})
         return super().invite(stream_id, email, user_id, role, message)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def invite_batch(
         self,
         stream_id: str,
@@ -205,6 +218,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Batch Create"})
         return super().invite_batch(stream_id, emails, user_ids, message)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def invite_cancel(self, stream_id: str, invite_id: str) -> bool:
         """Cancel an existing stream invite
 
@@ -220,6 +234,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Invite Cancel"})
         return super().invite_cancel(stream_id, invite_id)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def invite_use(self, stream_id: str, token: str, accept: bool = True) -> bool:
         """Accept or decline a stream invite
 
@@ -237,6 +252,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Invite Use"})
         return super().invite_use(stream_id, token, accept)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def update_permission(self, stream_id: str, user_id: str, role: str):
         """Updates permissions for a user on a given stream
 
@@ -257,6 +273,7 @@ class Resource(CoreResource):
         )
         return super().update_permission(stream_id, user_id, role)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def revoke_permission(self, stream_id: str, user_id: str):
         """Revoke permissions from a user on a given stream
 
@@ -270,6 +287,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Stream Permission Revoke"})
         return super().revoke_permission(stream_id, user_id)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def activity(
         self,
         stream_id: str,

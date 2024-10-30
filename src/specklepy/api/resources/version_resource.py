@@ -16,6 +16,8 @@ from specklepy.logging import metrics
 
 
 class VersionResource(CoreResource):
+    """API Access class for model versions"""
+
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,

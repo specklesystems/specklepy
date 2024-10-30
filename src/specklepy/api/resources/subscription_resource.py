@@ -1,10 +1,8 @@
 from typing import Callable, Optional, Sequence
 
-from deprecated import deprecated
 from pydantic import BaseModel
 from typing_extensions import TypeVar
 
-from specklepy.core.api.models import FE1_DEPRECATION_REASON, FE1_DEPRECATION_VERSION
 from specklepy.core.api.new_models import (
     ProjectModelsUpdatedMessage,
     ProjectUpdatedMessage,
@@ -14,7 +12,6 @@ from specklepy.core.api.new_models import (
 from specklepy.core.api.resources.subscription_resource import (
     SubscriptionResource as CoreResource,
 )
-from specklepy.core.api.resources.subscription_resource import check_wsclient
 from specklepy.logging import metrics
 
 TEventArgs = TypeVar("TEventArgs", bound=BaseModel)
@@ -67,62 +64,3 @@ class SubscriptionResource(CoreResource):
             metrics.SDK, self.account, {"name": "Subscription Project Versions Updated"}
         )
         return await super().project_versions_updated(callback, id)
-
-    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
-    @check_wsclient
-    async def stream_added(self, callback: Optional[Callable] = None):
-        """Subscribes to new stream added event for your profile.
-        Use this to display an up-to-date list of streams.
-
-        Arguments:
-            callback {Callable[Stream]} -- a function that takes the updated stream
-            as an argument and executes each time a stream is added
-
-        Returns:
-            Stream -- the update stream
-        """
-        metrics.track(metrics.SDK, self.account, {"name": "Subscription Stream Added"})
-        return super().stream_added(callback)
-
-    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
-    @check_wsclient
-    async def stream_updated(self, id: str, callback: Optional[Callable] = None):
-        """
-        Subscribes to stream updated event.
-        Use this in clients/components that pertain only to this stream.
-
-        Arguments:
-            id {str} -- the stream id of the stream to subscribe to
-            callback {Callable[Stream]}
-            -- a function that takes the updated stream
-            as an argument and executes each time the stream is updated
-
-        Returns:
-            Stream -- the update stream
-        """
-        metrics.track(
-            metrics.SDK, self.account, {"name": "Subscription Stream Updated"}
-        )
-        return super().stream_updated(id, callback)
-
-    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
-    @check_wsclient
-    async def stream_removed(self, callback: Optional[Callable] = None):
-        """Subscribes to stream removed event for your profile.
-        Use this to display an up-to-date list of streams for your profile.
-        NOTE: If someone revokes your permissions on a stream,
-        this subscription will be triggered with an extra value of revokedBy
-        in the payload.
-
-        Arguments:
-            callback {Callable[Dict]}
-            -- a function that takes the returned dict as an argument
-            and executes each time a stream is removed
-
-        Returns:
-            dict -- dict containing 'id' of stream removed and optionally 'revokedBy'
-        """
-        metrics.track(
-            metrics.SDK, self.account, {"name": "Subscription Stream Removed"}
-        )
-        return super().stream_removed(callback)

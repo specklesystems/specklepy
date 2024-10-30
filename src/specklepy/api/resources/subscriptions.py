@@ -1,24 +1,12 @@
-from functools import wraps
 from typing import Callable, Dict, List, Optional, Union
 
+from deprecated import deprecated
 from graphql import DocumentNode
 
+from specklepy.core.api.models import FE1_DEPRECATION_REASON, FE1_DEPRECATION_VERSION
+from specklepy.core.api.resources.subscription_resource import check_wsclient
 from specklepy.core.api.resources.subscriptions import Resource as CoreResource
 from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException
-
-
-def check_wsclient(function):
-    @wraps(function)
-    async def check_wsclient_wrapper(self, *args, **kwargs):
-        if self.client is None:
-            raise SpeckleException(
-                "You must authenticate before you can subscribe to events"
-            )
-        else:
-            return await function(self, *args, **kwargs)
-
-    return check_wsclient_wrapper
 
 
 class Resource(CoreResource):
@@ -31,6 +19,7 @@ class Resource(CoreResource):
             client=client,
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     @check_wsclient
     async def stream_added(self, callback: Optional[Callable] = None):
         """Subscribes to new stream added event for your profile.
@@ -46,6 +35,7 @@ class Resource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Subscription Stream Added"})
         return super().stream_added(callback)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     @check_wsclient
     async def stream_updated(self, id: str, callback: Optional[Callable] = None):
         """
@@ -66,6 +56,7 @@ class Resource(CoreResource):
         )
         return super().stream_updated(id, callback)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     @check_wsclient
     async def stream_removed(self, callback: Optional[Callable] = None):
         """Subscribes to stream removed event for your profile.
@@ -87,6 +78,7 @@ class Resource(CoreResource):
         )
         return super().stream_removed(callback)
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     @check_wsclient
     async def subscribe(
         self,

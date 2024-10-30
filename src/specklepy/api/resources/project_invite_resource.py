@@ -15,6 +15,8 @@ from specklepy.logging import metrics
 
 
 class ProjectInviteResource(CoreResource):
+    """API Access class for project invites"""
+
     def __init__(
         self,
         account: Account,
