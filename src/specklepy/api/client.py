@@ -1,24 +1,17 @@
 from deprecated import deprecated
 
 from specklepy.api.credentials import Account
-from specklepy.api.resources import (
-    branch,
-    commit,
-    object,
-    server,
-    stream,
-    subscriptions,
-    user,
-)
-from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
+from specklepy.api.resources import branch, commit, object, server, stream, user
 
 # TODO: re-reference core.api resources
-from specklepy.core.api.resources.active_user_resource import ActiveUserResource
-from specklepy.core.api.resources.model_resource import ModelResource
-from specklepy.core.api.resources.other_user_resource import OtherUserResource
-from specklepy.core.api.resources.project_invite_resource import ProjectInviteResource
-from specklepy.core.api.resources.project_resource import ProjectResource
-from specklepy.core.api.resources.version_resource import VersionResource
+from specklepy.api.resources.active_user_resource import ActiveUserResource
+from specklepy.api.resources.model_resource import ModelResource
+from specklepy.api.resources.other_user_resource import OtherUserResource
+from specklepy.api.resources.project_invite_resource import ProjectInviteResource
+from specklepy.api.resources.project_resource import ProjectResource
+from specklepy.api.resources.subscription_resource import SubscriptionResource
+from specklepy.api.resources.version_resource import VersionResource
+from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.logging import metrics
 
 
@@ -116,6 +109,11 @@ class SpeckleClient(CoreSpeckleClient):
             client=self.httpclient,
             server_version=server_version,
         )
+        self.subscription = SubscriptionResource(
+            account=self.account,
+            basepath=self.ws_url,
+            client=self.wsclient,
+        )
         # Deprecated Resources
         self.user = user.Resource(
             account=self.account,
@@ -138,11 +136,7 @@ class SpeckleClient(CoreSpeckleClient):
         self.object = object.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
-        self.subscribe = subscriptions.Resource(
-            account=self.account,
-            basepath=self.ws_url,
-            client=self.wsclient,
-        )
+        self.subscribe = self.subscription
 
     @deprecated(
         version="2.6.0",

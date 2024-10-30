@@ -14,9 +14,11 @@ from specklepy.logging.exceptions import SpeckleException
 NAME = "branch"
 
 
-@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Resource(ResourceBase):
-    """API Access class for branches"""
+    """
+    API Access class for branches
+    Branch resource is deprecated, please use model resource instead
+    """
 
     def __init__(self, account, basepath, client) -> None:
         super().__init__(
@@ -27,6 +29,7 @@ class Resource(ResourceBase):
         )
         self.schema = Branch
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def create(
         self, stream_id: str, name: str, description: str = "No description provided"
     ) -> str:
@@ -60,6 +63,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type="branchCreate", parse_response=False
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get(self, stream_id: str, name: str, commits_limit: int = 10):
         """Get a branch by name from a stream
 
@@ -107,6 +111,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["stream", "branch"]
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def list(self, stream_id: str, branches_limit: int = 10, commits_limit: int = 10):
         """Get a list of branches from a given stream
 
@@ -162,6 +167,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["stream", "branches", "items"]
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def update(
         self,
         stream_id: str,
@@ -203,6 +209,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type="branchUpdate", parse_response=False
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def delete(self, stream_id: str, branch_id: str):
         """Delete a branch
 

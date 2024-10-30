@@ -5,8 +5,13 @@ from pydantic import BaseModel
 
 from specklepy.core.api.enums import (
     FileUploadConversionStatus,
+    ProjectCommentsUpdatedMessageType,
+    ProjectModelsUpdatedMessageType,
+    ProjectUpdatedMessageType,
+    ProjectVersionsUpdatedMessageType,
     ProjectVisibility,
     ResourceType,
+    UserProjectsUpdatedMessageType,
 )
 
 T = TypeVar("T")
@@ -213,3 +218,34 @@ class ProjectCommentCollection(ResourceCollection[T], Generic[T]):
 class UserSearchResultCollection(BaseModel):
     items: List[LimitedUser]
     cursor: Optional[str] = None
+
+
+class UserProjectsUpdatedMessage(BaseModel):
+    id: str
+    type: UserProjectsUpdatedMessageType
+    project: Optional[Project]
+
+
+class ProjectCommentsUpdatedMessage(BaseModel):
+    id: str
+    type: ProjectCommentsUpdatedMessageType
+    comment: Optional[Comment]
+
+
+class ProjectModelsUpdatedMessage(BaseModel):
+    id: str
+    type: ProjectModelsUpdatedMessageType
+    model: Optional[Model]
+
+
+class ProjectUpdatedMessage(BaseModel):
+    id: str
+    type: ProjectUpdatedMessageType
+    project: Optional[Project]
+
+
+class ProjectVersionsUpdatedMessage(BaseModel):
+    id: str
+    type: ProjectVersionsUpdatedMessageType
+    modelId: Optional[str]
+    version: Optional[Version]

@@ -8,21 +8,15 @@ from gql.transport.exceptions import TransportServerError
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
 
+from specklepy.api.resources.project_invite_resource import ProjectInviteResource
 from specklepy.core.api import resources
 from specklepy.core.api.credentials import Account, get_account_from_token
-from specklepy.core.api.resources import (
-    branch,
-    commit,
-    object,
-    server,
-    stream,
-    subscriptions,
-    user,
-)
+from specklepy.core.api.resources import branch, commit, object, server, stream, user
 from specklepy.core.api.resources.active_user_resource import ActiveUserResource
 from specklepy.core.api.resources.model_resource import ModelResource
 from specklepy.core.api.resources.other_user_resource import OtherUserResource
 from specklepy.core.api.resources.project_resource import ProjectResource
+from specklepy.core.api.resources.subscription_resource import SubscriptionResource
 from specklepy.core.api.resources.version_resource import VersionResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
@@ -228,6 +222,12 @@ class SpeckleClient:
             client=self.httpclient,
             server_version=server_version,
         )
+        self.project_invite = ProjectInviteResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
         self.model = ModelResource(
             account=self.account,
             basepath=self.url,
@@ -239,6 +239,11 @@ class SpeckleClient:
             basepath=self.url,
             client=self.httpclient,
             server_version=server_version,
+        )
+        self.subscription = SubscriptionResource(
+            account=self.account,
+            basepath=self.ws_url,
+            client=self.wsclient,
         )
         # Deprecated Resources
         self.user = user.Resource(
@@ -262,11 +267,7 @@ class SpeckleClient:
         self.object = object.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
-        self.subscribe = subscriptions.Resource(
-            account=self.account,
-            basepath=self.ws_url,
-            client=self.wsclient,
-        )
+        self.subscribe = self.subscription
 
     def __getattr__(self, name):
         try:

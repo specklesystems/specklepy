@@ -1,11 +1,9 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api import operations
 from specklepy.core.api.inputs.model_inputs import CreateModelInput
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.inputs.version_inputs import (
-    CreateVersionInput,
     DeleteVersionsInput,
     MarkReceivedVersionInput,
     MoveVersionsInput,
@@ -14,8 +12,7 @@ from specklepy.core.api.inputs.version_inputs import (
 from specklepy.core.api.models import Model, Project, Version
 from specklepy.core.api.new_models import ModelWithVersions, ResourceCollection
 from specklepy.logging.exceptions import GraphQLException
-from specklepy.objects.base import Base
-from specklepy.transports.server.server import ServerTransport
+from tests.integration.conftest import create_version
 
 
 @pytest.mark.run()
@@ -49,15 +46,7 @@ class TestVersionResource:
     def test_version(
         self, client: SpeckleClient, test_project: Project, test_model_1: Model
     ) -> Version:
-        remote = ServerTransport(test_project.id, client)
-        objectId = operations.send(
-            Base(applicationId="ASDF"), [remote], use_default_cache=False
-        )
-        input = CreateVersionInput(
-            objectId=objectId, modelId=test_model_1.id, projectId=test_project.id
-        )
-        version_id = client.version.create(input)
-        return client.version.get(version_id, test_project.id)
+        return create_version(client, test_project.id, test_model_1.id)
 
     def test_version_get(
         self, client: SpeckleClient, test_version: Version, test_project: Project

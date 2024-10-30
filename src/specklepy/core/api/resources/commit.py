@@ -14,9 +14,11 @@ from specklepy.logging.exceptions import SpeckleException
 NAME = "commit"
 
 
-@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Resource(ResourceBase):
-    """API Access class for commits"""
+    """
+    API Access class for commits
+    Commit resource is deprecated, please use version resource instead
+    """
 
     def __init__(self, account, basepath, client) -> None:
         super().__init__(
@@ -27,6 +29,7 @@ class Resource(ResourceBase):
         )
         self.schema = Commit
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get(self, stream_id: str, commit_id: str) -> Commit:
         """
         Gets a commit given a stream and the commit id
@@ -65,6 +68,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["stream", "commit"]
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def list(self, stream_id: str, limit: int = 10) -> List[Commit]:
         """
         Get a list of commits on a given stream
@@ -106,6 +110,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["stream", "commits", "items"]
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def create(
         self,
         stream_id: str,
@@ -155,6 +160,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type="commitCreate", parse_response=False
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def update(self, stream_id: str, commit_id: str, message: str) -> bool:
         """
         Update a commit
@@ -182,6 +188,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type="commitUpdate", parse_response=False
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def delete(self, stream_id: str, commit_id: str) -> bool:
         """
         Delete a commit
@@ -206,6 +213,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type="commitDelete", parse_response=False
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def received(
         self,
         stream_id: str,

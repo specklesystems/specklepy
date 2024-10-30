@@ -6,12 +6,16 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 import requests
 
+from specklepy.core.api import operations
 from specklepy.core.api.client import SpeckleClient
+from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.core.api.models import Stream
+from specklepy.core.api.new_models import Version
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.objects.fakemesh import FakeDirection, FakeMesh
 from specklepy.objects.geometry import Point
+from specklepy.transports.server.server import ServerTransport
 
 metrics.disable()
 
@@ -56,6 +60,18 @@ def seed_user(host: str) -> Dict[str, str]:
     user_dict.update(**r_tokens.json())
 
     return user_dict
+
+
+def create_version(client: SpeckleClient, project_id: str, model_id: str) -> Version:
+    remote = ServerTransport(project_id, client)
+    objectId = operations.send(
+        Base(applicationId="ASDF"), [remote], use_default_cache=False
+    )
+    input = CreateVersionInput(
+        objectId=objectId, modelId=model_id, projectId=project_id
+    )
+    version_id = client.version.create(input)
+    return client.version.get(version_id, project_id)
 
 
 @pytest.fixture(scope="session")

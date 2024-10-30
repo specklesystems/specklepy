@@ -15,6 +15,7 @@ Anonymous telemetry to help us understand how to make a better Speckle.
 This really helps us to deliver a better open source project and product!
 """
 TRACK = True
+TRACK_SDK = True
 HOST_APP = "python"
 HOST_APP_VERSION = f"python {'.'.join(map(str, sys.version_info[:2]))}"
 PLATFORMS = {"win32": "Windows", "cygwin": "Windows", "darwin": "Mac OS X"}
@@ -66,6 +67,8 @@ def track(
     custom_props: Optional[dict] = None,
 ):
     if not TRACK:
+        return
+    if not TRACK_SDK and action == SDK:
         return
     try:
         initialise_tracker(account)

@@ -17,9 +17,11 @@ from specklepy.logging.exceptions import SpeckleException, UnsupportedException
 NAME = "stream"
 
 
-@deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
 class Resource(ResourceBase):
-    """API Access class for streams"""
+    """
+    API Access class for streams
+    Stream resource is deprecated, please use project resource instead
+    """
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
@@ -32,6 +34,7 @@ class Resource(ResourceBase):
 
         self.schema = Stream
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get(self, id: str, branch_limit: int = 10, commit_limit: int = 10) -> Stream:
         """Get the specified stream from the server
 
@@ -93,6 +96,7 @@ class Resource(ResourceBase):
 
         return self.make_request(query=query, params=params, return_type="stream")
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def list(self, stream_limit: int = 10) -> List[Stream]:
         """Get a list of the user's streams
 
@@ -146,6 +150,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["user", "streams", "items"]
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def create(
         self,
         name: str = "Anonymous Python Stream",
@@ -180,6 +185,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type="streamCreate", parse_response=False
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def update(
         self,
         id: str,
@@ -220,6 +226,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type="streamUpdate", parse_response=False
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def delete(self, id: str) -> bool:
         """Delete a stream given its id
 
@@ -243,6 +250,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type="streamDelete", parse_response=False
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def search(
         self,
         search_query: str,
@@ -322,6 +330,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["streams", "items"]
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def favorite(self, stream_id: str, favorited: bool = True):
         """Favorite or unfavorite the given stream.
 
@@ -355,6 +364,7 @@ class Resource(ResourceBase):
             query=query, params=params, return_type=["streamFavorite"]
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def get_all_pending_invites(
         self, stream_id: str
     ) -> List[PendingStreamCollaborator]:
@@ -418,6 +428,7 @@ class Resource(ResourceBase):
             schema=PendingStreamCollaborator,
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def invite(
         self,
         stream_id: str,
@@ -474,6 +485,7 @@ class Resource(ResourceBase):
             parse_response=False,
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def invite_batch(
         self,
         stream_id: str,
@@ -533,6 +545,7 @@ class Resource(ResourceBase):
             parse_response=False,
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def invite_cancel(self, stream_id: str, invite_id: str) -> bool:
         """Cancel an existing stream invite
 
@@ -564,6 +577,7 @@ class Resource(ResourceBase):
             parse_response=False,
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def invite_use(self, stream_id: str, token: str, accept: bool = True) -> bool:
         """Accept or decline a stream invite
 
@@ -601,6 +615,7 @@ class Resource(ResourceBase):
             parse_response=False,
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def update_permission(self, stream_id: str, user_id: str, role: str):
         """Updates permissions for a user on a given stream
 
@@ -647,6 +662,7 @@ class Resource(ResourceBase):
             parse_response=False,
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def revoke_permission(self, stream_id: str, user_id: str):
         """Revoke permissions from a user on a given stream
 
@@ -676,6 +692,7 @@ class Resource(ResourceBase):
             parse_response=False,
         )
 
+    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
     def activity(
         self,
         stream_id: str,
