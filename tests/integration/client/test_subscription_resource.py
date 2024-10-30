@@ -69,7 +69,7 @@ class TestSubscriptionResource:
             message = d
 
         task = asyncio.create_task(
-            subscription_client.subscribe.user_projects_updated(callback)
+            subscription_client.subscription.user_projects_updated(callback)
         )
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time to subscription to be setup
@@ -99,7 +99,7 @@ class TestSubscriptionResource:
             message = d
 
         task = asyncio.create_task(
-            subscription_client.subscribe.project_models_updated(
+            subscription_client.subscription.project_models_updated(
                 callback, test_project.id
             )
         )
@@ -133,7 +133,7 @@ class TestSubscriptionResource:
             message = d
 
         task = asyncio.create_task(
-            subscription_client.subscribe.project_updated(callback, test_project.id)
+            subscription_client.subscription.project_updated(callback, test_project.id)
         )
 
         await asyncio.sleep(WAIT_PERIOD)  # Give time to subscription to be setup
@@ -166,7 +166,7 @@ class TestSubscriptionResource:
             message = d
 
         task = asyncio.create_task(
-            subscription_client.subscribe.project_versions_updated(
+            subscription_client.subscription.project_versions_updated(
                 callback, test_project.id
             )
         )
