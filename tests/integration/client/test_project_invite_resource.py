@@ -13,7 +13,7 @@ from specklepy.core.api.models import PendingStreamCollaborator, Project
 from specklepy.core.api.new_models import LimitedUser, ProjectWithTeam
 
 
-@pytest.mark.run(order=1)
+@pytest.mark.run()
 class TestProjectInviteResource:
     @pytest.fixture
     def project(self, client: SpeckleClient):
