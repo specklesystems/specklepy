@@ -181,12 +181,7 @@ class SpeckleClient:
         self._init_resources()
 
         try:
-            user_or_error = self.active_user.get()
-            if isinstance(user_or_error, SpeckleException):
-                if isinstance(user_or_error.exception, TransportServerError):
-                    raise user_or_error.exception
-                else:
-                    raise user_or_error
+            _ = self.active_user.get()
         except SpeckleException as ex:
             if isinstance(ex.exception, TransportServerError):
                 if ex.exception.code == 403:

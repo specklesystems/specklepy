@@ -1,13 +1,11 @@
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Union
+from typing import Any, Callable, Dict, Optional, Sequence, Type
 
-from deprecated import deprecated
 from gql import gql
 from graphql import DocumentNode
 from pydantic import BaseModel
 from typing_extensions import TypeVar
 
-from specklepy.core.api.models import FE1_DEPRECATION_REASON, FE1_DEPRECATION_VERSION
 from specklepy.core.api.new_models import (
     ProjectModelsUpdatedMessage,
     ProjectUpdatedMessage,
@@ -15,7 +13,6 @@ from specklepy.core.api.new_models import (
     UserProjectsUpdatedMessage,
 )
 from specklepy.core.api.resource import ResourceBase
-from specklepy.core.api.resources.stream import Stream
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
 
