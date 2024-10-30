@@ -1,7 +1,6 @@
 from enum import Enum
 
 
-
 class ProjectVisibility(str, Enum):
     PRIVATE = "PRIVATE"
     PUBLIC = "PUBLIC"
@@ -11,7 +10,6 @@ class ProjectVisibility(str, Enum):
 class UserProjectsUpdatedMessageType(str, Enum):
     ADDED = "ADDED"
     REMOVED = "REMOVED"
-
 
 
 class ProjectModelsUpdatedMessageType(str, Enum):

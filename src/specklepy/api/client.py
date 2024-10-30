@@ -1,8 +1,15 @@
 from deprecated import deprecated
 
 from specklepy.api.credentials import Account
-from specklepy.api.resources import branch, commit, object, server, stream, subscriptions, user
-
+from specklepy.api.resources import (
+    branch,
+    commit,
+    object,
+    server,
+    stream,
+    subscriptions,
+    user,
+)
 from specklepy.api.resources.active_user_resource import ActiveUserResource
 from specklepy.api.resources.model_resource import ModelResource
 from specklepy.api.resources.other_user_resource import OtherUserResource

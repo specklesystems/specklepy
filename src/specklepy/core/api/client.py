@@ -22,8 +22,8 @@ from specklepy.core.api.resources import (
 from specklepy.core.api.resources.active_user_resource import ActiveUserResource
 from specklepy.core.api.resources.model_resource import ModelResource
 from specklepy.core.api.resources.other_user_resource import OtherUserResource
-from specklepy.core.api.resources.project_resource import ProjectResource
 from specklepy.core.api.resources.project_invite_resource import ProjectInviteResource
+from specklepy.core.api.resources.project_resource import ProjectResource
 from specklepy.core.api.resources.subscription_resource import SubscriptionResource
 from specklepy.core.api.resources.version_resource import VersionResource
 from specklepy.logging import metrics
