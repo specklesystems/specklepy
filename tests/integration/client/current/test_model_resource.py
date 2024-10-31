@@ -8,10 +8,10 @@ from specklepy.core.api.inputs.model_inputs import (
 )
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.models.current import (
-    ProjectWithModels,
-    ResourceCollection,
     Model,
     Project,
+    ProjectWithModels,
+    ResourceCollection,
 )
 from specklepy.logging.exceptions import GraphQLException
 

@@ -10,10 +10,10 @@ from specklepy.core.api.inputs.version_inputs import (
     UpdateVersionInput,
 )
 from specklepy.core.api.models import (
-    ModelWithVersions,
-    ResourceCollection,
     Model,
+    ModelWithVersions,
     Project,
+    ResourceCollection,
     Version,
 )
 from specklepy.logging.exceptions import GraphQLException

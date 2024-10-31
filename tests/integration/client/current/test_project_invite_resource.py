@@ -11,9 +11,9 @@ from specklepy.core.api.inputs.project_inputs import (
 )
 from specklepy.core.api.models import (
     LimitedUser,
-    ProjectWithTeam,
     PendingStreamCollaborator,
     Project,
+    ProjectWithTeam,
 )
 
 
