@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
 
-from specklepy.core.api.models import ServerInfo
+from specklepy.core.api.models.deprecated import ServerInfo
 from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.sqlite import SQLiteTransport

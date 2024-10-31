@@ -11,21 +11,21 @@ from gql.transport.websockets import WebsocketsTransport
 from specklepy.core.api import resources
 from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.core.api.resources import (
+    ActiveUserResource,
+    ModelResource,
+    OtherUserResource,
+    ProjectInviteResource,
+    ProjectResource,
+    ServerResource,
+    SubscriptionResource,
+    VersionResource,
     branch,
     commit,
     object,
-    server,
     stream,
     subscriptions,
     user,
 )
-from specklepy.core.api.resources.active_user_resource import ActiveUserResource
-from specklepy.core.api.resources.model_resource import ModelResource
-from specklepy.core.api.resources.other_user_resource import OtherUserResource
-from specklepy.core.api.resources.project_invite_resource import ProjectInviteResource
-from specklepy.core.api.resources.project_resource import ProjectResource
-from specklepy.core.api.resources.subscription_resource import SubscriptionResource
-from specklepy.core.api.resources.version_resource import VersionResource
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
@@ -198,7 +198,7 @@ class SpeckleClient:
         return self.httpclient.execute(query)
 
     def _init_resources(self) -> None:
-        self.server = server.Resource(
+        self.server = ServerResource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
 

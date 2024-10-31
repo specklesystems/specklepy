@@ -9,8 +9,8 @@ from specklepy.core.api.inputs.version_inputs import (
     MoveVersionsInput,
     UpdateVersionInput,
 )
-from specklepy.core.api.models import Model, Project, Version
-from specklepy.core.api.new_models import ModelWithVersions, ResourceCollection
+from specklepy.core.api.models.current import ModelWithVersions, ResourceCollection
+from specklepy.core.api.models.deprecated import Model, Project, Version
 from specklepy.logging.exceptions import GraphQLException
 from tests.integration.conftest import create_version
 

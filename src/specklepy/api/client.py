@@ -2,6 +2,13 @@ from deprecated import deprecated
 
 from specklepy.api.credentials import Account
 from specklepy.api.resources import (
+    ActiveUserResource,
+    ModelResource,
+    OtherUserResource,
+    ProjectInviteResource,
+    ProjectResource,
+    SubscriptionResource,
+    VersionResource,
     branch,
     commit,
     object,
@@ -10,13 +17,6 @@ from specklepy.api.resources import (
     subscriptions,
     user,
 )
-from specklepy.api.resources.active_user_resource import ActiveUserResource
-from specklepy.api.resources.model_resource import ModelResource
-from specklepy.api.resources.other_user_resource import OtherUserResource
-from specklepy.api.resources.project_invite_resource import ProjectInviteResource
-from specklepy.api.resources.project_resource import ProjectResource
-from specklepy.api.resources.subscription_resource import SubscriptionResource
-from specklepy.api.resources.version_resource import VersionResource
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.logging import metrics
 
@@ -119,6 +119,7 @@ class SpeckleClient(CoreSpeckleClient):
             account=self.account,
             basepath=self.ws_url,
             client=self.wsclient,
+            # todo: why doesn't this take a server version
         )
         # Deprecated Resources
         self.user = user.Resource(

@@ -3,8 +3,8 @@ import pytest
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.inputs.user_inputs import UserUpdateInput
-from specklepy.core.api.models import User
-from specklepy.core.api.new_models import ResourceCollection
+from specklepy.core.api.models.current import ResourceCollection
+from specklepy.core.api.models.deprecated import User
 
 
 @pytest.mark.run()

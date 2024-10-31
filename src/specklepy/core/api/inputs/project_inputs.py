@@ -2,7 +2,7 @@ from typing import Optional, Sequence
 
 from pydantic import BaseModel
 
-from specklepy.core.api.models import ProjectVisibility
+from specklepy.core.api.enums import ProjectVisibility
 
 
 class ProjectCreateInput(BaseModel):
