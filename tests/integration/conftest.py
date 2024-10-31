@@ -9,8 +9,7 @@ import requests
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api import operations
 from specklepy.core.api.inputs.version_inputs import CreateVersionInput
-from specklepy.core.api.models.current import Version
-from specklepy.core.api.models.deprecated import Stream
+from specklepy.core.api.models import Version, Stream
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.objects.fakemesh import FakeDirection, FakeMesh

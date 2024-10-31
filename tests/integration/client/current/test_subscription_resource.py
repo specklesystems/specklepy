@@ -15,7 +15,7 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectUpdateInput,
 )
-from specklepy.core.api.models.current import (
+from specklepy.core.api.models import (
     Model,
     Project,
     ProjectModelsUpdatedMessage,

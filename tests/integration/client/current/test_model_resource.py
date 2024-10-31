@@ -7,8 +7,12 @@ from specklepy.core.api.inputs.model_inputs import (
     UpdateModelInput,
 )
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.models.current import ProjectWithModels, ResourceCollection
-from specklepy.core.api.models.deprecated import Model, Project
+from specklepy.core.api.models.current import (
+    ProjectWithModels,
+    ResourceCollection,
+    Model,
+    Project,
+)
 from specklepy.logging.exceptions import GraphQLException
 
 

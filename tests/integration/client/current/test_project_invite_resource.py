@@ -9,8 +9,12 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectInviteUseInput,
     ProjectUpdateRoleInput,
 )
-from specklepy.core.api.models.current import LimitedUser, ProjectWithTeam
-from specklepy.core.api.models.deprecated import PendingStreamCollaborator, Project
+from specklepy.core.api.models import (
+    LimitedUser,
+    ProjectWithTeam,
+    PendingStreamCollaborator,
+    Project,
+)
 
 
 @pytest.mark.run()

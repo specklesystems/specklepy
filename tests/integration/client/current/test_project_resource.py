@@ -6,7 +6,7 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectUpdateInput,
 )
-from specklepy.core.api.models.deprecated import Project
+from specklepy.core.api.models import Project
 from specklepy.logging.exceptions import GraphQLException
 
 
