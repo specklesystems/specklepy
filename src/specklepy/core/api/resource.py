@@ -1,9 +1,10 @@
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union
 
 from gql.client import Client
 from gql.transport.exceptions import TransportQueryError
 from graphql import DocumentNode
+from pydantic import BaseModel
 
 from specklepy.core.api.credentials import Account
 from specklepy.logging.exceptions import (
@@ -13,6 +14,8 @@ from specklepy.logging.exceptions import (
 )
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.sqlite import SQLiteTransport
+
+T = TypeVar("T", bound=BaseModel)
 
 
 class ResourceBase(object):
@@ -43,6 +46,35 @@ class ResourceBase(object):
                 response = response[key]
             return response
 
+    def make_request_and_parse_response(
+        self,
+        schema: Type[T],
+        query: DocumentNode,
+        variables: Optional[Dict[str, Any]] = None,
+    ) -> T:
+        try:
+            with self.__lock:
+                response = self.client.execute(query, variable_values=variables)
+        except TransportQueryError as ex:
+            raise GraphQLException(
+                message=(
+                    f"Failed to execute the GraphQL {self.name} request. Errors:"
+                    f" {ex.errors}"
+                ),
+                errors=ex.errors,
+                data=ex.data,
+            ) from ex
+        except Exception as ex:
+            raise SpeckleException(
+                message=(
+                    f"Failed to execute the GraphQL {self.name} request. Inner"
+                    f" exception: {ex}"
+                ),
+                exception=ex,
+            ) from ex
+
+        return schema.model_validate(response)
+
     def _parse_response(self, response: Union[dict, list, None], schema=None):
         """Try to create a class instance from the response"""
         if response is None:
@@ -69,6 +101,8 @@ class ResourceBase(object):
         parse_response: bool = True,
     ) -> Any:
         """Executes the GraphQL query"""
+        # This method has quite complex and ambiguous typing, and counter-intuitive error handling
+        # We are going to phase it out in favour of `make_request_and_parse_response`
         try:
             with self.__lock:
                 response = self.client.execute(query, variable_values=params)

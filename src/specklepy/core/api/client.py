@@ -11,12 +11,17 @@ from gql.transport.websockets import WebsocketsTransport
 from specklepy.core.api import resources
 from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.core.api.resources import (
-    active_user,
+    ActiveUserResource,
+    ModelResource,
+    OtherUserResource,
+    ProjectInviteResource,
+    ProjectResource,
+    ServerResource,
+    SubscriptionResource,
+    VersionResource,
     branch,
     commit,
     object,
-    other_user,
-    server,
     stream,
     subscriptions,
     user,
@@ -176,48 +181,76 @@ class SpeckleClient:
         self._init_resources()
 
         try:
-            user_or_error = self.active_user.get()
-            if isinstance(user_or_error, SpeckleException):
-                if isinstance(user_or_error.exception, TransportServerError):
-                    raise user_or_error.exception
-                else:
-                    raise user_or_error
-        except TransportServerError as ex:
-            if ex.code == 403:
-                warn(
-                    SpeckleWarning(
-                        "Possibly invalid token - could not authenticate Speckle Client"
-                        f" for server {self.url}"
+            _ = self.active_user.get()
+        except SpeckleException as ex:
+            if isinstance(ex.exception, TransportServerError):
+                if ex.exception.code == 403:
+                    warn(
+                        SpeckleWarning(
+                            "Possibly invalid token - could not authenticate Speckle Client"
+                            f" for server {self.url}"
+                        )
                     )
-                )
-            else:
-                raise ex
+                else:
+                    raise ex
 
     def execute_query(self, query: str) -> Dict:
         return self.httpclient.execute(query)
 
     def _init_resources(self) -> None:
-        self.server = server.Resource(
+        self.server = ServerResource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
+
         server_version = None
         try:
             server_version = self.server.version()
         except Exception:
             pass
+
+        self.other_user = OtherUserResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.active_user = ActiveUserResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.project = ProjectResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.project_invite = ProjectInviteResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.model = ModelResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.version = VersionResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.subscription = SubscriptionResource(
+            account=self.account,
+            basepath=self.ws_url,
+            client=self.wsclient,
+        )
+        # Deprecated Resources
         self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.other_user = other_user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.active_user = active_user.Resource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

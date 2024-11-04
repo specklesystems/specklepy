@@ -12,10 +12,11 @@ from specklepy.transports.sqlite import SQLiteTransport
 
 
 class UserInfo(BaseModel):
+    id: Optional[str] = None
     name: Optional[str] = None
     email: Optional[str] = None
     company: Optional[str] = None
-    id: Optional[str] = None
+    avatar: Optional[str] = None
 
 
 class Account(BaseModel):
