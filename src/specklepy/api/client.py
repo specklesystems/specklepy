@@ -2,11 +2,16 @@ from deprecated import deprecated
 
 from specklepy.api.credentials import Account
 from specklepy.api.resources import (
-    active_user,
+    ActiveUserResource,
+    ModelResource,
+    OtherUserResource,
+    ProjectInviteResource,
+    ProjectResource,
+    SubscriptionResource,
+    VersionResource,
     branch,
     commit,
     object,
-    other_user,
     server,
     stream,
     subscriptions,
@@ -67,24 +72,57 @@ class SpeckleClient(CoreSpeckleClient):
         self.server = server.Resource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
+
         server_version = None
         try:
             server_version = self.server.version()
         except Exception:
             pass
+
+        self.other_user = OtherUserResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.active_user = ActiveUserResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.project = ProjectResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.project_invite = ProjectInviteResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.model = ModelResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.version = VersionResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.subscription = SubscriptionResource(
+            account=self.account,
+            basepath=self.ws_url,
+            client=self.wsclient,
+            # todo: why doesn't this take a server version
+        )
+        # Deprecated Resources
         self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.other_user = other_user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.active_user = active_user.Resource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

@@ -1,9 +1,41 @@
-import pkgutil
-import sys
-from importlib import import_module
+from specklepy.api.resources.current.active_user_resource import ActiveUserResource
+from specklepy.api.resources.current.model_resource import ModelResource
+from specklepy.api.resources.current.other_user_resource import OtherUserResource
+from specklepy.api.resources.current.project_invite_resource import (
+    ProjectInviteResource,
+)
+from specklepy.api.resources.current.project_resource import ProjectResource
+from specklepy.api.resources.current.server_resource import ServerResource
+from specklepy.api.resources.current.subscription_resource import SubscriptionResource
+from specklepy.api.resources.current.version_resource import VersionResource
+from specklepy.api.resources.deprecated import (
+    active_user,
+    branch,
+    commit,
+    object,
+    other_user,
+    server,
+    stream,
+    subscriptions,
+    user,
+)
 
-for _, name, _ in pkgutil.iter_modules(__path__):
-    imported_module = import_module("." + name, package=__name__)
-
-    if hasattr(imported_module, "Resource"):
-        setattr(sys.modules[__name__], name, imported_module)
+__all__ = [
+    "ActiveUserResource",
+    "ModelResource",
+    "OtherUserResource",
+    "ProjectInviteResource",
+    "ProjectResource",
+    "ServerResource",
+    "SubscriptionResource",
+    "VersionResource",
+    "active_user",
+    "branch",
+    "commit",
+    "object",
+    "other_user",
+    "server",
+    "stream",
+    "subscriptions",
+    "user",
+]
