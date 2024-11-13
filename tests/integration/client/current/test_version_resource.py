@@ -103,9 +103,13 @@ class TestVersionResource:
         assert result.versions.totalCount == 1
         assert result.versions.items[0].id == test_version.id
 
-    def test_version_update(self, client: SpeckleClient, test_version: Version):
+    def test_version_update(
+        self, client: SpeckleClient, test_version: Version, test_project: Project
+    ):
         new_message = "MY new version message"
-        input = UpdateVersionInput(versionId=test_version.id, message=new_message)
+        input = UpdateVersionInput(
+            versionId=test_version.id, projectId=test_project.id, message=new_message
+        )
         updated_version = client.version.update(input)
 
         assert isinstance(updated_version, Version)
@@ -121,7 +125,9 @@ class TestVersionResource:
         test_model_2: Model,
     ):
         input = MoveVersionsInput(
-            targetModelName=test_model_2.name, versionIds=[test_version.id]
+            targetModelName=test_model_2.name,
+            versionIds=[test_version.id],
+            projectId=test_project.id,
         )
         moved_model_id = client.version.move_to_model(input)
 
@@ -137,7 +143,9 @@ class TestVersionResource:
     def test_version_delete(
         self, client: SpeckleClient, test_version: Version, test_project: Project
     ):
-        input = DeleteVersionsInput(versionIds=[test_version.id])
+        input = DeleteVersionsInput(
+            versionIds=[test_version.id], projectId=test_project.id
+        )
 
         response = client.version.delete(input)
         assert response is True

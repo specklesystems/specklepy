@@ -5,16 +5,19 @@ from pydantic import BaseModel
 
 class UpdateVersionInput(BaseModel):
     versionId: str
+    projectId: str
     message: Optional[str]
 
 
 class MoveVersionsInput(BaseModel):
     targetModelName: str
     versionIds: Sequence[str]
+    projectId: str
 
 
 class DeleteVersionsInput(BaseModel):
     versionIds: Sequence[str]
+    projectId: str
 
 
 class CreateVersionInput(BaseModel):
