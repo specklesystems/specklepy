@@ -69,6 +69,7 @@ class AutomationStatus(str, Enum):
 class ObjectResultLevel(str, Enum):
     """Possible status message levels for object reports."""
 
+    SUCCESS = "SUCCESS"
     INFO = "INFO"
     WARNING = "WARNING"
     ERROR = "ERROR"
