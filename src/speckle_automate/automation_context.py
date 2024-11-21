@@ -355,6 +355,24 @@ class AutomationContext:
             visual_overrides,
         )
 
+    def attach_success_to_objects(
+        self,
+        category: str,
+        object_ids: Union[str, List[str]],
+        message: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        visual_overrides: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Add a new success case to the run results."""
+        self.attach_result_to_objects(
+            ObjectResultLevel.SUCCESS,
+            category,
+            object_ids,
+            message,
+            metadata,
+            visual_overrides,
+        )
+
     def attach_info_to_objects(
         self,
         category: str,
