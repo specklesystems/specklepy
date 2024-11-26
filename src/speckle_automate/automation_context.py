@@ -206,6 +206,7 @@ class AutomationContext:
         query = gql(
             """
             mutation AutomateFunctionRunStatusReport(
+                $projectId: String!
                 $functionRunId: String!
                 $status: AutomateRunStatus!
                 $statusMessage: String
@@ -213,6 +214,7 @@ class AutomationContext:
                 $contextView: String
             ){
                 automateFunctionRunStatusReport(input: {
+                    projectId: $projectId
                     functionRunId: $functionRunId
                     status: $status
                     statusMessage: $statusMessage
@@ -236,6 +238,7 @@ class AutomationContext:
             object_results = None
 
         params = {
+            "projectId": self.automation_run_data.project_id,
             "functionRunId": self.automation_run_data.function_run_id,
             "status": self.run_status.value,
             "statusMessage": self._automation_result.status_message,
