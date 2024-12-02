@@ -304,8 +304,9 @@ class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter")
 
 
 class Collection(
-    Base, speckle_type="Speckle.Core.Models.Collection", detachable={"elements"}
+    Base,
+    speckle_type="Speckle.Core.Models.Collections.Collection",
+    detachable={"elements"},
 ):
     name: Optional[str] = None
-    collectionType: Optional[str] = None
     elements: Optional[List[Base]] = None
