@@ -431,13 +431,6 @@ class Polycurve(Base, speckle_type=GEOMETRY + "Polycurve"):
         ]
 
 
-class PolygonGeometry(Base, speckle_type="Objects.GIS.PolygonGeometry"):
-    """GIS Polygon Geometry"""
-
-    boundary: Polyline | Curve | Polycurve | Circle | Ellipse
-    voids: Optional[List[Polyline]]
-
-
 class Extrusion(Base, speckle_type=GEOMETRY + "Extrusion"):
     capped: Optional[bool] = None
     profile: Optional[Base] = None
