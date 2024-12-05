@@ -2,7 +2,6 @@
 import pytest
 
 from specklepy.core.api.models.instances import InstanceDefinitionProxy, InstanceProxy
-from specklepy.core.api.models.proxies import ColorProxy, GroupProxy
 
 
 @pytest.fixture()
@@ -34,11 +33,11 @@ def create_instance_proxy():
 
 def create_instance_definition_proxy():
     try:
-        GroupProxy()  # missing parameters
+        InstanceDefinitionProxy()  # missing parameters
     except AssertionError:
         assert True
     try:
-        GroupProxy(objects="", maxDepth=1, name="")  # wrong type
+        InstanceDefinitionProxy(objects="", maxDepth=1, name="")  # wrong type
     except AssertionError:
         assert True
     assert False
