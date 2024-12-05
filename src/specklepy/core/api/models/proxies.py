@@ -1,5 +1,3 @@
-from typing import Optional
-
 from specklepy.objects.base import Base
 
 
