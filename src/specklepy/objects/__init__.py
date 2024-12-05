@@ -1,6 +1,6 @@
 """Builtin Speckle object kit."""
 
-from specklepy.objects import encoding, geometry, other, primitive, structural, units
+from specklepy.objects import encoding, geometry, other, primitive, units
 from specklepy.objects.base import Base
 
 __all__ = [
@@ -9,6 +9,5 @@ __all__ = [
     "geometry",
     "other",
     "units",
-    "structural",
     "primitive",
 ]
