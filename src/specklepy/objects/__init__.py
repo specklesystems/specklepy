@@ -1,7 +1,6 @@
 """Builtin Speckle object kit."""
 
 from specklepy.objects import (
-    GIS,
     encoding,
     geometry,
     other,
@@ -19,5 +18,4 @@ __all__ = [
     "units",
     "structural",
     "primitive",
-    "GIS",
 ]
