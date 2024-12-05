@@ -2,10 +2,7 @@
 import pytest
 
 from specklepy.core.api.models.instances import InstanceDefinitionProxy, InstanceProxy
-from specklepy.core.api.models.proxies import (
-    ColorProxy,
-    GroupProxy,
-)
+from specklepy.core.api.models.proxies import ColorProxy, GroupProxy
 
 
 @pytest.fixture()

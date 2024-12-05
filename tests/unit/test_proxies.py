@@ -1,10 +1,7 @@
 # pylint: disable=redefined-outer-name
 import pytest
 
-from specklepy.core.api.models.proxies import (
-    ColorProxy,
-    GroupProxy,
-)
+from specklepy.core.api.models.proxies import ColorProxy, GroupProxy
 
 
 @pytest.fixture()
