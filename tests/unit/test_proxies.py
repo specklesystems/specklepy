@@ -18,11 +18,11 @@ def group_proxy():
 
 def create_color_proxy():
     try:
-        result = ColorProxy()  # missing parameters
+        ColorProxy()  # missing parameters
     except AssertionError:
         assert True
     try:
-        result = ColorProxy(objects="", value=2, name="")  # wrong type
+        ColorProxy(objects="", value=2, name="")  # wrong type
     except AssertionError:
         assert True
 
@@ -31,11 +31,11 @@ def create_color_proxy():
 
 def create_group_proxy():
     try:
-        result = GroupProxy()  # missing parameters
+        GroupProxy()  # missing parameters
     except AssertionError:
         assert True
     try:
-        result = GroupProxy(objects="", name="")  # wrong type
+        GroupProxy(objects="", name="")  # wrong type
     except AssertionError:
         assert True
     assert False
