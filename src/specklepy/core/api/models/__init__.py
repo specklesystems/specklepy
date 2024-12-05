@@ -36,6 +36,16 @@ from specklepy.core.api.models.subscription_messages import (
     UserProjectsUpdatedMessage,
 )
 
+from specklepy.core.api.models.instances import (
+    InstanceProxy,
+    InstanceDefinitionProxy,
+)
+
+from specklepy.core.api.models.proxies import (
+    ColorProxy,
+    GroupProxy,
+)
+
 __all__ = [
     "User",
     "ResourceCollection",
@@ -68,4 +78,8 @@ __all__ = [
     "Streams",
     "Activity",
     "ActivityCollection",
+    "InstanceProxy",
+    "InstanceDefinitionProxy",
+    "ColorProxy",
+    "GroupProxy",
 ]
