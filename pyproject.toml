@@ -24,6 +24,7 @@ Deprecated = "^1.2.13"
 stringcase = "^1.2.0"
 attrs = "^23.1.0"
 httpx = "^0.25.0"
+pydantic-settings = "^2.6.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "23.11.0"

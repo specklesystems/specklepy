@@ -155,7 +155,7 @@ class _RegisteringBase:
 
     def __init_subclass__(
         cls,
-        speckle_type: str,
+        speckle_type: Optional[str] = None,
         chunkable: Optional[Dict[str, int]] = None,
         detachable: Optional[Set[str]] = None,
         serialize_ignore: Optional[Set[str]] = None,
@@ -168,11 +168,11 @@ class _RegisteringBase:
         initialization. This is reused to register each subclassing type into a class
         level dictionary.
         """
-        if not speckle_type:
-            raise Exception("no type")
+        # if not speckle_type:
+        #     raise Exception("no type")
         cls._speckle_type_override = speckle_type
-        # cls.speckle_type = cls._determine_speckle_type()
-        cls.speckle_type = speckle_type
+        cls.speckle_type = cls._determine_speckle_type()
+        # cls.speckle_type = speckle_type
         if cls._full_name() in cls._type_registry:
             raise ValueError(
                 f"The speckle_type: {speckle_type} is already registered for type: "
@@ -326,7 +326,7 @@ class Base(_RegisteringBase, speckle_type="Base"):
     # id: Union[str, None] = None
     # totalChildrenCount: Union[int, None] = None
     # applicationId: Union[str, None] = None
-    # _units: Union[None, str] = None
+    _units: Union[None, str] = None
 
     def __init__(
         self,
@@ -338,7 +338,7 @@ class Base(_RegisteringBase, speckle_type="Base"):
         self.id = id
         self.totalChildrenCount = totalChildrenCount
         self.applicationId = applicationId
-        super().__init__(**kwargs)
+        super().__init__()
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
@@ -473,6 +473,22 @@ class Base(_RegisteringBase, speckle_type="Base"):
             names {Set[str]} -- the names of the attributes to detach as a set of string
         """
         self._detachable = self._detachable.union(names)
+
+    @property
+    def units(self) -> Union[str, None]:
+        return self._units
+
+    @units.setter
+    def units(self, value: Union[str, Units, None]):
+        """While this property accepts any string value, geometry expects units to be specific strings (see Units enum)"""
+        if isinstance(value, str) or value is None:
+            self._units = value
+        elif isinstance(value, Units):
+            self._units = value.value
+        else:
+            raise SpeckleInvalidUnitException(
+                f"Unknown type {type(value)} received for units"
+            )
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
