@@ -18,26 +18,21 @@ def instance_definition_proxy():
     )
 
 
-def create_instance_proxy():
-    try:
-        InstanceProxy()  # missing parameters
-    except AssertionError:
-        assert True
+def test_create_instance_proxy():
     try:
         InstanceProxy(definitionId="", transform="", units="", maxDepth=1)  # wrong type
-    except AssertionError:
+        assert False
+    except TypeError:
         assert True
+    except:
+        assert False
 
-    assert False
 
-
-def create_instance_definition_proxy():
-    try:
-        InstanceDefinitionProxy()  # missing parameters
-    except AssertionError:
-        assert True
+def test_create_instance_definition_proxy():
     try:
         InstanceDefinitionProxy(objects="", maxDepth=1, name="")  # wrong type
-    except AssertionError:
+        assert False
+    except TypeError:
         assert True
-    assert False
+    except:
+        assert False

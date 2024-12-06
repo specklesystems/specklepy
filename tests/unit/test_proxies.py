@@ -16,26 +16,21 @@ def group_proxy():
     return GroupProxy(objects=["app_id_1", "app_id_2"], name="group_proxy_name")
 
 
-def create_color_proxy():
-    try:
-        ColorProxy()  # missing parameters
-    except AssertionError:
-        assert True
+def test_create_color_proxy():
     try:
         ColorProxy(objects="", value=2, name="")  # wrong type
-    except AssertionError:
+        assert False
+    except TypeError:
         assert True
+    except:
+        assert False
 
-    assert False
 
-
-def create_group_proxy():
-    try:
-        GroupProxy()  # missing parameters
-    except AssertionError:
-        assert True
+def test_create_group_proxy():
     try:
         GroupProxy(objects="", name="")  # wrong type
-    except AssertionError:
+        assert False
+    except TypeError:
         assert True
-    assert False
+    except:
+        assert False
