@@ -49,4 +49,4 @@ class ProjectUpdateRoleInput(BaseModel):
 
 class UserProjectsFilter(BaseModel):
     search: str
-    onlyWithRole: Optional[Sequence[str]] = None
+    onlyWithRoles: Optional[Sequence[str]] = None
