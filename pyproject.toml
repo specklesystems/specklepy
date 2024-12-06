@@ -15,7 +15,7 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = ">=3.8.0, <4.0"
+python = ">=3.10.0, <4.0"
 pydantic = "^2.5"
 appdirs = "^1.4.4"
 gql = { extras = ["requests", "websockets"], version = "^3.3.0" }
