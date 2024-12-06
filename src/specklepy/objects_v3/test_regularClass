@@ -1,0 +1,115 @@
+import random
+from specklepy.api.operations import serialize
+import statistics
+import timeit
+from specklepy.objects.base import Base
+from abc import abstractmethod, ABCMeta
+
+
+class IBase(Base):
+    speckle_type = "IBase"
+
+    def __new__(cls, *args, **kwargs):
+        current_class = cls
+        if current_class is IBase or current_class.__base__ is IBase:
+            raise TypeError(f"Can't instantiate interface class {
+                            cls.__name__} directly")
+        return super().__new__(cls)
+
+
+class ICurve(IBase):
+    speckle_type = "ICurve"
+
+
+class IRhino(IBase, metaclass=ABCMeta):
+    speckle_type = "IRhino"
+
+    def __init__(self, *, rhino_name: str):
+        super().__init__()
+        self.rhino_name = rhino_name
+
+    @abstractmethod
+    def length(self):
+        pass
+
+
+class Point(Base):
+    speckle_type = "Object.Geometry.Point"
+
+    def __init__(self, *, x: float = 0.0, y: float = 0.0, z: float = 0.0):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.z = z
+
+
+class Line(ICurve):
+    speckle_type = "Object.Geometry.Line"
+
+    def __init__(self, *, start: Point, end: Point):
+        super().__init__()
+        self.start = start
+        self.end = end
+
+
+class RhinoLine(ICurve, IRhino):
+    speckle_type = "Object.Geometry.RhinoLine"
+
+    def __init__(self, *, start: Point, end: Point, rhino_name: str):
+        IRhino.__init__(self, rhino_name=rhino_name)
+        ICurve.__init__(self)
+        self.start = start
+        self.end = end
+
+    def length(self):
+        pass
+
+
+def test_regular_classes(num_objects: int = 100, num_iterations: int = 100) -> dict:
+
+    coords = [(random.uniform(-100, 100),
+              random.uniform(-100, 100),
+              random.uniform(-100, 100))
+              for _ in range(num_objects * 2)]
+
+    points = [Point(x=x, y=y, z=z) for x, y, z in coords]
+
+    lines = []
+    for i in range(0, len(points) - 1, 2):
+        lines.append(Line(start=points[i], end=points[i + 1]))
+
+    rhino_lines = []
+    for i in range(0, len(points) - 1, 2):
+        rhino_lines.append(RhinoLine(
+            start=points[i],
+            end=points[i + 1],
+            rhino_name=f"RhinoLine_{i//2}"
+        ))
+
+    def serialize_all():
+        for point in points:
+            serialize(point)
+        for line in lines:
+            serialize(line)
+        for rhino_line in rhino_lines:
+            serialize(rhino_line)
+
+    times = timeit.repeat(
+        serialize_all,
+        number=1,
+        repeat=num_iterations
+    )
+
+    total_time = sum(times)
+
+    return {
+        "total": total_time,
+        "average": statistics.mean(times),
+        "min": min(times),
+        "max": max(times)
+    }
+
+
+results = test_regular_classes(1000, 1000)
+print("Serialization result of 4 Million objects with regular classes.")
+print(results)
