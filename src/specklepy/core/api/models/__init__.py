@@ -29,6 +29,8 @@ from specklepy.core.api.models.deprecated import (
     Stream,
     Streams,
 )
+from specklepy.core.api.models.instances import InstanceDefinitionProxy, InstanceProxy
+from specklepy.core.api.models.proxies import ColorProxy, GroupProxy
 from specklepy.core.api.models.subscription_messages import (
     ProjectModelsUpdatedMessage,
     ProjectUpdatedMessage,
@@ -68,4 +70,8 @@ __all__ = [
     "Streams",
     "Activity",
     "ActivityCollection",
+    "InstanceProxy",
+    "InstanceDefinitionProxy",
+    "ColorProxy",
+    "GroupProxy",
 ]

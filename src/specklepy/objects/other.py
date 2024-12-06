@@ -1,13 +1,12 @@
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from deprecated import deprecated
 
-from specklepy.objects.geometry import Plane, Point, Polyline, Vector
+from specklepy.objects.geometry import Point, Vector
 
 from .base import Base
 
 OTHER = "Objects.Other."
-OTHER_REVIT = OTHER + "Revit."
 
 IDENTITY_TRANSFORM = [
     1.0,
@@ -29,21 +28,6 @@ IDENTITY_TRANSFORM = [
 ]
 
 
-class Material(Base, speckle_type=OTHER + "Material"):
-    """Generic class for materials containing generic parameters."""
-
-    name: Optional[str] = None
-
-
-class RevitMaterial(Material, speckle_type="Objects.Other.Revit." + "RevitMaterial"):
-    materialCategory: Optional[str] = None
-    materialClass: Optional[str] = None
-    shininess: Optional[int] = None
-    smoothness: Optional[int] = None
-    transparency: Optional[int] = None
-    parameters: Optional[Base] = None
-
-
 class RenderMaterial(Base, speckle_type=OTHER + "RenderMaterial"):
     name: Optional[str] = None
     opacity: float = 1
@@ -53,36 +37,16 @@ class RenderMaterial(Base, speckle_type=OTHER + "RenderMaterial"):
     emissive: int = -16777216  # black arbg
 
 
-class MaterialQuantity(Base, speckle_type=OTHER + "MaterialQuantity"):
-    material: Optional[Material] = None
-    volume: Optional[float] = None
-    area: Optional[float] = None
-
-
-class DisplayStyle(Base, speckle_type=OTHER + "DisplayStyle"):
+class RenderMaterialProxy(
+    Base,
+    speckle_type="Speckle.Core.Models.Proxies.RenderMaterialProxy",
+):
     """
-    Minimal display style class.
-    Developed primarily for display styles in Rhino and AutoCAD.
-    Rhino object attributes uses OpenNURBS definition for linetypes and lineweights.
+    Used to store render material to object relationships in root collections.
     """
 
-    name: Optional[str] = None
-    color: int = -2894893  # light gray arbg
-    linetype: Optional[str] = None
-    lineweight: float = 0
-
-
-class Text(Base, speckle_type=OTHER + "Text"):
-    """
-    Text object to render it on viewer.
-    """
-
-    plane: Plane
-    value: str
-    height: float
-    rotation: float
-    displayValue: Optional[List[Polyline]] = None
-    richText: Optional[str] = None
+    objects: list[str]
+    value: RenderMaterial
 
 
 class Transform(
@@ -253,59 +217,10 @@ class Transform(
         return cls(value=value)
 
 
-class BlockDefinition(
-    Base, speckle_type=OTHER + "BlockDefinition", detachable={"geometry"}
-):
-    name: Optional[str] = None
-    basePoint: Optional[Point] = None
-    geometry: Optional[List[Base]] = None
-
-
-class Instance(Base, speckle_type=OTHER + "Instance", detachable={"definition"}):
-    transform: Optional[Transform] = None
-    definition: Optional[Base] = None
-
-
-class BlockInstance(
-    Instance, speckle_type=OTHER + "BlockInstance", serialize_ignore={"blockDefinition"}
-):
-    @property
-    @deprecated(version="2.13", reason="Use definition")
-    def blockDefinition(self) -> Optional[BlockDefinition]:
-        if isinstance(self.definition, BlockDefinition):
-            return self.definition
-        return None
-
-    @blockDefinition.setter
-    def blockDefinition(self, value: Optional[BlockDefinition]) -> None:
-        self.definition = value
-
-
-class RevitInstance(Instance, speckle_type=OTHER_REVIT + "RevitInstance"):
-    level: Optional[Base] = None
-    facingFlipped: bool
-    handFlipped: bool
-    parameters: Optional[Base] = None
-    elementId: Optional[str]
-
-
-# TODO: prob move this into a built elements module, but just trialling this for now
-class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter"):
-    name: Optional[str] = None
-    value: Any = None
-    applicationUnitType: Optional[str] = None  # eg UnitType UT_Length
-    applicationUnit: Optional[str] = None  # DisplayUnitType eg DUT_MILLIMITERS
-    applicationInternalName: Optional[
-        str
-    ] = None  # BuiltInParameterName or GUID for shared parameter
-    isShared: bool = False
-    isReadOnly: bool = False
-    isTypeParameter: bool = False
-
-
 class Collection(
-    Base, speckle_type="Speckle.Core.Models.Collection", detachable={"elements"}
+    Base,
+    speckle_type="Speckle.Core.Models.Collections.Collection",
+    detachable={"elements"},
 ):
     name: Optional[str] = None
-    collectionType: Optional[str] = None
     elements: Optional[List[Base]] = None
