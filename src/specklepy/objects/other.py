@@ -37,6 +37,18 @@ class RenderMaterial(Base, speckle_type=OTHER + "RenderMaterial"):
     emissive: int = -16777216  # black arbg
 
 
+class RenderMaterialProxy(
+    Base,
+    speckle_type="Speckle.Core.Models.Proxies.RenderMaterialProxy",
+):
+    """
+    Used to store render material to object relationships in root collections.
+    """
+
+    objects: list[str]
+    value: RenderMaterial
+
+
 class Transform(
     Base,
     speckle_type=OTHER + "Transform",
