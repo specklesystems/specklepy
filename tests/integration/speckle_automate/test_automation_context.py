@@ -1,4 +1,5 @@
 """Run integration tests with a speckle server."""
+
 import os
 from pathlib import Path
 from typing import Dict

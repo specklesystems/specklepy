@@ -108,9 +108,9 @@ class ProjectResource(ResourceBase):
             "projectId": project_id,
             "modelsLimit": models_limit,
             "modelsCursor": models_cursor,
-            "modelsFilter": models_filter.model_dump(warnings="error")
-            if models_filter
-            else None,
+            "modelsFilter": (
+                models_filter.model_dump(warnings="error") if models_filter else None
+            ),
         }
 
         return self.make_request_and_parse_response(
