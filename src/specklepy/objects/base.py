@@ -330,13 +330,13 @@ class Base(_RegisteringBase, speckle_type="Base"):
 
     def __init__(
         self,
-        id: Union[str, None] = None,
-        totalChildrenCount: Union[int, None] = None,
-        applicationId: Union[str, None] = None,
+        id: str | None = None,
+        # totalChildrenCount: Union[int, None] = None,
+        applicationId: str | None = None,
         **kwargs,
     ) -> None:
         self.id = id
-        self.totalChildrenCount = totalChildrenCount
+        # self.totalChildrenCount = totalChildrenCount
         self.applicationId = applicationId
         super().__init__()
         for k, v in kwargs.items():
@@ -346,7 +346,7 @@ class Base(_RegisteringBase, speckle_type="Base"):
         return (
             f"{self.__class__.__name__}(id: {self.id}, "
             f"speckle_type: {self.speckle_type}, "
-            f"totalChildrenCount: {self.totalChildrenCount})"
+            # f"totalChildrenCount: {self.totalChildrenCount})"
         )
 
     def __str__(self) -> str:
