@@ -4,11 +4,9 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
-
     {
       "name": "Python: Current File",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "${file}",
       "console": "integratedTerminal",
@@ -16,10 +14,10 @@
     },
     {
       "name": "Pytest",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
-      "program": "pytest",
-      "args": [],
+      "module": "pytest",
+      "args": ["tests/unit/test_base.py"],
       "console": "integratedTerminal",
       "justMyCode": true
     }

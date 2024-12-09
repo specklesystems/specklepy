@@ -11,9 +11,6 @@ files = [
     {file = "annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89"},
 ]
 
-[package.dependencies]
-typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.9\""}
-
 [[package]]
 name = "anyio"
 version = "4.5.2"
@@ -77,8 +74,8 @@ files = [
 lazy-object-proxy = ">=1.4.0"
 typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.11\""}
 wrapt = [
-    {version = ">=1.14,<2", markers = "python_version >= \"3.11\""},
     {version = ">=1.11,<2", markers = "python_version < \"3.11\""},
+    {version = ">=1.14,<2", markers = "python_version >= \"3.11\""},
 ]
 
 [[package]]
@@ -497,9 +494,6 @@ files = [
     {file = "graphql_core-3.2.5-py3-none-any.whl", hash = "sha256:2f150d5096448aa4f8ab26268567bbfeef823769893b39c1a2e1409590939c8a"},
     {file = "graphql_core-3.2.5.tar.gz", hash = "sha256:e671b90ed653c808715645e3998b7ab67d382d55467b7e2978549111bbabf8d5"},
 ]
-
-[package.dependencies]
-typing-extensions = {version = ">=4,<5", markers = "python_version < \"3.10\""}
 
 [[package]]
 name = "h11"
@@ -1129,8 +1123,8 @@ files = [
 annotated-types = ">=0.6.0"
 pydantic-core = "2.23.4"
 typing-extensions = [
-    {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
     {version = ">=4.6.1", markers = "python_version < \"3.13\""},
+    {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
 ]
 
 [package.extras]
@@ -1240,13 +1234,13 @@ typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
 name = "pydantic-settings"
-version = "2.6.0"
+version = "2.6.1"
 description = "Settings management using Pydantic"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pydantic_settings-2.6.0-py3-none-any.whl", hash = "sha256:4a819166f119b74d7f8c765196b165f95cc7487ce58ea27dec8a5a26be0970e0"},
-    {file = "pydantic_settings-2.6.0.tar.gz", hash = "sha256:44a1804abffac9e6a30372bb45f6cafab945ef5af25e66b1c634c01dd39e0188"},
+    {file = "pydantic_settings-2.6.1-py3-none-any.whl", hash = "sha256:7fb0637c786a558d3103436278a7c4f1cfd29ba8973238a50c5bb9a55387da87"},
+    {file = "pydantic_settings-2.6.1.tar.gz", hash = "sha256:e0f92546d8a9923cb8941689abf85d6601a8c19a23e97a34b2964a2e3f813ca0"},
 ]
 
 [package.dependencies]
@@ -1273,15 +1267,14 @@ files = [
 astroid = ">=2.15.8,<=2.17.0-dev0"
 colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = [
-    {version = ">=0.3.6", markers = "python_version >= \"3.11\""},
     {version = ">=0.2", markers = "python_version < \"3.11\""},
+    {version = ">=0.3.6", markers = "python_version >= \"3.11\""},
 ]
 isort = ">=4.2.5,<6"
 mccabe = ">=0.6,<0.8"
 platformdirs = ">=2.2.0"
 tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 tomlkit = ">=0.10.1"
-typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 spelling = ["pyenchant (>=3.2,<4.0)"]
@@ -2036,5 +2029,5 @@ propcache = ">=0.2.0"
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.8.0, <4.0"
-content-hash = "4c914ee1a14f24b46dfdd0718e340a021c50f88a4628cec91f62cafddb2240d5"
+python-versions = ">=3.10.0, <4.0"
+content-hash = "c3bd87b222a4b36245199bb1faccdbb111df603347df09840d15e7ae54774b6f"

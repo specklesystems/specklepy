@@ -16,7 +16,9 @@ CHUNKABLE_PROPS = {
 DETACHABLE = {"detach_this", "origin", "detached_list"}
 
 
-class FakeGeo(Base, chunkable={"dots": 50}, detachable={"pointslist"}):
+class FakeGeo(
+    Base, speckle_type="FakeGeo", chunkable={"dots": 50}, detachable={"pointslist"}
+):
     pointslist: Optional[List[Base]] = None
     dots: Optional[List[int]] = None
 
@@ -28,7 +30,9 @@ class FakeDirection(Enum):
     WEST = 4
 
 
-class FakeMesh(FakeGeo, chunkable=CHUNKABLE_PROPS, detachable=DETACHABLE):
+class FakeMesh(
+    FakeGeo, speckle_type="FakeMesh", chunkable=CHUNKABLE_PROPS, detachable=DETACHABLE
+):
     vertices: Optional[List[float]] = None
     faces: Optional[List[int]] = None
     colors: Optional[List[int]] = None
