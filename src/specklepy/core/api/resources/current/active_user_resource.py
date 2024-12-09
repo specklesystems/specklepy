@@ -100,12 +100,10 @@ class ActiveUserResource(ResourceBase):
         company: Optional[str] = None,
         bio: Optional[str] = None,
         avatar: Optional[str] = None,
-    ) -> User:
-        ...
+    ) -> User: ...
 
     @overload
-    def update(self, *, input: UserUpdateInput) -> User:
-        ...
+    def update(self, *, input: UserUpdateInput) -> User: ...
 
     def update(
         self,

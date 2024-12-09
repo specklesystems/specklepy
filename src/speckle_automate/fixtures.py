@@ -1,4 +1,5 @@
 """Some useful helpers for working with automation data."""
+
 import secrets
 import string
 

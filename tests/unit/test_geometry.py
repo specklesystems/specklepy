@@ -72,7 +72,7 @@ def line(point, interval):
         start=point,
         end=point,
         domain=interval,
-        units="none"
+        units="none",
         # These attributes are not handled in C#
         # bbox=None,
         # length=None

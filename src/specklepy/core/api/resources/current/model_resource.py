@@ -127,9 +127,11 @@ class ModelResource(ResourceBase):
             "modelId": model_id,
             "versionsLimit": versions_limit,
             "versionsCursor": versions_cursor,
-            "versionsFilter": versions_filter.model_dump(warnings="error")
-            if versions_filter
-            else None,
+            "versionsFilter": (
+                versions_filter.model_dump(warnings="error")
+                if versions_filter
+                else None
+            ),
         }
 
         return self.make_request_and_parse_response(
@@ -179,9 +181,9 @@ class ModelResource(ResourceBase):
             "projectId": project_id,
             "modelsLimit": models_limit,
             "modelsCursor": models_cursor,
-            "modelsFilter": models_filter.model_dump(warnings="error")
-            if models_filter
-            else None,
+            "modelsFilter": (
+                models_filter.model_dump(warnings="error") if models_filter else None
+            ),
         }
 
         return self.make_request_and_parse_response(

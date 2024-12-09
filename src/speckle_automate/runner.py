@@ -61,15 +61,13 @@ def _parse_input_data(
 def execute_automate_function(
     automate_function: AutomateFunction[T],
     input_schema: type[T],
-) -> None:
-    ...
+) -> None: ...
 
 
 @overload
 def execute_automate_function(
     automate_function: AutomateFunctionWithoutInputs,
-) -> None:
-    ...
+) -> None: ...
 
 
 class AutomateGenerateJsonSchema(GenerateJsonSchema):
@@ -146,16 +144,14 @@ def run_function(
     automation_context: AutomationContext,
     automate_function: AutomateFunction[T],
     inputs: T,
-) -> AutomationContext:
-    ...
+) -> AutomationContext: ...
 
 
 @overload
 def run_function(
     automation_context: AutomationContext,
     automate_function: AutomateFunctionWithoutInputs,
-) -> AutomationContext:
-    ...
+) -> AutomationContext: ...
 
 
 def run_function(
