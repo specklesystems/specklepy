@@ -1,7 +1,7 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.inputs.model_inputs import CreateModelInput
+from specklepy.core.api.inputs.model_inputs import CreateModelInput, ModelVersionsFilter
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.inputs.version_inputs import (
     DeleteVersionsInput,
@@ -76,6 +76,26 @@ class TestVersionResource:
         assert result.totalCount == 1
         assert result.items[0].id == test_version.id
 
+    def test_versions_get_with_filter(
+        self,
+        client: SpeckleClient,
+        test_model_1: Model,
+        test_project: Project,
+        test_version: Version,
+    ):
+        filter = ModelVersionsFilter(
+            priorityIds=[test_version.id], priorityIdsOnly=True
+        )
+
+        result = client.version.get_versions(
+            test_model_1.id, test_project.id, filter=filter
+        )
+
+        assert isinstance(result, ResourceCollection)
+        assert len(result.items) == 1
+        assert result.totalCount == 1
+        assert result.items[0].id == test_version.id
+
     def test_version_received(
         self, client: SpeckleClient, test_version: Version, test_project: Project
     ):
@@ -101,6 +121,27 @@ class TestVersionResource:
         assert result.id == test_model_1.id
         assert len(result.versions.items) == 1
         assert result.versions.totalCount == 1
+        assert result.versions.items[0].id == test_version.id
+
+    def test_model_get_with_versions_with_filter(
+        self,
+        client: SpeckleClient,
+        test_model_1: Model,
+        test_project: Project,
+        test_version: Version,
+    ):
+        filter = ModelVersionsFilter(
+            priorityIds=[test_version.id], priorityIdsOnly=True
+        )
+
+        result = client.model.get_with_versions(
+            test_model_1.id, test_project.id, versions_filter=filter
+        )
+
+        assert isinstance(result, ModelWithVersions)
+        assert len(result.versions.items) == 1
+        assert result.versions.totalCount == 1
+        assert isinstance(result.versions, ResourceCollection)
         assert result.versions.items[0].id == test_version.id
 
     def test_version_update(

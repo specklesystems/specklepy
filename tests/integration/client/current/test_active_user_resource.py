@@ -2,7 +2,7 @@ import pytest
 
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.inputs.user_inputs import UserUpdateInput
+from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
 from specklepy.core.api.models import ResourceCollection, User
 
 
@@ -42,3 +42,21 @@ class TestActiveUserResource:
         assert len(res.items) == len(existing.items) + 2
         assert any(project.id == p1.id for project in res.items)
         assert any(project.id == p2.id for project in res.items)
+
+    def test_active_user_get_projects_with_filter(self, client: SpeckleClient):
+        # Since the client may be reused for other tests,
+        # this test does rely on no other test creating a project with "Search for me" in its name
+        p1 = client.project.create(
+            ProjectCreateInput(name="Search for me!", description=None, visibility=None)
+        )
+        _ = client.project.create(
+            ProjectCreateInput(name="But not me!", description=None, visibility=None)
+        )
+        filter = UserProjectsFilter(search="Search for me")
+
+        res = client.active_user.get_projects(filter=filter)
+
+        assert isinstance(res, ResourceCollection)
+        assert len(res.items) == 1
+        assert res.totalCount == 1
+        assert res.items[0].id == p1.id

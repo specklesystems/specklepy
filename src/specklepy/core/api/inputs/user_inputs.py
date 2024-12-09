@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Sequence
 
 from pydantic import BaseModel
 
@@ -8,3 +8,8 @@ class UserUpdateInput(BaseModel):
     bio: Optional[str] = None
     company: Optional[str] = None
     name: Optional[str] = None
+
+
+class UserProjectsFilter(BaseModel):
+    search: str
+    onlyWithRoles: Optional[Sequence[str]] = None
