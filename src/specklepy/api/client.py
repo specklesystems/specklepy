@@ -9,10 +9,10 @@ from specklepy.api.resources import (
     ProjectResource,
     SubscriptionResource,
     VersionResource,
+    ServerResource,
     branch,
     commit,
     object,
-    server,
     stream,
     subscriptions,
     user,
@@ -69,7 +69,7 @@ class SpeckleClient(CoreSpeckleClient):
         self.account = Account()
 
     def _init_resources(self) -> None:
-        self.server = server.Resource(
+        self.server = ServerResource(
             account=self.account, basepath=self.url, client=self.httpclient
         )
 

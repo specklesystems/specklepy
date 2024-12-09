@@ -6,7 +6,10 @@ from specklepy.core.api.inputs.model_inputs import (
     DeleteModelInput,
     UpdateModelInput,
 )
-from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
+from specklepy.core.api.inputs.project_inputs import (
+    ProjectCreateInput,
+    ProjectModelsFilter,
+)
 from specklepy.core.api.models.current import (
     Model,
     Project,
@@ -65,6 +68,18 @@ class TestModelResource:
         assert result.createdAt == test_model.createdAt
         assert result.updatedAt == test_model.updatedAt
 
+    def test_models_get_with_filter(
+        self, client: SpeckleClient, test_model: Model, test_project: Project
+    ):
+        filter = ProjectModelsFilter(search=test_model.name)
+
+        result = client.model.get_models(test_project.id, models_filter=filter)
+
+        assert isinstance(result, ResourceCollection)
+        assert len(result.items) == 1
+        assert result.totalCount == 1
+        assert result.items[0].id == test_model.id
+
     def test_get_models(
         self, client: SpeckleClient, test_project: Project, test_model: Model
     ):
@@ -82,6 +97,20 @@ class TestModelResource:
 
         assert isinstance(result, ProjectWithModels)
         assert result.id == test_project.id
+        assert isinstance(result.models, ResourceCollection)
+        assert len(result.models.items) == 1
+        assert result.models.totalCount == 1
+        assert result.models.items[0].id == test_model.id
+
+    def test_project_get_models_with_filter(
+        self, client: SpeckleClient, test_project: Project, test_model: Model
+    ):
+        filter = ProjectModelsFilter(search=test_model.name)
+        result = client.project.get_with_models(test_project.id, models_filter=filter)
+
+        assert isinstance(result, ProjectWithModels)
+        assert result.id == test_project.id
+        assert isinstance(result.models, ResourceCollection)
         assert len(result.models.items) == 1
         assert result.models.totalCount == 1
         assert result.models.items[0].id == test_model.id
