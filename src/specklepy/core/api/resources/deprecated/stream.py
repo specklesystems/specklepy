@@ -111,7 +111,7 @@ class Resource(ResourceBase):
         query = gql(
             """
             query User($stream_limit: Int!) {
-                user {
+                activeUser {
                     id
                     bio
                     name
