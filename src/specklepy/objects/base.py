@@ -116,7 +116,7 @@ class _RegisteringBase:
     @classmethod
     def _determine_speckle_type(cls) -> str:
         """
-        This method brings the speckle_type construction in par with peckle-sharp/Core.
+        This method brings the speckle_type construction in par with Speckle-sharp/Core.
 
         The implementation differs, because in Core the basis of the speckle_type if
         type.FullName, which includes the dotnet namespace name too.
@@ -168,8 +168,11 @@ class _RegisteringBase:
         initialization. This is reused to register each subclassing type into a class
         level dictionary.
         """
+        # if not speckle_type:
+        #     raise Exception("no type")
         cls._speckle_type_override = speckle_type
         cls.speckle_type = cls._determine_speckle_type()
+        # cls.speckle_type = speckle_type
         if cls._full_name() in cls._type_registry:
             raise ValueError(
                 f"The speckle_type: {speckle_type} is already registered for type: "
@@ -319,13 +322,22 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
     return False, value
 
 
-class Base(_RegisteringBase):
-    id: Union[str, None] = None
-    totalChildrenCount: Union[int, None] = None
-    applicationId: Union[str, None] = None
+class Base(_RegisteringBase, speckle_type="Base"):
+    # id: Union[str, None] = None
+    # totalChildrenCount: Union[int, None] = None
+    # applicationId: Union[str, None] = None
     _units: Union[None, str] = None
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(
+        self,
+        id: str | None = None,
+        # totalChildrenCount: Union[int, None] = None,
+        applicationId: str | None = None,
+        **kwargs,
+    ) -> None:
+        self.id = id
+        # self.totalChildrenCount = totalChildrenCount
+        self.applicationId = applicationId
         super().__init__()
         for k, v in kwargs.items():
             self.__setattr__(k, v)
@@ -334,7 +346,7 @@ class Base(_RegisteringBase):
         return (
             f"{self.__class__.__name__}(id: {self.id}, "
             f"speckle_type: {self.speckle_type}, "
-            f"totalChildrenCount: {self.totalChildrenCount})"
+            # f"totalChildrenCount: {self.totalChildrenCount})"
         )
 
     def __str__(self) -> str:

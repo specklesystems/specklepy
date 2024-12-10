@@ -15,7 +15,7 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = ">=3.8.0, <4.0"
+python = ">=3.10.0, <4.0"
 pydantic = "^2.5"
 appdirs = "^1.4.4"
 gql = { extras = ["requests", "websockets"], version = "^3.3.0" }
@@ -24,6 +24,7 @@ Deprecated = "^1.2.13"
 stringcase = "^1.2.0"
 attrs = "^23.1.0"
 httpx = "^0.25.0"
+pydantic-settings = "^2.6.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "23.11.0"
