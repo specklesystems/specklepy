@@ -1,17 +1,19 @@
-# public interface ISpeckleObject
-# {
-#   public string? id { get; }
-
-#   public string? applicationId { get; }
-
-#   public string speckle_type { get; }
-# }
+from abc import ABCMeta, abstractmethod
 
 
-from abc import ABCMeta
+class ISpeckleObject(speckle_type="ISpeckleObjects", metaclass=ABCMeta):
 
-from specklepy.objects.base import Base
+    @property
+    @abstractmethod
+    def id(self) -> str | None:
+        pass
 
+    @property
+    @abstractmethod
+    def application_id(self) -> str | None:
+        pass
 
-class ISpeckleObject(Base, speckle_type="ISpeckleObjects", metaclass=ABCMeta):
-    pass
+    @property
+    @abstractmethod
+    def speckle_type(self) -> str:
+        pass
