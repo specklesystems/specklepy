@@ -149,7 +149,7 @@ class Resource(ResourceBase):
         params = {"stream_limit": stream_limit}
 
         return self.make_request(
-            query=query, params=params, return_type=["user", "streams", "items"]
+            query=query, params=params, return_type=["activeUser", "streams", "items"]
         )
 
     @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
