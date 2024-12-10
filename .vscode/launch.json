@@ -17,7 +17,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "pytest",
-      "args": ["tests/unit/test_base.py"],
+      "args": [],
       "console": "integratedTerminal",
       "justMyCode": true
     }
