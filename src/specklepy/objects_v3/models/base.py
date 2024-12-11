@@ -65,7 +65,6 @@ REMOVE_FROM_DIR = {
     "_handle_object_count",
     "_type_check",
     "_type_registry",
-    "_units",
     "add_chunkable_attrs",
     "add_detachable_attrs",
     "get_children_count",
@@ -329,7 +328,7 @@ class Base(_RegisteringBase, speckle_type="Base"):
     # id: Union[str, None] = None
     # totalChildrenCount: Union[int, None] = None
     # applicationId: Union[str, None] = None
-    _units: Union[None, str] = None
+    # _units: Union[None, str] = None
 
     def __init__(
         self,
@@ -479,21 +478,21 @@ class Base(_RegisteringBase, speckle_type="Base"):
         """
         self._detachable = self._detachable.union(names)
 
-    @property
-    def units(self) -> Union[str, None]:
-        return self._units
+    # @property
+    # def units(self) -> Union[str, None]:
+    #     return self._units
 
-    @units.setter
-    def units(self, value: Union[str, Units, None]):
-        """While this property accepts any string value, geometry expects units to be specific strings (see Units enum)"""
-        if isinstance(value, str) or value is None:
-            self._units = value
-        elif isinstance(value, Units):
-            self._units = value.value
-        else:
-            raise SpeckleInvalidUnitException(
-                f"Unknown type {type(value)} received for units"
-            )
+    # @units.setter
+    # def units(self, value: Union[str, Units, None]):
+    #     """While this property accepts any string value, geometry expects units to be specific strings (see Units enum)"""
+    #     if isinstance(value, str) or value is None:
+    #         self._units = value
+    #     elif isinstance(value, Units):
+    #         self._units = value.value
+    #     else:
+    #         raise SpeckleInvalidUnitException(
+    #             f"Unknown type {type(value)} received for units"
+    #         )
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""

@@ -1,19 +1,23 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from specklepy.objects_v3.models.base import Base
 from specklepy.objects_v3.primitive import Interval
-from specklepy.objects_v3.interfaces import ICurve
+from specklepy.objects_v3.models.units import Units
+from specklepy.objects_v3.interfaces import ICurve, IHasUnits
 
 
 @dataclass(kw_only=True)
-class Point(Base, speckle_type="Objects.Geometry.Point"):
+class Point(Base, IHasUnits, speckle_type="Objects.Geometry.Point"):
     """
     a 3-dimensional point
     """
-    x: float
-    y: float
-    z: float
-    units: str
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
     applicationId: str | None = None
+    units: str | Units | None = None
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, units: {self.units})"
 
     def to_list(self) -> list[float]:
         return [self.x, self.y, self.z]
@@ -37,15 +41,15 @@ class Point(Base, speckle_type="Objects.Geometry.Point"):
 
 
 @dataclass(kw_only=True)
-class Line(Base, ICurve, speckle_type="Objects.Geometry.Line"):
+class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
     """
     a line defined by two points in 3D space
     """
     start: Point
     end: Point
-    units: str
-    domain: Interval = Interval.unit_interval()
+    domain: Interval = field(default_factory=Interval.unit_interval)
     applicationId: str | None = None
+    units: str | Units | None = None
 
     @property
     def length(self) -> float:
@@ -53,6 +57,10 @@ class Line(Base, ICurve, speckle_type="Objects.Geometry.Line"):
         calculate the length of the line using Point's distance_to method
         """
         return self.start.distance_to(self.end)
+
+    @property
+    def _domain(self) -> Interval:
+        return self.domain
 
     def to_list(self) -> list[float]:
         result = []
