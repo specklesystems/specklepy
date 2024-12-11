@@ -1,10 +1,9 @@
 from specklepy.core.api.inputs.model_inputs import (
     CreateModelInput,
     DeleteModelInput,
-    UpdateModelInput,
     ModelVersionsFilter,
+    UpdateModelInput,
 )
-
 from specklepy.core.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectInviteCreateInput,
@@ -13,15 +12,13 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectUpdateInput,
     ProjectUpdateRoleInput,
 )
-
 from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
-
 from specklepy.core.api.inputs.version_inputs import (
-    UpdateVersionInput,
-    MoveVersionsInput,
-    DeleteVersionsInput,
     CreateVersionInput,
+    DeleteVersionsInput,
     MarkReceivedVersionInput,
+    MoveVersionsInput,
+    UpdateVersionInput,
 )
 
 __all__ = [
