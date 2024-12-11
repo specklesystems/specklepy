@@ -1,6 +1,7 @@
 """
 Provides uniform and consistent path helpers for `specklepy`
 """
+
 import os
 import sys
 from pathlib import Path

@@ -45,8 +45,3 @@ class ProjectUpdateRoleInput(BaseModel):
     userId: str
     projectId: str
     role: Optional[str]
-
-
-class UserProjectsFilter(BaseModel):
-    search: str
-    onlyWithRole: Optional[Sequence[str]] = None

@@ -3,8 +3,7 @@ from typing import List, Optional, overload
 
 from deprecated import deprecated
 
-from specklepy.core.api.inputs.project_inputs import UserProjectsFilter
-from specklepy.core.api.inputs.user_inputs import UserUpdateInput
+from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
 from specklepy.core.api.models import (
     PendingStreamCollaborator,
     Project,
@@ -44,12 +43,10 @@ class ActiveUserResource(CoreResource):
         company: Optional[str] = None,
         bio: Optional[str] = None,
         avatar: Optional[str] = None,
-    ) -> User:
-        ...
+    ) -> User: ...
 
     @overload
-    def update(self, *, input: UserUpdateInput) -> User:
-        ...
+    def update(self, *, input: UserUpdateInput) -> User: ...
 
     def update(
         self,
