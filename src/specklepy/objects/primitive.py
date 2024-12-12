@@ -1,25 +1,27 @@
-from typing import Any, List
+from dataclasses import dataclass
 
 from specklepy.objects.base import Base
 
-NAMESPACE = "Objects.Primitive"
 
+@dataclass(kw_only=True)
+class Interval(Base, speckle_type="Objects.Primitive.Interval"):
+    start: float = 0.0  # Added default
+    end: float = 0.0  # Added default
 
-class Interval(Base, speckle_type=f"{NAMESPACE}.Interval"):
-    start: float = 0.0
-    end: float = 0.0
+    @property
+    def length(self) -> float:
+        return abs(self.end - self.start)
 
-    def length(self):
-        return abs(self.start - self.end)
+    def __str__(self) -> str:
+        return f"{super().__str__()}[{self.start}, {self.end}]"
 
     @classmethod
-    def from_list(cls, args: List[Any]) -> "Interval":
-        return cls(start=args[0], end=args[1])
+    def unit_interval(cls) -> "Interval":
+        return cls(start=0, end=1)
 
-    def to_list(self) -> List[Any]:
+    def to_list(self) -> list[float]:
         return [self.start, self.end]
 
-
-class Interval2d(Base, speckle_type=f"{NAMESPACE}.Interval2d"):
-    u: Interval
-    v: Interval
+    @classmethod
+    def from_list(cls, args: list[float]) -> "Interval":
+        return cls(start=args[0], end=args[1])
