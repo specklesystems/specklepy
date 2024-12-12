@@ -1,12 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from specklepy.objects_v3.models.base import Base
-from specklepy.objects.primitive import Interval
-from specklepy.objects_v3.models.units import Units
-from specklepy.logging.exceptions import SpeckleInvalidUnitException
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 
-T = TypeVar('T')  # define type variable for generic type
+from specklepy.logging.exceptions import SpeckleInvalidUnitException
+from specklepy.objects.primitive import Interval
+from specklepy.objects_v3.models.base import Base
+from specklepy.objects_v3.models.units import Units
+
+T = TypeVar("T")  # define type variable for generic type
 
 
 # generic interfaces
@@ -49,7 +50,7 @@ class IHasUnits(metaclass=ABCMeta):
     @units.setter
     def units(self, value: str | Units):
         """
-        While this property accepts any string value, geometry expects units 
+        While this property accepts any string value, geometry expects units
         to be specific strings (see Units enum)
         """
         if isinstance(value, str):

@@ -1,4 +1,5 @@
 import contextlib
+from dataclasses import dataclass, field
 from enum import Enum
 from inspect import isclass
 from typing import (
@@ -18,8 +19,7 @@ from warnings import warn
 
 from stringcase import pascalcase
 
-from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects_v3.models.units import Units
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)
@@ -174,8 +174,7 @@ class _RegisteringBase:
         # cls.speckle_type = speckle_type
         if cls._full_name() in cls._type_registry:
             raise ValueError(
-                f"The speckle_type: {
-                    speckle_type} is already registered for type: "
+                f"The speckle_type: {speckle_type} is already registered for type: "
                 f"{cls._type_registry[cls._full_name()].__name__}. "
                 "Please choose a different type name."
             )
@@ -185,14 +184,12 @@ class _RegisteringBase:
         except Exception:
             cls._attr_types = getattr(cls, "__annotations__", {})
         if chunkable:
-            chunkable = {k: v for k, v in chunkable.items()
-                         if isinstance(v, int)}
+            chunkable = {k: v for k, v in chunkable.items() if isinstance(v, int)}
             cls._chunkable = dict(cls._chunkable, **chunkable)
         if detachable:
             cls._detachable = cls._detachable.union(detachable)
         if serialize_ignore:
-            cls._serialize_ignore = cls._serialize_ignore.union(
-                serialize_ignore)
+            cls._serialize_ignore = cls._serialize_ignore.union(serialize_ignore)
         # we know, that the super here is object, that takes no args on init subclass
         return super().__init_subclass__()
 
@@ -324,25 +321,11 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
     return False, value
 
 
+@dataclass(kw_only=True)
 class Base(_RegisteringBase, speckle_type="Base"):
-    # id: Union[str, None] = None
+    id: Union[str, None] = None
     # totalChildrenCount: Union[int, None] = None
     applicationId: Union[str, None] = None
-    # _units: Union[None, str] = None
-
-    def __init__(
-        self,
-        id: str | None = None,
-        # totalChildrenCount: Union[int, None] = None,
-        applicationId: str | None = None,
-        **kwargs,
-    ) -> None:
-        self.id = id
-        # self.totalChildrenCount = totalChildrenCount
-        self.applicationId = applicationId
-        super().__init__()
-        for k, v in kwargs.items():
-            self.__setattr__(k, v)
 
     def __repr__(self) -> str:
         return (
@@ -417,15 +400,13 @@ class Base(_RegisteringBase, speckle_type="Base"):
         try:
             cls._attr_types = get_type_hints(cls)
         except Exception as e:
-            warn(f"Could not update forward refs for class {
-                 cls.__name__}: {e}")
+            warn(f"Could not update forward refs for class {cls.__name__}: {e}")
 
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
         """Validator for dynamic attribute names."""
         if name in {"", "@"}:
-            raise ValueError(
-                "Invalid Name: Base member names cannot be empty strings")
+            raise ValueError("Invalid Name: Base member names cannot be empty strings")
         if name.startswith("@@"):
             raise ValueError(
                 "Invalid Name: Base member names cannot start with more than one '@'",
@@ -584,9 +565,6 @@ class Base(_RegisteringBase, speckle_type="Base"):
 Base.update_forward_refs()
 
 
+@dataclass(kw_only=True)
 class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
-    data: Union[List[Any], None] = None
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.data = []
+    data: List[Any] = field(default_factory=list)
