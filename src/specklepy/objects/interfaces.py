@@ -3,9 +3,9 @@ from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
 from specklepy.logging.exceptions import SpeckleInvalidUnitException
+from specklepy.objects.base import Base
+from specklepy.objects.models.units import Units
 from specklepy.objects.primitive import Interval
-from specklepy.objects_v3.models.base import Base
-from specklepy.objects_v3.models.units import Units
 
 T = TypeVar("T")  # define type variable for generic type
 

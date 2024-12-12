@@ -1,4 +1,5 @@
 import contextlib
+from dataclasses import dataclass, field
 from enum import Enum
 from inspect import isclass
 from typing import (
@@ -18,8 +19,7 @@ from warnings import warn
 
 from stringcase import pascalcase
 
-from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects.units import Units
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)
@@ -65,7 +65,6 @@ REMOVE_FROM_DIR = {
     "_handle_object_count",
     "_type_check",
     "_type_registry",
-    "_units",
     "add_chunkable_attrs",
     "add_detachable_attrs",
     "get_children_count",
@@ -322,25 +321,11 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
     return False, value
 
 
+@dataclass(kw_only=True)
 class Base(_RegisteringBase, speckle_type="Base"):
-    # id: Union[str, None] = None
+    id: Union[str, None] = None
     # totalChildrenCount: Union[int, None] = None
-    # applicationId: Union[str, None] = None
-    _units: Union[None, str] = None
-
-    def __init__(
-        self,
-        id: str | None = None,
-        # totalChildrenCount: Union[int, None] = None,
-        applicationId: str | None = None,
-        **kwargs,
-    ) -> None:
-        self.id = id
-        # self.totalChildrenCount = totalChildrenCount
-        self.applicationId = applicationId
-        super().__init__()
-        for k, v in kwargs.items():
-            self.__setattr__(k, v)
+    applicationId: Union[str, None] = None
 
     def __repr__(self) -> str:
         return (
@@ -474,21 +459,21 @@ class Base(_RegisteringBase, speckle_type="Base"):
         """
         self._detachable = self._detachable.union(names)
 
-    @property
-    def units(self) -> Union[str, None]:
-        return self._units
+    # @property
+    # def units(self) -> Union[str, None]:
+    #     return self._units
 
-    @units.setter
-    def units(self, value: Union[str, Units, None]):
-        """While this property accepts any string value, geometry expects units to be specific strings (see Units enum)"""
-        if isinstance(value, str) or value is None:
-            self._units = value
-        elif isinstance(value, Units):
-            self._units = value.value
-        else:
-            raise SpeckleInvalidUnitException(
-                f"Unknown type {type(value)} received for units"
-            )
+    # @units.setter
+    # def units(self, value: Union[str, Units, None]):
+    #     """While this property accepts any string value, geometry expects units to be specific strings (see Units enum)"""
+    #     if isinstance(value, str) or value is None:
+    #         self._units = value
+    #     elif isinstance(value, Units):
+    #         self._units = value.value
+    #     else:
+    #         raise SpeckleInvalidUnitException(
+    #             f"Unknown type {type(value)} received for units"
+    #         )
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
@@ -580,9 +565,6 @@ class Base(_RegisteringBase, speckle_type="Base"):
 Base.update_forward_refs()
 
 
+@dataclass(kw_only=True)
 class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
-    data: Union[List[Any], None] = None
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.data = []
+    data: List[Any] = field(default_factory=list)

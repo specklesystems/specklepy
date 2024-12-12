@@ -1,9 +1,9 @@
 from devtools import debug
 
 from specklepy.api.operations import deserialize, serialize
-from specklepy.objects_v3.geometry import Line, Point
-from specklepy.objects_v3.models.units import Units
-from specklepy.objects_v3.primitive import Interval
+from specklepy.objects.geometry import Line, Point
+from specklepy.objects.models.units import Units
+from specklepy.objects.primitive import Interval
 
 # test points
 p1 = Point(x=1.0, y=2.0, z=3.0, units=Units.m)
