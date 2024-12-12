@@ -7,6 +7,11 @@ from specklepy.objects.base import Base
 
 
 class ITraversalRule(Protocol):
+
+    @property
+    def should_return(self) -> bool:
+        pass
+
     def get_members_to_traverse(self, o: Base) -> Set[str]:
         """Get the members to traverse."""
         pass
@@ -50,10 +55,13 @@ class GraphTraversal:
 
         while len(stack) > 0:
             head = stack.pop()
-            yield head
 
             current = head.current
             active_rule = self._get_active_rule_or_default_rule(current)
+
+            if active_rule.should_return:
+                yield head
+
             members_to_traverse = active_rule.get_members_to_traverse(current)
             for child_prop in members_to_traverse:
                 try:
@@ -114,6 +122,11 @@ class GraphTraversal:
 class TraversalRule:
     _conditions: Collection[Callable[[Base], bool]]
     _members_to_traverse: Callable[[Base], Iterable[str]]
+    _should_return_to_output: bool = True
+
+    @property
+    def should_return(self) -> bool:
+        return self._should_return_to_output
 
     def get_members_to_traverse(self, o: Base) -> Set[str]:
         return set(self._members_to_traverse(o))
