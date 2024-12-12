@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from specklepy.objects_v3.models.base import Base
 from specklepy.objects.primitive import Interval
 from specklepy.objects_v3.models.units import Units
@@ -34,23 +34,25 @@ class IDisplayValue(Generic[T], metaclass=ABCMeta):
         pass
 
 
+@dataclass(kw_only=True)
 class IHasUnits(metaclass=ABCMeta):
     """Interface for objects that have units."""
 
-    _units: str | None = None
+    units: str | Units
+    _units: str = field(repr=False, init=False)
 
     @property
-    def units(self) -> str | None:
+    def units(self) -> str:
         """Get the units of the object"""
         return self._units
 
     @units.setter
-    def units(self, value: str | Units | None):
+    def units(self, value: str | Units):
         """
         While this property accepts any string value, geometry expects units 
         to be specific strings (see Units enum)
         """
-        if isinstance(value, str) or value is None:
+        if isinstance(value, str):
             self._units = value
         elif isinstance(value, Units):
             self._units = value.value

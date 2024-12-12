@@ -327,7 +327,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
 class Base(_RegisteringBase, speckle_type="Base"):
     # id: Union[str, None] = None
     # totalChildrenCount: Union[int, None] = None
-    # applicationId: Union[str, None] = None
+    applicationId: Union[str, None] = None
     # _units: Union[None, str] = None
 
     def __init__(

@@ -3,6 +3,7 @@ from specklepy.objects_v3.models.base import Base
 from specklepy.objects_v3.primitive import Interval
 from specklepy.objects_v3.models.units import Units
 from specklepy.objects_v3.interfaces import ICurve, IHasUnits
+from typing import List
 
 
 @dataclass(kw_only=True)
@@ -10,24 +11,22 @@ class Point(Base, IHasUnits, speckle_type="Objects.Geometry.Point"):
     """
     a 3-dimensional point
     """
-    x: float = 0.0
-    y: float = 0.0
-    z: float = 0.0
-    applicationId: str | None = None
-    units: str | Units | None = None
+    x: float
+    y: float
+    z: float
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, units: {self.units})"
 
-    def to_list(self) -> list[float]:
+    def to_list(self) -> List[float]:
         return [self.x, self.y, self.z]
 
     @classmethod
-    def from_list(cls, *, coords: list[float], units: str) -> 'Point':
+    def from_list(cls, coords: List[float], units: str | Units) -> 'Point':
         return cls(x=coords[0], y=coords[1], z=coords[2], units=units)
 
     @classmethod
-    def from_coords(cls, *, x: float, y: float, z: float, units: str) -> 'Point':
+    def from_coords(cls, x: float, y: float, z: float, units: str | Units) -> 'Point':
         return cls(x=x, y=y, z=z, units=units)
 
     def distance_to(self, other: 'Point') -> float:
@@ -48,8 +47,6 @@ class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
     start: Point
     end: Point
     domain: Interval = field(default_factory=Interval.unit_interval)
-    applicationId: str | None = None
-    units: str | Units | None = None
 
     @property
     def length(self) -> float:
@@ -62,7 +59,7 @@ class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
     def _domain(self) -> Interval:
         return self.domain
 
-    def to_list(self) -> list[float]:
+    def to_list(self) -> List[float]:
         result = []
         result.extend(self.start.to_list())
         result.extend(self.end.to_list())
@@ -70,7 +67,7 @@ class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
         return result
 
     @classmethod
-    def from_list(cls, *, coords: list[float], units: str) -> 'Line':
+    def from_list(cls, coords: List[float], units: str) -> 'Line':
         if len(coords) < 6:
             raise ValueError(
                 "Line from coordinate array requires 6 coordinates.")
@@ -83,7 +80,6 @@ class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
     @classmethod
     def from_coords(
         cls,
-        *,
         start_x: float,
         start_y: float,
         start_z: float,
