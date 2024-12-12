@@ -295,9 +295,9 @@ class RevitParameter(Base, speckle_type="Objects.BuiltElements.Revit.Parameter")
     value: Any = None
     applicationUnitType: Optional[str] = None  # eg UnitType UT_Length
     applicationUnit: Optional[str] = None  # DisplayUnitType eg DUT_MILLIMITERS
-    applicationInternalName: Optional[
-        str
-    ] = None  # BuiltInParameterName or GUID for shared parameter
+    applicationInternalName: Optional[str] = (
+        None  # BuiltInParameterName or GUID for shared parameter
+    )
     isShared: bool = False
     isReadOnly: bool = False
     isTypeParameter: bool = False
