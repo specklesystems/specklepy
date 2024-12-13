@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
-
+from typing import Generic, TypeVar, List
 from specklepy.logging.exceptions import SpeckleInvalidUnitException
 from specklepy.objects.base import Base
 from specklepy.objects.models.units import Units
@@ -37,22 +36,16 @@ class IDisplayValue(Generic[T], metaclass=ABCMeta):
 
 @dataclass(kw_only=True)
 class IHasUnits(metaclass=ABCMeta):
-    """Interface for objects that have units."""
 
     units: str | Units
     _units: str = field(repr=False, init=False)
 
     @property
     def units(self) -> str:
-        """Get the units of the object"""
         return self._units
 
     @units.setter
     def units(self, value: str | Units):
-        """
-        While this property accepts any string value, geometry expects units
-        to be specific strings (see Units enum)
-        """
         if isinstance(value, str):
             self._units = value
         elif isinstance(value, Units):
@@ -63,6 +56,40 @@ class IHasUnits(metaclass=ABCMeta):
             )
 
 
+@dataclass(kw_only=True)
+class IHasArea(metaclass=ABCMeta):
+
+    area: float
+    _area: float = field(init=False, repr=False)
+
+    @property
+    def area(self) -> float:
+        return self._area
+
+    @area.setter
+    def area(self, value: float):
+        if not isinstance(value, (int, float)):
+            raise ValueError(f"Area must be a number, got {type(value)}")
+        self._area = float(value)
+
+
+@dataclass(kw_only=True)
+class IHasVolume(metaclass=ABCMeta):
+
+    volume: float
+    _volume: float = field(init=False, repr=False)
+
+    @property
+    def volume(self) -> float:
+        return self._volume
+
+    @volume.setter
+    def volume(self, value: float):
+        if not isinstance(value, (int, float)):
+            raise ValueError(f"Volume must be a number, got {type(value)}")
+        self._volume = float(value)
+
+
 # data object interfaces
 class IProperties(metaclass=ABCMeta):
     @property
@@ -71,7 +98,7 @@ class IProperties(metaclass=ABCMeta):
         pass
 
 
-class IDataObject(IProperties, IDisplayValue[list[Base]], metaclass=ABCMeta):
+class IDataObject(IProperties, IDisplayValue[List[Base]], metaclass=ABCMeta):
     @property
     @abstractmethod
     def name(self) -> str:
