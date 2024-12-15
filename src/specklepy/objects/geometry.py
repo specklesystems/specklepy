@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Tuple
+
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import ICurve, IHasArea, IHasUnits, IHasVolume
 from specklepy.objects.models.units import Units
@@ -71,8 +72,7 @@ class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
     @classmethod
     def from_list(cls, coords: List[float], units: str) -> "Line":
         if len(coords) < 6:
-            raise ValueError(
-                "Line from coordinate array requires 6 coordinates.")
+            raise ValueError("Line from coordinate array requires 6 coordinates.")
 
         start = Point(x=coords[0], y=coords[1], z=coords[2], units=units)
         end = Point(x=coords[3], y=coords[4], z=coords[5], units=units)
@@ -128,7 +128,8 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
         """
         if len(self.value) % 3 != 0:
             raise ValueError(
-                "Polyline value list is malformed: expected length to be multiple of 3")
+                "Polyline value list is malformed: expected length to be multiple of 3"
+            )
 
         points = []
         for i in range(0, len(self.value), 3):
@@ -137,7 +138,7 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
                     x=self.value[i],
                     y=self.value[i + 1],
                     z=self.value[i + 2],
-                    units=self.units
+                    units=self.units,
                 )
             )
         return points
@@ -167,17 +168,26 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
         return cls(
             closed=(int(coords[2]) == 1),
             domain=Interval(start=coords[3], end=coords[4]),
-            value=coords[6:6 + point_count],
-            units=units
+            value=coords[6 : 6 + point_count],
+            units=units,
         )
 
 
 @dataclass(kw_only=True)
-class Mesh(Base, IHasArea, IHasVolume, IHasUnits,
-           speckle_type="Objects.Geometry.Mesh",
-           detachable={"vertices", "faces", "colors", "textureCoordinates"},
-           chunkable={"vertices": 31250, "faces": 62500, "colors": 62500, "textureCoordinates": 31250}):
-
+class Mesh(
+    Base,
+    IHasArea,
+    IHasVolume,
+    IHasUnits,
+    speckle_type="Objects.Geometry.Mesh",
+    detachable={"vertices", "faces", "colors", "textureCoordinates"},
+    chunkable={
+        "vertices": 31250,
+        "faces": 62500,
+        "colors": 62500,
+        "textureCoordinates": 31250,
+    },
+):
     vertices: List[float] = field(default_factory=list)
     faces: List[int] = field(default_factory=list)
     colors: List[int] = field(default_factory=list)
@@ -192,17 +202,15 @@ class Mesh(Base, IHasArea, IHasVolume, IHasUnits,
         return len(self.textureCoordinates) // 2
 
     def get_point(self, index: int) -> Point:
-
         index *= 3
         return Point(
             x=self.vertices[index],
             y=self.vertices[index + 1],
             z=self.vertices[index + 2],
-            units=self.units
+            units=self.units,
         )
 
     def get_points(self) -> List[Point]:
-
         if len(self.vertices) % 3 != 0:
             raise ValueError(
                 "Mesh vertices list is malformed: expected length to be multiple of 3"
@@ -215,21 +223,16 @@ class Mesh(Base, IHasArea, IHasVolume, IHasUnits,
                     x=self.vertices[i],
                     y=self.vertices[i + 1],
                     z=self.vertices[i + 2],
-                    units=self.units
+                    units=self.units,
                 )
             )
         return points
 
     def get_texture_coordinate(self, index: int) -> Tuple[float, float]:
-
         index *= 2
-        return (
-            self.textureCoordinates[index],
-            self.textureCoordinates[index + 1]
-        )
+        return (self.textureCoordinates[index], self.textureCoordinates[index + 1])
 
     def align_vertices_with_texcoords_by_index(self) -> None:
-
         if not self.textureCoordinates:
             return
 

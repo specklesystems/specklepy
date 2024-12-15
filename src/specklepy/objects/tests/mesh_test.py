@@ -1,7 +1,7 @@
 from devtools import debug
+
 from specklepy.api.operations import deserialize, serialize
 from specklepy.objects.geometry import Mesh
-
 
 # create a speckle cube mesh (but more colorful)
 vertices = [
@@ -64,7 +64,7 @@ cube_mesh = Mesh(
     area=0.0,
     volume=0.0)
 
-print(f"\nMesh Details:")
+print("\nMesh Details:")
 print(f"Number of vertices: {cube_mesh.vertices_count}")
 print(f"Number of texture coordinates: {cube_mesh.texture_coordinates_count}")
 

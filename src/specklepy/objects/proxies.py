@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
+
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IHasUnits
 
@@ -21,7 +22,6 @@ class GroupProxy(
     speckle_type="Models.Proxies.GroupProxy",
     detachable={"objects"},
 ):
-
     objects: List[str] = field(default_factory=list)
     name: str = field(default="Unnamed Group")
 
@@ -32,7 +32,6 @@ class InstanceProxy(
     IHasUnits,
     speckle_type="Models.Proxies.InstanceProxy",
 ):
-
     definition_id: str
     transform: List[float] = field(default_factory=list)
     max_depth: int = 50
@@ -44,7 +43,6 @@ class InstanceDefinitionProxy(
     speckle_type="Models.Proxies.InstanceDefinitionProxy",
     detachable={"objects"},
 ):
-
     objects: List[str] = field(default_factory=list)
     max_depth: int = 50
     name: str = field(default="Unnamed Instance")
