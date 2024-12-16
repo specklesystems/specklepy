@@ -10,9 +10,9 @@ class ColorProxy(
     speckle_type="Models.Proxies.ColorProxy",
     detachable={"objects"},
 ):
-    objects: List[str] = field(default_factory=list)
+    objects: List[str]
     value: int
-    name: Optional[str] = None
+    name: Optional[str]
 
 
 @dataclass(kw_only=True)
@@ -22,8 +22,8 @@ class GroupProxy(
     detachable={"objects"},
 ):
 
-    objects: List[str] = field(default_factory=list)
-    name: str = field(default="Unnamed Group")
+    objects: List[str]
+    name: str
 
 
 @dataclass(kw_only=True)
@@ -34,8 +34,8 @@ class InstanceProxy(
 ):
 
     definition_id: str
-    transform: List[float] = field(default_factory=list)
-    max_depth: int = 50
+    transform: List[float]
+    max_depth: int
 
 
 @dataclass(kw_only=True)
@@ -45,6 +45,6 @@ class InstanceDefinitionProxy(
     detachable={"objects"},
 ):
 
-    objects: List[str] = field(default_factory=list)
-    max_depth: int = 50
-    name: str = field(default="Unnamed Instance")
+    objects: List[str]
+    max_depth: int
+    name: str

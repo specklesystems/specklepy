@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Tuple
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import ICurve, IHasArea, IHasUnits, IHasVolume
-from specklepy.objects.models.units import Units
+from specklepy.objects.models.units import Units, get_encoding_from_units
 from specklepy.objects.primitive import Interval
 
 
@@ -101,7 +101,7 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
     a polyline curve, defined by a set of vertices.
     """
 
-    value: List[float] = field(default_factory=list)
+    value: List[float]
     closed: bool = False
     domain: Interval = field(default_factory=Interval.unit_interval)
 
@@ -155,7 +155,7 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
         result.append(self.domain.end)
         result.append(len(self.value))
         result.extend(self.value)
-        result.append(Units.get_encoding_from_unit(self.units))
+        result.append(get_encoding_from_units(self.units))
         return result
 
     @classmethod
@@ -178,8 +178,8 @@ class Mesh(Base, IHasArea, IHasVolume, IHasUnits,
            detachable={"vertices", "faces", "colors", "textureCoordinates"},
            chunkable={"vertices": 31250, "faces": 62500, "colors": 62500, "textureCoordinates": 31250}):
 
-    vertices: List[float] = field(default_factory=list)
-    faces: List[int] = field(default_factory=list)
+    vertices: List[float]
+    faces: List[int]
     colors: List[int] = field(default_factory=list)
     textureCoordinates: List[float] = field(default_factory=list)
 

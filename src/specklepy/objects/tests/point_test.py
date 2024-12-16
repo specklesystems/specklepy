@@ -1,5 +1,5 @@
 from devtools import debug
-from specklepy.api.operations import deserialize, serialize
+from specklepy.core.api.operations import deserialize, serialize
 from specklepy.objects.geometry import Point
 from specklepy.objects.models.units import Units
 
