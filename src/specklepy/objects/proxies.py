@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
+
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IHasUnits
 

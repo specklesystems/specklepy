@@ -1,8 +1,14 @@
 from dataclasses import dataclass, field
 from typing import List, Tuple
+
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import ICurve, IHasArea, IHasUnits, IHasVolume
-from specklepy.objects.models.units import Units, get_encoding_from_units
+from specklepy.objects.models.units import (
+    Units,
+    get_encoding_from_units,
+    get_scale_factor,
+    get_units_from_string,
+)
 from specklepy.objects.primitive import Interval
 
 
@@ -32,11 +38,28 @@ class Point(Base, IHasUnits, speckle_type="Objects.Geometry.Point"):
 
     def distance_to(self, other: "Point") -> float:
         """
-        calculates the distance between this point and another given point
+        calculates the distance between this point and another given point.
         """
-        dx = other.x - self.x
-        dy = other.y - self.y
-        dz = other.z - self.z
+        if not isinstance(other, Point):
+            raise TypeError(f"Expected Point object, got {type(other)}")
+
+        # if units are the same perform direct calculation
+        if self.units == other.units:
+            dx = other.x - self.x
+            dy = other.y - self.y
+            dz = other.z - self.z
+            return (dx * dx + dy * dy + dz * dz) ** 0.5
+
+        # convert other point's coordinates to this point's units
+        scale_factor = get_scale_factor(
+            get_units_from_string(
+                other.units), get_units_from_string(self.units)
+        )
+
+        dx = (other.x * scale_factor) - self.x
+        dy = (other.y * scale_factor) - self.y
+        dz = (other.z * scale_factor) - self.z
+
         return (dx * dx + dy * dy + dz * dz) ** 0.5
 
 
@@ -69,7 +92,7 @@ class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
         return result
 
     @classmethod
-    def from_list(cls, coords: List[float], units: str) -> "Line":
+    def from_list(cls, coords: List[float], units: str | Units) -> "Line":
         if len(coords) < 6:
             raise ValueError(
                 "Line from coordinate array requires 6 coordinates.")
@@ -128,7 +151,8 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
         """
         if len(self.value) % 3 != 0:
             raise ValueError(
-                "Polyline value list is malformed: expected length to be multiple of 3")
+                "Polyline value list is malformed: expected length to be multiple of 3"
+            )
 
         points = []
         for i in range(0, len(self.value), 3):
@@ -137,7 +161,7 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
                     x=self.value[i],
                     y=self.value[i + 1],
                     z=self.value[i + 2],
-                    units=self.units
+                    units=self.units,
                 )
             )
         return points
@@ -167,16 +191,26 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
         return cls(
             closed=(int(coords[2]) == 1),
             domain=Interval(start=coords[3], end=coords[4]),
-            value=coords[6:6 + point_count],
-            units=units
+            value=coords[6: 6 + point_count],
+            units=units,
         )
 
 
 @dataclass(kw_only=True)
-class Mesh(Base, IHasArea, IHasVolume, IHasUnits,
-           speckle_type="Objects.Geometry.Mesh",
-           detachable={"vertices", "faces", "colors", "textureCoordinates"},
-           chunkable={"vertices": 31250, "faces": 62500, "colors": 62500, "textureCoordinates": 31250}):
+class Mesh(
+    Base,
+    IHasArea,
+    IHasVolume,
+    IHasUnits,
+    speckle_type="Objects.Geometry.Mesh",
+    detachable={"vertices", "faces", "colors", "textureCoordinates"},
+    chunkable={
+        "vertices": 31250,
+        "faces": 62500,
+        "colors": 62500,
+        "textureCoordinates": 31250,
+    },
+):
 
     vertices: List[float]
     faces: List[int]
@@ -198,7 +232,7 @@ class Mesh(Base, IHasArea, IHasVolume, IHasUnits,
             x=self.vertices[index],
             y=self.vertices[index + 1],
             z=self.vertices[index + 2],
-            units=self.units
+            units=self.units,
         )
 
     def get_points(self) -> List[Point]:
@@ -215,7 +249,7 @@ class Mesh(Base, IHasArea, IHasVolume, IHasUnits,
                     x=self.vertices[i],
                     y=self.vertices[i + 1],
                     z=self.vertices[i + 2],
-                    units=self.units
+                    units=self.units,
                 )
             )
         return points
@@ -223,10 +257,7 @@ class Mesh(Base, IHasArea, IHasVolume, IHasUnits,
     def get_texture_coordinate(self, index: int) -> Tuple[float, float]:
 
         index *= 2
-        return (
-            self.textureCoordinates[index],
-            self.textureCoordinates[index + 1]
-        )
+        return (self.textureCoordinates[index], self.textureCoordinates[index + 1])
 
     def align_vertices_with_texcoords_by_index(self) -> None:
 

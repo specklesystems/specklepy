@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar, List
+from typing import Generic, List, TypeVar
+
 from specklepy.logging.exceptions import SpeckleInvalidUnitException
 from specklepy.objects.base import Base
 from specklepy.objects.models.units import Units
