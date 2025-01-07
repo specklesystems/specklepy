@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List
 
 from specklepy.objects.base import Base
 
@@ -19,9 +20,9 @@ class Interval(Base, speckle_type="Objects.Primitive.Interval"):
     def unit_interval(cls) -> "Interval":
         return cls(start=0, end=1)
 
-    def to_list(self) -> list[float]:
+    def to_list(self) -> List[float]:
         return [self.start, self.end]
 
     @classmethod
-    def from_list(cls, args: list[float]) -> "Interval":
+    def from_list(cls, args: List[float]) -> "Interval":
         return cls(start=args[0], end=args[1])
