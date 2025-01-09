@@ -31,7 +31,7 @@ class ICurve(metaclass=ABCMeta):
 class IDisplayValue(Generic[T], metaclass=ABCMeta):
     @property
     @abstractmethod
-    def display_value(self) -> T:
+    def displayValue(self) -> T:
         pass
 
 
@@ -107,6 +107,13 @@ class IDataObject(IProperties, IDisplayValue[List[Base]], metaclass=ABCMeta):
 
 
 class IBlenderObject(IDataObject, metaclass=ABCMeta):
+    @property
+    @abstractmethod
+    def type(self) -> str:
+        pass
+
+
+class IGisObject(IDataObject, metaclass=ABCMeta):
     @property
     @abstractmethod
     def type(self) -> str:
