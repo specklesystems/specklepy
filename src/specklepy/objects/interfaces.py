@@ -35,6 +35,20 @@ class IDisplayValue(Generic[T], metaclass=ABCMeta):
         pass
 
 
+class ITransformable(metaclass=ABCMeta):
+    """
+    interface for objects that can be transformed
+    """
+
+    @abstractmethod
+    def transform_to(self, transform) -> tuple[bool, Base]:
+        """
+        transform this object using the given transform
+        """
+        pass
+
+
+# field interfaces
 @dataclass(kw_only=True)
 class IHasUnits(metaclass=ABCMeta):
 

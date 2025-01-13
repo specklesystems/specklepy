@@ -179,5 +179,5 @@ print("Alignment complete.")
 print(f"Vertices count after alignment: {cube_mesh.vertices_count}")
 print(
     f"Texture coordinates count after alignment: {
-      cube_mesh.texture_coordinates_count}"
+        cube_mesh.texture_coordinates_count}"
 )
