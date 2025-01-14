@@ -20,7 +20,9 @@ class Transform(Base, speckle_type="Objects.Other.Transform"):
         self.units = units
 
     def convert_to_units(self, new_units):
-        """Converts this transform to different units"""
+        """
+        converts this transform to different units
+        """
         if not new_units or not self.units:
             return self.to_array()
 
@@ -47,11 +49,15 @@ class Transform(Base, speckle_type="Objects.Other.Transform"):
 
     @staticmethod
     def create_matrix(values):
-        """Creates a matrix from an array of values"""
+        """
+        creates a matrix from an array of values
+        """
         if len(values) != 16:
             raise ValueError("Matrix requires exactly 16 values")
         return [float(v) for v in values]
 
     def to_array(self):
-        """Returns the transform matrix as an array"""
+        """
+        returns the transform matrix as an array
+        """
         return self.matrix.copy()

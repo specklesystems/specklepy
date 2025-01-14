@@ -14,7 +14,7 @@ from specklepy.objects.models.units import (
 @dataclass(kw_only=True)
 class Plane(Base, ITransformable, IHasUnits, speckle_type="Objects.Geometry.Plane"):
     """
-    A 3-dimensional Plane consisting of an origin Point, and 3 Vectors as its X, Y and Z axis.
+    a plane consisting of an origin Point, and 3 Vectors as its X, Y and Z axis.
     """
 
     origin: Point
@@ -34,7 +34,7 @@ class Plane(Base, ITransformable, IHasUnits, speckle_type="Objects.Geometry.Plan
 
     def to_list(self) -> List[float]:
         """
-        Returns the values of this Plane as a list of numbers
+        returns the values of this Plane as a list of numbers
         """
         result = []
         result.extend(self.origin.to_list())
@@ -47,13 +47,7 @@ class Plane(Base, ITransformable, IHasUnits, speckle_type="Objects.Geometry.Plan
     @classmethod
     def from_list(cls, coords: List[float]) -> "Plane":
         """
-        Creates a new Plane based on a list of values and the unit they're drawn in.
-
-        Args:
-            coords: The list of values representing this plane
-
-        Returns:
-            A new Plane with the provided values
+        creates a new Plane based on a list of values
         """
         units = get_units_from_encoding(int(coords[-1]))
 
@@ -69,13 +63,7 @@ class Plane(Base, ITransformable, IHasUnits, speckle_type="Objects.Geometry.Plan
 
     def transform_to(self, transform) -> Tuple[bool, Base]:
         """
-        Transform this plane using the given transform
-
-        Args:
-            transform: The transform to apply
-
-        Returns:
-            Tuple of (success, transformed plane)
+        transform this plane using the given transform
         """
         _, transformed_origin = self.origin.transform_to(transform)
         _, transformed_normal = self.normal.transform_to(transform)
