@@ -131,14 +131,20 @@ class Mesh(
                 transformed_point.z
             ])
 
+        current_area = self._area
+        current_volume = self._volume
+
         transformed = Mesh(
             vertices=transformed_vertices,
             faces=self.faces.copy(),
             colors=self.colors.copy(),
             textureCoordinates=self.textureCoordinates.copy(),
             units=self.units,
-            applicationId=self.applicationId
+            applicationId=self.applicationId,
+            area=current_area,
+            volume=current_volume
         )
+
         return True, transformed
 
     def convert_units(self, to_units: str | Units) -> None:

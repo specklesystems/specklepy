@@ -25,14 +25,11 @@ class TestPoint(unittest.TestCase):
         self.assertEqual(self.p1.units, Units.m.value)
 
     def test_distance_to(self):
-        # Distance between points in same units
         distance = self.p1.distance_to(self.p2)
         expected = ((3.0**2 + 4.0**2 + 5.0**2) ** 0.5)
         self.assertAlmostEqual(distance, expected)
 
-        # Distance between points in different units
         distance = self.p1.distance_to(self.p3)
-        # Points are effectively the same
         self.assertAlmostEqual(distance, 0.0)
 
     def test_transformation(self):
@@ -45,9 +42,9 @@ class TestPoint(unittest.TestCase):
 
         success, transformed = self.p1.transform_to(transform)
         self.assertTrue(success)
-        self.assertEqual(transformed.x, 3.0)  # 1*2 + 1
-        self.assertEqual(transformed.y, 5.0)  # 2*2 + 1
-        self.assertEqual(transformed.z, 7.0)  # 3*2 + 1
+        self.assertEqual(transformed.x, 3.0)
+        self.assertEqual(transformed.y, 5.0)
+        self.assertEqual(transformed.z, 7.0)
 
     def test_serialization(self):
         serialized = serialize(self.p1)
@@ -85,9 +82,9 @@ class TestVector(unittest.TestCase):
 
         success, transformed = self.v1.transform_to(transform)
         self.assertTrue(success)
-        self.assertEqual(transformed.x, 2.0)  # 1*2
-        self.assertEqual(transformed.y, 4.0)  # 2*2
-        self.assertEqual(transformed.z, 6.0)  # 3*2
+        self.assertEqual(transformed.x, 2.0)
+        self.assertEqual(transformed.y, 4.0)
+        self.assertEqual(transformed.z, 6.0)
 
     def test_serialization(self):
         serialized = serialize(self.v1)
@@ -111,7 +108,7 @@ class TestLine(unittest.TestCase):
         self.assertEqual(self.line.units, Units.m.value)
 
     def test_length(self):
-        self.assertEqual(self.line.length, 5.0)  # 3-4-5 triangle
+        self.assertEqual(self.line.length, 5.0)
 
     def test_transformation(self):
         transform = Transform(matrix=[
@@ -123,8 +120,8 @@ class TestLine(unittest.TestCase):
 
         success, transformed = self.line.transform_to(transform)
         self.assertTrue(success)
-        self.assertEqual(transformed.start.x, 1.0)  # 0*2 + 1
-        self.assertEqual(transformed.end.x, 7.0)    # 3*2 + 1
+        self.assertEqual(transformed.start.x, 1.0)
+        self.assertEqual(transformed.end.x, 7.0)
 
     def test_serialization(self):
         serialized = serialize(self.line)
@@ -149,12 +146,12 @@ class TestPolyline(unittest.TestCase):
         )
 
     def test_creation(self):
-        self.assertEqual(len(self.polyline.value), 12)  # 4 points * 3 coords
+        self.assertEqual(len(self.polyline.value), 12)
         self.assertTrue(self.polyline.closed)
         self.assertEqual(self.polyline.units, Units.m.value)
 
     def test_length(self):
-        expected_length = 4.0  # Square with side length 1
+        expected_length = 4.0
         self.assertAlmostEqual(self.polyline.length, expected_length)
 
     def test_get_points(self):
@@ -174,8 +171,8 @@ class TestPolyline(unittest.TestCase):
         success, transformed = self.polyline.transform_to(transform)
         self.assertTrue(success)
         points = transformed.get_points()
-        self.assertEqual(points[0].x, 1.0)  # 0*2 + 1
-        self.assertEqual(points[1].x, 3.0)  # 1*2 + 1
+        self.assertEqual(points[0].x, 1.0)
+        self.assertEqual(points[1].x, 3.0)
 
     def test_serialization(self):
         serialized = serialize(self.polyline)
@@ -189,19 +186,20 @@ class TestPolyline(unittest.TestCase):
 class TestMesh(unittest.TestCase):
     def setUp(self):
         self.vertices = [
-            0.0, 0.0, 0.0,  # 0
-            1.0, 0.0, 0.0,  # 1
-            1.0, 1.0, 0.0,  # 2
-            0.0, 1.0, 0.0   # 3
+            0.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+            1.0, 1.0, 0.0,
+            0.0, 1.0, 0.0
         ]
-        self.faces = [3, 0, 1, 2, 3, 0, 2, 3]  # Two triangles
-        self.colors = [255, 0, 0, 255] * 4  # Red vertices
-        self.area = 1.0  # Area of the square
-        self.volume = 0.0  # Volume is 0 since it's a flat shape
+        self.faces = [3, 0, 1, 2, 3, 0, 2, 3]
+        self.colors = [255, 0, 0, 255] * 4
+        self.area = 1.0
+        self.volume = 0.0
+
         self.mesh = Mesh(
-            vertices=self.vertices,
-            faces=self.faces,
-            colors=self.colors,
+            vertices=self.vertices.copy(),
+            faces=self.faces.copy(),
+            colors=self.colors.copy(),
             units=Units.m,
             area=self.area,
             volume=self.volume
@@ -211,18 +209,22 @@ class TestMesh(unittest.TestCase):
         self.assertEqual(self.mesh.vertices_count, 4)
         self.assertEqual(self.mesh.faces_count, 2)
         self.assertEqual(self.mesh.units, Units.m.value)
+        self.assertEqual(self.mesh.area, self.area)
+        self.assertEqual(self.mesh.volume, self.volume)
 
     def test_get_point(self):
         point = self.mesh.get_point(1)
         self.assertEqual(point.x, 1.0)
         self.assertEqual(point.y, 0.0)
         self.assertEqual(point.z, 0.0)
+        self.assertEqual(point.units, Units.m.value)
 
     def test_get_face_vertices(self):
         face_vertices = self.mesh.get_face_vertices(0)
         self.assertEqual(len(face_vertices), 3)
         self.assertEqual(face_vertices[0].x, 0.0)
         self.assertEqual(face_vertices[1].x, 1.0)
+        self.assertEqual(face_vertices[0].units, Units.m.value)
 
     def test_transformation(self):
         transform = Transform(matrix=[
@@ -232,23 +234,21 @@ class TestMesh(unittest.TestCase):
             0.0, 0.0, 0.0, 1.0
         ], units=Units.m)
 
-        # Create a new mesh with explicit area and volume
         test_mesh = Mesh(
-            vertices=self.vertices,
-            faces=self.faces,
-            colors=self.colors,
+            vertices=self.vertices.copy(),
+            faces=self.faces.copy(),
+            colors=self.colors.copy(),
             units=Units.m,
             area=1.0,
             volume=0.0
         )
 
         success, transformed = test_mesh.transform_to(transform)
+
         self.assertTrue(success)
         point = transformed.get_point(0)
-        self.assertEqual(point.x, 1.0)  # 0*2 + 1
-        self.assertEqual(point.y, 1.0)  # 0*2 + 1
-
-        # Check that area and volume were preserved
+        self.assertEqual(point.x, 1.0)
+        self.assertEqual(point.y, 1.0)
         self.assertEqual(transformed.area, test_mesh.area)
         self.assertEqual(transformed.volume, test_mesh.volume)
 
@@ -263,6 +263,8 @@ class TestMesh(unittest.TestCase):
         self.assertEqual(deserialized.faces, self.mesh.faces)
         self.assertEqual(deserialized.colors, self.mesh.colors)
         self.assertEqual(deserialized.units, self.mesh.units)
+        self.assertEqual(deserialized.area, self.mesh.area)
+        self.assertEqual(deserialized.volume, self.mesh.volume)
 
 
 class TestPlane(unittest.TestCase):
@@ -294,8 +296,8 @@ class TestPlane(unittest.TestCase):
 
         success, transformed = self.plane.transform_to(transform)
         self.assertTrue(success)
-        self.assertEqual(transformed.origin.x, 1.0)  # 0*2 + 1
-        self.assertEqual(transformed.xdir.x, 2.0)    # 1*2
+        self.assertEqual(transformed.origin.x, 1.0)
+        self.assertEqual(transformed.xdir.x, 2.0)
 
     def test_serialization(self):
         serialized = serialize(self.plane)
@@ -304,3 +306,74 @@ class TestPlane(unittest.TestCase):
         self.assertEqual(deserialized.origin.x, self.plane.origin.x)
         self.assertEqual(deserialized.normal.z, self.plane.normal.z)
         self.assertEqual(deserialized.units, self.plane.units)
+
+
+class TestArc(unittest.TestCase):
+    def setUp(self):
+        plane = Plane(
+            origin=Point(x=0, y=0, z=0, units="m"),
+            normal=Vector(x=0, y=0, z=1, units="m"),
+            xdir=Vector(x=1, y=0, z=0, units="m"),
+            ydir=Vector(x=0, y=1, z=0, units="m"),
+            units="m"
+        )
+
+        self.arc = Arc(
+            plane=plane,
+            startPoint=Point(x=1, y=0, z=0, units="m"),
+            midPoint=Point(x=0.7071, y=0.7071, z=0, units="m"),
+            endPoint=Point(x=0, y=1, z=0, units="m"),
+            units="m"
+        )
+
+    def test_basic_properties(self):
+        self.assertAlmostEqual(self.arc.radius, 1.0, places=3)
+        self.assertEqual(self.arc.units, "m")
+
+    def test_transform(self):
+        transform = Transform(matrix=[
+            2, 0, 0, 1,
+            0, 2, 0, 1,
+            0, 0, 2, 1,
+            0, 0, 0, 1
+        ], units="m")
+
+        success, transformed = self.arc.transform_to(transform)
+        self.assertTrue(success)
+        self.assertAlmostEqual(transformed.radius, 2.0, places=3)
+
+    def test_serialization(self):
+
+        serialized = serialize(self.arc)
+        deserialized = deserialize(serialized)
+
+        self.assertEqual(deserialized.units, self.arc.units)
+        self.assertAlmostEqual(deserialized.radius, self.arc.radius, places=3)
+
+        self.assertAlmostEqual(deserialized.startPoint.x,
+                               self.arc.startPoint.x, places=3)
+        self.assertAlmostEqual(deserialized.startPoint.y,
+                               self.arc.startPoint.y, places=3)
+        self.assertAlmostEqual(deserialized.startPoint.z,
+                               self.arc.startPoint.z, places=3)
+
+        self.assertAlmostEqual(deserialized.midPoint.x,
+                               self.arc.midPoint.x, places=3)
+        self.assertAlmostEqual(deserialized.midPoint.y,
+                               self.arc.midPoint.y, places=3)
+        self.assertAlmostEqual(deserialized.midPoint.z,
+                               self.arc.midPoint.z, places=3)
+
+        self.assertAlmostEqual(deserialized.endPoint.x,
+                               self.arc.endPoint.x, places=3)
+        self.assertAlmostEqual(deserialized.endPoint.y,
+                               self.arc.endPoint.y, places=3)
+        self.assertAlmostEqual(deserialized.endPoint.z,
+                               self.arc.endPoint.z, places=3)
+
+        self.assertAlmostEqual(deserialized.plane.origin.x,
+                               self.arc.plane.origin.x, places=3)
+        self.assertAlmostEqual(deserialized.plane.origin.y,
+                               self.arc.plane.origin.y, places=3)
+        self.assertAlmostEqual(deserialized.plane.origin.z,
+                               self.arc.plane.origin.z, places=3)

@@ -10,7 +10,7 @@ from specklepy.objects.primitive import Interval
 
 
 @dataclass(kw_only=True)
-class Arc(Base, ICurve, IHasUnits, ITransformable, speckle_type="Objects.Geometry.Arc"):
+class Arc(Base, IHasUnits, ICurve, ITransformable, speckle_type="Objects.Geometry.Arc"):
 
     plane: Plane
     startPoint: Point
