@@ -116,6 +116,14 @@ class Mesh(
         """
         get the number of vertices in the mesh.
         """
+        if not self.vertices:
+            return 0
+
+        if len(self.vertices) % 3 != 0:
+            raise ValueError(
+                f"Invalid vertices list: length ({len(
+                    self.vertices)}) must be a multiple of 3"
+            )
         return len(self.vertices) // 3
 
     @property
