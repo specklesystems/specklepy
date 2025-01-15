@@ -39,17 +39,28 @@ class Mesh(
     textureCoordinates: List[float] = field(default_factory=list)
     area: float = field(init=False)
     volume: float = field(init=False)
+    _vertices_count: int = field(init=False, repr=False)
 
     def __post_init__(self):
         """
-        calculate initial area and volume values
+        calculate initial values and validate vertices
         """
+        if not self.vertices:
+            self._vertices_count = 0
+        else:
+            if len(self.vertices) % 3 != 0:
+                raise ValueError(
+                    f"Invalid vertices list: length ({len(
+                        self.vertices)}) must be a multiple of 3"
+                )
+            self._vertices_count = len(self.vertices) // 3
+
         self._calculate_area_and_volume()
 
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}("
-            f"vertices: {self.vertices_count}, "
+            f"vertices: {self._vertices_count}, "
             f"faces: {self.faces_count}, "
             f"units: {self.units}, "
             f"has_colors: {len(self.colors) > 0}, "
@@ -60,7 +71,7 @@ class Mesh(
         """
         internal method to update area and volume calculations
         """
-        # calculate area
+        # Calculate area
         total_area = 0.0
         face_index = 0
         i = 0
@@ -85,7 +96,7 @@ class Mesh(
 
         self.area = total_area
 
-        # calculate volume
+        # Calculate volume
         total_volume = 0.0
         if self.is_closed():
             face_index = 0
@@ -116,15 +127,7 @@ class Mesh(
         """
         get the number of vertices in the mesh.
         """
-        if not self.vertices:
-            return 0
-
-        if len(self.vertices) % 3 != 0:
-            raise ValueError(
-                f"Invalid vertices list: length ({len(
-                    self.vertices)}) must be a multiple of 3"
-            )
-        return len(self.vertices) // 3
+        return self._vertices_count
 
     @property
     def faces_count(self) -> int:
@@ -150,7 +153,7 @@ class Mesh(
         """
         get vertex at index as a Point object.
         """
-        if index < 0 or index >= self.vertices_count:
+        if index < 0 or index >= self._vertices_count:  # use cached count
             raise IndexError(f"Vertex index {index} out of range")
 
         index *= 3
@@ -165,7 +168,7 @@ class Mesh(
         """
         get all vertices as Point objects.
         """
-        return [self.get_point(i) for i in range(self.vertices_count)]
+        return [self.get_point(i) for i in range(self._vertices_count)]  # use cached count
 
     def get_texture_coordinate(self, index: int) -> Tuple[float, float]:
         """
@@ -190,7 +193,7 @@ class Mesh(
                 vertices = []
                 for j in range(vertex_count):
                     vertex_index = self.faces[i + j + 1]
-                    if vertex_index * 3 + 2 >= len(self.vertices):
+                    if vertex_index >= self._vertices_count:  # use cached count
                         raise IndexError(
                             f"Vertex index {vertex_index} out of range")
                     vertices.append(self.get_point(vertex_index))
@@ -284,7 +287,6 @@ class Mesh(
          texture_coords_count, t1u, t1v, t2u, t2v, ...,
          area, volume]
         """
-        # calculate latest values before serializing
         self._calculate_area_and_volume()
 
         result = []
