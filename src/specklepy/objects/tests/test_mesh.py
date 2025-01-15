@@ -14,26 +14,51 @@ def sample_mesh():
         1.0, 1.0, 0.0,
         0.0, 1.0, 0.0
     ]
-    faces = [3, 0, 1, 2, 3, 0, 2, 3]
+    faces = [3, 0, 1, 2, 3, 0, 2, 3]  # Two triangles forming a square
     colors = [255, 0, 0, 255] * 4
-    area = 1.0
-    volume = 0.0
 
     return Mesh(
         vertices=vertices,
         faces=faces,
         colors=colors,
-        units=Units.m,
-        area=area,
-        volume=volume
+        units=Units.m
     )
+
+
+@pytest.fixture
+def cube_mesh():
+    vertices = [
+        0.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        1.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+        1.0, 1.0, 1.0,
+        0.0, 1.0, 1.0
+    ]
+    faces = [
+        3, 0, 1, 2,  # bottom
+        3, 0, 2, 3,
+        3, 4, 5, 6,  # top
+        3, 4, 6, 7,
+        3, 0, 1, 5,  # front
+        3, 0, 5, 4,
+        3, 2, 3, 7,  # back
+        3, 2, 7, 6,
+        3, 0, 3, 7,  # left
+        3, 0, 7, 4,
+        3, 1, 2, 6,  # right
+        3, 1, 6, 5
+    ]
+    return Mesh(vertices=vertices, faces=faces, units=Units.m)
 
 
 def test_mesh_creation(sample_mesh):
     assert sample_mesh.vertices_count == 4
     assert sample_mesh.faces_count == 2
     assert sample_mesh.units == Units.m.value
-    assert sample_mesh.area == 1.0
+    assert pytest.approx(sample_mesh.area, 0.001) == 1.0
     assert sample_mesh.volume == 0.0
 
 
@@ -73,42 +98,28 @@ def test_mesh_transform(sample_mesh):
     assert success is True
 
     point = transformed.get_point(0)
-    assert point.x == 1.0
-    assert point.y == 1.0
-    assert transformed.area == sample_mesh.area
-    assert transformed.volume == sample_mesh.volume
+    assert point.x == 1.0  # 0*2 + 1
+    assert point.y == 1.0  # 0*2 + 1
+
+    assert pytest.approx(transformed.area, 0.001) == sample_mesh.area * 4
+    assert transformed.volume == 0.0
 
 
-def test_mesh_is_closed(sample_mesh):
+def test_mesh_is_closed(sample_mesh, cube_mesh):
     assert sample_mesh.is_closed() is False
+    assert cube_mesh.is_closed() is True
 
-    vertices = [
-        0.0, 0.0, 0.0,  # 0
-        1.0, 0.0, 0.0,  # 1
-        1.0, 1.0, 0.0,  # 2
-        0.0, 1.0, 0.0,  # 3
-        0.0, 0.0, 1.0,  # 4
-        1.0, 0.0, 1.0,  # 5
-        1.0, 1.0, 1.0,  # 6
-        0.0, 1.0, 1.0   # 7
-    ]
-    faces = [
-        3, 0, 1, 2,  # front
-        3, 0, 2, 3,
-        3, 4, 5, 6,  # back
-        3, 4, 6, 7,
-        3, 0, 4, 7,  # left
-        3, 0, 7, 3,
-        3, 1, 5, 6,  # right
-        3, 1, 6, 2,
-        3, 3, 2, 6,  # top
-        3, 3, 6, 7,
-        3, 0, 1, 5,  # bottom
-        3, 0, 5, 4
-    ]
-    closed_mesh = Mesh(vertices=vertices, faces=faces,
-                       units=Units.m, area=6.0, volume=1.0)
-    assert closed_mesh.is_closed() is True
+
+def test_mesh_area_and_volume(sample_mesh, cube_mesh):
+    # Test flat square
+    assert pytest.approx(sample_mesh.area, 0.001) == 1.0
+    assert sample_mesh.volume == 0.0
+
+    # Test cube
+    # 1x1x1 cube has 6 faces
+    assert pytest.approx(cube_mesh.area, 0.001) == 6.0
+    # 1x1x1 cube has volume 1
+    assert pytest.approx(cube_mesh.volume, 0.001) == 1.0
 
 
 def test_mesh_serialization(sample_mesh):
@@ -119,11 +130,12 @@ def test_mesh_serialization(sample_mesh):
     assert deserialized.faces == sample_mesh.faces
     assert deserialized.colors == sample_mesh.colors
     assert deserialized.units == sample_mesh.units
-    assert deserialized.area == sample_mesh.area
-    assert deserialized.volume == sample_mesh.volume
+    assert pytest.approx(deserialized.area, 0.001) == sample_mesh.area
+    assert pytest.approx(deserialized.volume, 0.001) == sample_mesh.volume
 
 
 def test_mesh_convert_units(sample_mesh):
+    original_area = sample_mesh.area
     sample_mesh.convert_units(Units.mm)
     assert sample_mesh.units == Units.mm.value
 
@@ -131,8 +143,8 @@ def test_mesh_convert_units(sample_mesh):
     assert point.x == 1000.0
     assert point.units == Units.mm.value
 
-    assert sample_mesh.area == 1.0 * (1000 ** 2)
-
+    assert pytest.approx(
+        sample_mesh.area, 0.001) == original_area * (1000 ** 2)
     assert sample_mesh.volume == 0.0
 
 
@@ -142,15 +154,13 @@ def test_mesh_to_list():
         faces=[3, 0, 1, 2],
         colors=[255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255],
         textureCoordinates=[0.0, 0.0, 1.0, 0.0, 0.0, 1.0],
-        units="m",
-        area=0.5,
-        volume=0.0
+        units="m"
     )
 
     coords = mesh.to_list()
-    assert len(coords) > 3  # Should have at least header info
-    assert coords[0] > 3  # total length
-    assert coords[1] == "Objects.Geometry.Mesh"  # speckle type
+    assert len(coords) > 3
+    assert coords[0] > 3
+    assert coords[1] == "Objects.Geometry.Mesh"
 
     index = 3
     vertices_count = coords[index]
@@ -180,7 +190,7 @@ def test_mesh_to_list():
                                                           0.0, 1.0, 0.0, 0.0, 1.0]
 
     index += texture_coords_count
-    assert coords[index] == 0.5  # area
+    assert pytest.approx(coords[index], 0.001) == 0.5
     assert coords[index + 1] == 0.0  # volume
 
 
@@ -195,7 +205,7 @@ def test_mesh_from_list():
         255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,  # colors
         6,  # texture coordinates count
         0.0, 0.0, 1.0, 0.0, 0.0, 1.0,  # texture coordinates
-        0.5, 0.0  # area, volume
+        0.5, 0.0  # area, volume will be calculated
     ]
 
     mesh = Mesh.from_list(coords)
@@ -208,5 +218,5 @@ def test_mesh_from_list():
     assert mesh.colors == [255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255]
     assert len(mesh.textureCoordinates) == 6
     assert mesh.textureCoordinates == [0.0, 0.0, 1.0, 0.0, 0.0, 1.0]
-    assert mesh.area == 0.5
+    assert pytest.approx(mesh.area, 0.001) == 0.5
     assert mesh.volume == 0.0

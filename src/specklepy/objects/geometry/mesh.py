@@ -37,8 +37,14 @@ class Mesh(
     faces: List[int]
     colors: List[int] = field(default_factory=list)
     textureCoordinates: List[float] = field(default_factory=list)
-    _area: float = field(default=0.0, init=False, repr=False)
-    _volume: float = field(default=0.0, init=False, repr=False)
+    area: float = field(init=False)
+    volume: float = field(init=False)
+
+    def __post_init__(self):
+        """
+        calculate initial area and volume values
+        """
+        self._calculate_area_and_volume()
 
     def __repr__(self) -> str:
         return (
@@ -50,12 +56,73 @@ class Mesh(
             f"has_texture_coords: {len(self.textureCoordinates) > 0})"
         )
 
+    def _calculate_area_and_volume(self):
+        """
+        internal method to update area and volume calculations
+        """
+        # calculate area
+        total_area = 0.0
+        face_index = 0
+        i = 0
+
+        while i < len(self.faces):
+            vertex_count = self.faces[i]
+            if vertex_count >= 3:
+                face_vertices = self.get_face_vertices(face_index)
+                for j in range(1, vertex_count - 1):
+                    v0 = face_vertices[0]
+                    v1 = face_vertices[j]
+                    v2 = face_vertices[j + 1]
+                    a = [v1.x - v0.x, v1.y - v0.y, v1.z - v0.z]
+                    b = [v2.x - v0.x, v2.y - v0.y, v2.z - v0.z]
+                    cx = a[1] * b[2] - a[2] * b[1]
+                    cy = a[2] * b[0] - a[0] * b[2]
+                    cz = a[0] * b[1] - a[1] * b[0]
+                    area = 0.5 * (cx * cx + cy * cy + cz * cz) ** 0.5
+                    total_area += area
+            i += vertex_count + 1
+            face_index += 1
+
+        self.area = total_area
+
+        # calculate volume
+        total_volume = 0.0
+        if self.is_closed():
+            face_index = 0
+            i = 0
+            while i < len(self.faces):
+                vertex_count = self.faces[i]
+                if vertex_count >= 3:
+                    face_vertices = self.get_face_vertices(face_index)
+                    v0 = face_vertices[0]
+                    for j in range(1, vertex_count - 1):
+                        v1 = face_vertices[j]
+                        v2 = face_vertices[j + 1]
+                        a = [v0.x, v0.y, v0.z]
+                        b = [v1.x - v0.x, v1.y - v0.y, v1.z - v0.z]
+                        c = [v2.x - v0.x, v2.y - v0.y, v2.z - v0.z]
+                        cx = b[1] * c[2] - b[2] * c[1]
+                        cy = b[2] * c[0] - b[0] * c[2]
+                        cz = b[0] * c[1] - b[1] * c[0]
+                        v = (a[0] * cx + a[1] * cy + a[2] * cz) / 6.0
+                        total_volume += v
+                i += vertex_count + 1
+                face_index += 1
+
+        self.volume = abs(total_volume)
+
     @property
     def vertices_count(self) -> int:
+        """
+        get the number of vertices in the mesh.
+        """
         return len(self.vertices) // 3
 
     @property
     def faces_count(self) -> int:
+        """
+        get the number of faces in the mesh.
+        """
         count = 0
         i = 0
         while i < len(self.faces):
@@ -66,9 +133,15 @@ class Mesh(
 
     @property
     def texture_coordinates_count(self) -> int:
+        """
+        get the number of texture coordinates in the mesh.
+        """
         return len(self.textureCoordinates) // 2
 
     def get_point(self, index: int) -> Point:
+        """
+        get vertex at index as a Point object.
+        """
         if index < 0 or index >= self.vertices_count:
             raise IndexError(f"Vertex index {index} out of range")
 
@@ -82,13 +155,13 @@ class Mesh(
 
     def get_points(self) -> List[Point]:
         """
-        get all vertices as Point objects
+        get all vertices as Point objects.
         """
         return [self.get_point(i) for i in range(self.vertices_count)]
 
     def get_texture_coordinate(self, index: int) -> Tuple[float, float]:
         """
-        get texture coordinate at index
+        get texture coordinate at index.
         """
         if index < 0 or index >= self.texture_coordinates_count:
             raise IndexError(f"Texture coordinate index {index} out of range")
@@ -98,7 +171,7 @@ class Mesh(
 
     def get_face_vertices(self, face_index: int) -> List[Point]:
         """
-        get the vertices of a specific face
+        get the vertices of a specific face.
         """
         i = 0
         current_face = 0
@@ -106,8 +179,16 @@ class Mesh(
         while i < len(self.faces):
             if current_face == face_index:
                 vertex_count = self.faces[i]
-                return [self.get_point(self.faces[i + j]) for j in range(1, vertex_count + 1)]
+                vertices = []
+                for j in range(vertex_count):
+                    vertex_index = self.faces[i + j + 1]
+                    if vertex_index * 3 + 2 >= len(self.vertices):
+                        raise IndexError(
+                            f"Vertex index {vertex_index} out of range")
+                    vertices.append(self.get_point(vertex_index))
+                return vertices
 
+            # skip this face and move to next
             vertex_count = self.faces[i]
             i += vertex_count + 1
             current_face += 1
@@ -116,7 +197,7 @@ class Mesh(
 
     def transform_to(self, transform) -> Tuple[bool, "Mesh"]:
         """
-        transform this mesh using the given transform
+        transform this mesh using the given transform.
         """
         transformed_vertices = []
 
@@ -137,25 +218,20 @@ class Mesh(
                 transformed_point.z
             ])
 
-        current_area = self._area
-        current_volume = self._volume
-
         transformed = Mesh(
             vertices=transformed_vertices,
             faces=self.faces.copy(),
             colors=self.colors.copy(),
             textureCoordinates=self.textureCoordinates.copy(),
             units=self.units,
-            applicationId=self.applicationId,
-            area=current_area,
-            volume=current_volume
+            applicationId=self.applicationId
         )
 
         return True, transformed
 
     def convert_units(self, to_units: str | Units) -> None:
         """
-        convert the mesh vertices to different units
+        convert the mesh vertices to different units.
         """
         if isinstance(to_units, Units):
             to_units = to_units.value
@@ -169,13 +245,11 @@ class Mesh(
             self.vertices[i] *= scale_factor
 
         self.units = to_units
-
-        self._area *= scale_factor * scale_factor
-        self._volume *= scale_factor * scale_factor * scale_factor
+        self._calculate_area_and_volume()
 
     def is_closed(self) -> bool:
         """
-        check if the mesh is closed
+        check if the mesh is closed by verifying each edge appears exactly twice.
         """
         edge_counts = {}
 
@@ -193,37 +267,42 @@ class Mesh(
         return all(count == 2 for count in edge_counts.values())
 
     def to_list(self) -> List[Any]:
-        """Returns a serializable list of format:
+        """
+        Returns a serializable list of format:
         [total_length, speckle_type, units_encoding,
          vertices_count, v1x, v1y, v1z, v2x, v2y, v2z, ...,
          faces_count, f1, f2, f3, ...,
          colors_count, c1, c2, c3, ...,
          texture_coords_count, t1u, t1v, t2u, t2v, ...,
-         area, volume]"""
+         area, volume]
+        """
+        # calculate latest values before serializing
+        self._calculate_area_and_volume()
+
         result = []
 
-        # Add vertices
+        # add vertices
         result.append(len(self.vertices))
         result.extend(self.vertices)
 
-        # Add faces
+        # add faces
         result.append(len(self.faces))
         result.extend(self.faces)
 
-        # Add colors (if any)
+        # add colors (if any)
         result.append(len(self.colors))
         if self.colors:
             result.extend(self.colors)
 
-        # Add texture coordinates (if any)
+        # add texture coordinates (if any)
         result.append(len(self.textureCoordinates))
         if self.textureCoordinates:
             result.extend(self.textureCoordinates)
 
-        # Add area and volume
+        # add area and volume (calculated properties)
         result.extend([self.area, self.volume])
 
-        # Add header information
+        # add header information
         result.insert(0, get_encoding_from_units(self.units))
         result.insert(0, self.speckle_type)
         result.insert(0, len(result) + 1)
@@ -231,30 +310,29 @@ class Mesh(
 
     @classmethod
     def from_list(cls, coords: List[Any]) -> "Mesh":
-        """Creates a Mesh from a list of format:
+        """
+        Creates a Mesh from a list of format:
         [total_length, speckle_type, units_encoding,
          vertices_count, v1x, v1y, v1z, v2x, v2y, v2z, ...,
          faces_count, f1, f2, f3, ...,
          colors_count, c1, c2, c3, ...,
          texture_coords_count, t1u, t1v, t2u, t2v, ...,
-         area, volume]"""
+         area, volume]
+        """
         units = get_units_from_encoding(coords[2])
 
         index = 3
 
-        # Extract vertices
         vertices_count = int(coords[index])
         index += 1
         vertices = coords[index:index + vertices_count]
         index += vertices_count
 
-        # Extract faces
         faces_count = int(coords[index])
         index += 1
         faces = [int(f) for f in coords[index:index + faces_count]]
         index += faces_count
 
-        # Extract colors
         colors_count = int(coords[index])
         index += 1
         colors = []
@@ -262,7 +340,6 @@ class Mesh(
             colors = [int(c) for c in coords[index:index + colors_count]]
             index += colors_count
 
-        # Extract texture coordinates
         texture_coords_count = int(coords[index])
         index += 1
         texture_coords = []
@@ -270,16 +347,10 @@ class Mesh(
             texture_coords = coords[index:index + texture_coords_count]
             index += texture_coords_count
 
-        # Extract area and volume
-        area = coords[index]
-        volume = coords[index + 1]
-
         return cls(
             vertices=vertices,
             faces=faces,
             colors=colors,
             textureCoordinates=texture_coords,
-            area=area,
-            volume=volume,
             units=units
         )
