@@ -99,32 +99,29 @@ def test_polyline_serialization(sample_polyline):
     assert deserialized.domain.end == sample_polyline.domain.end
 
 
-def test_polyline_to_list(sample_polyline):
-    result = sample_polyline.to_list()
-
-    assert isinstance(result, list)
-    assert result[2] == 1
-    assert result[3] == 0.0
-    assert result[4] == 1.0
-    assert result[5] == len(sample_polyline.value)
+def test_polyline_to_list():
+    polyline = Polyline(
+        value=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        closed=True,
+        domain=Interval(start=0.0, end=1.0),
+        units="m"
+    )
+    coords = polyline.to_list()
+    assert coords[3] == 1  # is_closed (True = 1)
+    assert coords[4:6] == [0.0, 1.0]  # domain
+    assert coords[6] == 6  # coords_count
+    assert coords[7:] == [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]  # coordinates
 
 
 def test_polyline_from_list():
-    input_list = [
-        18, "Objects.Geometry.Polyline",
-        1,
-        0.0, 1.0,
-        12,
-        0.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 1.0, 0.0,
-        0.0, 1.0, 0.0
-    ]
-
-    polyline = Polyline.from_list(input_list, Units.m)
-
+    coords = [11, "Objects.Geometry.Polyline", 3,  # header
+              1,  # closed
+              0.0, 1.0,  # domain
+              6,  # coords_count
+              1.0, 2.0, 3.0, 4.0, 5.0, 6.0]  # coordinates
+    polyline = Polyline.from_list(coords, "m")
     assert polyline.closed is True
-    assert len(polyline.value) == 12
-    assert polyline.units == Units.m.value
     assert polyline.domain.start == 0.0
     assert polyline.domain.end == 1.0
+    assert polyline.value == [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    assert polyline.units == "m"

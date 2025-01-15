@@ -1,9 +1,12 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Any
 
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IHasUnits, ITransformable
-from specklepy.objects.models.units import Units
+from specklepy.objects.models.units import (
+    Units,
+    get_encoding_from_units
+)
 
 
 @dataclass(kw_only=True)
@@ -23,12 +26,25 @@ class Vector(Base, IHasUnits, ITransformable, speckle_type="Objects.Geometry.Vec
     def length(self) -> float:
         return (self.x ** 2 + self.y ** 2 + self.z ** 2) ** 0.5
 
-    def to_list(self) -> List[float]:
-        return [self.x, self.y, self.z]
+    def to_list(self) -> List[Any]:
+        """
+        returns a serializable list of format:
+        [total_length, speckle_type, units_encoding, x, y, z]
+        """
+        result = [self.x, self.y, self.z]
+        result.insert(0, get_encoding_from_units(self.units))
+        result.insert(0, self.speckle_type)
+        result.insert(0, len(result) + 1)  # +1 for the length we're adding
+        return result
 
     @classmethod
-    def from_list(cls, coords: List[float], units: str | Units) -> "Vector":
-        return cls(x=coords[0], y=coords[1], z=coords[2], units=units)
+    def from_list(cls, coords: List[Any], units: str | Units) -> "Vector":
+        """
+        creates a Vector from a list of format:
+        [total_length, speckle_type, units_encoding, x, y, z]
+        """
+        x, y, z = coords[3:6]  # geometric data starts at index 3
+        return cls(x=x, y=y, z=z, units=units)
 
     def transform_to(self, transform):
         m = transform.matrix

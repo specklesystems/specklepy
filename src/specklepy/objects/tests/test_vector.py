@@ -56,15 +56,16 @@ def test_vector_serialization(sample_vectors):
 
 
 def test_vector_from_list():
-    coords = [1.0, 2.0, 3.0]
-    v = Vector.from_list(coords, Units.m)
-    assert v.x == 1.0
-    assert v.y == 2.0
-    assert v.z == 3.0
-    assert v.units == Units.m.value
+    coords = [6, "Objects.Geometry.Vector", 3, 1.0, 2.0, 3.0]
+    vector = Vector.from_list(coords, "m")
+    assert vector.x == 1.0
+    assert vector.y == 2.0
+    assert vector.z == 3.0
+    assert vector.units == "m"
 
 
-def test_vector_to_list(sample_vectors):
-    v1, _ = sample_vectors
-    coords = v1.to_list()
-    assert coords == [1.0, 2.0, 3.0]
+def test_vector_to_list():
+    vector = Vector(x=1.0, y=2.0, z=3.0, units="m")
+    coords = vector.to_list()
+    assert len(coords) == 6
+    assert coords[3:] == [1.0, 2.0, 3.0]

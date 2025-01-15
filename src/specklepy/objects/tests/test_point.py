@@ -51,3 +51,22 @@ def test_point_serialization():
     assert deserialized.y == p1.y
     assert deserialized.z == p1.z
     assert deserialized.units == p1.units
+
+
+def test_point_to_list():
+    point = Point(x=1.0, y=2.0, z=3.0, units="m")
+    coords = point.to_list()
+    # total_length, type, units_encoding + 3 coordinates
+    assert len(coords) == 6
+    assert coords[0] == 6  # total length
+    assert coords[1] == "Objects.Geometry.Point"  # speckle type
+    assert coords[3:] == [1.0, 2.0, 3.0]  # coordinates
+
+
+def test_point_from_list():
+    coords = [6, "Objects.Geometry.Point", 3, 1.0, 2.0, 3.0]
+    point = Point.from_list(coords, "m")
+    assert point.x == 1.0
+    assert point.y == 2.0
+    assert point.z == 3.0
+    assert point.units == "m"

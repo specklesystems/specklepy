@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IHasUnits, ITransformable
@@ -7,6 +7,7 @@ from specklepy.objects.models.units import (
     Units,
     get_scale_factor,
     get_units_from_string,
+    get_encoding_from_units
 )
 
 
@@ -23,12 +24,25 @@ class Point(Base, IHasUnits, ITransformable, speckle_type="Objects.Geometry.Poin
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, units: {self.units})"
 
-    def to_list(self) -> List[float]:
-        return [self.x, self.y, self.z]
+    def to_list(self) -> List[Any]:
+        """
+        returns a serializable list of format: 
+        [total_length, speckle_type, units_encoding, x, y, z]
+        """
+        result = [self.x, self.y, self.z]
+        result.insert(0, get_encoding_from_units(self.units))
+        result.insert(0, self.speckle_type)
+        result.insert(0, len(result) + 1)  # +1 for the length we're adding
+        return result
 
     @classmethod
-    def from_list(cls, coords: List[float], units: str | Units) -> "Point":
-        return cls(x=coords[0], y=coords[1], z=coords[2], units=units)
+    def from_list(cls, coords: List[Any], units: str | Units) -> "Point":
+        """
+        creates a Point from a list of format:
+        [total_length, speckle_type, units_encoding, x, y, z]
+        """
+        x, y, z = coords[3:6]  # geometric data starts at index 3
+        return cls(x=x, y=y, z=z, units=units)
 
     @classmethod
     def from_coords(cls, x: float, y: float, z: float, units: str | Units) -> "Point":

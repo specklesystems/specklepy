@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.point import Point
@@ -59,33 +59,47 @@ class Polyline(Base, IHasUnits, ICurve, ITransformable, speckle_type="Objects.Ge
             )
         return points
 
-    def to_list(self) -> List[float]:
+    def to_list(self) -> List[Any]:
         """
-        returns the values of this Polyline as a list of numbers
-        """
+        returns a serializable list of format:
+        [total_length, speckle_type, units_encoding,
+         is_closed,
+         domain_start, domain_end,
+         coords_count,
+         x1, y1, z1, x2, y2, z2, ...]
+         """
         result = []
-        result.append(len(self.value) + 6)  # total list length
-        # type indicator for polyline ?? not sure about this
-        result.append("Objects.Geometry.Polyline")
-        result.append(1 if self.closed else 0)
-        result.append(self.domain.start)
-        result.append(self.domain.end)
-        result.append(len(self.value))
-        result.extend(self.value)
-        result.append(get_encoding_from_units(self.units))
+        result.append(1 if self.closed else 0)  # convert bool to int
+        result.extend([self.domain.start, self.domain.end])
+        result.append(len(self.value))  # number of coordinates
+        result.extend(self.value)  # all vertex coordinates
+
+        # add header information
+        result.insert(0, get_encoding_from_units(self.units))
+        result.insert(0, self.speckle_type)
+        result.insert(0, len(result) + 1)
         return result
 
     @classmethod
-    def from_list(cls, coords: List[float], units: str | Units) -> "Polyline":
+    def from_list(cls, coords: List[Any], units: str | Units) -> "Polyline":
         """
-        creates a new Polyline based on a list of coordinates
-        """
-        point_count = int(coords[5])
+        creates a Polyline from a list of format:
+        [total_length, speckle_type, units_encoding,
+         is_closed,
+         domain_start, domain_end,
+         coords_count,
+         x1, y1, z1, x2, y2, z2, ...]
+         """
+        is_closed = bool(coords[3])
+        domain = Interval(start=coords[4], end=coords[5])
+        coords_count = int(coords[6])
+        vertex_coords = coords[7:7 + coords_count]
+
         return cls(
-            closed=(int(coords[2]) == 1),
-            domain=Interval(start=coords[3], end=coords[4]),
-            value=coords[6: 6 + point_count],
-            units=units,
+            value=vertex_coords,
+            closed=is_closed,
+            domain=domain,
+            units=units
         )
 
     def transform_to(self, transform) -> Tuple[bool, "Polyline"]:

@@ -1,10 +1,16 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.point import Point
 from specklepy.objects.interfaces import IHasArea, IHasVolume, IHasUnits, ITransformable
-from specklepy.objects.models.units import Units, get_scale_factor, get_units_from_string
+from specklepy.objects.models.units import (
+    Units,
+    get_scale_factor,
+    get_units_from_string,
+    get_units_from_encoding,
+    get_encoding_from_units
+)
 
 
 @dataclass(kw_only=True)
@@ -185,3 +191,95 @@ class Mesh(
             i += vertex_count + 1
 
         return all(count == 2 for count in edge_counts.values())
+
+    def to_list(self) -> List[Any]:
+        """Returns a serializable list of format:
+        [total_length, speckle_type, units_encoding,
+         vertices_count, v1x, v1y, v1z, v2x, v2y, v2z, ...,
+         faces_count, f1, f2, f3, ...,
+         colors_count, c1, c2, c3, ...,
+         texture_coords_count, t1u, t1v, t2u, t2v, ...,
+         area, volume]"""
+        result = []
+
+        # Add vertices
+        result.append(len(self.vertices))
+        result.extend(self.vertices)
+
+        # Add faces
+        result.append(len(self.faces))
+        result.extend(self.faces)
+
+        # Add colors (if any)
+        result.append(len(self.colors))
+        if self.colors:
+            result.extend(self.colors)
+
+        # Add texture coordinates (if any)
+        result.append(len(self.textureCoordinates))
+        if self.textureCoordinates:
+            result.extend(self.textureCoordinates)
+
+        # Add area and volume
+        result.extend([self.area, self.volume])
+
+        # Add header information
+        result.insert(0, get_encoding_from_units(self.units))
+        result.insert(0, self.speckle_type)
+        result.insert(0, len(result) + 1)
+        return result
+
+    @classmethod
+    def from_list(cls, coords: List[Any]) -> "Mesh":
+        """Creates a Mesh from a list of format:
+        [total_length, speckle_type, units_encoding,
+         vertices_count, v1x, v1y, v1z, v2x, v2y, v2z, ...,
+         faces_count, f1, f2, f3, ...,
+         colors_count, c1, c2, c3, ...,
+         texture_coords_count, t1u, t1v, t2u, t2v, ...,
+         area, volume]"""
+        units = get_units_from_encoding(coords[2])
+
+        index = 3
+
+        # Extract vertices
+        vertices_count = int(coords[index])
+        index += 1
+        vertices = coords[index:index + vertices_count]
+        index += vertices_count
+
+        # Extract faces
+        faces_count = int(coords[index])
+        index += 1
+        faces = [int(f) for f in coords[index:index + faces_count]]
+        index += faces_count
+
+        # Extract colors
+        colors_count = int(coords[index])
+        index += 1
+        colors = []
+        if colors_count > 0:
+            colors = [int(c) for c in coords[index:index + colors_count]]
+            index += colors_count
+
+        # Extract texture coordinates
+        texture_coords_count = int(coords[index])
+        index += 1
+        texture_coords = []
+        if texture_coords_count > 0:
+            texture_coords = coords[index:index + texture_coords_count]
+            index += texture_coords_count
+
+        # Extract area and volume
+        area = coords[index]
+        volume = coords[index + 1]
+
+        return cls(
+            vertices=vertices,
+            faces=faces,
+            colors=colors,
+            textureCoordinates=texture_coords,
+            area=area,
+            volume=volume,
+            units=units
+        )

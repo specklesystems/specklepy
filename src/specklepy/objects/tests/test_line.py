@@ -49,11 +49,18 @@ def test_line_serialization(sample_line):
 
 
 def test_line_from_list():
-    coords = [0.0, 0.0, 0.0, 3.0, 4.0, 0.0]
-    line = Line.from_list(coords, Units.m)
-    assert line.start.x == 0.0
-    assert line.end.x == 3.0
-    assert line.units == Units.m.value
+    coords = [11, "Objects.Geometry.Line", 3,
+              1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 0.0, 1.0]
+    line = Line.from_list(coords, "m")
+    assert line.start.x == 1.0
+    assert line.start.y == 2.0
+    assert line.start.z == 3.0
+    assert line.end.x == 4.0
+    assert line.end.y == 5.0
+    assert line.end.z == 6.0
+    assert line.domain.start == 0.0
+    assert line.domain.end == 1.0
+    assert line.units == "m"
 
 
 def test_line_from_coords():

@@ -134,3 +134,79 @@ def test_mesh_convert_units(sample_mesh):
     assert sample_mesh.area == 1.0 * (1000 ** 2)
 
     assert sample_mesh.volume == 0.0
+
+
+def test_mesh_to_list():
+    mesh = Mesh(
+        vertices=[0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+        faces=[3, 0, 1, 2],
+        colors=[255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255],
+        textureCoordinates=[0.0, 0.0, 1.0, 0.0, 0.0, 1.0],
+        units="m",
+        area=0.5,
+        volume=0.0
+    )
+
+    coords = mesh.to_list()
+    assert len(coords) > 3  # Should have at least header info
+    assert coords[0] > 3  # total length
+    assert coords[1] == "Objects.Geometry.Mesh"  # speckle type
+
+    index = 3
+    vertices_count = coords[index]
+    assert vertices_count == 9  # 3 vertices * 3 coordinates
+    index += 1
+    assert coords[index:index + vertices_count] == [0.0,
+                                                    0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+
+    index += vertices_count
+    faces_count = coords[index]
+    assert faces_count == 4  # 1 face with 3 vertices + count
+    index += 1
+    assert coords[index:index + faces_count] == [3, 0, 1, 2]
+
+    index += faces_count
+    colors_count = coords[index]
+    assert colors_count == 12  # 3 vertices * 4 rgba values
+    index += 1
+    assert coords[index:index + colors_count] == [255,
+                                                  0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255]
+
+    index += colors_count
+    texture_coords_count = coords[index]
+    assert texture_coords_count == 6  # 3 vertices * 2 uv coordinates
+    index += 1
+    assert coords[index:index + texture_coords_count] == [0.0,
+                                                          0.0, 1.0, 0.0, 0.0, 1.0]
+
+    index += texture_coords_count
+    assert coords[index] == 0.5  # area
+    assert coords[index + 1] == 0.0  # volume
+
+
+def test_mesh_from_list():
+    coords = [
+        26, "Objects.Geometry.Mesh", 3,  # header
+        9,  # vertices count
+        0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0,  # vertices
+        4,  # faces count
+        3, 0, 1, 2,  # faces
+        12,  # colors count
+        255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,  # colors
+        6,  # texture coordinates count
+        0.0, 0.0, 1.0, 0.0, 0.0, 1.0,  # texture coordinates
+        0.5, 0.0  # area, volume
+    ]
+
+    mesh = Mesh.from_list(coords)
+    assert mesh.units == "m"
+    assert len(mesh.vertices) == 9
+    assert mesh.vertices == [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+    assert len(mesh.faces) == 4
+    assert mesh.faces == [3, 0, 1, 2]
+    assert len(mesh.colors) == 12
+    assert mesh.colors == [255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255]
+    assert len(mesh.textureCoordinates) == 6
+    assert mesh.textureCoordinates == [0.0, 0.0, 1.0, 0.0, 0.0, 1.0]
+    assert mesh.area == 0.5
+    assert mesh.volume == 0.0
