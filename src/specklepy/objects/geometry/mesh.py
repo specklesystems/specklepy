@@ -212,13 +212,8 @@ class Mesh(
         """
         transformed_vertices = []
 
-        for i in range(0, len(self.vertices), 3):
-            point = Point(
-                x=self.vertices[i],
-                y=self.vertices[i + 1],
-                z=self.vertices[i + 2],
-                units=self.units
-            )
+        for i in range(self.vertices_count):
+            point = self.get_point(i)
             success, transformed_point = point.transform_to(transform)
             if not success:
                 return False, self
