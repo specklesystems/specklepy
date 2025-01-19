@@ -507,7 +507,7 @@ def test_serialized_brep_attributes(brep: Brep):
     ]
 
     for k in removed_keys:
-        assert k not in serialized_dict.keys()
+        assert k not in serialized_dict
 
 
 def test_mesh_create():
