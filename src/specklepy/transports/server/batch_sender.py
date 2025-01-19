@@ -11,7 +11,7 @@ from specklepy.logging.exceptions import SpeckleException
 LOG = logging.getLogger(__name__)
 
 
-class BatchSender(object):
+class BatchSender:
     def __init__(
         self,
         server_url,
@@ -123,8 +123,14 @@ class BatchSender(object):
         upload_data = "[" + ",".join(new_objects) + "]"
         upload_data_gzip = gzip.compress(upload_data.encode())
         LOG.info(
-            "Uploading batch of %s objects (%s new): (size: %s, compressed size: %s)"
-            % (len(batch), len(new_objects), len(upload_data), len(upload_data_gzip))
+            "Uploading batch of {batch_size} objects {new_object_count}: ",
+            "(size: {upload_size}, compressed size: {upload_data_size})",
+            {
+                "batch_size": len(batch),
+                "new_object_count": len(new_objects),
+                "upload_size": len(upload_data),
+                "upload_data_size": len(upload_data_gzip),
+            },
         )
 
         try:

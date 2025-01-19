@@ -36,10 +36,12 @@ class ActiveUserResource(ResourceBase):
         self.schema = User
 
     def get(self) -> Optional[User]:
-        """Gets the currently active user profile (as extracted from the authorization header)
+        """Gets the currently active user profile
+        (as extracted from the authorization header)
 
         Returns:
-            User -- the requested user, or none if no authentication token is provided to the Client
+            User -- the requested user, or none if no authentication token
+            is provided to the Client
         """
         QUERY = gql(
             """

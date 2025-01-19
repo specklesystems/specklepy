@@ -23,7 +23,10 @@ class Point(Base, IHasUnits, speckle_type="Objects.Geometry.Point"):
     z: float
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, units: {self.units})"
+        return (
+            f"{self.__class__.__name__}"
+            f"(x: {self.x}, y: {self.y}, z: {self.z}, units: {self.units})"
+        )
 
     def to_list(self) -> List[float]:
         return [self.x, self.y, self.z]

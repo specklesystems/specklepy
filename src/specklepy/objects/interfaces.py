@@ -67,7 +67,7 @@ class IHasArea(metaclass=ABCMeta):
 
     @area.setter
     def area(self, value: float):
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, int | float):
             raise ValueError(f"Area must be a number, got {type(value)}")
         self._area = float(value)
 
@@ -83,7 +83,7 @@ class IHasVolume(metaclass=ABCMeta):
 
     @volume.setter
     def volume(self, value: float):
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, int | float):
             raise ValueError(f"Volume must be a number, got {type(value)}")
         self._volume = float(value)
 

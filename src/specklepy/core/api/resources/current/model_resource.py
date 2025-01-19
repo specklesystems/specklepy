@@ -75,14 +75,24 @@ class ModelResource(ResourceBase):
     ) -> ModelWithVersions:
         QUERY = gql(
             """
-            query ModelGetWithVersions($modelId: String!, $projectId: String!, $versionsLimit: Int!, $versionsCursor: String, $versionsFilter: ModelVersionsFilter) {
+            query ModelGetWithVersions(
+              $modelId: String!,
+              $projectId: String!,
+              $versionsLimit: Int!,
+              $versionsCursor: String,
+              $versionsFilter: ModelVersionsFilter
+              ) {
               data:project(id: $projectId) {
                 data:model(id: $modelId) {
                   id
                   name
                   previewUrl
                   updatedAt
-                  versions(limit: $versionsLimit, cursor: $versionsCursor, filter: $versionsFilter) {
+                  versions(
+                    limit: $versionsLimit,
+                    cursor: $versionsCursor,
+                    filter: $versionsFilter
+                    ) {
                     items {
                       id
                       referencedObject
@@ -147,9 +157,18 @@ class ModelResource(ResourceBase):
     ) -> ResourceCollection[Model]:
         QUERY = gql(
             """
-            query ProjectGetWithModels($projectId: String!, $modelsLimit: Int!, $modelsCursor: String, $modelsFilter: ProjectModelsFilter) {
+            query ProjectGetWithModels(
+              $projectId: String!,
+              $modelsLimit: Int!,
+              $modelsCursor: String,
+              $modelsFilter: ProjectModelsFilter
+              ) {
               data:project(id: $projectId) {
-                data:models(limit: $modelsLimit, cursor: $modelsCursor, filter: $modelsFilter) {
+                data:models(
+                  limit: $modelsLimit,
+                  cursor: $modelsCursor,
+                  filter: $modelsFilter
+                  ) {
                   items {
                     id
                     name

@@ -44,7 +44,8 @@ class TestActiveUserResource:
 
     def test_active_user_get_projects_with_filter(self, client: SpeckleClient):
         # Since the client may be reused for other tests,
-        # this test does rely on no other test creating a project with "Search for me" in its name
+        # this test does rely on no other test creating a project
+        # with "Search for me" in its name
         p1 = client.project.create(
             ProjectCreateInput(name="Search for me!", description=None, visibility=None)
         )

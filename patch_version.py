@@ -5,7 +5,7 @@ import sys
 def patch(tag):
     print(f"Patching version: {tag}")
 
-    with open("pyproject.toml", "r") as f:
+    with open("pyproject.toml") as f:
         lines = f.readlines()
 
         if "version" not in lines[2]:

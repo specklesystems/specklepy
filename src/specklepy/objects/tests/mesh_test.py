@@ -148,7 +148,7 @@ cube_mesh = Mesh(
     volume=0.0,
 )
 
-print(f"\nMesh Details:")
+print("\nMesh Details:")
 print(f"Number of vertices: {cube_mesh.vertices_count}")
 print(f"Number of texture coordinates: {cube_mesh.texture_coordinates_count}")
 

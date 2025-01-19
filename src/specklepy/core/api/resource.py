@@ -18,7 +18,7 @@ from specklepy.transports.sqlite import SQLiteTransport
 T = TypeVar("T", bound=BaseModel)
 
 
-class ResourceBase(object):
+class ResourceBase:
     def __init__(
         self,
         account: Account,
@@ -101,7 +101,8 @@ class ResourceBase(object):
         parse_response: bool = True,
     ) -> Any:
         """Executes the GraphQL query"""
-        # This method has quite complex and ambiguous typing, and counter-intuitive error handling
+        # This method has quite complex and ambiguous typing,
+        # and counter-intuitive error handling
         # We are going to phase it out in favour of `make_request_and_parse_response`
         try:
             with self.__lock:

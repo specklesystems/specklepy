@@ -57,9 +57,7 @@ class CommitObjectBuilder(ABC, Generic[T]):
             if parent_id == ROOT:
                 parent = root_commit_object
             else:
-                parent = (
-                    self.converted[parent_id] if parent_id in self.converted else None
-                )
+                parent = self.converted.get(parent_id, None)
 
             if not parent:
                 continue
@@ -73,13 +71,15 @@ class CommitObjectBuilder(ABC, Generic[T]):
                 elements.append(current)
                 return
             except Exception as ex:
-                # A parent was found, but it was invalid (Likely because of a type mismatch on a `elements` property)
+                # A parent was found, but it was invalid
+                # (Likely because of a type mismatch on a `elements` property)
                 print(
                     f"Failed to add object {type(current)} to a converted parent; {ex}"
                 )
 
             raise Exception(
-                f"Could not find a valid parent for object of type {type(current)}. Checked {len(parents)} potential parent, and non were converted!"
+                f"Could not find a valid parent for object of type {type(current)}."
+                f"Checked {len(parents)} potential parent, and non were converted!"
             )
 
 
