@@ -1,5 +1,4 @@
 import pytest
-
 from specklepy.objects.geometry import Line, Mesh, Point, Vector
 from specklepy.objects.structural.analysis import Model
 from specklepy.objects.structural.geometry import (

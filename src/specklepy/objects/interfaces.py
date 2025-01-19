@@ -37,7 +37,6 @@ class IDisplayValue(Generic[T], metaclass=ABCMeta):
 
 @dataclass(kw_only=True)
 class IHasUnits(metaclass=ABCMeta):
-
     units: str | Units
     _units: str = field(repr=False, init=False)
 
@@ -59,7 +58,6 @@ class IHasUnits(metaclass=ABCMeta):
 
 @dataclass(kw_only=True)
 class IHasArea(metaclass=ABCMeta):
-
     area: float
     _area: float = field(init=False, repr=False)
 
@@ -76,7 +74,6 @@ class IHasArea(metaclass=ABCMeta):
 
 @dataclass(kw_only=True)
 class IHasVolume(metaclass=ABCMeta):
-
     volume: float
     _volume: float = field(init=False, repr=False)
 

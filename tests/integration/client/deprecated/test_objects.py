@@ -1,5 +1,4 @@
 import pytest
-
 from specklepy.api.models import Stream
 from specklepy.objects import Base
 from specklepy.objects.encoding import ObjectArray

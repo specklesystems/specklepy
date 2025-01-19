@@ -1,7 +1,6 @@
 import random
 
 import pytest
-
 from specklepy.objects.base import Base
 
 

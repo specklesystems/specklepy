@@ -7,9 +7,9 @@ import pytest
 from gql import gql
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from specklepy.api.client import SpeckleClient
 
 from speckle_automate.schema import AutomationRunData, TestAutomationRunData
-from specklepy.api.client import SpeckleClient
 
 
 class TestAutomationEnvironment(BaseSettings):

@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Collection, Dict, Generic, Iterable, Optional, Tuple, TypeVar
 
 from attrs import define
-
 from specklepy.objects.base import Base
 
 ROOT: str = "__Root"

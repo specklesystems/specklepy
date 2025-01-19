@@ -52,8 +52,7 @@ class Point(Base, IHasUnits, speckle_type="Objects.Geometry.Point"):
 
         # convert other point's coordinates to this point's units
         scale_factor = get_scale_factor(
-            get_units_from_string(
-                other.units), get_units_from_string(self.units)
+            get_units_from_string(other.units), get_units_from_string(self.units)
         )
 
         dx = (other.x * scale_factor) - self.x
@@ -94,8 +93,7 @@ class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
     @classmethod
     def from_list(cls, coords: List[float], units: str | Units) -> "Line":
         if len(coords) < 6:
-            raise ValueError(
-                "Line from coordinate array requires 6 coordinates.")
+            raise ValueError("Line from coordinate array requires 6 coordinates.")
 
         start = Point(x=coords[0], y=coords[1], z=coords[2], units=units)
         end = Point(x=coords[3], y=coords[4], z=coords[5], units=units)
@@ -191,7 +189,7 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
         return cls(
             closed=(int(coords[2]) == 1),
             domain=Interval(start=coords[3], end=coords[4]),
-            value=coords[6: 6 + point_count],
+            value=coords[6 : 6 + point_count],
             units=units,
         )
 
@@ -211,7 +209,6 @@ class Mesh(
         "textureCoordinates": 31250,
     },
 ):
-
     vertices: List[float]
     faces: List[int]
     colors: List[int] = field(default_factory=list)
@@ -226,7 +223,6 @@ class Mesh(
         return len(self.textureCoordinates) // 2
 
     def get_point(self, index: int) -> Point:
-
         index *= 3
         return Point(
             x=self.vertices[index],
@@ -236,7 +232,6 @@ class Mesh(
         )
 
     def get_points(self) -> List[Point]:
-
         if len(self.vertices) % 3 != 0:
             raise ValueError(
                 "Mesh vertices list is malformed: expected length to be multiple of 3"
@@ -255,12 +250,10 @@ class Mesh(
         return points
 
     def get_texture_coordinate(self, index: int) -> Tuple[float, float]:
-
         index *= 2
         return (self.textureCoordinates[index], self.textureCoordinates[index + 1])
 
     def align_vertices_with_texcoords_by_index(self) -> None:
-
         if not self.textureCoordinates:
             return
 

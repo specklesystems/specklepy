@@ -4,7 +4,6 @@ from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 import pytest
-
 from specklepy.core.api.credentials import Account, UserInfo, get_accounts_for_server
 from specklepy.core.api.models import ServerInfo, ServerMigration
 from specklepy.core.helpers import speckle_path_provider

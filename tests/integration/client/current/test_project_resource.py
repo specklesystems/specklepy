@@ -1,5 +1,4 @@
 import pytest
-
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.enums import ProjectVisibility
 from specklepy.core.api.inputs.project_inputs import (

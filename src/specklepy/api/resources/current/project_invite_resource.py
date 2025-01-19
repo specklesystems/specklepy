@@ -1,7 +1,6 @@
 from typing import Any, Optional, Tuple
 
 from gql import Client
-
 from specklepy.core.api.credentials import Account
 from specklepy.core.api.inputs.project_inputs import (
     ProjectInviteCreateInput,

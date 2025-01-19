@@ -1,5 +1,4 @@
 import pytest
-
 from specklepy.objects.units import Units, get_scale_factor
 
 

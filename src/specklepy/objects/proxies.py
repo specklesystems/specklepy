@@ -22,7 +22,6 @@ class GroupProxy(
     speckle_type="Models.Proxies.GroupProxy",
     detachable={"objects"},
 ):
-
     objects: List[str]
     name: str
 
@@ -33,7 +32,6 @@ class InstanceProxy(
     IHasUnits,
     speckle_type="Models.Proxies.InstanceProxy",
 ):
-
     definition_id: str
     transform: List[float]
     max_depth: int
@@ -45,7 +43,6 @@ class InstanceDefinitionProxy(
     speckle_type="Models.Proxies.InstanceDefinitionProxy",
     detachable={"objects"},
 ):
-
     objects: List[str]
     max_depth: int
     name: str

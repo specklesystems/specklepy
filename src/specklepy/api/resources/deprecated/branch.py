@@ -1,7 +1,6 @@
 from typing import Optional, Union
 
 from deprecated import deprecated
-
 from specklepy.api.models import Branch
 from specklepy.core.api.models.deprecated import (
     FE1_DEPRECATION_REASON,

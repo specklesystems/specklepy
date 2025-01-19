@@ -1,5 +1,4 @@
 import pytest
-
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.model_inputs import CreateModelInput, ModelVersionsFilter
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
@@ -17,6 +16,7 @@ from specklepy.core.api.models import (
     Version,
 )
 from specklepy.logging.exceptions import GraphQLException
+
 from tests.integration.conftest import create_version
 
 

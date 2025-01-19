@@ -1,5 +1,4 @@
 from devtools import debug
-
 from specklepy.core.api.operations import deserialize, serialize
 from specklepy.objects.geometry import Mesh
 
@@ -178,6 +177,5 @@ print("Alignment complete.")
 
 print(f"Vertices count after alignment: {cube_mesh.vertices_count}")
 print(
-    f"Texture coordinates count after alignment: {
-      cube_mesh.texture_coordinates_count}"
+    f"Texture coordinates count after alignment: {cube_mesh.texture_coordinates_count}"
 )

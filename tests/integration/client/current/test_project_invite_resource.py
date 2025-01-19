@@ -1,7 +1,6 @@
 from typing import Optional
 
 import pytest
-
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.project_inputs import (
     ProjectCreateInput,

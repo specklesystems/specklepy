@@ -1,7 +1,6 @@
 from tempfile import gettempdir
 
 import pytest
-
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.api.credentials import Account, get_account_from_token

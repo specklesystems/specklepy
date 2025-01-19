@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Optional
 
 from deprecated import deprecated
-
 from specklepy.api.models import PendingStreamCollaborator, Stream
 from specklepy.core.api.models.deprecated import (
     FE1_DEPRECATION_REASON,

@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Optional, Union
 
 from deprecated import deprecated
-
 from specklepy.core.api.models import (
     ActivityCollection,
     LimitedUser,

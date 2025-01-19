@@ -1,5 +1,4 @@
 from deprecated import deprecated
-
 from specklepy.api.resources import ActiveUserResource
 from specklepy.core.api.models.deprecated import FE1_DEPRECATION_VERSION
 

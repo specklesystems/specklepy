@@ -17,10 +17,9 @@ from typing import (
 )
 from warnings import warn
 
-from stringcase import pascalcase
-
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.memory import MemoryTransport
+from stringcase import pascalcase
 
 PRIMITIVES = (int, float, str, bool)
 

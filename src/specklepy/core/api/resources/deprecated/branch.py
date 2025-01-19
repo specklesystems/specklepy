@@ -2,7 +2,6 @@ from typing import Optional
 
 from deprecated import deprecated
 from gql import gql
-
 from specklepy.core.api.models.deprecated import (
     FE1_DEPRECATION_REASON,
     FE1_DEPRECATION_VERSION,

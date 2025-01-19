@@ -5,7 +5,6 @@ from typing import Iterable
 from urllib.parse import unquote
 
 import pytest
-
 from specklepy.api.wrapper import StreamWrapper
 from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging.exceptions import SpeckleException

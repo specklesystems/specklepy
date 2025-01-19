@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Optional, overload
 
 from deprecated import deprecated
-
 from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
 from specklepy.core.api.models import (
     PendingStreamCollaborator,
@@ -138,7 +137,8 @@ class ActiveUserResource(CoreResource):
             token (Optional[str]): The token of the invite to look for (optional).
 
         Returns:
-            Optional[PendingStreamCollaborator]: The invite for the given stream, or None if not found.
+            Optional[PendingStreamCollaborator]: The invite for the given stream, 
+            or None if not found.
         """
         metrics.track(metrics.SDK, self.account, {"name": "User Active Invite Get"})
         return super().get_pending_invite(stream_id, token)

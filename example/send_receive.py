@@ -1,5 +1,4 @@
 from devtools import debug
-
 from specklepy.api import operations
 from specklepy.api.wrapper import StreamWrapper
 

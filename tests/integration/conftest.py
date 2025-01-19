@@ -5,7 +5,6 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 import requests
-
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api import operations
 from specklepy.core.api.inputs.version_inputs import CreateVersionInput

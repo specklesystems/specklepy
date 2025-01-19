@@ -2,7 +2,6 @@
 
 # the speckle.objects module exposes all speckle provided classes
 from devtools import debug
-
 from specklepy.api import operations
 from specklepy.objects import Base
 

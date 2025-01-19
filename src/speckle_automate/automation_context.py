@@ -7,6 +7,13 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import httpx
 from gql import gql
+from specklepy.api import operations
+from specklepy.api.client import SpeckleClient
+from specklepy.core.api.models import Branch
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.objects.base import Base
+from specklepy.transports.memory import MemoryTransport
+from specklepy.transports.server import ServerTransport
 
 from speckle_automate.schema import (
     AutomateBase,
@@ -16,13 +23,6 @@ from speckle_automate.schema import (
     ObjectResultLevel,
     ResultCase,
 )
-from specklepy.api import operations
-from specklepy.api.client import SpeckleClient
-from specklepy.core.api.models import Branch
-from specklepy.logging.exceptions import SpeckleException
-from specklepy.objects.base import Base
-from specklepy.transports.memory import MemoryTransport
-from specklepy.transports.server import ServerTransport
 
 
 @dataclass

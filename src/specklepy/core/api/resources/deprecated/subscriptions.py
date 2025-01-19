@@ -4,7 +4,6 @@ from typing import Callable, Dict, List, Optional, Union
 from deprecated import deprecated
 from gql import gql
 from graphql import DocumentNode
-
 from specklepy.core.api.models.deprecated import (
     FE1_DEPRECATION_REASON,
     FE1_DEPRECATION_VERSION,

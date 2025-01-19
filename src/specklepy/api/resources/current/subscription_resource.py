@@ -1,8 +1,6 @@
 from typing import Callable, Optional, Sequence
 
 from pydantic import BaseModel
-from typing_extensions import TypeVar
-
 from specklepy.core.api.models import (
     ProjectModelsUpdatedMessage,
     ProjectUpdatedMessage,
@@ -11,6 +9,7 @@ from specklepy.core.api.models import (
 )
 from specklepy.core.api.resources import SubscriptionResource as CoreResource
 from specklepy.logging import metrics
+from typing_extensions import TypeVar
 
 TEventArgs = TypeVar("TEventArgs", bound=BaseModel)
 

@@ -1,5 +1,4 @@
 import pytest
-
 from specklepy.api.client import SpeckleClient
 from specklepy.api.models import (
     Activity,

@@ -1,7 +1,6 @@
 from typing import Optional
 
 from gql import gql
-
 from specklepy.core.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectModelsFilter,
