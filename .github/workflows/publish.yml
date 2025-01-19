@@ -18,6 +18,7 @@ jobs:
     steps:
       - name: 'Install uv'
         uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v4
       - name: 'Build artifacts'
         run: uv build
       - name: Publish to PyPi
