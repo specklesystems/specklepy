@@ -137,7 +137,7 @@ class ActiveUserResource(CoreResource):
             token (Optional[str]): The token of the invite to look for (optional).
 
         Returns:
-            Optional[PendingStreamCollaborator]: The invite for the given stream, 
+            Optional[PendingStreamCollaborator]: The invite for the given stream,
             or None if not found.
         """
         metrics.track(metrics.SDK, self.account, {"name": "User Active Invite Get"})
