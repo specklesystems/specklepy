@@ -31,6 +31,11 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
 
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit/
+          key: ${{ hashFiles('.pre-commit-config.yaml') }}
+
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
 
