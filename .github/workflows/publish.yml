@@ -19,6 +19,14 @@ jobs:
       - name: 'Install uv'
         uses: astral-sh/setup-uv@v5
       - uses: actions/checkout@v4
+        with:
+          # This is necessary so that we have the tags.
+          fetch-depth: 0
+      - uses: mtkennerly/dunamai-action@v1
+        with:
+          env-var: MY_VERSION
+          args: --style semver
+      - run: echo $MY_VERSION
       - name: 'Build artifacts'
         run: uv build
       - name: Publish to PyPi
