@@ -1,8 +1,8 @@
 name: 'Specklepy test and build'
 on:
-  pull_request:
-    branches:
-      - 'v3-dev'
+  # pull_request:
+  #   branches:
+  #     - 'v3-dev'
   push:
     branches:
       - 'gergo/uvSetup'
