@@ -16,6 +16,7 @@ jobs:
           - '3.10'
           - '3.11'
           - '3.12'
+          - '3.13'
 
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +30,9 @@ jobs:
 
       - name: Install the project
         run: uv sync --all-extras --dev
+
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files
 
         # do some more stuff here
       - name: Minimize uv cache
