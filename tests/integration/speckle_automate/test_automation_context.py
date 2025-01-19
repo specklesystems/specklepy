@@ -6,6 +6,7 @@ from typing import Dict
 
 import pytest
 from gql import gql
+
 from speckle_automate import (
     AutomationContext,
     AutomationRunData,

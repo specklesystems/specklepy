@@ -2,6 +2,7 @@ import asyncio
 from typing import Dict, Optional
 
 import pytest
+
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.enums import (
     ProjectModelsUpdatedMessageType,
@@ -23,7 +24,6 @@ from specklepy.core.api.models import (
     UserProjectsUpdatedMessage,
     Version,
 )
-
 from tests.integration.conftest import create_client, create_version
 
 WAIT_PERIOD = 0.4  # time in seconds

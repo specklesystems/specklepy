@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from deprecated import deprecated
+
 from specklepy.core.api.models.deprecated import (
     FE1_DEPRECATION_REASON,
     FE1_DEPRECATION_VERSION,

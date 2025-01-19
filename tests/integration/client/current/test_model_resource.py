@@ -1,4 +1,5 @@
 import pytest
+
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.model_inputs import (
     CreateModelInput,

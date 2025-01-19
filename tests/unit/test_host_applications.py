@@ -1,4 +1,5 @@
 import pytest
+
 from specklepy.api.host_applications import (
     _app_name_host_app_mapping,
     get_host_app_from_string,

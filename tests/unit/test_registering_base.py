@@ -1,6 +1,7 @@
 from typing import Type
 
 import pytest
+
 from specklepy.objects_v2.base import Base
 from specklepy.objects_v2.structural import Concrete
 

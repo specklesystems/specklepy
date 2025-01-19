@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Dict, List, Optional, Union
 
 import pytest
+
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from specklepy.objects_v2.base import Base

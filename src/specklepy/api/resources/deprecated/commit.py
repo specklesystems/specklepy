@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
 from deprecated import deprecated
+
 from specklepy.api.models import Commit
 from specklepy.core.api.models.deprecated import (
     FE1_DEPRECATION_REASON,

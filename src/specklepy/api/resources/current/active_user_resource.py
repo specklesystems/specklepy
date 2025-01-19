@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List, Optional, overload
 
 from deprecated import deprecated
+
 from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
 from specklepy.core.api.models import (
     PendingStreamCollaborator,

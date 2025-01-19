@@ -1,7 +1,8 @@
 from devtools import debug
+
 from specklepy.api import operations
-from specklepy.objects.geometry import Base
-from specklepy.objects.units import Units
+from specklepy.objects_v2.geometry import Base
+from specklepy.objects_v2.units import Units
 
 dct = {
     "id": "1234abcd",

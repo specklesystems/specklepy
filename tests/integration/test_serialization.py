@@ -1,6 +1,7 @@
 import json
 
 import pytest
+
 from specklepy.api import operations
 from specklepy.objects import Base
 from specklepy.objects.fakemesh import FakeMesh

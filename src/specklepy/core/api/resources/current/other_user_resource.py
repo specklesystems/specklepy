@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 
 from deprecated import deprecated
 from gql import gql
+
 from specklepy.core.api.models import (
     ActivityCollection,
     LimitedUser,

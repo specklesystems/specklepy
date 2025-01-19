@@ -4,6 +4,8 @@ from typing import Any, Callable, Dict, Optional, Sequence, Type
 from gql import gql
 from graphql import DocumentNode
 from pydantic import BaseModel
+from typing_extensions import TypeVar
+
 from specklepy.core.api.models import (
     ProjectModelsUpdatedMessage,
     ProjectUpdatedMessage,
@@ -13,7 +15,6 @@ from specklepy.core.api.models import (
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
-from typing_extensions import TypeVar
 
 NAME = "subscribe"
 

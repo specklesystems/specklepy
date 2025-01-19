@@ -2,6 +2,7 @@
 import json
 
 import pytest
+
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
