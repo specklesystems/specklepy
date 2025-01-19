@@ -1,15 +1,9 @@
-# [tool.poetry]
 [project]
 dynamic = ["version"]
 name = "specklepy"
-# version = "2.17.14"
 description = "The Python SDK for Speckle 2.0"
 readme = "README.md"
 authors = [{ name = "Speckle Systems", email = "devops@speckle.systems" }]
-# packages = [
-#   { include = "specklepy", from = "src" },
-#   { include = "speckle_automate", from = "src" },
-# ]
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10.0, <4.0"
 dependencies = [
@@ -44,6 +38,11 @@ repository = "https://github.com/specklesystems/specklepy"
 documentation = "https://speckle.guide/dev/py-examples.html"
 homepage = "https://speckle.systems/"
 
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
