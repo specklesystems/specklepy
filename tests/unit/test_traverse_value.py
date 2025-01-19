@@ -1,6 +1,6 @@
 from typing import List
 
-from specklepy.objects.base import Base
+from specklepy.objects_v2.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
 

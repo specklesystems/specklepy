@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 from unittest import TestCase
 
-from specklepy.objects import Base
-from specklepy.objects.graph_traversal.traversal import GraphTraversal, TraversalRule
+from specklepy.objects_v2 import Base
+from specklepy.objects_v2.graph_traversal.traversal import GraphTraversal, TraversalRule
 
 
 @dataclass()

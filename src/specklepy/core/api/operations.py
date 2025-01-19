@@ -91,7 +91,9 @@ def receive(
     return serializer.read_json(obj_string=obj_string)
 
 
-def serialize(base: Base, write_transports: List[AbstractTransport] | None) -> str:
+def serialize(
+    base: Base, write_transports: List[AbstractTransport] | None = None
+) -> str:
     """
     Serialize a base object. If no write transports are provided,
     the object will be serialized

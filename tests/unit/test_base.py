@@ -5,8 +5,8 @@ from typing import Dict, List, Optional, Union
 import pytest
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects.base import Base
-from specklepy.objects.units import Units
+from specklepy.objects_v2.base import Base
+from specklepy.objects_v2.units import Units
 
 
 @pytest.mark.parametrize(

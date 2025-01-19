@@ -5,8 +5,8 @@ import pytest
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
-from specklepy.objects.encoding import CurveArray, ObjectArray
-from specklepy.objects.geometry import (
+from specklepy.objects_v2.encoding import CurveArray, ObjectArray
+from specklepy.objects_v2.geometry import (
     Arc,
     Box,
     Brep,
@@ -29,7 +29,7 @@ from specklepy.objects.geometry import (
     Surface,
     Vector,
 )
-from specklepy.objects.units import Units
+from specklepy.objects_v2.units import Units
 from specklepy.transports.memory import MemoryTransport
 
 
