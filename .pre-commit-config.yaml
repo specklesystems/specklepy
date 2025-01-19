@@ -4,13 +4,15 @@ repos:
       # Run the linter.
       - id: ruff
         name: ruff lint
-        entry: uv run ruff check
+        entry: uv run ruff check --force-exclude
         language: system
+        types_or: [python, pyi]
       # Run the formatter.
       - id: ruff-format
         name: ruff format
-        entry: uv run ruff format
+        entry: uv run ruff format --force-exclude
         language: system
+        types_or: [python, pyi]
 
 
   - repo: https://github.com/commitizen-tools/commitizen
