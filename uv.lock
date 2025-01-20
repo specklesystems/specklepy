@@ -996,7 +996,7 @@ wheels = [
 
 [[package]]
 name = "specklepy"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "appdirs" },
     { name = "attrs" },
