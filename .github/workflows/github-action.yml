@@ -1,11 +1,11 @@
-name: 'Specklepy test and build'
+name: "Specklepy test and build"
 on:
   # pull_request:
   #   branches:
   #     - 'v3-dev'
   push:
     branches:
-      - 'gergo/uvSetup'
+      - "gergo/uvSetup"
 jobs:
   ci:
     name: continuous-integration
@@ -13,10 +13,10 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - '3.10'
-          - '3.11'
-          - '3.12'
-          - '3.13'
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
 
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
-          cache-dependency-glob: 'uv.lock'
+          cache-dependency-glob: "uv.lock"
 
       - name: Install the project
         run: uv sync --all-extras --dev
@@ -38,6 +38,9 @@ jobs:
 
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
+
+      - name: Run Speckle Server
+        run: docker compose up -d
 
         # do some more stuff here
       - name: Minimize uv cache
