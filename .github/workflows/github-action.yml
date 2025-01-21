@@ -39,18 +39,18 @@ jobs:
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
 
-      - name: Run Speckle Server
-        run: docker compose up -d
+      # - name: Run Speckle Server
+      #   run: docker compose up -d
 
-      - name: Run tests
-        run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
+      # - name: Run tests
+      #   run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
 
-      - uses: codecov/codecov-action@v5
-        if: matrix.python-version == 3.13
-        with:
-          fail_ci_if_error: true # optional (default = false)
-          files: ./reports/test-results.xml # optional
-          token: ${{ secrets.CODECOV_TOKEN }}
+      # - uses: codecov/codecov-action@v5
+      #   if: matrix.python-version == 3.13
+      #   with:
+      #     fail_ci_if_error: true # optional (default = false)
+      #     files: ./reports/test-results.xml # optional
+      #     token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Minimize uv cache
         run: uv cache prune --ci

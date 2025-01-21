@@ -1,36 +1,36 @@
 # Publish a release to PyPI.
-name: 'Publish to PyPI'
+# name: 'Publish to PyPI'
 
-on:
-  push:
-    branches:
-      - 'gergo/uvSetup'
+# on:
+  # push:
+  #   branches:
+  #     - 'gergo/uvSetup'
 
-jobs:
-  pypi-publish:
-    name: Upload to PyPI
-    runs-on: ubuntu-latest
-    environment:
-      name: release
-    permissions:
-      # For PyPI's trusted publishing.
-      id-token: write
-    steps:
-      - name: 'Install uv'
-        uses: astral-sh/setup-uv@v5
-      - uses: actions/checkout@v4
-        with:
-          # This is necessary so that we have the tags.
-          fetch-depth: 0
-      - uses: mtkennerly/dunamai-action@v1
-        with:
-          env-var: MY_VERSION
-          args: --style semver
-      - run: echo $MY_VERSION
-      - name: 'Build artifacts'
-        run: uv build
-      - name: Publish to PyPi
-        run: uv publish --publish-url https://test.pypi.org/simple/
+# jobs:
+#   pypi-publish:
+#     name: Upload to PyPI
+#     runs-on: ubuntu-latest
+#     environment:
+#       name: release
+#     permissions:
+#       # For PyPI's trusted publishing.
+#       id-token: write
+#     steps:
+#       - name: 'Install uv'
+#         uses: astral-sh/setup-uv@v5
+#       - uses: actions/checkout@v4
+#         with:
+#           # This is necessary so that we have the tags.
+#           fetch-depth: 0
+#       - uses: mtkennerly/dunamai-action@v1
+#         with:
+#           env-var: MY_VERSION
+#           args: --style semver
+#       - run: echo $MY_VERSION
+#       - name: 'Build artifacts'
+#         run: uv build
+#       - name: Publish to PyPi
+#         run: uv publish --publish-url https://test.pypi.org/simple/
 
-      - name: Test package install
-        run: uv run --with specklepy --no-project -- python -c "import specklepy"
+#       - name: Test package install
+#         run: uv run --with specklepy --no-project -- python -c "import specklepy"
