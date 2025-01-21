@@ -1,25 +1,42 @@
-from dataclasses import dataclass, field
-from typing import List, Tuple, Any
+from dataclasses import dataclass
+from typing import List
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.point import Point
-from specklepy.objects.interfaces import ICurve, IHasUnits, ITransformable
-from specklepy.objects.models.units import (
-    Units,
-    get_encoding_from_units
-)
-from specklepy.objects.primitive import Interval
+from specklepy.objects.interfaces import ICurve, IHasUnits
 
 
 @dataclass(kw_only=True)
-class Polyline(Base, IHasUnits, ICurve, ITransformable, speckle_type="Objects.Geometry.Polyline"):
+class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"):
     """
     a polyline curve, defined by a set of vertices.
     """
-
     value: List[float]
-    closed: bool = False
-    domain: Interval = field(default_factory=Interval.unit_interval)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(value: {self.value}, units: {self.units})"
+
+    def is_closed(self, tolerance: float = 1e-6) -> bool:
+        """
+        check if the polyline is closed (start point equals end point within tolerance)
+        """
+        if len(self.value) < 6:  # need at least 2 points to be closed
+            return False
+
+        # compare first and last points
+        start = Point(
+            x=self.value[0],
+            y=self.value[1],
+            z=self.value[2],
+            units=self.units
+        )
+        end = Point(
+            x=self.value[-3],
+            y=self.value[-2],
+            z=self.value[-1],
+            units=self.units
+        )
+        return start.distance_to(end) <= tolerance
 
     @property
     def length(self) -> float:
@@ -27,16 +44,9 @@ class Polyline(Base, IHasUnits, ICurve, ITransformable, speckle_type="Objects.Ge
         total_length = 0.0
         for i in range(len(points) - 1):
             total_length += points[i].distance_to(points[i + 1])
-        if self.closed and points:
+        if self.is_closed() and points:
             total_length += points[-1].distance_to(points[0])
         return total_length
-
-    @property
-    def _domain(self) -> Interval:
-        """
-        internal domain property for ICurve interface
-        """
-        return self.domain
 
     def get_points(self) -> List[Point]:
         """
@@ -49,90 +59,11 @@ class Polyline(Base, IHasUnits, ICurve, ITransformable, speckle_type="Objects.Ge
 
         points = []
         for i in range(0, len(self.value), 3):
-            points.append(
-                Point(
-                    x=self.value[i],
-                    y=self.value[i + 1],
-                    z=self.value[i + 2],
-                    units=self.units,
-                )
-            )
-        return points
-
-    def to_list(self) -> List[Any]:
-        """
-        returns a serializable list of format:
-        [total_length, speckle_type, units_encoding,
-         is_closed,
-         domain_start, domain_end,
-         coords_count,
-         x1, y1, z1, x2, y2, z2, ...]
-         """
-        result = []
-        result.append(1 if self.closed else 0)  # convert bool to int
-        result.extend([self.domain.start, self.domain.end])
-        result.append(len(self.value))  # number of coordinates
-        result.extend(self.value)  # all vertex coordinates
-
-        # add header information
-        result.insert(0, get_encoding_from_units(self.units))
-        result.insert(0, self.speckle_type)
-        result.insert(0, len(result) + 1)
-        return result
-
-    @classmethod
-    def from_list(cls, coords: List[Any], units: str | Units) -> "Polyline":
-        """
-        creates a Polyline from a list of format:
-        [total_length, speckle_type, units_encoding,
-         is_closed,
-         domain_start, domain_end,
-         coords_count,
-         x1, y1, z1, x2, y2, z2, ...]
-         """
-        is_closed = bool(coords[3])
-        domain = Interval(start=coords[4], end=coords[5])
-        coords_count = int(coords[6])
-        vertex_coords = coords[7:7 + coords_count]
-
-        return cls(
-            value=vertex_coords,
-            closed=is_closed,
-            domain=domain,
-            units=units
-        )
-
-    def transform_to(self, transform) -> Tuple[bool, "Polyline"]:
-        """
-        transform this polyline by transforming all its vertices
-        """
-        if len(self.value) % 3 != 0:
-            return False, self
-
-        # Transform each point in the value list
-        transformed_values = []
-        for i in range(0, len(self.value), 3):
             point = Point(
                 x=self.value[i],
                 y=self.value[i + 1],
                 z=self.value[i + 2],
                 units=self.units
             )
-            success, transformed_point = point.transform_to(transform)
-            if not success:
-                return False, self
-
-            transformed_values.extend([
-                transformed_point.x,
-                transformed_point.y,
-                transformed_point.z
-            ])
-
-        transformed = Polyline(
-            value=transformed_values,
-            closed=self.closed,
-            domain=self.domain,
-            units=self.units,
-            applicationId=self.applicationId
-        )
-        return True, transformed
+            points.append(point)
+        return points
