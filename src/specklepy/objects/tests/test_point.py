@@ -1,7 +1,8 @@
 import pytest
+
+from specklepy.core.api.operations import deserialize, serialize
 from specklepy.objects.geometry import Point
 from specklepy.objects.models.units import Units
-from specklepy.core.api.operations import serialize, deserialize
 
 
 def test_point_creation():

@@ -1,9 +1,8 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.point import Point
 from specklepy.objects.interfaces import ICurve, IHasUnits
-from specklepy.objects.primitive import Interval
 
 
 @dataclass(kw_only=True)

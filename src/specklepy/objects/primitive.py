@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 from specklepy.objects.base import Base
 

@@ -1,9 +1,9 @@
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 from specklepy.objects.base import Base
-from specklepy.objects.geometry.point import Point
 from specklepy.objects.geometry.plane import Plane
+from specklepy.objects.geometry.point import Point
 from specklepy.objects.interfaces import ICurve, IHasUnits
 
 

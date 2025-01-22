@@ -1,12 +1,11 @@
-import pytest
-from specklepy.objects.geometry import Arc
-from specklepy.objects.geometry import Point
-from specklepy.objects.geometry import Plane
-from specklepy.objects.geometry import Vector
-from specklepy.objects.primitive import Interval
-from specklepy.objects.models.units import Units
-from specklepy.core.api.operations import serialize, deserialize
 import math
+
+import pytest
+
+from specklepy.core.api.operations import deserialize, serialize
+from specklepy.objects.geometry import Arc, Plane, Point, Vector
+from specklepy.objects.models.units import Units
+from specklepy.objects.primitive import Interval
 
 
 @pytest.fixture

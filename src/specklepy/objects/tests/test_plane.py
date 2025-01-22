@@ -1,9 +1,8 @@
 import pytest
-from specklepy.objects.geometry import Plane
-from specklepy.objects.geometry import Point
-from specklepy.objects.geometry import Vector
+
+from specklepy.core.api.operations import deserialize, serialize
+from specklepy.objects.geometry import Plane, Point, Vector
 from specklepy.objects.models.units import Units
-from specklepy.core.api.operations import serialize, deserialize
 
 
 @pytest.fixture

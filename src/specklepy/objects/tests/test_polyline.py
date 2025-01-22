@@ -1,9 +1,9 @@
 import pytest
-from specklepy.objects.geometry import Polyline
-from specklepy.objects.geometry import Point
-from specklepy.objects.primitive import Interval
+
+from specklepy.core.api.operations import deserialize, serialize
+from specklepy.objects.geometry import Point, Polyline
 from specklepy.objects.models.units import Units
-from specklepy.core.api.operations import serialize, deserialize
+from specklepy.objects.primitive import Interval
 
 
 @pytest.fixture
@@ -89,7 +89,7 @@ def test_polyline_get_points(sample_polyline):
     ]
 
     # Check coordinates match
-    for actual, expected in zip(points, expected_points):
+    for actual, expected in zip(points, expected_points, strict=False):
         assert actual.x == expected.x
         assert actual.y == expected.y
         assert actual.z == expected.z

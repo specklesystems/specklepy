@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.point import Point
-from specklepy.objects.interfaces import IHasArea, IHasVolume, IHasUnits
+from specklepy.objects.interfaces import IHasArea, IHasUnits, IHasVolume
 
 
 @dataclass(kw_only=True)

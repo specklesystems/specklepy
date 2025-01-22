@@ -1,14 +1,7 @@
 from dataclasses import dataclass
-from typing import List, Tuple, Any
 
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IHasUnits
-from specklepy.objects.models.units import (
-    Units,
-    get_scale_factor,
-    get_units_from_string,
-    get_encoding_from_units
-)
 
 
 @dataclass(kw_only=True)
