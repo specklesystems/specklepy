@@ -159,11 +159,12 @@ class StreamWrapper:
             try:
                 self.branch_name = project["project"]["model"]["name"]
             except KeyError as ke:
-                raise SpeckleException("Project model name is not found", ke)
+                raise SpeckleException("Project model name is not found", ke) from ke
 
         if not self.stream_id:
             raise SpeckleException(
-                f"Cannot parse {url} into a stream wrapper class - no {key_stream} id found."
+                f"Cannot parse {url} into a stream wrapper class - no {key_stream} ",
+                "id found.",
             )
 
     @property
@@ -213,7 +214,11 @@ class StreamWrapper:
             self._client = SpeckleClient(host=self.host, use_ssl=self.use_ssl)
 
         if self._account.token is None and token is None:
-            warn(f"No local account found for server {self.host}", SpeckleWarning)
+            warn(
+                f"No local account found for server {self.host}",
+                SpeckleWarning,
+                stacklevel=2,
+            )
             return self._client
 
         if self._account.token:
@@ -266,14 +271,20 @@ class StreamWrapper:
         if use_fe2 is False or (use_fe2 is True and not self.model_id):
             base_url = f"{self.server_url}{key_streams}{self.stream_id}"
         else:  # fe2 is True and model_id available
-            base_url = f"{self.server_url}{key_streams}{self.stream_id}{key_branches}{value_branch}"
+            base_url = (
+                f"{self.server_url}{key_streams}"
+                f"{self.stream_id}{key_branches}{value_branch}"
+            )
 
         if wrapper_type == "object":
             return f"{base_url}{key_objects}{self.object_id}"
         elif wrapper_type == "commit":
             return f"{base_url}{key_commits}{self.commit_id}"
         elif wrapper_type == "branch":
-            return f"{self.server_url}{key_streams}{self.stream_id}{key_branches}{value_branch}"
+            return (
+                f"{self.server_url}{key_streams}{self.stream_id}"
+                f"{key_branches}{value_branch}"
+            )
         elif wrapper_type == "stream":
             return f"{self.server_url}{key_streams}{self.stream_id}"
         else:

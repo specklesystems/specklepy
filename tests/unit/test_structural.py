@@ -1,8 +1,8 @@
 import pytest
 
-from specklepy.objects.geometry import Line, Mesh, Point, Vector
-from specklepy.objects.structural.analysis import Model
-from specklepy.objects.structural.geometry import (
+from specklepy.objects_v2.geometry import Line, Mesh, Point, Vector
+from specklepy.objects_v2.structural.analysis import Model
+from specklepy.objects_v2.structural.geometry import (
     Element1D,
     Element2D,
     ElementType1D,
@@ -10,9 +10,9 @@ from specklepy.objects.structural.geometry import (
     Node,
     Restraint,
 )
-from specklepy.objects.structural.loading import LoadGravity
-from specklepy.objects.structural.materials import StructuralMaterial
-from specklepy.objects.structural.properties import (
+from specklepy.objects_v2.structural.loading import LoadGravity
+from specklepy.objects_v2.structural.materials import StructuralMaterial
+from specklepy.objects_v2.structural.properties import (
     MemberType,
     Property1D,
     Property2D,

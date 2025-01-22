@@ -19,7 +19,7 @@ from warnings import warn
 from stringcase import pascalcase
 
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects.units import Units
+from specklepy.objects_v2.units import Units
 from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)
@@ -225,7 +225,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
         if isinstance(t, ForwardRef):
             return True, value
 
-        origin = getattr(t, "__origin__")
+        origin = t.__origin__
         # below is what in nicer for >= py38
         # origin = get_origin(t)
 
@@ -290,7 +290,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
             if len(args) != len(value):
                 return False, value
             values = []
-            for t_item, v_item in zip(args, value):
+            for t_item, v_item in zip(args, value, strict=True):
                 item_valid, item_value = _validate_type(t_item, v_item)
                 if not item_valid:
                     return False, value
@@ -387,7 +387,8 @@ class Base(_RegisteringBase, speckle_type="Base"):
         if name == "speckle_type":
             # not sure if we should raise an exception here??
             # raise SpeckleException(
-            #     "Cannot override the `speckle_type`. This is set manually by the class or on deserialisation"
+            #     "Cannot override the `speckle_type`."
+            #     "This is set manually by the class or on deserialisation"
             # )
             return
         # if value is not None:
@@ -415,7 +416,10 @@ class Base(_RegisteringBase, speckle_type="Base"):
         try:
             cls._attr_types = get_type_hints(cls)
         except Exception as e:
-            warn(f"Could not update forward refs for class {cls.__name__}: {e}")
+            warn(
+                f"Could not update forward refs for class {cls.__name__}: {e}",
+                stacklevel=2,
+            )
 
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
@@ -480,7 +484,10 @@ class Base(_RegisteringBase, speckle_type="Base"):
 
     @units.setter
     def units(self, value: Union[str, Units, None]):
-        """While this property accepts any string value, geometry expects units to be specific strings (see Units enum)"""
+        """
+        While this property accepts any string value,
+        geometry expects units to be specific strings (see Units enum)
+        """
         if isinstance(value, str) or value is None:
             self._units = value
         elif isinstance(value, Units):

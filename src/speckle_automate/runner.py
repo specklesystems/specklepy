@@ -128,7 +128,8 @@ def execute_automate_function(
                 automate_function,  # type: ignore
             )
 
-        # if we've gotten this far, the execution should technically be completed as expected
+        # if we've gotten this far,
+        # the execution should technically be completed as expected
         # thus exiting with 0 is the schemantically correct thing to do
         exit_code = (
             1 if automation_context.run_status == AutomationStatus.EXCEPTION else 0
@@ -190,4 +191,4 @@ def run_function(
         if not automation_context.context_view:
             automation_context.set_context_view()
         automation_context.report_run_status()
-        return automation_context
+    return automation_context

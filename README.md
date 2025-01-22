@@ -25,25 +25,25 @@ Head to the [**📚 specklepy docs**](https://speckle.guide/dev/python.html) for
 
 ### Installation
 
-This project uses python-poetry for dependency management, make sure you follow the official [docs](https://python-poetry.org/docs/#installation) to get poetry.
+This project uses uv for dependency management, make sure you follow the official [docs](https://docs.astral.sh/uv/) to get it.
 
-To bootstrap the project environment run `$ poetry install`. This will create a new virtual-env for the project and install both the package and dev dependencies.
+To create a new virtual environment with uv run `$ uv venv` and follow the instructions on the screen to activate the virtual environment.
+To bootstrap the project environment run `$ uv sync`. This will install both the package and dev dependencies.
 
-If this is your first time using poetry and you're used to creating your venvs within the project directory, run `poetry config virtualenvs.in-project true` to configure poetry to do the same.
+To execute any python script run `$ uv run python my_script.py`
 
-To execute any python script run `$ poetry run python my_script.py`
-
-> Alternatively you may roll your own virtual-env with either venv, virtualenv, pyenv-virtualenv etc. Poetry will play along an recognize if it is invoked from inside a virtual environment.
+> Alternatively you may roll your own virtual-env with either venv, virtualenv, pyenv-virtualenv etc. Uv will play along an recognize if it is invoked from inside a virtual environment.
 
 ### Style guide
 
-All our repo  wide styling linting and other rules are checked and enforced by `pre-commit`, which is included in the dev dependencies.
+All our repo wide styling linting and other rules are checked and enforced by `pre-commit`, which is included in the dev dependencies.
 It is recommended to set up `pre-commit` after installing the dependencies by running `$ pre-commit install`.
 Commiting code that doesn't adhere to the given rules, will fail the checks in our CI system.
 
 ### Local Data Paths
 
 It may be helpful to know where the local accounts and object cache dbs are stored. Depending on on your OS, you can find the dbs at:
+
 - Windows: `APPDATA` or `<USER>\AppData\Roaming\Speckle`
 - Linux: `$XDG_DATA_HOME` or by default `~/.local/share/Speckle`
 - Mac: `~/.config/Speckle`

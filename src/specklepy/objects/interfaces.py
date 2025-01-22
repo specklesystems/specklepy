@@ -37,7 +37,6 @@ class IDisplayValue(Generic[T], metaclass=ABCMeta):
 
 @dataclass(kw_only=True)
 class IHasUnits(metaclass=ABCMeta):
-
     units: str | Units
     _units: str = field(repr=False, init=False)
 
@@ -59,7 +58,6 @@ class IHasUnits(metaclass=ABCMeta):
 
 @dataclass(kw_only=True)
 class IHasArea(metaclass=ABCMeta):
-
     area: float
     _area: float = field(init=False, repr=False)
 
@@ -69,14 +67,13 @@ class IHasArea(metaclass=ABCMeta):
 
     @area.setter
     def area(self, value: float):
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, int | float):
             raise ValueError(f"Area must be a number, got {type(value)}")
         self._area = float(value)
 
 
 @dataclass(kw_only=True)
 class IHasVolume(metaclass=ABCMeta):
-
     volume: float
     _volume: float = field(init=False, repr=False)
 
@@ -86,7 +83,7 @@ class IHasVolume(metaclass=ABCMeta):
 
     @volume.setter
     def volume(self, value: float):
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, int | float):
             raise ValueError(f"Volume must be a number, got {type(value)}")
         self._volume = float(value)
 

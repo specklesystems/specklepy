@@ -1,33 +1,31 @@
 repos:
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
+  - repo: local
     hooks:
+      # Run the linter.
       - id: ruff
-    rev: v0.8.2
+        name: ruff lint
+        entry: uv run ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+      # Run the formatter.
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]
+
 
   - repo: https://github.com/commitizen-tools/commitizen
     hooks:
       - id: commitizen
       - id: commitizen-branch
         stages:
-          - push
+          - pre-push
     rev: v3.13.0
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
 
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
-    hooks:
-      - id: black
-        # It is recommended to specify the latest version of Python
-        # supported by your project here, or alternatively use
-        # pre-commit's default_language_version, see
-        # https://pre-commit.com/#top_level-default_language_version
-        # language_version: python3.11
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace

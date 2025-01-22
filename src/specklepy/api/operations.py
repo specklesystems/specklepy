@@ -53,7 +53,9 @@ def receive(
     return _untracked_receive(obj_id, remote_transport, local_transport)
 
 
-def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str:
+def serialize(
+    base: Base, write_transports: List[AbstractTransport] | None = None
+) -> str:
     """
     Serialize a base object. If no write transports are provided,
     the object will be serialized
@@ -67,6 +69,8 @@ def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str
     Returns:
         str -- the serialized object
     """
+    if not write_transports:
+        write_transports = []
     metrics.track(metrics.SDK, custom_props={"name": "Serialize"})
     return core_serialize(base, write_transports)
 

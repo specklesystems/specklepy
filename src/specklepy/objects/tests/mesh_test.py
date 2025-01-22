@@ -149,7 +149,7 @@ cube_mesh = Mesh(
     volume=0.0,
 )
 
-print(f"\nMesh Details:")
+print("\nMesh Details:")
 print(f"Number of vertices: {cube_mesh.vertices_count}")
 print(f"Number of texture coordinates: {cube_mesh.texture_coordinates_count}")
 
@@ -178,6 +178,5 @@ print("Alignment complete.")
 
 print(f"Vertices count after alignment: {cube_mesh.vertices_count}")
 print(
-    f"Texture coordinates count after alignment: {
-      cube_mesh.texture_coordinates_count}"
+    f"Texture coordinates count after alignment: {cube_mesh.texture_coordinates_count}"
 )

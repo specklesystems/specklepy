@@ -33,8 +33,8 @@ class TestOtherUser:
         assert isinstance(fetched_user, LimitedUser)
         assert fetched_user.name == second_user_dict["name"]
         # changed in the server, now you cannot get emails of other users
-        # not checking this, since the first user could or could not be an admin on the server
-        # admins can get emails of others, regular users can't
+        # not checking this, since the first user could or could not be an admin
+        # on the server, admins can get emails of others, regular users can't
         # assert fetched_user.email == None
 
         second_user_dict["id"] = fetched_user.id
