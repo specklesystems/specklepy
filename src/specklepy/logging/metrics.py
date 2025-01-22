@@ -86,7 +86,8 @@ def track(
 
         METRICS_TRACKER.queue.put_nowait(event_params)
     except Exception as ex:
-        # wrapping this whole thing in a try except as we never want a failure here to annoy users!
+        # wrapping this whole thing in a try except as we never want a failure here
+        # to annoy users!
         LOG.debug(f"Error queueing metrics request: {str(ex)}")
 
 
@@ -106,7 +107,7 @@ class Singleton(type):
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
 

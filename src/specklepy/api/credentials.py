@@ -2,8 +2,11 @@ from typing import List, Optional
 
 # following imports seem to be unnecessary, but they need to stay
 # to not break the scripts using these functions as non-core
-from specklepy.core.api.credentials import StreamWrapper  # noqa: F401
-from specklepy.core.api.credentials import Account, UserInfo  # noqa: F401
+from specklepy.core.api.credentials import (  # noqa: F401
+    Account,
+    StreamWrapper,  # noqa: F401
+    UserInfo,
+)
 from specklepy.core.api.credentials import (
     get_account_from_token as core_get_account_from_token,
 )

@@ -37,7 +37,10 @@ class ProjectInviteResource(ResourceBase):
     ) -> ProjectWithTeam:
         QUERY = gql(
             """
-            mutation ProjectInviteCreate($projectId: ID!, $input: ProjectInviteCreateInput!) {
+            mutation ProjectInviteCreate(
+              $projectId: ID!,
+              $input: ProjectInviteCreateInput!
+              ) {
               data:projectMutations {
                 data:invites {
                   data:create(projectId: $projectId, input: $input) {

@@ -65,7 +65,12 @@ class ProjectResource(ResourceBase):
     ) -> ProjectWithModels:
         QUERY = gql(
             """
-            query ProjectGetWithModels($projectId: String!, $modelsLimit: Int!, $modelsCursor: String, $modelsFilter: ProjectModelsFilter) {
+            query ProjectGetWithModels(
+              $projectId: String!,
+              $modelsLimit: Int!,
+              $modelsCursor: String,
+              $modelsFilter: ProjectModelsFilter
+              ) {
               data:project(id: $projectId) {
                 id
                 name
@@ -77,7 +82,11 @@ class ProjectResource(ResourceBase):
                 updatedAt
                 sourceApps
                 workspaceId
-                models(limit: $modelsLimit, cursor: $modelsCursor, filter: $modelsFilter) {
+                models(
+                  limit: $modelsLimit,
+                  cursor: $modelsCursor,
+                  filter: $modelsFilter
+                  ) {
                   items {
                     id
                     name

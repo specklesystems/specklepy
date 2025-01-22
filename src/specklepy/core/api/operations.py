@@ -70,7 +70,8 @@ def receive(
 
     serializer = BaseObjectSerializer(read_transport=local_transport)
 
-    # try local transport first. if the parent is there, we assume all the children are there and continue with deserialization using the local transport
+    # try local transport first. if the parent is there, we assume all the children
+    # are there and continue with deserialization using the local transport
     obj_string = local_transport.get_object(obj_id)
     if obj_string:
         return serializer.read_json(obj_string=obj_string)
@@ -90,7 +91,9 @@ def receive(
     return serializer.read_json(obj_string=obj_string)
 
 
-def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str:
+def serialize(
+    base: Base, write_transports: List[AbstractTransport] | None = None
+) -> str:
     """
     Serialize a base object. If no write transports are provided,
     the object will be serialized
@@ -104,6 +107,8 @@ def serialize(base: Base, write_transports: List[AbstractTransport] = []) -> str
     Returns:
         str -- the serialized object
     """
+    if not write_transports:
+        write_transports = []
     serializer = BaseObjectSerializer(write_transports=write_transports)
 
     return serializer.write_json(base)[1]

@@ -74,7 +74,8 @@ class ServerTransport(AbstractTransport):
                     SpeckleWarning(
                         "Unauthenticated Speckle Client provided to Server Transport"
                         f" for {url}. Receiving from private streams will fail."
-                    )
+                    ),
+                    stacklevel=2,
                 )
             else:
                 self.account = client.account

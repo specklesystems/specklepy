@@ -1,3 +1,4 @@
+import contextlib
 import re
 from typing import Dict
 from warnings import warn
@@ -49,7 +50,8 @@ class SpeckleClient:
     client = SpeckleClient(host="app.speckle.systems") # or whatever your host is
     # client = SpeckleClient(host="localhost:3000", use_ssl=False) or use local server
 
-    # authenticate the client with an account (account has been added in Speckle Manager)
+    # authenticate the client with an account
+    # (account has been added in Speckle Manager)
     account = get_default_account()
     client.authenticate_with_account(account)
 
@@ -102,7 +104,8 @@ class SpeckleClient:
 
         self._init_resources()
 
-        # ? Check compatibility with the server - i think we can skip this at this point? save a request
+        # ? Check compatibility with the server
+        # - i think we can skip this at this point? save a request
         # try:
         #     server_info = self.server.get()
         #     if isinstance(server_info, Exception):
@@ -187,9 +190,10 @@ class SpeckleClient:
                 if ex.exception.code == 403:
                     warn(
                         SpeckleWarning(
-                            "Possibly invalid token - could not authenticate Speckle Client"
-                            f" for server {self.url}"
-                        )
+                            "Possibly invalid token - could not authenticate "
+                            f"Speckle Client for server {self.url}"
+                        ),
+                        stacklevel=2,
                     )
                 else:
                     raise ex
@@ -203,10 +207,8 @@ class SpeckleClient:
         )
 
         server_version = None
-        try:
+        with contextlib.suppress(Exception):
             server_version = self.server.version()
-        except Exception:
-            pass
 
         self.other_user = OtherUserResource(
             account=self.account,
@@ -283,7 +285,7 @@ class SpeckleClient:
             return attr.Resource(
                 account=self.account, basepath=self.url, client=self.httpclient
             )
-        except AttributeError:
+        except AttributeError as ex:
             raise SpeckleException(
                 f"Method {name} is not supported by the SpeckleClient class"
-            )
+            ) from ex

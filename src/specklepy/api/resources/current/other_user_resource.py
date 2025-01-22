@@ -20,8 +20,10 @@ from specklepy.logging.exceptions import SpeckleException
 class OtherUserResource(CoreResource):
     """
     Provides API access to other users' profiles and activities on the platform.
-    This class enables fetching limited information about users, searching for users by name or email,
-    and accessing user activity logs with appropriate privacy and access control measures in place.
+    This class enables fetching limited information about users,
+    searching for users by name or email,
+    and accessing user activity logs with appropriate privacy
+    and access control measures in place.
     """
 
     def __init__(self, account, basepath, client, server_version) -> None:
@@ -64,7 +66,8 @@ class OtherUserResource(CoreResource):
             limit (int): Maximum number of search results to return.
 
         Returns:
-            Union[List[LimitedUser], SpeckleException]: A list of users matching the search
+            Union[List[LimitedUser], SpeckleException]:
+                A list of users matching the search
                 query or an exception if the query is too short.
         """
         if len(search_query) < 3:
@@ -86,8 +89,8 @@ class OtherUserResource(CoreResource):
         cursor: Optional[datetime] = None,
     ) -> ActivityCollection:
         """
-        Retrieves a collection of activities for a specified user, with optional filters for activity type,
-        time frame, and pagination.
+        Retrieves a collection of activities for a specified user,
+        with optional filters for activity type, time frame, and pagination.
 
         Args:
             user_id (str): The ID of the user whose activities are being requested.
@@ -98,7 +101,8 @@ class OtherUserResource(CoreResource):
             cursor (Optional[datetime]): Timestamp for pagination cursor.
 
         Returns:
-            ActivityCollection: A collection of user activities filtered according to specified criteria.
+            ActivityCollection: A collection of user activities filtered
+            according to specified criteria.
         """
         metrics.track(metrics.SDK, self.account, {"name": "Other User Activity"})
         return super().activity(user_id, limit, action_type, before, after, cursor)
