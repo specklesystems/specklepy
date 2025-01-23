@@ -5,7 +5,7 @@ from specklepy.objects.interfaces import IHasUnits
 
 
 @dataclass(kw_only=True)
-class Vector(Base, IHasUnits, speckle_type="Objects.Geometry.Vector"):
+class Vector(Base, IHasUnits, speckle_type="Objects.Geometry.Vector", serialize_ignore = {"length"}):
     """
     a 3-dimensional vector
     """

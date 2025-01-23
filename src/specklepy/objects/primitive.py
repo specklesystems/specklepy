@@ -13,14 +13,7 @@ class Interval(Base, speckle_type="Objects.Primitive.Interval", serialize_ignore
 
     @property
     def length(self) -> float:
-        return self.__dict__.get('_length')
-
-    @length.setter
-    def length(self, value: float) -> None:
-        self.__dict__['_length'] = value
-
-    def calculate_length(self) -> float:
-        return abs(self.end - self.start)
+        abs(self.end - self.start)
 
     @classmethod
     def unit_interval(cls) -> "Interval":

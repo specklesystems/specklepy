@@ -29,4 +29,5 @@ class Point(Base, IHasUnits, speckle_type="Objects.Geometry.Point"):
         dx = other.x - self.x
         dy = other.y - self.y
         dz = other.z - self.z
+
         return (dx * dx + dy * dy + dz * dz) ** 0.5

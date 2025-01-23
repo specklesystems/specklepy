@@ -8,7 +8,7 @@ from specklepy.objects.interfaces import ICurve, IHasUnits
 
 
 @dataclass(kw_only=True)
-class Arc(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Arc", serialize_ignore={"radius", "length"}):
+class Arc(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Arc"):
     plane: Plane
     startPoint: Point
     midPoint: Point
@@ -16,24 +16,10 @@ class Arc(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Arc", serializ
 
     @property
     def radius(self) -> float:
-        return self.__dict__.get('_radius')
-
-    @radius.setter
-    def radius(self, value: float) -> None:
-        self.__dict__['_radius'] = value
+        return self.startPoint.distance_to(self.plane.origin)
 
     @property
     def length(self) -> float:
-        return self.__dict__.get('_length')
-
-    @length.setter
-    def length(self, value: float) -> None:
-        self.__dict__['_length'] = value
-
-    def calculate_radius(self) -> float:
-        return self.startPoint.distance_to(self.plane.origin)
-
-    def calculate_length(self) -> float:
         start_to_mid = self.startPoint.distance_to(self.midPoint)
         mid_to_end = self.midPoint.distance_to(self.endPoint)
         r = self.calculate_radius()

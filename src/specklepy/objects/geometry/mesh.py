@@ -20,8 +20,7 @@ class Mesh(
         "colors": 62500,
         "textureCoordinates": 31250,
     },
-    serialize_ignore={"area", "volume",
-                      "vertices_count", "texture_coordinates_count"},
+    serialize_ignore={"vertices_count", "texture_coordinates_count"},
 ):
     """
     a 3D mesh consisting of vertices and faces with optional colors and texture coordinates
@@ -63,7 +62,7 @@ class Mesh(
 
     @property
     def area(self) -> float:
-        return self.__dict__.get('_area')
+        return self.__dict__.get('_area', 0.0)
 
     @area.setter
     def area(self, value: float) -> None:
@@ -71,7 +70,7 @@ class Mesh(
 
     @property
     def volume(self) -> float:
-        return self.__dict__.get('_volume')
+        return self.__dict__.get('_volume', 0.0)
 
     @volume.setter
     def volume(self, value: float) -> None:

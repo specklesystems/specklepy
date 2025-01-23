@@ -10,19 +10,11 @@ class Line(
     Base,
     IHasUnits,
     ICurve,
-    speckle_type="Objects.Geometry.Line",
-    serialize_ignore={"length"}
+    speckle_type="Objects.Geometry.Line"
 ):
     start: Point
     end: Point
 
     @property
     def length(self) -> float:
-        return self.__dict__.get('_length')
-
-    @length.setter
-    def length(self, value: float) -> None:
-        self.__dict__['_length'] = value
-
-    def calculate_length(self) -> float:
-        return self.start.distance_to(self.end)
+        self.start.distance_to(self.end)
