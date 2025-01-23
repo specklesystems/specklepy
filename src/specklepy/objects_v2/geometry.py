@@ -1,10 +1,10 @@
 from enum import Enum
 from typing import Any, List, Optional
 
-from specklepy.objects.base import Base
-from specklepy.objects.encoding import CurveArray, CurveTypeEncoding, ObjectArray
-from specklepy.objects.primitive import Interval
-from specklepy.objects.units import get_encoding_from_units, get_units_from_encoding
+from specklepy.objects_v2.base import Base
+from specklepy.objects_v2.encoding import CurveArray, CurveTypeEncoding, ObjectArray
+from specklepy.objects_v2.primitive import Interval
+from specklepy.objects_v2.units import get_encoding_from_units, get_units_from_encoding
 
 GEOMETRY = "Objects.Geometry."
 
@@ -918,10 +918,12 @@ class Brep(
 
         self.Vertices = vertices
 
-    # TODO: can this be consistent with loops, edges, faces, curves, etc and prepend with the chunk list? needs to happen in sharp first
+    # TODO: can this be consistent with loops, edges, faces, curves,
+    # etc and prepend with the chunk list? needs to happen in sharp first
     @property
     def TrimsValue(self) -> List[float]:
-        # return None if self.Trims is None else ObjectArray.from_objects(self.Trims).data
+        # return None if self.Trims is None else
+        # ObjectArray.from_objects(self.Trims).data
         if not self.Trims:
             return
         value = []

@@ -11,21 +11,25 @@ T = TypeVar("T")  # define type variable for generic type
 
 
 # generic interfaces
+@dataclass(kw_only=True)
 class ICurve(metaclass=ABCMeta):
+    _domain: Interval = field(
+        default_factory=Interval.unit_interval, init=False)
+
     @property
     @abstractmethod
     def length(self) -> float:
         pass
 
     @property
-    @abstractmethod
-    def _domain(self) -> Interval:
-        pass
+    def domain(self) -> Interval:
+        return self._domain
 
-    @property
-    @abstractmethod
-    def units(self) -> str:
-        pass
+    @domain.setter
+    def domain(self, value: Interval) -> None:
+        if not isinstance(value, Interval):
+            raise TypeError(f"Domain must be an Interval, got {type(value)}")
+        self._domain = value
 
 
 class IDisplayValue(Generic[T], metaclass=ABCMeta):
@@ -35,6 +39,8 @@ class IDisplayValue(Generic[T], metaclass=ABCMeta):
         pass
 
 
+# field interfaces
+# field interfaces
 @dataclass(kw_only=True)
 class IHasUnits(metaclass=ABCMeta):
 
@@ -60,7 +66,6 @@ class IHasUnits(metaclass=ABCMeta):
 @dataclass(kw_only=True)
 class IHasArea(metaclass=ABCMeta):
 
-    area: float
     _area: float = field(init=False, repr=False)
 
     @property
@@ -77,7 +82,6 @@ class IHasArea(metaclass=ABCMeta):
 @dataclass(kw_only=True)
 class IHasVolume(metaclass=ABCMeta):
 
-    volume: float
     _volume: float = field(init=False, repr=False)
 
     @property

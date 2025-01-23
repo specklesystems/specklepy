@@ -6,8 +6,8 @@ import pytest
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
-from specklepy.objects.encoding import CurveArray, ObjectArray
-from specklepy.objects.geometry import (
+from specklepy.objects_v2.encoding import CurveArray, ObjectArray
+from specklepy.objects_v2.geometry import (
     Arc,
     Box,
     Brep,
@@ -30,7 +30,7 @@ from specklepy.objects.geometry import (
     Surface,
     Vector,
 )
-from specklepy.objects.units import Units
+from specklepy.objects_v2.units import Units
 from specklepy.transports.memory import MemoryTransport
 
 
@@ -508,7 +508,7 @@ def test_serialized_brep_attributes(brep: Brep):
     ]
 
     for k in removed_keys:
-        assert k not in serialized_dict.keys()
+        assert k not in serialized_dict
 
 
 def test_mesh_create():

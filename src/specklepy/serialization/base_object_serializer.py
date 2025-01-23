@@ -30,6 +30,7 @@ def safe_json_loads(obj: str, obj_id=None) -> Any:
             f"Failed to deserialise object (id: {obj_id}). This is likely a ujson big"
             f" int error - falling back to json. \nError: {err}",
             SpeckleWarning,
+            stacklevel=2,
         )
         return json.loads(obj)
 
@@ -140,7 +141,8 @@ class BaseObjectSerializer:
                 object_builder[prop] = value
                 continue
 
-            # NOTE: for dynamic props, this won't be re-serialised as an enum but as an int
+            # NOTE: for dynamic props, this won't be re-serialised
+            # as an enum but as an int
             if isinstance(value, Enum):
                 object_builder[prop] = value.value
                 continue
@@ -222,7 +224,7 @@ class BaseObjectSerializer:
         if isinstance(obj, Enum):
             return obj.value
 
-        elif isinstance(obj, (list, tuple, set)):
+        elif isinstance(obj, list | tuple | set):
             if not detach:
                 return [self.traverse_value(o) for o in obj]
 
@@ -257,6 +259,7 @@ class BaseObjectSerializer:
                     f"Failed to handle {type(obj)} in"
                     " `BaseObjectSerializer.traverse_value`",
                     SpeckleWarning,
+                    stacklevel=2,
                 )
 
                 return str(obj)
@@ -374,6 +377,7 @@ class BaseObjectSerializer:
                         f"Could not find the referenced child object of id `{ref_id}`"
                         f" in the given read transport: {self.read_transport.name}",
                         SpeckleWarning,
+                        stacklevel=2,
                     )
                     base.__setattr__(prop, self.handle_value(value))
 
@@ -437,6 +441,7 @@ class BaseObjectSerializer:
                 f"Could not find the referenced child object of id `{ref_id}` in the"
                 f" given read transport: {self.read_transport.name}",
                 SpeckleWarning,
+                stacklevel=2,
             )
             return obj
 

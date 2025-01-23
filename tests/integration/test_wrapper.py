@@ -1,3 +1,4 @@
+import contextlib
 import json
 import tempfile
 from pathlib import Path
@@ -16,14 +17,11 @@ def user_path() -> Iterable[Path]:
     speckle_path_provider.override_application_data_path(tempfile.gettempdir())
     path = speckle_path_provider.accounts_folder_path().joinpath("test_acc.json")
     # hey, py37 doesn't support the missing_ok argument
-    try:
+    with contextlib.suppress(Exception):
         path.unlink()
-    except Exception:
-        pass
-    try:
+
+    with contextlib.suppress(Exception):
         path.unlink(missing_ok=True)
-    except Exception:
-        pass
     path.parent.absolute().mkdir(exist_ok=True)
     yield path
     if path.exists():
@@ -34,7 +32,7 @@ def user_path() -> Iterable[Path]:
 def test_parse_empty():
     try:
         StreamWrapper("https://testing.speckle.dev/streams")
-        assert False
+        raise AssertionError()
     except SpeckleException:
         assert True
 
@@ -42,7 +40,7 @@ def test_parse_empty():
 def test_parse_empty_fe2():
     try:
         StreamWrapper("https://latest.speckle.systems/projects")
-        assert False
+        raise AssertionError()
     except SpeckleException:
         assert True
 
@@ -169,7 +167,7 @@ def test_parse_model():
 def test_parse_federated_model():
     try:
         StreamWrapper("https://latest.speckle.systems/projects/843d07eb10/models/$main")
-        assert False
+        raise AssertionError()
     except SpeckleException:
         assert True
 
@@ -179,7 +177,7 @@ def test_parse_multi_model():
         StreamWrapper(
             "https://latest.speckle.systems/projects/2099ac4b5f/models/1870f279e3,a9cfdddc79"
         )
-        assert False
+        raise AssertionError()
     except SpeckleException:
         assert True
 
