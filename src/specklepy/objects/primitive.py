@@ -18,5 +18,4 @@ class Interval(Base, speckle_type="Objects.Primitive.Interval", serialize_ignore
     @classmethod
     def unit_interval(cls) -> "Interval":
         interval = cls(start=0, end=1)
-        interval.length = interval.calculate_length()
         return interval
