@@ -35,8 +35,3 @@ class Collection(
 
     name: str
     elements: List[Base] = field(default_factory=list)
-
-
-if __name__ == "__main__":
-    c = Collection(name="asfd")
-    print(c)

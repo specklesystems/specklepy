@@ -996,7 +996,7 @@ wheels = [
 
 [[package]]
 name = "specklepy"
-version = "2.21.3.dev41+g17cbcc3.d20250121"
+version = "2.21.3.dev55+gd25f30b.d20250122"
 source = { editable = "." }
 dependencies = [
     { name = "appdirs" },
