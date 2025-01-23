@@ -101,8 +101,17 @@ class AutomationContext:
         commit = self.speckle_client.commit.get(
             self.automation_run_data.project_id, version_id
         )
-        if not commit.referencedObject:
-            raise ValueError("The commit has no referencedObject, cannot receive it.")
+        if not commit or not commit.referencedObject:
+            raise ValueError(
+                f"""\
+                             Could not receive specified version.
+                             {"The commit has no referencedObject." if not commit.referencedObject else ""}
+                             Is your environment configured correctly?
+                             project_id: {self.automation_run_data.project_id}
+                             model_id: {self.automation_run_data.triggers[0].payload.model_id}
+                             version_id: {self.automation_run_data.triggers[0].payload.version_id}
+                             """
+            )
         base = operations.receive(
             commit.referencedObject, self._server_transport, self._memory_transport
         )
