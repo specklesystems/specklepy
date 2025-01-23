@@ -65,11 +65,13 @@ def test_polyline_is_closed_with_tolerance(open_square_coords):
 
 
 def test_polyline_length_open(sample_polyline):
+    sample_polyline.length = sample_polyline.calculate_length()
     assert sample_polyline.length == 3.0
 
 
 def test_polyline_length_closed(closed_square_coords):
     polyline = Polyline(value=closed_square_coords, units=Units.m)
+    polyline.length = polyline.calculate_length()
     assert polyline.length == 4.0
 
 

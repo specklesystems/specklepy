@@ -20,6 +20,8 @@ class Mesh(
         "colors": 62500,
         "textureCoordinates": 31250,
     },
+    serialize_ignore={"area", "volume",
+                      "vertices_count", "texture_coordinates_count"},
 ):
     """
     a 3D mesh consisting of vertices and faces with optional colors and texture coordinates
@@ -44,27 +46,13 @@ class Mesh(
         """
         get the number of vertices in the mesh
         """
-        if not self.vertices:
-            return 0
+
         if len(self.vertices) % 3 != 0:
             raise ValueError(
                 f"Invalid vertices list: length ({len(
                     self.vertices)}) must be a multiple of 3"
             )
         return len(self.vertices) // 3
-
-    @property
-    def faces_count(self) -> int:
-        """
-        get the number of faces in the mesh
-        """
-        count = 0
-        i = 0
-        while i < len(self.faces):
-            n = self.faces[i]
-            count += 1
-            i += n + 1
-        return count
 
     @property
     def texture_coordinates_count(self) -> int:
@@ -75,6 +63,21 @@ class Mesh(
 
     @property
     def area(self) -> float:
+        return self.__dict__.get('_area')
+
+    @area.setter
+    def area(self, value: float) -> None:
+        self.__dict__['_area'] = value
+
+    @property
+    def volume(self) -> float:
+        return self.__dict__.get('_volume')
+
+    @volume.setter
+    def volume(self, value: float) -> None:
+        self.__dict__['_volume'] = value
+
+    def calculate_area(self) -> float:
         """
         calculate total surface area of the mesh
         """
@@ -102,8 +105,7 @@ class Mesh(
 
         return total_area
 
-    @property
-    def volume(self) -> float:
+    def calculate_volume(self) -> float:
         """
         calculate volume of the mesh if it is closed
         """

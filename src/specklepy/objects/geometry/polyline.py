@@ -7,7 +7,7 @@ from specklepy.objects.interfaces import ICurve, IHasUnits
 
 
 @dataclass(kw_only=True)
-class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"):
+class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline", serialize_ignore={"length"}):
     """
     a polyline curve, defined by a set of vertices.
     """
@@ -40,6 +40,13 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
 
     @property
     def length(self) -> float:
+        return self.__dict__.get('_length')
+
+    @length.setter
+    def length(self, value: float) -> None:
+        self.__dict__['_length'] = value
+
+    def calculate_length(self) -> float:
         points = self.get_points()
         total_length = 0.0
         for i in range(len(points) - 1):

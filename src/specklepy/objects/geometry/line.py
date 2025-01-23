@@ -6,17 +6,23 @@ from specklepy.objects.interfaces import ICurve, IHasUnits
 
 
 @dataclass(kw_only=True)
-class Line(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Line"):
-    """
-    a line defined by two points in 3D space
-    """
-
+class Line(
+    Base,
+    IHasUnits,
+    ICurve,
+    speckle_type="Objects.Geometry.Line",
+    serialize_ignore={"length"}
+):
     start: Point
     end: Point
 
     @property
     def length(self) -> float:
-        """
-        calculate the length of the line using Point's distance_to method
-        """
+        return self.__dict__.get('_length')
+
+    @length.setter
+    def length(self, value: float) -> None:
+        self.__dict__['_length'] = value
+
+    def calculate_length(self) -> float:
         return self.start.distance_to(self.end)

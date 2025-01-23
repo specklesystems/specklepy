@@ -42,6 +42,7 @@ def test_line_domain(sample_line):
 
 def test_line_length(sample_line):
 
+    sample_line.length = sample_line.calculate_length()
     assert sample_line.length == 5.0
 
 
