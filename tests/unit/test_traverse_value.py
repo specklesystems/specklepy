@@ -1,9 +1,11 @@
 from typing import List
+from dataclasses import dataclass
 
-from specklepy.objects_v2.base import Base
+from specklepy.objects.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 
 
+@dataclass(kw_only=True)
 class FakeBase(Base):
     foo: List[str]
     bar: int
