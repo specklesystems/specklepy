@@ -71,12 +71,12 @@ def test_arc_domain(sample_arc):
 
 
 def test_arc_radius(sample_arc):
-    sample_arc.radius = sample_arc.calculate_radius()
+
     assert sample_arc.radius == pytest.approx(1.0)
 
 
 def test_arc_length(sample_arc):
-    sample_arc.length = sample_arc.calculate_length()
+
     assert sample_arc.length == pytest.approx(math.pi)
 
 

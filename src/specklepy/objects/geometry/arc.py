@@ -22,7 +22,15 @@ class Arc(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Arc"):
     def length(self) -> float:
         start_to_mid = self.startPoint.distance_to(self.midPoint)
         mid_to_end = self.midPoint.distance_to(self.endPoint)
-        r = self.calculate_radius()
+        r = self.radius
         angle = (2 * math.asin(start_to_mid / (2 * r))) + \
             (2 * math.asin(mid_to_end / (2 * r)))
         return r * angle
+
+    @property
+    def measure(self) -> float:
+        start_to_mid = self.startPoint.distance_to(self.midPoint)
+        mid_to_end = self.midPoint.distance_to(self.endPoint)
+        r = self.radius
+        return (2 * math.asin(start_to_mid / (2 * r))) + \
+            (2 * math.asin(mid_to_end / (2 * r)))

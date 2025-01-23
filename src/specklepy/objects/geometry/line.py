@@ -17,4 +17,4 @@ class Line(
 
     @property
     def length(self) -> float:
-        self.start.distance_to(self.end)
+        return self.start.distance_to(self.end)
