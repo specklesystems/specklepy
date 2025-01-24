@@ -21,7 +21,8 @@ def create_default_traversal_function() -> GraphTraversal:
 
     default_rule = TraversalRule(
         [lambda _: True],
-        lambda o: o.get_member_names(),  # NOTE: Unlike the C# implementation, this does not ignore Obsolete members
+        # NOTE: Unlike the C# implementation, this does not ignore Obsolete members
+        lambda o: o.get_member_names(),
         False,
     )
 

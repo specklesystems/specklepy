@@ -7,7 +7,6 @@ from specklepy.objects.base import Base
 
 
 class ITraversalRule(Protocol):
-
     @property
     def should_return(self) -> bool:
         pass
