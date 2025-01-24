@@ -3,8 +3,8 @@ import json
 import pytest
 
 from specklepy.api import operations
-from specklepy.objects import Base
-from specklepy.objects.fakemesh import FakeMesh
+from specklepy.objects.base import Base
+from .fakemesh import FakeMesh
 from specklepy.objects.geometry import Point
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport

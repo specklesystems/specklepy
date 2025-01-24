@@ -1,6 +1,6 @@
 import pytest
 
-from specklepy.objects_v2.units import Units, get_scale_factor
+from specklepy.objects.models.units import Units, get_scale_factor
 
 
 @pytest.mark.parametrize(

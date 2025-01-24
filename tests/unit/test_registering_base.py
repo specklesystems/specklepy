@@ -2,8 +2,7 @@ from typing import Type
 
 import pytest
 
-from specklepy.objects_v2.base import Base
-from specklepy.objects_v2.structural import Concrete
+from specklepy.objects.base import Base
 
 
 class Foo(Base):
@@ -28,10 +27,6 @@ class Baz(Bar):
             Baz,
             "Tests.Unit.TestRegisteringBase.Foo:Custom.Bar:Tests.Unit.TestRegisteringBase.Baz",
         ),
-        (
-            Concrete,
-            "Objects.Structural.Materials.StructuralMaterial:Objects.Structural.Materials.Concrete",
-        ),
     ],
 )
 def test_determine_speckle_type(klass: Type[Base], speckle_type: str):
@@ -43,7 +38,6 @@ def test_determine_speckle_type(klass: Type[Base], speckle_type: str):
     [
         (Base, "Base"),
         (Foo, "Tests.Unit.TestRegisteringBase.Foo"),
-        (Concrete, "Objects.Structural.Materials.Concrete"),
     ],
 )
 def test_full_name(klass: Type[Base], fully_qualified_name: str):
