@@ -126,7 +126,7 @@ class Version(BaseModel):
 
 
 class Model(BaseModel):
-    author: LimitedUser
+    author: Optional[LimitedUser]
     createdAt: datetime
     description: Optional[str]
     displayName: str
