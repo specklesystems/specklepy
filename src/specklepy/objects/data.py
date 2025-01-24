@@ -1,54 +1,81 @@
-from typing import Any, Dict, List
+from dataclasses import dataclass, field
+from typing import Dict, List
 from specklepy.objects.base import Base
-from specklepy.objects.interfaces import IDataObject, IGisObject
+from specklepy.objects.interfaces import IDataObject, IGisObject, IHasUnits
+from specklepy.logging.exceptions import SpeckleException
 
 
+@dataclass(kw_only=True)
 class DataObject(
     Base,
     IDataObject,
     speckle_type="Objects.Data.DataObject",
     detachable={"displayValue"},
 ):
+
     name: str
-    properties: Dict[str, Any]
+    properties: Dict[str, object]
     displayValue: List[Base]
-
-    def __init__(self, *, name, properties, displayValue, application_id=None):
-        super().__init__()
-        self.name = name
-        self.properties = properties
-        self.displayValue = displayValue
-
-        if application_id:
-            self.applicationId = application_id
-
-
-class QgisObject(DataObject, IGisObject, speckle_type="Objects.Data.QgisObject"):
-
-    units: str
-
-    @property
-    def type(self) -> str:
-        pass
-
-    @property
-    def properties(self) -> str:
-        pass
-
-    @property
-    def displayValue(self) -> List[Base]:
-        pass
+    _name: str = field(repr=False, init=False)
+    _properties: Dict[str, object] = field(repr=False, init=False)
+    _displayValue: List[Base] = field(repr=False, init=False)
 
     @property
     def name(self) -> str:
-        pass
+        return self._name
 
-    def __init__(self, *, name, properties, displayValue, type, units, application_id):
-        super().__init__(
-            name=name,
-            properties=properties,
-            displayValue=displayValue,
-            application_id=application_id,
-        )
-        self.type = type
-        self.units = units
+    @property
+    def properties(self) -> Dict[str, object]:
+        return self._properties
+
+    @property
+    def displayValue(self) -> List[Base]:
+        return self._displayValue
+
+    @name.setter
+    def name(self, value: str):
+        if isinstance(value, str):
+            self._name = value
+        else:
+            raise SpeckleException(
+                f"'name' value should be string, received {type(value)}"
+            )
+
+    @properties.setter
+    def properties(self, value: dict):
+        if isinstance(value, dict):
+            self._properties = value
+        else:
+            raise SpeckleException(
+                f"'properties' value should be Dict, received {type(value)}"
+            )
+
+    @displayValue.setter
+    def displayValue(self, value: list):
+        if isinstance(value, list):
+            self._displayValue = value
+        else:
+            raise SpeckleException(
+                f"'displayValue' value should be List, received {type(value)}"
+            )
+
+
+@dataclass(kw_only=True)
+class QgisObject(
+    DataObject, IGisObject, IHasUnits, speckle_type="Objects.Data.QgisObject"
+):
+    type: str
+    _type: str = field(repr=False, init=False)
+
+    @property
+    def type(self) -> str:
+        return self._type
+
+    @type.setter
+    def type(self, value: str):
+        if isinstance(value, str):
+            self._type = value
+        else:
+            raise SpeckleException(
+                f"'type' value should be string, received {type(value)}"
+            )
