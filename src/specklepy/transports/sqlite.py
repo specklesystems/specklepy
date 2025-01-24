@@ -39,8 +39,7 @@ class SQLiteTransport(AbstractTransport):
                 f"SQLiteTransport could not initialise {self.scope}.db at"
                 f" {self._base_path}. Either provide a different `base_path` or use an"
                 " alternative transport.",
-                ex,
-            )
+            ) from ex
 
     def __repr__(self) -> str:
         return f"SQLiteTransport(app: '{self.app_name}', scope: '{self.scope}')"
@@ -105,10 +104,9 @@ class SQLiteTransport(AbstractTransport):
             raise SpeckleException(
                 "Could not save the batch of objects to the local db. Inner exception:"
                 f" {ex}",
-                ex,
-            )
+            ) from ex
 
-    def get_object(self, id: str) -> str or None:
+    def get_object(self, id: str) -> str | None:
         self.__check_connection()
         with closing(self.__connection.cursor()) as c:
             row = c.execute(

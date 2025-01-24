@@ -76,7 +76,13 @@ class VersionResource(ResourceBase):
     ) -> ResourceCollection[Version]:
         QUERY = gql(
             """
-            query VersionGetVersions($projectId: String!, $modelId: String!, $limit: Int!, $cursor: String, $filter: ModelVersionsFilter) {
+            query VersionGetVersions(
+              $projectId: String!,
+              $modelId: String!,
+              $limit: Int!,
+              $cursor: String,
+              $filter: ModelVersionsFilter
+              ) {
               data:project(id: $projectId) {
                 data:model(id: $modelId) {
                   data:versions(limit: $limit, cursor: $cursor, filter: $filter) {

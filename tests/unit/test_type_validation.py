@@ -87,7 +87,8 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
         (Tuple, (1, "foo", "bar"), True, (1, "foo", "bar")),
         # given our current rules, this is the reality. Its just sad...
         (Tuple[str, str, str], (1, "foo", "bar"), True, ("1", "foo", "bar")),
-        (Tuple[str, Optional[str], str], (1, None, "bar"), True, ("1", None, "bar")),
+        (Tuple[str, Optional[str], str],
+         (1, None, "bar"), True, ("1", None, "bar")),
         (Set[bool], set([1, 2]), False, set([1, 2])),
         (Set[int], set([1, 2]), True, set([1, 2])),
         (Set[int], set([None, 2]), True, set([None, 2])),
@@ -99,7 +100,8 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
         (Optional[Union[List[int], List[FakeBase]]], None, True, None),
         (Optional[Union[List[int], List[FakeBase]]], "foo", False, "foo"),
         (Union[List[int], List[FakeBase], None], "foo", False, "foo"),
-        (Optional[Union[List[int], List[FakeBase]]], [1, 2, 3], True, [1, 2, 3]),
+        (Optional[Union[List[int], List[FakeBase]]],
+         [1, 2, 3], True, [1, 2, 3]),
         (
             Optional[Union[List[int], List[FakeBase]]],
             fake_bases,
@@ -113,7 +115,8 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
             True,
             {"foo": 1.0, "bar": 2.0},
         ),
-        (Union[float, Dict[str, float]], {"foo": "bar"}, False, {"foo": "bar"}),
+        (Union[float, Dict[str, float]], {
+         "foo": "bar"}, False, {"foo": "bar"}),
     ],
 )
 def test_validate_type(

@@ -1,3 +1,5 @@
+import contextlib
+
 from deprecated import deprecated
 
 from specklepy.api.credentials import Account
@@ -40,7 +42,8 @@ class SpeckleClient(CoreSpeckleClient):
     client = SpeckleClient(host="app.speckle.systems") # or whatever your host is
     # client = SpeckleClient(host="localhost:3000", use_ssl=False) or use local server
 
-    # authenticate the client with an account (account has been added in Speckle Manager)
+    # authenticate the client with an account
+    # (account has been added in Speckle Manager)
     account = get_default_account()
     client.authenticate_with_account(account)
 
@@ -74,10 +77,9 @@ class SpeckleClient(CoreSpeckleClient):
         )
 
         server_version = None
-        try:
+
+        with contextlib.suppress(Exception):
             server_version = self.server.version()
-        except Exception:
-            pass
 
         self.other_user = OtherUserResource(
             account=self.account,

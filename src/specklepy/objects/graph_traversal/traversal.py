@@ -66,12 +66,16 @@ class GraphTraversal:
             for child_prop in members_to_traverse:
                 try:
                     if child_prop in {"speckle_type", "units", "applicationId"}:
-                        continue  # debug: to avoid noisy exceptions, explicitly avoid checking ones we know will fail, this is not exhaustive
+                        # debug: to avoid noisy exceptions,
+                        # explicitly avoid checking ones we know will fail,
+                        # this is not exhaustive
+                        continue
                     if getattr(current, child_prop, None):
                         value = current[child_prop]
                         self._traverse_member_to_stack(stack, value, child_prop, head)
                 except KeyError:
-                    # Unset application ids, and class variables like SpeckleType will throw when __getitem__ is called
+                    # Unset application ids, and class variables like SpeckleType will
+                    #  throw when __getitem__ is called
                     pass
 
     @staticmethod
@@ -132,7 +136,4 @@ class TraversalRule:
         return set(self._members_to_traverse(o))
 
     def does_rule_hold(self, o: Base) -> bool:
-        for condition in self._conditions:
-            if condition(o):
-                return True
-        return False
+        return any(condition(o) for condition in self._conditions)

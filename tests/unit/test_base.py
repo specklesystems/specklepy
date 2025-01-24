@@ -7,7 +7,7 @@ import pytest
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from specklepy.objects.base import Base
-from specklepy.objects.units import Units
+from specklepy.objects.models.units import Units
 
 
 @pytest.mark.parametrize(

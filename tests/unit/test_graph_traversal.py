@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 from unittest import TestCase
 
-from specklepy.objects import Base
+from specklepy.objects.base import Base
 from specklepy.objects.graph_traversal.traversal import GraphTraversal, TraversalRule
 
 
@@ -100,6 +100,7 @@ class GraphTraversalTests(TestCase):
             for context in GraphTraversal([traverse_lists_rule]).traverse(test_case)
         ]
 
-        self.assertCountEqual(ret, [test_case, expected_traverse, expected_traverse])
+        self.assertCountEqual(
+            ret, [test_case, expected_traverse, expected_traverse])
         self.assertNotIn(expected_ignore, ret)
         self.assertEqual(len(ret), 3)

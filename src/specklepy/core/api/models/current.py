@@ -55,7 +55,8 @@ class ServerConfiguration(BaseModel):
     objectSizeLimitBytes: int
 
 
-# Keeping this one all Optionals at the minute, because its used both as a deserialization model for GQL and Account Management
+# Keeping this one all Optionals at the minute,
+#  because its used both as a deserialization model for GQL and Account Management
 class ServerInfo(BaseModel):
     name: Optional[str] = None
     company: Optional[str] = None
@@ -126,7 +127,7 @@ class Version(BaseModel):
 
 
 class Model(BaseModel):
-    author: LimitedUser
+    author: Optional[LimitedUser]
     createdAt: datetime
     description: Optional[str]
     displayName: str

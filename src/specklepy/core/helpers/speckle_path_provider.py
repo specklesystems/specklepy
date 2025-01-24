@@ -99,7 +99,7 @@ def user_application_data_path() -> Path:
     except Exception as ex:
         raise SpeckleException(
             message="Failed to initialize user application data path.", exception=ex
-        )
+        ) from ex
 
 
 def user_speckle_folder_path() -> Path:

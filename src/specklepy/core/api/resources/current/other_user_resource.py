@@ -74,7 +74,9 @@ class OtherUserResource(ResourceBase):
         archived: bool = False,
         emailOnly: bool = False,
     ) -> UserSearchResultCollection:
-        """Searches for a user on the server, by name or email. The search query must be at least
+        """
+        Searches for a user on the server, by name or email.
+        The search query must be at least
         3 characters long
 
         Arguments:
@@ -89,8 +91,20 @@ class OtherUserResource(ResourceBase):
 
         QUERY = gql(
             """
-            query UserSearch($query: String!, $limit: Int!, $cursor: String, $archived: Boolean, $emailOnly: Boolean) {
-              data:userSearch(query: $query, limit: $limit, cursor: $cursor, archived: $archived, emailOnly: $emailOnly) {
+            query UserSearch(
+                $query: String!,
+                $limit: Int!,
+                $cursor: String,
+                $archived: Boolean,
+                $emailOnly: Boolean
+            ) {
+              data:userSearch(
+                query: $query,
+                limit: $limit,
+                cursor: $cursor,
+                archived: $archived,
+                emailOnly: $emailOnly
+                ) {
                 cursor
                 items {
                  id
