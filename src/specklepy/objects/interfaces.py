@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from typing import Generic, List, TypeVar
+from typing import Dict, Generic, List, TypeVar
 
 from specklepy.logging.exceptions import SpeckleInvalidUnitException
 from specklepy.objects.base import Base
@@ -13,8 +13,7 @@ T = TypeVar("T")  # define type variable for generic type
 # generic interfaces
 @dataclass(kw_only=True)
 class ICurve(metaclass=ABCMeta):
-    _domain: Interval = field(
-        default_factory=Interval.unit_interval, init=False)
+    _domain: Interval = field(default_factory=Interval.unit_interval, init=False)
 
     @property
     @abstractmethod
@@ -39,7 +38,6 @@ class IDisplayValue(Generic[T], metaclass=ABCMeta):
         pass
 
 
-# field interfaces
 # field interfaces
 @dataclass(kw_only=True)
 class IHasUnits(metaclass=ABCMeta):
@@ -99,7 +97,7 @@ class IHasVolume(metaclass=ABCMeta):
 class IProperties(metaclass=ABCMeta):
     @property
     @abstractmethod
-    def properties(self) -> dict[str, object]:
+    def properties(self) -> Dict[str, object]:
         pass
 
 
