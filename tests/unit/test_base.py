@@ -6,8 +6,8 @@ import pytest
 
 from specklepy.api import operations
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects_v2.base import Base
-from specklepy.objects_v2.units import Units
+from specklepy.objects.base import Base
+from specklepy.objects.models.units import Units
 
 
 @pytest.mark.parametrize(

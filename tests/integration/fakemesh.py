@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from specklepy.objects.geometry import Point
 
-from .base import Base
+from specklepy.objects.base import Base
 
 CHUNKABLE_PROPS = {
     "vertices": 100,
