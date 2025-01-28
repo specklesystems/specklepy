@@ -13,7 +13,7 @@ class Interval(Base, speckle_type="Objects.Primitive.Interval", serialize_ignore
 
     @property
     def length(self) -> float:
-        abs(self.end - self.start)
+        return abs(self.end - self.start)
 
     @classmethod
     def unit_interval(cls) -> "Interval":
