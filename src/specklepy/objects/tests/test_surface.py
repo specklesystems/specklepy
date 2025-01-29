@@ -1,31 +1,45 @@
+from typing import Any, List, Tuple
+
 import pytest
 
 from specklepy.core.api.operations import deserialize, serialize
-from specklepy.objects.geometry import Surface, ControlPoint
-from specklepy.objects.primitive import Interval
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.objects.geometry import ControlPoint, Surface
 from specklepy.objects.models.units import Units
+from specklepy.objects.primitive import Interval
 
 
 @pytest.fixture
-def sample_intervals():
-    return (
-        Interval(start=0.0, end=1.0),
-        Interval(start=0.0, end=1.0)
-    )
+def sample_intervals() -> Tuple[Interval, Interval]:
+    return (Interval(start=0.0, end=1.0), Interval(start=0.0, end=1.0))
 
 
 @pytest.fixture
-def sample_point_data():
+def sample_point_data() -> List[float]:
     return [
-        0.0, 0.0, 0.0, 1.0,  # point 1
-        1.0, 0.0, 0.0, 1.0,  # point 2
-        0.0, 1.0, 0.0, 1.0,  # point 3
-        1.0, 1.0, 0.0, 1.0,  # point 4
+        0.0,
+        0.0,
+        0.0,
+        1.0,  # point 1
+        1.0,
+        0.0,
+        0.0,
+        1.0,  # point 2
+        0.0,
+        1.0,
+        0.0,
+        1.0,  # point 3
+        1.0,
+        1.0,
+        0.0,
+        1.0,  # point 4
     ]
 
 
 @pytest.fixture
-def sample_surface(sample_intervals, sample_point_data):
+def sample_surface(
+    sample_intervals: Tuple[Interval, Interval], sample_point_data: List[float]
+) -> Surface:
     domain_u, domain_v = sample_intervals
     return Surface(
         degreeU=1,
@@ -40,11 +54,16 @@ def sample_surface(sample_intervals, sample_point_data):
         domainV=domain_v,
         closedU=False,
         closedV=False,
-        units=Units.m
+        units=Units.m,
     )
 
 
-def test_surface_creation(sample_intervals, sample_point_data):
+@pytest.mark.parametrize("units", [Units.m])
+def test_surface_creation(
+    sample_intervals: Tuple[Interval, Interval],
+    sample_point_data: List[float],
+    units: Units,
+):
     domain_u, domain_v = sample_intervals
     surface = Surface(
         degreeU=1,
@@ -59,7 +78,7 @@ def test_surface_creation(sample_intervals, sample_point_data):
         domainV=domain_v,
         closedU=False,
         closedV=False,
-        units=Units.m
+        units=units,
     )
 
     assert surface.degreeU == 1
@@ -74,16 +93,16 @@ def test_surface_creation(sample_intervals, sample_point_data):
     assert surface.domainV == domain_v
     assert not surface.closedU
     assert not surface.closedV
-    assert surface.units == Units.m.value
+    assert surface.units == units.value
 
 
-def test_surface_area(sample_surface):
-    area = 1.0
-    sample_surface.area = area
-    assert sample_surface.area == area
+@pytest.mark.parametrize("test_value", [1.0])
+def test_surface_area(sample_surface: Surface, test_value: float):
+    sample_surface.area = test_value
+    assert sample_surface.area == test_value
 
 
-def test_surface_get_control_points(sample_surface):
+def test_surface_get_control_points(sample_surface: Surface):
     control_points = sample_surface.get_control_points()
 
     assert len(control_points) == 2
@@ -96,16 +115,17 @@ def test_surface_get_control_points(sample_surface):
     assert control_points[0][0].units == Units.m.value
 
 
-def test_surface_set_control_points(sample_surface):
+@pytest.mark.parametrize("units", [Units.m])
+def test_surface_set_control_points(sample_surface: Surface, units: Units):
     control_points = [
         [
-            ControlPoint(x=0.0, y=0.0, z=0.0, weight=1.0, units=Units.m),
-            ControlPoint(x=1.0, y=0.0, z=0.0, weight=1.0, units=Units.m)
+            ControlPoint(x=0.0, y=0.0, z=0.0, weight=1.0, units=units),
+            ControlPoint(x=1.0, y=0.0, z=0.0, weight=1.0, units=units),
         ],
         [
-            ControlPoint(x=0.0, y=1.0, z=0.0, weight=1.0, units=Units.m),
-            ControlPoint(x=1.0, y=1.0, z=0.0, weight=1.0, units=Units.m)
-        ]
+            ControlPoint(x=0.0, y=1.0, z=0.0, weight=1.0, units=units),
+            ControlPoint(x=1.0, y=1.0, z=0.0, weight=1.0, units=units),
+        ],
     ]
 
     sample_surface.set_control_points(control_points)
@@ -116,7 +136,7 @@ def test_surface_set_control_points(sample_surface):
     assert sample_surface.pointData[0:4] == [0.0, 0.0, 0.0, 1.0]
 
 
-def test_surface_serialization(sample_surface):
+def test_surface_serialization(sample_surface: Surface):
     serialized = serialize(sample_surface)
     deserialized = deserialize(serialized)
 
@@ -137,22 +157,33 @@ def test_surface_serialization(sample_surface):
     assert deserialized.units == sample_surface.units
 
 
-def test_surface_invalid_construction(sample_intervals):
+@pytest.mark.parametrize(
+    "invalid_param,invalid_value",
+    [("degreeU", "not a number")],
+)
+def test_surface_invalid_construction(
+    sample_intervals: Tuple[Interval, Interval],
+    invalid_param: str,
+    invalid_value: Any,
+):
     domain_u, domain_v = sample_intervals
 
-    with pytest.raises(Exception):
-        Surface(
-            degreeU="not a number",
-            degreeV=1,
-            rational=True,
-            pointData=[0.0, 0.0, 0.0, 1.0],
-            countU=1,
-            countV=1,
-            knotsU=[0.0, 1.0],
-            knotsV=[0.0, 1.0],
-            domainU=domain_u,
-            domainV=domain_v,
-            closedU=False,
-            closedV=False,
-            units=Units.m
-        )
+    valid_params = {
+        "degreeU": 1,
+        "degreeV": 1,
+        "rational": True,
+        "pointData": [0.0, 0.0, 0.0, 1.0],
+        "countU": 1,
+        "countV": 1,
+        "knotsU": [0.0, 1.0],
+        "knotsV": [0.0, 1.0],
+        "domainU": domain_u,
+        "domainV": domain_v,
+        "closedU": False,
+        "closedV": False,
+        "units": Units.m,
+    }
+    valid_params[invalid_param] = invalid_value
+
+    with pytest.raises(SpeckleException):
+        Surface(**valid_params)

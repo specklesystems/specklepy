@@ -8,24 +8,40 @@ from specklepy.objects.primitive import Interval
 
 @pytest.fixture
 def open_square_coords():
-
     return [
-        0.0, 0.0, 0.0,  # point 1
-        1.0, 0.0, 0.0,  # point 2
-        1.0, 1.0, 0.0,  # point 3
-        0.0, 1.0, 0.0   # point 4
+        0.0,
+        0.0,
+        0.0,  # point 1
+        1.0,
+        0.0,
+        0.0,  # point 2
+        1.0,
+        1.0,
+        0.0,  # point 3
+        0.0,
+        1.0,
+        0.0,  # point 4
     ]
 
 
 @pytest.fixture
 def closed_square_coords():
-
     return [
-        0.0, 0.0, 0.0,  # point 1
-        1.0, 0.0, 0.0,  # point 2
-        1.0, 1.0, 0.0,  # point 3
-        0.0, 1.0, 0.0,  # point 4
-        0.0, 0.0, 0.0   # point 5 (same as point 1)
+        0.0,
+        0.0,
+        0.0,  # point 1
+        1.0,
+        0.0,
+        0.0,  # point 2
+        1.0,
+        1.0,
+        0.0,  # point 3
+        0.0,
+        1.0,
+        0.0,  # point 4
+        0.0,
+        0.0,
+        0.0,  # point 5 (same as point 1)
     ]
 
 
@@ -55,9 +71,11 @@ def test_polyline_is_closed(open_square_coords, closed_square_coords):
 
 
 def test_polyline_is_closed_with_tolerance(open_square_coords):
-
-    almost_closed = open_square_coords + \
-        [0.0, 0.0, 0.001]  # last point slightly above start
+    almost_closed = open_square_coords + [
+        0.0,
+        0.0,
+        0.001,
+    ]  # last point slightly above start
     poly = Polyline(value=almost_closed, units=Units.m)
 
     assert not poly.is_closed(tolerance=1e-6)
@@ -87,7 +105,7 @@ def test_polyline_get_points(sample_polyline):
         Point(x=0.0, y=0.0, z=0.0, units=Units.m),
         Point(x=1.0, y=0.0, z=0.0, units=Units.m),
         Point(x=1.0, y=1.0, z=0.0, units=Units.m),
-        Point(x=0.0, y=1.0, z=0.0, units=Units.m)
+        Point(x=0.0, y=1.0, z=0.0, units=Units.m),
     ]
 
     # Check coordinates match
@@ -98,7 +116,6 @@ def test_polyline_get_points(sample_polyline):
 
 
 def test_polyline_invalid_coordinates():
-
     invalid_coords = [0.0, 0.0, 0.0, 1.0, 1.0]  # missing one coordinate
     with pytest.raises(ValueError):
         polyline = Polyline(value=invalid_coords, units=Units.m)

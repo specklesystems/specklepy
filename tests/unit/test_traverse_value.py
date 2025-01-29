@@ -1,5 +1,5 @@
-from typing import List
 from dataclasses import dataclass
+from typing import List
 
 from specklepy.objects.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer

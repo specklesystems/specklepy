@@ -1,6 +1,11 @@
+# ignoring "line too long" check from linter
+# to match with SpeckleExceptions
+# ruff: noqa: E501
+
 import pytest
 
 from specklepy.core.api.operations import deserialize, serialize
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.geometry import Box, Plane, Point, Vector
 from specklepy.objects.models.units import Units
 from specklepy.objects.primitive import Interval
@@ -12,45 +17,30 @@ def sample_plane():
     normal = Vector(x=0.0, y=0.0, z=1.0, units=Units.m)
     xdir = Vector(x=1.0, y=0.0, z=0.0, units=Units.m)
     ydir = Vector(x=0.0, y=1.0, z=0.0, units=Units.m)
-
-    plane = Plane(
-        origin=origin,
-        normal=normal,
-        xdir=xdir,
-        ydir=ydir,
-        units=Units.m
-    )
-    return plane
+    return Plane(origin=origin, normal=normal, xdir=xdir, ydir=ydir, units=Units.m)
 
 
 @pytest.fixture
-def sample_box(sample_plane):
-    # create a 1x1x1 meter cube
-    xsize = Interval(start=0.0, end=1.0)
-    ysize = Interval(start=0.0, end=1.0)
-    zsize = Interval(start=0.0, end=1.0)
-
-    box = Box(
-        basePlane=sample_plane,
-        xSize=xsize,
-        ySize=ysize,
-        zSize=zsize,
-        units=Units.m
+def sample_intervals():
+    return (
+        Interval(start=0.0, end=1.0),
+        Interval(start=0.0, end=1.0),
+        Interval(start=0.0, end=1.0),
     )
-    return box
 
 
-def test_box_creation(sample_plane):
-    xsize = Interval(start=0.0, end=1.0)
-    ysize = Interval(start=0.0, end=1.0)
-    zsize = Interval(start=0.0, end=1.0)
+@pytest.fixture
+def sample_box(sample_plane, sample_intervals):
+    xsize, ysize, zsize = sample_intervals
+    return Box(
+        basePlane=sample_plane, xSize=xsize, ySize=ysize, zSize=zsize, units=Units.m
+    )
 
+
+def test_box_creation(sample_plane, sample_intervals):
+    xsize, ysize, zsize = sample_intervals
     box = Box(
-        basePlane=sample_plane,
-        xSize=xsize,
-        ySize=ysize,
-        zSize=zsize,
-        units=Units.m
+        basePlane=sample_plane, xSize=xsize, ySize=ysize, zSize=zsize, units=Units.m
     )
 
     assert box.basePlane == sample_plane
@@ -60,53 +50,66 @@ def test_box_creation(sample_plane):
     assert box.units == Units.m.value
 
 
-def test_box_area(sample_box):
-    # for a 1x1x1 cube, surface area should be 6 square meters
-    expected_area = 6.0  # 6 faces, each 1x1
+@pytest.mark.parametrize("expected_area", [6.0])  # 6 faces, each 1x1
+def test_box_area(sample_box, expected_area):
     sample_box.area = sample_box.area
     assert sample_box.area == pytest.approx(expected_area)
 
 
-def test_box_volume(sample_box):
-    # for a 1x1x1 cube, volume should be 1 cubic meter
-    expected_volume = 1.0
+@pytest.mark.parametrize("expected_volume", [1.0])  # 1x1x1 cube
+def test_box_volume(sample_box, expected_volume):
     sample_box.volume = sample_box.volume
     assert sample_box.volume == pytest.approx(expected_volume)
 
 
-def test_box_units(sample_plane):
+@pytest.mark.parametrize("new_units", ["mm", "cm", "in"])
+def test_box_units(sample_plane, sample_intervals, new_units):
+    xsize, ysize, zsize = sample_intervals
     box = Box(
-        basePlane=sample_plane,
-        xSize=Interval(start=0.0, end=1.0),
-        ySize=Interval(start=0.0, end=1.0),
-        zSize=Interval(start=0.0, end=1.0),
-        units=Units.m
+        basePlane=sample_plane, xSize=xsize, ySize=ysize, zSize=zsize, units=Units.m
     )
-
     assert box.units == Units.m.value
+    box.units = new_units
+    assert box.units == new_units
 
-    box.units = "mm"
-    assert box.units == "mm"
 
+@pytest.mark.parametrize(
+    "invalid_param, test_params, error_msg",
+    [
+        (
+            "basePlane",
+            {"basePlane": "not a plane", "xSize": None, "ySize": None, "zSize": None},
+            "Cannot set 'Box.basePlane':it expects type '<class 'specklepy.objects.geometry.plane.Plane'>',but received type 'str'",
+        ),
+        (
+            "xSize",
+            {
+                "basePlane": None,
+                "xSize": "not an interval",
+                "ySize": None,
+                "zSize": None,
+            },
+            "Cannot set 'Box.xSize':it expects type '<class 'specklepy.objects.primitive.Interval'>',but received type 'str'",
+        ),
+    ],
+)
+def test_box_inval(
+    sample_plane, sample_intervals, invalid_param, test_params, error_msg
+):
+    xsize, ysize, zsize = sample_intervals
 
-def test_box_invalid_construction(sample_plane):
-    with pytest.raises(Exception):
-        Box(
-            basePlane="not a plane",
-            xSize=Interval(start=0.0, end=1.0),
-            ySize=Interval(start=0.0, end=1.0),
-            zSize=Interval(start=0.0, end=1.0),
-            units=Units.m
-        )
+    if invalid_param != "basePlane":
+        test_params["basePlane"] = sample_plane
+    if invalid_param != "xSize":
+        test_params["xSize"] = xsize
+    if invalid_param != "ySize":
+        test_params["ySize"] = ysize
+    if invalid_param != "zSize":
+        test_params["zSize"] = zsize
 
-    with pytest.raises(Exception):
-        Box(
-            basePlane=sample_plane,
-            xSize="not an interval",
-            ySize=Interval(start=0.0, end=1.0),
-            zSize=Interval(start=0.0, end=1.0),
-            units=Units.m
-        )
+    with pytest.raises(SpeckleException) as exc_info:
+        Box(**test_params, units=Units.m)
+    assert str(exc_info.value) == f"SpeckleException: {error_msg}"
 
 
 def test_box_serialization(sample_box):

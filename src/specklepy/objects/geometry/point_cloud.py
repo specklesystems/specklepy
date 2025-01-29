@@ -13,6 +13,10 @@ class PointCloud(Base, IHasUnits, speckle_type="Objects.Geometry.PointCloud"):
     points: list
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(points: {len(self.points)}, units: {self.units})"
+        return (
+            f"{self.__class__.__name__}("
+            f"points: {len(self.points)}, "
+            f"units: {self.units})"
+        )
 
     # sizes and colors could be added in the future

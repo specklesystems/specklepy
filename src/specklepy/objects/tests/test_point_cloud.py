@@ -11,7 +11,7 @@ def sample_points():
         Point(x=0.0, y=0.0, z=0.0, units=Units.m),
         Point(x=1.0, y=0.0, z=0.0, units=Units.m),
         Point(x=0.0, y=1.0, z=0.0, units=Units.m),
-        Point(x=1.0, y=1.0, z=0.0, units=Units.m)
+        Point(x=1.0, y=1.0, z=0.0, units=Units.m),
     ]
 
 
@@ -48,7 +48,9 @@ def test_point_cloud_serialization(sample_point_cloud):
 
     assert len(deserialized.points) == len(sample_point_cloud.points)
 
-    for orig_point, deserial_point in zip(sample_point_cloud.points, deserialized.points, strict=True):
+    for orig_point, deserial_point in zip(
+        sample_point_cloud.points, deserialized.points, strict=True
+    ):
         assert deserial_point.x == orig_point.x
         assert deserial_point.y == orig_point.y
         assert deserial_point.z == orig_point.z

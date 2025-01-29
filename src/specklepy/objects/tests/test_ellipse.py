@@ -1,7 +1,13 @@
+# ignoring "line too long" check from linter
+# to match with SpeckleExceptions
+# ruff: noqa: E501
+
 import math
+
 import pytest
 
 from specklepy.core.api.operations import deserialize, serialize
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.geometry import Ellipse, Plane, Point, Vector
 from specklepy.objects.models.units import Units
 from specklepy.objects.primitive import Interval
@@ -20,19 +26,13 @@ def sample_plane():
 @pytest.fixture
 def sample_ellipse(sample_plane):
     return Ellipse(
-        plane=sample_plane,
-        first_radius=2.0,
-        second_radius=1.0,
-        units=Units.m
+        plane=sample_plane, first_radius=2.0, second_radius=1.0, units=Units.m
     )
 
 
 def test_ellipse_creation(sample_plane):
     ellipse = Ellipse(
-        plane=sample_plane,
-        first_radius=2.0,
-        second_radius=1.0,
-        units=Units.m
+        plane=sample_plane, first_radius=2.0, second_radius=1.0, units=Units.m
     )
 
     assert ellipse.plane == sample_plane
@@ -47,50 +47,57 @@ def test_ellipse_domain(sample_ellipse):
     assert sample_ellipse.domain.end == 1.0
 
 
-def test_ellipse_area(sample_ellipse):
-    area = math.pi * sample_ellipse.first_radius * sample_ellipse.second_radius
-    sample_ellipse.area = area
-    assert sample_ellipse.area == pytest.approx(area)
+@pytest.mark.parametrize(
+    "area_value",
+    [
+        10.0,
+        math.pi * 2.0,  # area for circle with radius 2
+        0.0,
+    ],
+)
+def test_ellipse_area(sample_ellipse, area_value):
+    sample_ellipse.area = area_value
+    assert sample_ellipse.area == pytest.approx(area_value)
 
 
-def test_ellipse_units(sample_plane):
+@pytest.mark.parametrize("new_units", ["mm", "cm", "in"])
+def test_ellipse_units(sample_plane, new_units):
     ellipse = Ellipse(
-        plane=sample_plane,
-        first_radius=2.0,
-        second_radius=1.0,
-        units=Units.m
+        plane=sample_plane, first_radius=2.0, second_radius=1.0, units=Units.m
     )
-
     assert ellipse.units == Units.m.value
 
-    ellipse.units = "mm"
-    assert ellipse.units == "mm"
+    ellipse.units = new_units
+    assert ellipse.units == new_units
 
 
-def test_ellipse_invalid_construction(sample_plane):
-    with pytest.raises(Exception):
-        Ellipse(
-            plane="not a plane",
-            first_radius=2.0,
-            second_radius=1.0,
-            units=Units.m
-        )
+@pytest.mark.parametrize(
+    "invalid_param, test_params, error_msg",
+    [
+        (
+            "plane",
+            {"plane": "not a plane", "first_radius": 2.0, "second_radius": 1.0},
+            "Cannot set 'Ellipse.plane':it expects type '<class 'specklepy.objects.geometry.plane.Plane'>',but received type 'str'",
+        ),
+        (
+            "first_radius",
+            {"plane": None, "first_radius": "not a number", "second_radius": 1.0},
+            "Cannot set 'Ellipse.first_radius':it expects type '<class 'float'>',but received type 'str'",
+        ),
+        (
+            "second_radius",
+            {"plane": None, "first_radius": 2.0, "second_radius": "not number"},
+            "Cannot set 'Ellipse.second_radius':it expects type '<class 'float'>',but received type 'str'",
+        ),
+    ],
+)
+def test_ellipse_invalid(sample_plane, invalid_param, test_params, error_msg):
+    if invalid_param != "plane":
+        test_params["plane"] = sample_plane
 
-    with pytest.raises(Exception):
-        Ellipse(
-            plane=sample_plane,
-            first_radius="not a number",
-            second_radius=1.0,
-            units=Units.m
-        )
-
-    with pytest.raises(Exception):
-        Ellipse(
-            plane=sample_plane,
-            first_radius=2.0,
-            second_radius="not a number",
-            units=Units.m
-        )
+    with pytest.raises(SpeckleException) as exc_info:
+        Ellipse(**test_params, units=Units.m)
+    assert str(exc_info.value) == f"SpeckleException: {error_msg}"
 
 
 def test_ellipse_serialization(sample_ellipse):

@@ -3,17 +3,12 @@ from typing import List
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.control_point import ControlPoint
-from specklepy.objects.primitive import Interval
 from specklepy.objects.interfaces import IHasArea, IHasUnits
+from specklepy.objects.primitive import Interval
 
 
 @dataclass(kw_only=True)
-class Surface(
-    Base,
-    IHasArea,
-    IHasUnits,
-    speckle_type="Objects.Geometry.Surface"
-):
+class Surface(Base, IHasArea, IHasUnits, speckle_type="Objects.Geometry.Surface"):
     """
     a surface in nurbs form
     """
@@ -33,11 +28,11 @@ class Surface(
 
     @property
     def area(self) -> float:
-        return self.__dict__.get('_area', 0.0)
+        return self.__dict__.get("_area", 0.0)
 
     @area.setter
     def area(self, value: float) -> None:
-        self.__dict__['_area'] = value
+        self.__dict__["_area"] = value
 
     def get_control_points(self) -> List:
         """
@@ -48,15 +43,9 @@ class Surface(
 
         for i in range(0, len(self.pointData), 4):
             u_index = i // (self.countV * 4)
-            x, y, z, w = self.pointData[i:i+4]
+            x, y, z, w = self.pointData[i : i + 4]
             matrix[u_index].append(
-                ControlPoint(
-                    x=x,
-                    y=y,
-                    z=z,
-                    weight=w,
-                    units=self.units
-                )
+                ControlPoint(x=x, y=y, z=z, weight=w, units=self.units)
             )
 
         return matrix
