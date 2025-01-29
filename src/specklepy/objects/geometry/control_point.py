@@ -5,16 +5,15 @@ from specklepy.objects.interfaces import IHasUnits
 
 
 @dataclass(kw_only=True)
-class Vector(
-    Base, IHasUnits, speckle_type="Objects.Geometry.Vector", serialize_ignore={"length"}
-):
+class ControlPoint(Base, IHasUnits, speckle_type="Objects.Geometry.ControlPoint"):
     """
-    a 3-dimensional vector
+    a single 3-dimensional point
     """
 
     x: float
     y: float
     z: float
+    weight: float
 
     def __repr__(self) -> str:
         return (
@@ -22,9 +21,6 @@ class Vector(
             f"x: {self.x}, "
             f"y: {self.y}, "
             f"z: {self.z}, "
+            f"weight: {self.weight}, "
             f"units: {self.units})"
         )
-
-    @property
-    def length(self) -> float:
-        return (self.x**2 + self.y**2 + self.z**2) ** 0.5

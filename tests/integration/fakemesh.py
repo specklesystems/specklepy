@@ -1,9 +1,8 @@
 from enum import Enum
 from typing import List, Optional
 
-from specklepy.objects.geometry import Point
-
 from specklepy.objects.base import Base
+from specklepy.objects.geometry import Point
 
 CHUNKABLE_PROPS = {
     "vertices": 100,
