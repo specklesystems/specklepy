@@ -1,18 +1,14 @@
 from dataclasses import dataclass
 
-from specklepy.objects.base import Base
-from specklepy.objects.interfaces import IHasUnits
+from specklepy.objects.geometry.point import Point
 
 
 @dataclass(kw_only=True)
-class ControlPoint(Base, IHasUnits, speckle_type="Objects.Geometry.ControlPoint"):
+class ControlPoint(Point, speckle_type="Objects.Geometry.ControlPoint"):
     """
-    a single 3-dimensional point
+    a single 3-dimensional point with weight
     """
 
-    x: float
-    y: float
-    z: float
     weight: float
 
     def __repr__(self) -> str:
