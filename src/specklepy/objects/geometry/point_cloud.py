@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.point import Point
@@ -11,7 +12,7 @@ class PointCloud(Base, IHasUnits, speckle_type="Objects.Geometry.PointCloud"):
     a collection of 3-dimensional points
     """
 
-    points: list[Point]
+    points: List[Point]
 
     def __repr__(self) -> str:
         return (

@@ -24,6 +24,7 @@ def test_point_cloud_creation(sample_points):
     point_cloud = PointCloud(points=sample_points, units=Units.m)
 
     assert len(point_cloud.points) == 4
+    assert isinstance(point_cloud.points, list)
     assert all(isinstance(p, Point) for p in point_cloud.points)
     assert point_cloud.units == Units.m.value
 
