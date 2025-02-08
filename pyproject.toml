@@ -49,14 +49,7 @@ build-backend = "hatchling.build"
 source = "vcs"
 
 [tool.hatch.version.raw-options]
-# version_scheme = "python-simplified-semver"
-# local_scheme = "no-local-version"
-
-# [build-system]
-# requires = ["setuptools>=64", "setuptools-scm>=8"]
-# build-backend = "setuptools.build_meta"
-
-# [tool.setuptools_scm]
+local_scheme = "no-local-version"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -82,3 +75,13 @@ select = [
     "I",
 ]
 ignore = ["UP006", "UP007", "UP035"]
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+publish-url = "https://pypi.org/legacy/"
+
+[[tool.uv.index]]
+name = "test"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
