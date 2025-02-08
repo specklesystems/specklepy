@@ -8,77 +8,143 @@ from specklepy.objects.models.units import Units
 
 @pytest.fixture
 def cube_vertices():
-
     return [
-        -0.5, -0.5, -0.5,
-        0.5, -0.5, -0.5,
-        0.5, 0.5, -0.5,
-        -0.5, 0.5, -0.5,
-        -0.5, -0.5, 0.5,
-        0.5, -0.5, 0.5,
-        0.5, 0.5, 0.5,
-        -0.5, 0.5, 0.5
+        -0.5,
+        -0.5,
+        -0.5,
+        0.5,
+        -0.5,
+        -0.5,
+        0.5,
+        0.5,
+        -0.5,
+        -0.5,
+        0.5,
+        -0.5,
+        -0.5,
+        -0.5,
+        0.5,
+        0.5,
+        -0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        -0.5,
+        0.5,
+        0.5,
     ]
 
 
 @pytest.fixture
 def cube_faces():
-
     return [
-        4, 0, 3, 2, 1,    # bottom (-z)
-        4, 4, 5, 6, 7,    # top (+z)
-        4, 0, 1, 5, 4,    # front (-y)
-        4, 3, 7, 6, 2,    # back (+y)
-        4, 0, 4, 7, 3,    # left (-x)
-        4, 1, 2, 6, 5     # right (+x)
+        4,
+        0,
+        3,
+        2,
+        1,  # bottom (-z)
+        4,
+        4,
+        5,
+        6,
+        7,  # top (+z)
+        4,
+        0,
+        1,
+        5,
+        4,  # front (-y)
+        4,
+        3,
+        7,
+        6,
+        2,  # back (+y)
+        4,
+        0,
+        4,
+        7,
+        3,  # left (-x)
+        4,
+        1,
+        2,
+        6,
+        5,  # right (+x)
     ]
 
 
 @pytest.fixture
 def cube_colors():
-
     return [
-        255, 0, 0, 255,    # red
-        0, 255, 0, 255,    # green
-        0, 0, 255, 255,    # blue
-        255, 255, 0, 255,  # yellow
-        255, 0, 255, 255,  # magenta
-        0, 255, 255, 255,  # cyan
-        255, 255, 255, 255,  # white
-        0, 0, 0, 255       # black
+        255,
+        0,
+        0,
+        255,  # red
+        0,
+        255,
+        0,
+        255,  # green
+        0,
+        0,
+        255,
+        255,  # blue
+        255,
+        255,
+        0,
+        255,  # yellow
+        255,
+        0,
+        255,
+        255,  # magenta
+        0,
+        255,
+        255,
+        255,  # cyan
+        255,
+        255,
+        255,
+        255,  # white
+        0,
+        0,
+        0,
+        255,  # black
     ]
 
 
 @pytest.fixture
 def cube_texture_coords():
-
     return [
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0,
+        0.0,
+        1.0,
     ]
 
 
 @pytest.fixture
 def sample_mesh(cube_vertices, cube_faces):
-
     return Mesh(vertices=cube_vertices, faces=cube_faces, units=Units.m)
 
 
 @pytest.fixture
 def full_mesh(cube_vertices, cube_faces, cube_colors, cube_texture_coords):
-
     return Mesh(
         vertices=cube_vertices,
         faces=cube_faces,
         colors=cube_colors,
         textureCoordinates=cube_texture_coords,
-        units=Units.m
+        units=Units.m,
     )
 
 
@@ -101,7 +167,6 @@ def test_mesh_texture_coordinates_count(full_mesh):
 
 
 def test_mesh_get_point(sample_mesh):
-
     point = sample_mesh.get_point(0)
     assert isinstance(point, Point)
     assert point.x == -0.5
@@ -142,14 +207,12 @@ def test_mesh_is_closed(sample_mesh):
 
 
 def test_mesh_area(sample_mesh):
-
     calculated_area = sample_mesh.calculate_area()
     sample_mesh.area = calculated_area
     assert sample_mesh.area == pytest.approx(6.0)
 
 
 def test_mesh_volume(sample_mesh):
-
     calculated_volume = sample_mesh.calculate_volume()
     sample_mesh.volume = calculated_volume
 
@@ -158,7 +221,6 @@ def test_mesh_volume(sample_mesh):
 
 
 def test_mesh_invalid_vertices():
-
     mesh = Mesh(vertices=[0.0, 0.0], faces=[3, 0, 1, 2], units=Units.m)
 
     with pytest.raises(ValueError):
@@ -166,7 +228,6 @@ def test_mesh_invalid_vertices():
 
 
 def test_mesh_invalid_faces():
-
     vertices = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
     with pytest.raises(IndexError):
         # Face references vertex index out of range

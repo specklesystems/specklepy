@@ -5,7 +5,9 @@ from specklepy.objects.interfaces import IHasUnits
 
 
 @dataclass(kw_only=True)
-class Vector(Base, IHasUnits, speckle_type="Objects.Geometry.Vector", serialize_ignore = {"length"}):
+class Vector(
+    Base, IHasUnits, speckle_type="Objects.Geometry.Vector", serialize_ignore={"length"}
+):
     """
     a 3-dimensional vector
     """
@@ -19,4 +21,4 @@ class Vector(Base, IHasUnits, speckle_type="Objects.Geometry.Vector", serialize_
 
     @property
     def length(self) -> float:
-        return (self.x ** 2 + self.y ** 2 + self.z ** 2) ** 0.5
+        return (self.x**2 + self.y**2 + self.z**2) ** 0.5

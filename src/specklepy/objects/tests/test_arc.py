@@ -27,8 +27,7 @@ def sample_plane():
 
     ydir = Vector(x=0.0, y=1.0, z=0.0, units=Units.m)
 
-    plane = Plane(origin=origin, normal=normal,
-                  xdir=xdir, ydir=ydir, units=Units.m)
+    plane = Plane(origin=origin, normal=normal, xdir=xdir, ydir=ydir, units=Units.m)
 
     return plane
 
@@ -37,11 +36,7 @@ def sample_plane():
 def sample_arc(sample_points, sample_plane):
     start, mid, end = sample_points
     arc = Arc(
-        plane=sample_plane,
-        startPoint=start,
-        midPoint=mid,
-        endPoint=end,
-        units=Units.m
+        plane=sample_plane, startPoint=start, midPoint=mid, endPoint=end, units=Units.m
     )
 
     return arc
@@ -50,11 +45,7 @@ def sample_arc(sample_points, sample_plane):
 def test_arc_creation(sample_points, sample_plane):
     start, mid, end = sample_points
     arc = Arc(
-        plane=sample_plane,
-        startPoint=start,
-        midPoint=mid,
-        endPoint=end,
-        units=Units.m
+        plane=sample_plane, startPoint=start, midPoint=mid, endPoint=end, units=Units.m
     )
 
     assert arc.startPoint == start
@@ -71,23 +62,17 @@ def test_arc_domain(sample_arc):
 
 
 def test_arc_radius(sample_arc):
-
     assert sample_arc.radius == pytest.approx(1.0)
 
 
 def test_arc_length(sample_arc):
-
     assert sample_arc.length == pytest.approx(math.pi)
 
 
 def test_arc_units(sample_points, sample_plane):
     start, mid, end = sample_points
     arc = Arc(
-        plane=sample_plane,
-        startPoint=start,
-        midPoint=mid,
-        endPoint=end,
-        units=Units.m
+        plane=sample_plane, startPoint=start, midPoint=mid, endPoint=end, units=Units.m
     )
 
     assert arc.units == Units.m.value
@@ -105,7 +90,7 @@ def test_arc_invalid_construction(sample_points, sample_plane):
             startPoint=start,
             midPoint=mid,
             endPoint=end,
-            units=Units.m
+            units=Units.m,
         )
 
     with pytest.raises(Exception):
@@ -114,7 +99,7 @@ def test_arc_invalid_construction(sample_points, sample_plane):
             startPoint="not a point",
             midPoint=mid,
             endPoint=end,
-            units=Units.m
+            units=Units.m,
         )
 
     with pytest.raises(Exception):
@@ -123,7 +108,7 @@ def test_arc_invalid_construction(sample_points, sample_plane):
             startPoint=start,
             midPoint="not a point",
             endPoint=end,
-            units=Units.m
+            units=Units.m,
         )
 
     with pytest.raises(Exception):
@@ -132,7 +117,7 @@ def test_arc_invalid_construction(sample_points, sample_plane):
             startPoint=start,
             midPoint=mid,
             endPoint="not a point",
-            units=Units.m
+            units=Units.m,
         )
 
 

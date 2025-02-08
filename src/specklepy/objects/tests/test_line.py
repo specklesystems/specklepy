@@ -8,7 +8,6 @@ from specklepy.objects.primitive import Interval
 
 @pytest.fixture
 def sample_points():
-
     p1 = Point(x=0.0, y=0.0, z=0.0, units=Units.m)
     p2 = Point(x=3.0, y=4.0, z=0.0, units=Units.m)
     return p1, p2
@@ -16,14 +15,12 @@ def sample_points():
 
 @pytest.fixture
 def sample_line(sample_points):
-
     start, end = sample_points
     line = Line(start=start, end=end, units=Units.m)
     return line
 
 
 def test_line_creation(sample_points):
-
     start, end = sample_points
     line = Line(start=start, end=end, units=Units.m)
 
@@ -33,7 +30,6 @@ def test_line_creation(sample_points):
 
 
 def test_line_domain(sample_line):
-
     # Domain should be automatically initialized to unit interval by ICurve
     assert isinstance(sample_line.domain, Interval)
     assert sample_line.domain.start == 0.0
@@ -41,12 +37,10 @@ def test_line_domain(sample_line):
 
 
 def test_line_length(sample_line):
-
     assert sample_line.length == 5.0
 
 
 def test_line_units(sample_points):
-
     start, end = sample_points
     line = Line(start=start, end=end, units=Units.m)
 
@@ -58,7 +52,6 @@ def test_line_units(sample_points):
 
 
 def test_line_serialization(sample_line):
-
     serialized = serialize(sample_line)
     deserialized = deserialize(serialized)
 

@@ -23,8 +23,9 @@ class Arc(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Arc"):
         start_to_mid = self.startPoint.distance_to(self.midPoint)
         mid_to_end = self.midPoint.distance_to(self.endPoint)
         r = self.radius
-        angle = (2 * math.asin(start_to_mid / (2 * r))) + \
-            (2 * math.asin(mid_to_end / (2 * r)))
+        angle = (2 * math.asin(start_to_mid / (2 * r))) + (
+            2 * math.asin(mid_to_end / (2 * r))
+        )
         return r * angle
 
     @property
@@ -32,5 +33,6 @@ class Arc(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Arc"):
         start_to_mid = self.startPoint.distance_to(self.midPoint)
         mid_to_end = self.midPoint.distance_to(self.endPoint)
         r = self.radius
-        return (2 * math.asin(start_to_mid / (2 * r))) + \
-            (2 * math.asin(mid_to_end / (2 * r)))
+        return (2 * math.asin(start_to_mid / (2 * r))) + (
+            2 * math.asin(mid_to_end / (2 * r))
+        )

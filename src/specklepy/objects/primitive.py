@@ -4,7 +4,9 @@ from specklepy.objects.base import Base
 
 
 @dataclass(kw_only=True)
-class Interval(Base, speckle_type="Objects.Primitive.Interval", serialize_ignore={"length"}):
+class Interval(
+    Base, speckle_type="Objects.Primitive.Interval", serialize_ignore={"length"}
+):
     start: float = 0.0
     end: float = 0.0
 

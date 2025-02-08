@@ -18,7 +18,7 @@ def test_point_distance_calculation():
     p2 = Point(x=4.0, y=6.0, z=8.0, units=Units.m)
 
     distance = p1.distance_to(p2)
-    expected = ((3.0**2 + 4.0**2 + 5.0**2) ** 0.5)
+    expected = (3.0**2 + 4.0**2 + 5.0**2) ** 0.5
     assert distance == pytest.approx(expected)
 
     with pytest.raises(TypeError):

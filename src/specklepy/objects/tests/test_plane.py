@@ -7,14 +7,12 @@ from specklepy.objects.models.units import Units
 
 @pytest.fixture
 def sample_point():
-
     point = Point(x=1.0, y=2.0, z=3.0, units=Units.m)
     return point
 
 
 @pytest.fixture
 def sample_vectors():
-
     normal = Vector(x=0.0, y=0.0, z=1.0, units=Units.m)
     xdir = Vector(x=1.0, y=0.0, z=0.0, units=Units.m)
     ydir = Vector(x=0.0, y=1.0, z=0.0, units=Units.m)
@@ -24,27 +22,17 @@ def sample_vectors():
 
 @pytest.fixture
 def sample_plane(sample_point, sample_vectors):
-
     normal, xdir, ydir = sample_vectors
     plane = Plane(
-        origin=sample_point,
-        normal=normal,
-        xdir=xdir,
-        ydir=ydir,
-        units=Units.m
+        origin=sample_point, normal=normal, xdir=xdir, ydir=ydir, units=Units.m
     )
     return plane
 
 
 def test_plane_creation(sample_point, sample_vectors):
-
     normal, xdir, ydir = sample_vectors
     plane = Plane(
-        origin=sample_point,
-        normal=normal,
-        xdir=xdir,
-        ydir=ydir,
-        units=Units.m
+        origin=sample_point, normal=normal, xdir=xdir, ydir=ydir, units=Units.m
     )
 
     assert plane.origin == sample_point
@@ -55,14 +43,9 @@ def test_plane_creation(sample_point, sample_vectors):
 
 
 def test_plane_units(sample_point, sample_vectors):
-
     normal, xdir, ydir = sample_vectors
     plane = Plane(
-        origin=sample_point,
-        normal=normal,
-        xdir=xdir,
-        ydir=ydir,
-        units=Units.m
+        origin=sample_point, normal=normal, xdir=xdir, ydir=ydir, units=Units.m
     )
 
     assert plane.units == Units.m.value
@@ -72,7 +55,6 @@ def test_plane_units(sample_point, sample_vectors):
 
 
 def test_plane_invalid_construction():
-
     point = Point(x=1.0, y=2.0, z=3.0, units=Units.m)
     normal = Vector(x=0.0, y=0.0, z=1.0, units=Units.m)
     xdir = Vector(x=1.0, y=0.0, z=0.0, units=Units.m)
@@ -93,7 +75,6 @@ def test_plane_invalid_construction():
 
 
 def test_plane_serialization(sample_plane):
-
     serialized = serialize(sample_plane)
     deserialized = deserialize(serialized)
 

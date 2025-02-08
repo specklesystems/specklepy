@@ -12,9 +12,10 @@ from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.core.api.models import Stream, Version
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
-from .fakemesh import FakeMesh, FakeDirection
 from specklepy.objects.geometry import Point
 from specklepy.transports.server.server import ServerTransport
+
+from .fakemesh import FakeDirection, FakeMesh
 
 metrics.disable()
 
@@ -44,8 +45,7 @@ def seed_user(host: str) -> Dict[str, str]:
     if not r.ok:
         raise Exception(f"Cannot seed user: {r.reason}")
     redirect_url = urlparse(r.headers.get("location"))
-    access_code = parse_qs(redirect_url.query)[
-        "access_code"][0]  # type: ignore
+    access_code = parse_qs(redirect_url.query)["access_code"][0]  # type: ignore
 
     r_tokens = requests.post(
         url=f"http://{host}/auth/token",
@@ -114,8 +114,7 @@ def sample_stream(client: SpeckleClient) -> Stream:
         description="a stream created for testing",
         isPublic=True,
     )
-    stream.id = client.stream.create(
-        stream.name, stream.description, stream.isPublic)
+    stream.id = client.stream.create(stream.name, stream.description, stream.isPublic)
     return stream
 
 

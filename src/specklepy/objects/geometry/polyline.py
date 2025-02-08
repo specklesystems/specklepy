@@ -11,6 +11,7 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
     """
     a polyline curve, defined by a set of vertices.
     """
+
     value: List[float]
 
     def __repr__(self) -> str:
@@ -25,26 +26,20 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
 
         # compare first and last points
         start = Point(
-            x=self.value[0],
-            y=self.value[1],
-            z=self.value[2],
-            units=self.units
+            x=self.value[0], y=self.value[1], z=self.value[2], units=self.units
         )
         end = Point(
-            x=self.value[-3],
-            y=self.value[-2],
-            z=self.value[-1],
-            units=self.units
+            x=self.value[-3], y=self.value[-2], z=self.value[-1], units=self.units
         )
         return start.distance_to(end) <= tolerance
 
     @property
     def length(self) -> float:
-        return self.__dict__.get('_length', 0.0)
+        return self.__dict__.get("_length", 0.0)
 
     @length.setter
     def length(self, value: float) -> None:
-        self.__dict__['_length'] = value
+        self.__dict__["_length"] = value
 
     def calculate_length(self) -> float:
         points = self.get_points()
@@ -70,7 +65,7 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
                 x=self.value[i],
                 y=self.value[i + 1],
                 z=self.value[i + 2],
-                units=self.units
+                units=self.units,
             )
             points.append(point)
         return points

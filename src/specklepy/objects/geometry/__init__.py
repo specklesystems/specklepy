@@ -7,12 +7,4 @@ from specklepy.objects.geometry.polyline import Polyline
 from specklepy.objects.geometry.vector import Vector
 
 # re-export them at the geometry package level
-__all__ = [
-    "Arc",
-    "Line",
-    "Mesh",
-    "Plane",
-    "Point",
-    "Polyline",
-    "Vector"
-]
+__all__ = ["Arc", "Line", "Mesh", "Plane", "Point", "Polyline", "Vector"]

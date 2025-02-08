@@ -4,10 +4,11 @@ import pytest
 
 from specklepy.api import operations
 from specklepy.objects.base import Base
-from .fakemesh import FakeMesh
 from specklepy.objects.geometry import Point
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
+
+from .fakemesh import FakeMesh
 
 
 @pytest.mark.run(order=5)

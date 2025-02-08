@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
+
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IDataObject, IGisObject, IHasUnits
-from specklepy.logging.exceptions import SpeckleException
 
 
 @dataclass(kw_only=True)
@@ -12,7 +13,6 @@ class DataObject(
     speckle_type="Objects.Data.DataObject",
     detachable={"displayValue"},
 ):
-
     name: str
     properties: Dict[str, object]
     displayValue: List[Base]
