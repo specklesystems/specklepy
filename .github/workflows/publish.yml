@@ -2,9 +2,11 @@
 name: "Publish to PyPI"
 
 on:
-  push:
-    branches:
-      - "v3-dev"
+  workflow_run:
+    workflows: ["Specklepy test and build"]
+    branches: [v3-dev]
+    types:
+      - completed
 
 jobs:
   pypi-publish:
