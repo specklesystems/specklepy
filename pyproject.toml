@@ -1,5 +1,6 @@
 [project]
 dynamic = ["version"]
+# version = "3.0.0a1"
 name = "specklepy"
 description = "The Python SDK for Speckle 2.0"
 readme = "README.md"
@@ -31,6 +32,7 @@ dev = [
     "pytest-cov>=6.0.0",
     "pytest-ordering>=0.6",
     "ruff>=0.9.2",
+    # "setuptools-scm>=8.1.0",
     "types-deprecated>=1.2.15.20241117",
     "types-requests>=2.32.0.20241016",
     "types-ujson>=5.10.0.20240515",
