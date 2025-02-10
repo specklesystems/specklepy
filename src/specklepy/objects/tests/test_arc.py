@@ -1,8 +1,13 @@
+# ignoring "line too long" check from linter
+# to match with SpeckleExceptions
+# ruff: noqa: E501
+
 import math
 
 import pytest
 
 from specklepy.core.api.operations import deserialize, serialize
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.geometry import Arc, Plane, Point, Vector
 from specklepy.objects.models.units import Units
 from specklepy.objects.primitive import Interval
@@ -69,56 +74,77 @@ def test_arc_length(sample_arc):
     assert sample_arc.length == pytest.approx(math.pi)
 
 
-def test_arc_units(sample_points, sample_plane):
+@pytest.mark.parametrize(
+    "invalid_param, test_params, error_msg",
+    [
+        (
+            "plane",
+            {
+                "plane": "not a plane",
+                "startPoint": None,
+                "midPoint": None,
+                "endPoint": None,
+            },
+            "Cannot set 'Arc.plane':it expects type '<class 'specklepy.objects.geometry.plane.Plane'>',but received type 'str'",
+        ),
+        (
+            "startPoint",
+            {
+                "plane": None,
+                "startPoint": "not a point",
+                "midPoint": None,
+                "endPoint": None,
+            },
+            "Cannot set 'Arc.startPoint':it expects type '<class 'specklepy.objects.geometry.point.Point'>',but received type 'str'",
+        ),
+        (
+            "midPoint",
+            {
+                "plane": None,
+                "startPoint": None,
+                "midPoint": "not a point",
+                "endPoint": None,
+            },
+            "Cannot set 'Arc.midPoint':it expects type '<class 'specklepy.objects.geometry.point.Point'>',but received type 'str'",
+        ),
+        (
+            "endPoint",
+            {
+                "plane": None,
+                "startPoint": None,
+                "midPoint": None,
+                "endPoint": "not a point",
+            },
+            "Cannot set 'Arc.endPoint':it expects type '<class 'specklepy.objects.geometry.point.Point'>',but received type 'str'",
+        ),
+    ],
+)
+def test_arc_inval(sample_points, sample_plane, invalid_param, test_params, error_msg):
+    start, mid, end = sample_points
+
+    if invalid_param != "plane":
+        test_params["plane"] = sample_plane
+    if invalid_param != "startPoint":
+        test_params["startPoint"] = start
+    if invalid_param != "midPoint":
+        test_params["midPoint"] = mid
+    if invalid_param != "endPoint":
+        test_params["endPoint"] = end
+
+    with pytest.raises(SpeckleException) as exc_info:
+        Arc(**test_params, units=Units.m)
+    assert str(exc_info.value) == f"SpeckleException: {error_msg}"
+
+
+@pytest.mark.parametrize("new_units", ["mm", "cm", "in"])
+def test_arc_units(sample_points, sample_plane, new_units):
     start, mid, end = sample_points
     arc = Arc(
         plane=sample_plane, startPoint=start, midPoint=mid, endPoint=end, units=Units.m
     )
-
     assert arc.units == Units.m.value
-
-    arc.units = "mm"
-    assert arc.units == "mm"
-
-
-def test_arc_invalid_construction(sample_points, sample_plane):
-    start, mid, end = sample_points
-
-    with pytest.raises(Exception):
-        Arc(
-            plane="not a plane",
-            startPoint=start,
-            midPoint=mid,
-            endPoint=end,
-            units=Units.m,
-        )
-
-    with pytest.raises(Exception):
-        Arc(
-            plane=sample_plane,
-            startPoint="not a point",
-            midPoint=mid,
-            endPoint=end,
-            units=Units.m,
-        )
-
-    with pytest.raises(Exception):
-        Arc(
-            plane=sample_plane,
-            startPoint=start,
-            midPoint="not a point",
-            endPoint=end,
-            units=Units.m,
-        )
-
-    with pytest.raises(Exception):
-        Arc(
-            plane=sample_plane,
-            startPoint=start,
-            midPoint=mid,
-            endPoint="not a point",
-            units=Units.m,
-        )
+    arc.units = new_units
+    assert arc.units == new_units
 
 
 def test_arc_serialization(sample_arc):

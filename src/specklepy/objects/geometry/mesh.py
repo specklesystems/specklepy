@@ -23,7 +23,8 @@ class Mesh(
     serialize_ignore={"vertices_count", "texture_coordinates_count"},
 ):
     """
-    a 3D mesh consisting of vertices and faces with optional colors and texture coordinates
+    a 3D mesh consisting of vertices and faces
+    with optional colors and texture coordinates
     """
 
     vertices: List[float]

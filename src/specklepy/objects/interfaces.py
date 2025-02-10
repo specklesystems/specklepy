@@ -65,12 +65,13 @@ class IHasArea(metaclass=ABCMeta):
     _area: float = field(init=False, repr=False)
 
     @property
+    @abstractmethod
     def area(self) -> float:
-        return self._area
+        pass
 
     @area.setter
     def area(self, value: float):
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, int | float):
             raise ValueError(f"Area must be a number, got {type(value)}")
         self._area = float(value)
 
@@ -80,12 +81,13 @@ class IHasVolume(metaclass=ABCMeta):
     _volume: float = field(init=False, repr=False)
 
     @property
+    @abstractmethod
     def volume(self) -> float:
-        return self._volume
+        pass
 
     @volume.setter
     def volume(self, value: float):
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, int | float):
             raise ValueError(f"Volume must be a number, got {type(value)}")
         self._volume = float(value)
 

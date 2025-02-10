@@ -1,3 +1,5 @@
+# ignoring "line too long" check from linter
+# ruff: noqa: E501
 """This module provides an abstraction layer above the Speckle Automate runtime."""
 
 import time

@@ -224,7 +224,7 @@ def test_mesh_invalid_vertices():
     mesh = Mesh(vertices=[0.0, 0.0], faces=[3, 0, 1, 2], units=Units.m)
 
     with pytest.raises(ValueError):
-        mesh.vertices_count
+        _ = mesh.vertices_count
 
 
 def test_mesh_invalid_faces():

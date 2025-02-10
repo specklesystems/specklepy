@@ -15,7 +15,13 @@ class Point(Base, IHasUnits, speckle_type="Objects.Geometry.Point"):
     z: float
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(x: {self.x}, y: {self.y}, z: {self.z}, units: {self.units})"
+        return (
+            f"{self.__class__.__name__}("
+            f"x: {self.x}, "
+            f"y: {self.y}, "
+            f"z: {self.z}, "
+            f"units: {self.units})"
+        )
 
     def distance_to(self, other: "Point") -> float:
         """
