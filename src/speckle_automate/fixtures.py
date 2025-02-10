@@ -22,10 +22,10 @@ class TestAutomationEnvironment(BaseSettings):
         extra="ignore",
     )
 
-    token: str = Field()
-    server_url: str = Field()
-    project_id: str = Field()
-    automation_id: str = Field()
+    token: str = Field(default="")
+    server_url: str = Field(default="")
+    project_id: str = Field(default="")
+    automation_id: str = Field(default="")
 
 
 @pytest.fixture()
