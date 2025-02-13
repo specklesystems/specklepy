@@ -117,7 +117,9 @@ class VersionResource(ResourceBase):
             "modelId": model_id,
             "limit": limit,
             "cursor": cursor,
-            "filter": filter.model_dump(warnings="error") if filter else None,
+            "filter": (
+                filter.model_dump(warnings="error", by_alias=True) if filter else None
+            ),
         }
 
         return self.make_request_and_parse_response(
@@ -153,7 +155,7 @@ class VersionResource(ResourceBase):
             """
         )
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -187,7 +189,7 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Version]], QUERY, variables
@@ -207,7 +209,7 @@ class VersionResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -226,7 +228,7 @@ class VersionResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -245,7 +247,7 @@ class VersionResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(

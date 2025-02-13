@@ -87,7 +87,7 @@ class ActiveUserResource(ResourceBase):
            """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[User]], QUERY, variables
@@ -162,7 +162,9 @@ class ActiveUserResource(ResourceBase):
         variables = {
             "limit": limit,
             "cursor": cursor,
-            "filter": filter.model_dump(warnings="error") if filter else None,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
         }
 
         response = self.make_request_and_parse_response(

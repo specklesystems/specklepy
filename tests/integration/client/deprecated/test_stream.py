@@ -172,7 +172,7 @@ class TestStream:
         invites = client.stream.get_all_pending_invites(stream_id=stream.id)
 
         cancelled = client.stream.invite_cancel(
-            invite_id=invites[0].inviteId, stream_id=stream.id
+            invite_id=invites[0].invite_id, stream_id=stream.id
         )
 
         assert cancelled is True

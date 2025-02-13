@@ -119,7 +119,7 @@ class AutomationContext:
             ) from err
 
         base = operations.receive(
-            version.referencedObject, self._server_transport, self._memory_transport
+            version.referenced_object, self._server_transport, self._memory_transport
         )
         print(
             f"It took {self.elapsed():.2f} seconds to receive",
@@ -133,7 +133,7 @@ class AutomationContext:
         input = CreateModelInput(
             name=model_name,
             description=model_description,
-            projectId=self.automation_run_data.project_id,
+            project_id=self.automation_run_data.project_id,
         )
 
         return self.speckle_client.model.create(input)
@@ -151,7 +151,7 @@ class AutomationContext:
 
         model = self.speckle_client.model.get(
             self.automation_run_data.project_id, model_id
-        )
+        )  # TODO: Did we want to avoid fetching the model? we needed it before in order to
 
         matching_trigger = [
             t
@@ -172,11 +172,11 @@ class AutomationContext:
         )
 
         create_version_input = CreateVersionInput(
-            objectId=root_object_id,
-            modelId=model.id,
-            projectId=self.automation_run_data.project_id,
+            object_id=root_object_id,
+            model_id=model.id,
+            project_id=self.automation_run_data.project_id,
             message=version_message,
-            sourceApplication="SpeckleAutomate",
+            source_application="SpeckleAutomate",
         )
         version = self.speckle_client.version.create(create_version_input)
 
