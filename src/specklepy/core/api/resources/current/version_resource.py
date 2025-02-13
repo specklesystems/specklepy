@@ -126,13 +126,27 @@ class VersionResource(ResourceBase):
             variables,
         ).data.data.data
 
-    def create(self, input: CreateVersionInput) -> str:
+    def create(self, input: CreateVersionInput) -> Version:
         QUERY = gql(
             """
             mutation Create($input: CreateVersionInput!) {
               data:versionMutations {
                 data:create(input: $input) {
-                  data:id
+                  id
+                  referencedObject
+                  message
+                  sourceApplication
+                  createdAt
+                  previewUrl
+                  authorUser {
+                    id
+                    name
+                    bio
+                    company
+                    verified
+                    role
+                    avatar
+                  }
                 }
               }
             }
@@ -144,8 +158,8 @@ class VersionResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[str]]], QUERY, variables
-        ).data.data.data
+            DataResponse[DataResponse[Version]], QUERY, variables
+        ).data.data
 
     def update(self, input: UpdateVersionInput) -> Version:
         QUERY = gql(

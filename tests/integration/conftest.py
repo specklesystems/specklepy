@@ -8,8 +8,11 @@ import requests
 
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api import operations
+from specklepy.core.api.enums import ProjectVisibility
+from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.inputs.version_inputs import CreateVersionInput
-from specklepy.core.api.models import Stream, Version
+from specklepy.core.api.models import Version
+from specklepy.core.api.models.current import Project
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from .fakemesh import FakeMesh, FakeDirection
@@ -44,8 +47,7 @@ def seed_user(host: str) -> Dict[str, str]:
     if not r.ok:
         raise Exception(f"Cannot seed user: {r.reason}")
     redirect_url = urlparse(r.headers.get("location"))
-    access_code = parse_qs(redirect_url.query)[
-        "access_code"][0]  # type: ignore
+    access_code = parse_qs(redirect_url.query)["access_code"][0]  # type: ignore
 
     r_tokens = requests.post(
         url=f"http://{host}/auth/token",
@@ -70,8 +72,7 @@ def create_version(client: SpeckleClient, project_id: str, model_id: str) -> Ver
     input = CreateVersionInput(
         objectId=objectId, modelId=model_id, projectId=project_id
     )
-    version_id = client.version.create(input)
-    return client.version.get(version_id, project_id)
+    return client.version.create(input)
 
 
 @pytest.fixture(scope="session")
@@ -108,15 +109,13 @@ def second_client(host: str, second_user_dict: Dict[str, str]):
 
 
 @pytest.fixture(scope="session")
-def sample_stream(client: SpeckleClient) -> Stream:
-    stream = Stream(
+def sample_project(client: SpeckleClient) -> Project:
+    input = ProjectCreateInput(
         name="a sample stream for testing",
         description="a stream created for testing",
-        isPublic=True,
+        visibility=ProjectVisibility.PUBLIC,
     )
-    stream.id = client.stream.create(
-        stream.name, stream.description, stream.isPublic)
-    return stream
+    return client.project.create(input)
 
 
 @pytest.fixture(scope="session")
@@ -128,14 +127,14 @@ def mesh() -> FakeMesh:
     mesh["@(100)colours"] = [random.uniform(0, 10) for _ in range(1, 210)]
     mesh["@()default_chunk"] = [random.uniform(0, 10) for _ in range(1, 210)]
     mesh.cardinal_dir = FakeDirection.WEST
-    mesh.test_bases = [Base(name=f"test {i}") for i in range(1, 22)]
-    mesh.detach_this = Base(name="predefined detached base")
-    mesh["@detach"] = Base(name="detached base")
+    mesh.test_bases = [Base(applicationId=f"test {i}") for i in range(1, 22)]
+    mesh.detach_this = Base(applicationId="predefined detached base")
+    mesh["@detach"] = Base(applicationId="detached base")
     mesh["@detached_list"] = [
         42,
         "some text",
         [1, 2, 3],
-        Base(name="detached within a list"),
+        Base(applicationId="detached within a list"),
     ]
-    mesh.origin = Point(x=4, y=2)
+    mesh.origin = Point(x=4, y=2, z=0, units="m")
     return mesh

@@ -17,18 +17,6 @@ from specklepy.core.api.models.current import (
     UserSearchResultCollection,
     Version,
 )
-from specklepy.core.api.models.deprecated import (
-    Activity,
-    ActivityCollection,
-    Branch,
-    Branches,
-    Collaborator,
-    Commit,
-    Commits,
-    Object,
-    Stream,
-    Streams,
-)
 from specklepy.core.api.models.subscription_messages import (
     ProjectModelsUpdatedMessage,
     ProjectUpdatedMessage,
@@ -58,14 +46,4 @@ __all__ = [
     "ProjectModelsUpdatedMessage",
     "ProjectUpdatedMessage",
     "ProjectVersionsUpdatedMessage",
-    "Collaborator",
-    "Commit",
-    "Commits",
-    "Object",
-    "Branch",
-    "Branches",
-    "Stream",
-    "Streams",
-    "Activity",
-    "ActivityCollection",
 ]

@@ -30,7 +30,7 @@ class ActiveUserResource(CoreResource):
 
     def update(
         self,
-        input: Optional[UserUpdateInput] = None,
+        input: UserUpdateInput,
     ) -> User:
         metrics.track(metrics.SDK, self.account, {"name": "Active User Update"})
 

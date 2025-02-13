@@ -3,14 +3,13 @@ import re
 from typing import Dict
 from warnings import warn
 
-from deprecated import deprecated
 from gql import Client
 from gql.transport.exceptions import TransportServerError
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
 
 from specklepy.core.api import resources
-from specklepy.core.api.credentials import Account, get_account_from_token
+from specklepy.core.api.credentials import Account
 from specklepy.core.api.resources import (
     ActiveUserResource,
     ModelResource,
@@ -20,12 +19,6 @@ from specklepy.core.api.resources import (
     ServerResource,
     SubscriptionResource,
     VersionResource,
-    branch,
-    commit,
-    object,
-    stream,
-    subscriptions,
-    user,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
@@ -44,6 +37,7 @@ class SpeckleClient:
 
     ```py
     from specklepy.api.client import SpeckleClient
+    from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
     from specklepy.api.credentials import get_default_account
 
     # initialise the client
@@ -55,11 +49,12 @@ class SpeckleClient:
     account = get_default_account()
     client.authenticate_with_account(account)
 
-    # create a new stream. this returns the stream id
-    new_stream_id = client.stream.create(name="a shiny new stream")
+    # create a new project
+    input = ProjectCreateInput(name="a shiny new project")
+    project = self.project.create(input)
 
-    # use that stream id to get the stream from the server
-    new_stream = client.stream.get(id=new_stream_id)
+    # or, use a project id to get an existing project from the server
+    new_stream = client.project.get("abcdefghij")
     ```
     """
 
@@ -122,23 +117,6 @@ class SpeckleClient:
             f"SpeckleClient( server: {self.url}, authenticated:"
             f" {self.account.token is not None} )"
         )
-
-    @deprecated(
-        version="2.6.0",
-        reason=(
-            "Renamed: please use `authenticate_with_account` or"
-            " `authenticate_with_token` instead."
-        ),
-    )
-    def authenticate(self, token: str) -> None:
-        """Authenticate the client using a personal access token
-        The token is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            token {str} -- an api token
-        """
-        self.authenticate_with_account(get_account_from_token(token))
 
     def authenticate_with_token(self, token: str) -> None:
         """
@@ -251,41 +229,3 @@ class SpeckleClient:
             basepath=self.ws_url,
             client=self.wsclient,
         )
-        # Deprecated Resources
-        self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.stream = stream.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.commit = commit.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.branch = branch.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.object = object.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.subscribe = subscriptions.Resource(
-            account=self.account,
-            basepath=self.ws_url,
-            client=self.wsclient,
-        )
-
-    def __getattr__(self, name):
-        try:
-            attr = getattr(resources, name)
-            return attr.Resource(
-                account=self.account, basepath=self.url, client=self.httpclient
-            )
-        except AttributeError as ex:
-            raise SpeckleException(
-                f"Method {name} is not supported by the SpeckleClient class"
-            ) from ex
