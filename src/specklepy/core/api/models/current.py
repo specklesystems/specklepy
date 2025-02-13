@@ -4,7 +4,6 @@ from typing import Generic, List, Optional, TypeVar
 from pydantic import BaseModel
 
 from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.models.deprecated import Streams
 
 T = TypeVar("T")
 
@@ -18,7 +17,6 @@ class User(BaseModel):
     avatar: Optional[str] = None
     verified: Optional[bool] = None
     role: Optional[str] = None
-    streams: Optional["Streams"] = None
 
     def __repr__(self):
         return (

@@ -12,12 +12,6 @@ from specklepy.api.resources import (
     ServerResource,
     SubscriptionResource,
     VersionResource,
-    branch,
-    commit,
-    object,
-    stream,
-    subscriptions,
-    user,
 )
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.logging import metrics
@@ -36,6 +30,7 @@ class SpeckleClient(CoreSpeckleClient):
 
     ```py
     from specklepy.api.client import SpeckleClient
+    from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
     from specklepy.api.credentials import get_default_account
 
     # initialise the client
@@ -47,11 +42,12 @@ class SpeckleClient(CoreSpeckleClient):
     account = get_default_account()
     client.authenticate_with_account(account)
 
-    # create a new stream. this returns the stream id
-    new_stream_id = client.stream.create(name="a shiny new stream")
+    # create a new project
+    input = ProjectCreateInput(name="a shiny new project")
+    project = self.project.create(input)
 
-    # use that stream id to get the stream from the server
-    new_stream = client.stream.get(id=new_stream_id)
+    # or, use a project id to get an existing project from the server
+    new_stream = client.project.get("abcdefghij")
     ```
     """
 
@@ -122,33 +118,6 @@ class SpeckleClient(CoreSpeckleClient):
             basepath=self.ws_url,
             client=self.wsclient,
             # todo: why doesn't this take a server version
-        )
-        # Deprecated Resources
-        self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.stream = stream.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.commit = commit.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.branch = branch.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.object = object.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.subscribe = subscriptions.Resource(
-            account=self.account,
-            basepath=self.ws_url,
-            client=self.wsclient,
         )
 
     @deprecated(

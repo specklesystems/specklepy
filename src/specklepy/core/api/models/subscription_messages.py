@@ -32,5 +32,5 @@ class ProjectUpdatedMessage(BaseModel):
 class ProjectVersionsUpdatedMessage(BaseModel):
     id: str
     type: ProjectVersionsUpdatedMessageType
-    modelId: Optional[str]
+    modelId: str
     version: Optional[Version]
