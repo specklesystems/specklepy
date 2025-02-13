@@ -19,6 +19,7 @@ from speckle_automate.fixtures import (
 )
 from speckle_automate.schema import AutomateBase
 from specklepy.api.client import SpeckleClient
+from specklepy.core.api.models.current import Model, Version
 from specklepy.objects.base import Base
 
 
@@ -216,12 +217,11 @@ def test_create_version_in_project(
 ) -> None:
     root_object = Base()
     root_object.foo = "bar"
-    model_id, version_id = automation_context.create_new_version_in_project(
+    model, version = automation_context.create_new_version_in_project(
         root_object, "foobar"
     )
-
-    assert model_id is not None
-    assert version_id is not None
+    isinstance(model, Model)
+    isinstance(version, Version)
 
 
 @pytest.mark.skip(
