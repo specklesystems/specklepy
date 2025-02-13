@@ -10,8 +10,9 @@ from specklepy.objects.models.units import Units
 
 @pytest.fixture
 def sample_points() -> Tuple[Point, Point]:
-    return Point(x=0.0, y=0.0, z=0.0, units=Units.m), Point(
-        x=0.0, y=0.0, z=2.0, units=Units.m
+    return (
+        Point(x=0.0, y=0.0, z=0.0, units=Units.m),
+        Point(x=0.0, y=0.0, z=2.0, units=Units.m),
     )
 
 
@@ -39,9 +40,12 @@ def sample_spiral(sample_points: Tuple[Point, Point], sample_plane: Plane) -> Sp
     )
 
 
-def test_spiral_creation(sample_points: Tuple[Point, Point], sample_plane: Plane):
+@pytest.mark.parametrize("units", [Units.m])
+def test_spiral_creation(
+    sample_points: Tuple[Point, Point], sample_plane: Plane, units: Units
+):
     start, end = sample_points
-    pitch_axis = Vector(x=0.0, y=0.0, z=1.0, units=Units.m)
+    pitch_axis = Vector(x=0.0, y=0.0, z=1.0, units=units)
     spiral = Spiral(
         start_point=start,
         end_point=end,
@@ -49,7 +53,7 @@ def test_spiral_creation(sample_points: Tuple[Point, Point], sample_plane: Plane
         turns=2.0,
         pitch=1.0,
         pitch_axis=pitch_axis,
-        units=Units.m,
+        units=units,
     )
 
     assert spiral.start_point == start
@@ -58,7 +62,7 @@ def test_spiral_creation(sample_points: Tuple[Point, Point], sample_plane: Plane
     assert spiral.turns == 2.0
     assert spiral.pitch == 1.0
     assert spiral.pitch_axis == pitch_axis
-    assert spiral.units == Units.m.value
+    assert spiral.units == units.value
 
 
 @pytest.mark.parametrize(
@@ -78,7 +82,6 @@ def test_spiral_invalid_construction(
 ):
     start, end = sample_points
     pitch_axis = Vector(x=0.0, y=0.0, z=1.0, units=Units.m)
-
     valid_params = {
         "start_point": start,
         "end_point": end,
@@ -88,7 +91,6 @@ def test_spiral_invalid_construction(
         "pitch_axis": pitch_axis,
         "units": Units.m,
     }
-
     valid_params[invalid_param] = invalid_value
 
     with pytest.raises(SpeckleException):
@@ -114,19 +116,15 @@ def test_spiral_serialization(sample_spiral: Spiral):
     assert deserialized.start_point.x == sample_spiral.start_point.x
     assert deserialized.start_point.y == sample_spiral.start_point.y
     assert deserialized.start_point.z == sample_spiral.start_point.z
-
     assert deserialized.end_point.x == sample_spiral.end_point.x
     assert deserialized.end_point.y == sample_spiral.end_point.y
     assert deserialized.end_point.z == sample_spiral.end_point.z
-
     assert deserialized.plane.origin.x == sample_spiral.plane.origin.x
     assert deserialized.plane.origin.y == sample_spiral.plane.origin.y
     assert deserialized.plane.origin.z == sample_spiral.plane.origin.z
-
     assert deserialized.turns == sample_spiral.turns
     assert deserialized.pitch == sample_spiral.pitch
     assert deserialized.pitch_axis.x == sample_spiral.pitch_axis.x
     assert deserialized.pitch_axis.y == sample_spiral.pitch_axis.y
     assert deserialized.pitch_axis.z == sample_spiral.pitch_axis.z
-
     assert deserialized.units == sample_spiral.units

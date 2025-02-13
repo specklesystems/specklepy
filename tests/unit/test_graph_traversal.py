@@ -100,7 +100,6 @@ class GraphTraversalTests(TestCase):
             for context in GraphTraversal([traverse_lists_rule]).traverse(test_case)
         ]
 
-        self.assertCountEqual(
-            ret, [test_case, expected_traverse, expected_traverse])
+        self.assertCountEqual(ret, [test_case, expected_traverse, expected_traverse])
         self.assertNotIn(expected_ignore, ret)
         self.assertEqual(len(ret), 3)

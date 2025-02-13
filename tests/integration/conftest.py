@@ -15,9 +15,10 @@ from specklepy.core.api.models import Version
 from specklepy.core.api.models.current import Project
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
-from .fakemesh import FakeMesh, FakeDirection
 from specklepy.objects.geometry import Point
 from specklepy.transports.server.server import ServerTransport
+
+from .fakemesh import FakeDirection, FakeMesh
 
 metrics.disable()
 

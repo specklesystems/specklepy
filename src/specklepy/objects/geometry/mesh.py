@@ -23,8 +23,10 @@ class Mesh(
     serialize_ignore={"vertices_count", "texture_coordinates_count"},
 ):
     """
-    a 3D mesh consisting of vertices and faces with optional colors and texture coordinates
+    a 3D mesh consisting of vertices and faces
+    with optional colors and texture coordinates
     """
+
     vertices: List[float]
     faces: List[int]
     colors: List[int] = field(default_factory=list)
@@ -48,8 +50,9 @@ class Mesh(
 
         if len(self.vertices) % 3 != 0:
             raise ValueError(
-                f"Invalid vertices list: length ({len(
-                    self.vertices)}) must be a multiple of 3"
+                f"Invalid vertices list: length ({
+                    len(self.vertices)
+                }) must be a multiple of 3"
             )
         return len(self.vertices) // 3
 
@@ -62,19 +65,19 @@ class Mesh(
 
     @property
     def area(self) -> float:
-        return self.__dict__.get('_area', 0.0)
+        return self.__dict__.get("_area", 0.0)
 
     @area.setter
     def area(self, value: float) -> None:
-        self.__dict__['_area'] = value
+        self.__dict__["_area"] = value
 
     @property
     def volume(self) -> float:
-        return self.__dict__.get('_volume', 0.0)
+        return self.__dict__.get("_volume", 0.0)
 
     @volume.setter
     def volume(self, value: float) -> None:
-        self.__dict__['_volume'] = value
+        self.__dict__["_volume"] = value
 
     def calculate_area(self) -> float:
         """
@@ -180,8 +183,7 @@ class Mesh(
                 for j in range(vertex_count):
                     vertex_index = self.faces[i + j + 1]
                     if vertex_index >= self.vertices_count:
-                        raise IndexError(
-                            f"Vertex index {vertex_index} out of range")
+                        raise IndexError(f"Vertex index {vertex_index} out of range")
                     vertices.append(self.get_point(vertex_index))
                 return vertices
 

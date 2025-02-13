@@ -1,11 +1,11 @@
 name: "Specklepy test and build"
 on:
-  # pull_request:
-  #   branches:
-  #     - 'v3-dev'
+  pull_request:
+    branches:
+      - "v3-dev"
   push:
     branches:
-      - "gergo/uvSetup"
+      - "v3-dev"
 jobs:
   ci:
     name: continuous-integration
