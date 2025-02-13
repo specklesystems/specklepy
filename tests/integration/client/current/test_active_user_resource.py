@@ -59,5 +59,5 @@ class TestActiveUserResource:
 
         assert isinstance(res, ResourceCollection)
         assert len(res.items) == 1
-        assert res.totalCount == 1
+        assert res.total_count == 1
         assert res.items[0].id == p1.id

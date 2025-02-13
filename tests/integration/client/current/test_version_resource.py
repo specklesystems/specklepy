@@ -33,7 +33,7 @@ class TestVersionResource:
     def test_model_1(self, client: SpeckleClient, test_project: Project) -> Model:
         model1 = client.model.create(
             CreateModelInput(
-                name="Test Model 1", description="", projectId=test_project.id
+                name="Test Model 1", description="", project_id=test_project.id
             )
         )
         return model1
@@ -42,7 +42,7 @@ class TestVersionResource:
     def test_model_2(self, client: SpeckleClient, test_project: Project) -> Model:
         model2 = client.model.create(
             CreateModelInput(
-                name="Test Model 2", description="", projectId=test_project.id
+                name="Test Model 2", description="", project_id=test_project.id
             )
         )
         return model2
@@ -73,7 +73,7 @@ class TestVersionResource:
 
         assert isinstance(result, ResourceCollection)
         assert len(result.items) == 1
-        assert result.totalCount == 1
+        assert result.total_count == 1
         assert result.items[0].id == test_version.id
 
     def test_versions_get_with_filter(
@@ -84,7 +84,7 @@ class TestVersionResource:
         test_version: Version,
     ):
         filter = ModelVersionsFilter(
-            priorityIds=[test_version.id], priorityIdsOnly=True
+            priority_ids=[test_version.id], priority_ids_only=True
         )
 
         result = client.version.get_versions(
@@ -93,16 +93,16 @@ class TestVersionResource:
 
         assert isinstance(result, ResourceCollection)
         assert len(result.items) == 1
-        assert result.totalCount == 1
+        assert result.total_count == 1
         assert result.items[0].id == test_version.id
 
     def test_version_received(
         self, client: SpeckleClient, test_version: Version, test_project: Project
     ):
         input = MarkReceivedVersionInput(
-            versionId=test_version.id,
-            projectId=test_project.id,
-            sourceApplication="Integration test",
+            version_id=test_version.id,
+            project_id=test_project.id,
+            source_application="Integration test",
         )
         result = client.version.received(input)
 
@@ -120,7 +120,7 @@ class TestVersionResource:
         assert isinstance(result, ModelWithVersions)
         assert result.id == test_model_1.id
         assert len(result.versions.items) == 1
-        assert result.versions.totalCount == 1
+        assert result.versions.total_count == 1
         assert result.versions.items[0].id == test_version.id
 
     def test_model_get_with_versions_with_filter(
@@ -131,7 +131,7 @@ class TestVersionResource:
         test_version: Version,
     ):
         filter = ModelVersionsFilter(
-            priorityIds=[test_version.id], priorityIdsOnly=True
+            priority_ids=[test_version.id], priority_ids_only=True
         )
 
         result = client.model.get_with_versions(
@@ -140,7 +140,7 @@ class TestVersionResource:
 
         assert isinstance(result, ModelWithVersions)
         assert len(result.versions.items) == 1
-        assert result.versions.totalCount == 1
+        assert result.versions.total_count == 1
         assert isinstance(result.versions, ResourceCollection)
         assert result.versions.items[0].id == test_version.id
 
@@ -149,14 +149,14 @@ class TestVersionResource:
     ):
         new_message = "MY new version message"
         input = UpdateVersionInput(
-            versionId=test_version.id, projectId=test_project.id, message=new_message
+            version_id=test_version.id, project_id=test_project.id, message=new_message
         )
         updated_version = client.version.update(input)
 
         assert isinstance(updated_version, Version)
         assert updated_version.id == test_version.id
         assert updated_version.message == new_message
-        assert updated_version.previewUrl == test_version.previewUrl
+        assert updated_version.preview_url == test_version.preview_url
 
     def test_version_move_to_model(
         self,
@@ -166,9 +166,9 @@ class TestVersionResource:
         test_model_2: Model,
     ):
         input = MoveVersionsInput(
-            targetModelName=test_model_2.name,
-            versionIds=[test_version.id],
-            projectId=test_project.id,
+            target_model_name=test_model_2.name,
+            version_ids=[test_version.id],
+            project_id=test_project.id,
         )
         moved_model_id = client.version.move_to_model(input)
 
@@ -179,13 +179,13 @@ class TestVersionResource:
         assert isinstance(moved_version, Version)
         assert moved_version.id == test_version.id
         assert moved_version.message == test_version.message
-        assert moved_version.previewUrl == test_version.previewUrl
+        assert moved_version.preview_url == test_version.preview_url
 
     def test_version_delete(
         self, client: SpeckleClient, test_version: Version, test_project: Project
     ):
         input = DeleteVersionsInput(
-            versionIds=[test_version.id], projectId=test_project.id
+            version_ids=[test_version.id], project_id=test_project.id
         )
 
         response = client.version.delete(input)

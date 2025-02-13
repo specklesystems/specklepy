@@ -103,7 +103,7 @@ class ProjectInviteResource(ResourceBase):
 
         variables = {
             "projectId": project_id,
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -124,7 +124,7 @@ class ProjectInviteResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(

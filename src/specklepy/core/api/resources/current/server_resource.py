@@ -61,10 +61,10 @@ class ServerResource(ResourceBase):
             query=query, return_type="serverInfo", schema=ServerInfo
         )
         if isinstance(server_info, ServerInfo) and isinstance(
-            server_info.canonicalUrl, str
+            server_info.canonical_url, str
         ):
             r = requests.get(
-                server_info.canonicalUrl, headers={"User-Agent": "specklepy SDK"}
+                server_info.canonical_url, headers={"User-Agent": "specklepy SDK"}
             )
             if "x-speckle-frontend-2" in r.headers:
                 server_info.frontend2 = True

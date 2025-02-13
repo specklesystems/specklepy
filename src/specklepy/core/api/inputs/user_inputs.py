@@ -1,15 +1,15 @@
 from typing import Optional, Sequence
 
-from pydantic import BaseModel
+from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 
 
-class UserUpdateInput(BaseModel):
+class UserUpdateInput(GraphQLBaseModel):
     avatar: Optional[str] = None
     bio: Optional[str] = None
     company: Optional[str] = None
     name: Optional[str] = None
 
 
-class UserProjectsFilter(BaseModel):
+class UserProjectsFilter(GraphQLBaseModel):
     search: str
-    onlyWithRoles: Optional[Sequence[str]] = None
+    only_with_roles: Optional[Sequence[str]] = None

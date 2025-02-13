@@ -68,10 +68,9 @@ def create_version(client: SpeckleClient, project_id: str, model_id: str) -> Ver
         Base(applicationId="ASDF"), [remote], use_default_cache=False
     )
     input = CreateVersionInput(
-        objectId=objectId, modelId=model_id, projectId=project_id
+        object_id=objectId, model_id=model_id, project_id=project_id
     )
-    version_id = client.version.create(input)
-    return client.version.get(version_id, project_id)
+    return client.version.create(input)
 
 
 @pytest.fixture(scope="session")

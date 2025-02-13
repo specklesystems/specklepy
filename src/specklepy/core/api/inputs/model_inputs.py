@@ -1,26 +1,26 @@
 from typing import Optional, Sequence
 
-from pydantic import BaseModel
+from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 
 
-class CreateModelInput(BaseModel):
+class CreateModelInput(GraphQLBaseModel):
     name: str
     description: Optional[str] = None
-    projectId: str
+    project_id: str
 
 
-class DeleteModelInput(BaseModel):
+class DeleteModelInput(GraphQLBaseModel):
     id: str
-    projectId: str
+    project_id: str
 
 
-class UpdateModelInput(BaseModel):
+class UpdateModelInput(GraphQLBaseModel):
     id: str
     name: Optional[str] = None
     description: Optional[str] = None
-    projectId: str
+    project_id: str
 
 
-class ModelVersionsFilter(BaseModel):
-    priorityIds: Sequence[str]
-    priorityIdsOnly: Optional[bool] = None
+class ModelVersionsFilter(GraphQLBaseModel):
+    priority_ids: Sequence[str]
+    priority_ids_only: Optional[bool] = None

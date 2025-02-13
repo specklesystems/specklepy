@@ -1383,7 +1383,6 @@ wheels = [
 
 [[package]]
 name = "specklepy"
-version = "2.21.3.dev74"
 source = { editable = "." }
 dependencies = [
     { name = "appdirs" },

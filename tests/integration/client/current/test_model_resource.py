@@ -32,7 +32,7 @@ class TestModelResource:
     def test_model(self, client: SpeckleClient, test_project: Project) -> Model:
         model = client.model.create(
             CreateModelInput(
-                name="Test Model", description="", projectId=test_project.id
+                name="Test Model", description="", project_id=test_project.id
             )
         )
         return model
@@ -48,7 +48,7 @@ class TestModelResource:
         self, client: SpeckleClient, test_project: Project, name: str, description: str
     ):
         input = CreateModelInput(
-            name=name, description=description, projectId=test_project.id
+            name=name, description=description, project_id=test_project.id
         )
         result = client.model.create(input)
 
@@ -65,8 +65,8 @@ class TestModelResource:
         assert result.id == test_model.id
         assert result.name == test_model.name
         assert result.description == test_model.description
-        assert result.createdAt == test_model.createdAt
-        assert result.updatedAt == test_model.updatedAt
+        assert result.created_at == test_model.created_at
+        assert result.updated_at == test_model.updated_at
 
     def test_models_get_with_filter(
         self, client: SpeckleClient, test_model: Model, test_project: Project
@@ -77,7 +77,7 @@ class TestModelResource:
 
         assert isinstance(result, ResourceCollection)
         assert len(result.items) == 1
-        assert result.totalCount == 1
+        assert result.total_count == 1
         assert result.items[0].id == test_model.id
 
     def test_get_models(
@@ -87,7 +87,7 @@ class TestModelResource:
 
         assert isinstance(result, ResourceCollection)
         assert len(result.items) == 1
-        assert result.totalCount == 1
+        assert result.total_count == 1
         assert result.items[0].id == test_model.id
 
     def test_project_get_models(
@@ -99,7 +99,7 @@ class TestModelResource:
         assert result.id == test_project.id
         assert isinstance(result.models, ResourceCollection)
         assert len(result.models.items) == 1
-        assert result.models.totalCount == 1
+        assert result.models.total_count == 1
         assert result.models.items[0].id == test_model.id
 
     def test_project_get_models_with_filter(
@@ -112,7 +112,7 @@ class TestModelResource:
         assert result.id == test_project.id
         assert isinstance(result.models, ResourceCollection)
         assert len(result.models.items) == 1
-        assert result.models.totalCount == 1
+        assert result.models.total_count == 1
         assert result.models.items[0].id == test_model.id
 
     def test_model_update(
@@ -125,7 +125,7 @@ class TestModelResource:
             id=test_model.id,
             name=new_name,
             description=new_description,
-            projectId=test_project.id,
+            project_id=test_project.id,
         )
 
         updated_model = client.model.update(update_data)
@@ -134,12 +134,12 @@ class TestModelResource:
         assert updated_model.id == test_model.id
         assert updated_model.name.lower() == new_name.lower()
         assert updated_model.description == new_description
-        assert updated_model.updatedAt >= test_model.updatedAt
+        assert updated_model.updated_at >= test_model.updated_at
 
     def test_model_delete(
         self, client: SpeckleClient, test_model: Model, test_project: Project
     ):
-        delete_data = DeleteModelInput(id=test_model.id, projectId=test_project.id)
+        delete_data = DeleteModelInput(id=test_model.id, project_id=test_project.id)
 
         response = client.model.delete(delete_data)
         assert response is True
