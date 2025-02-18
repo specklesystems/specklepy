@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IHasUnits
+from specklepy.objects.other import RenderMaterial
 
 
 @dataclass(kw_only=True)
@@ -46,3 +47,21 @@ class InstanceDefinitionProxy(
     objects: List[str]
     max_depth: int
     name: str
+
+
+@dataclass(kw_only=True)
+class RenderMaterialProxy(
+    Base,
+    speckle_type="Objects.Other.RenderMaterialProxy",
+    detachable={"objects"},
+):
+    """
+    used to store render material to object relationships in root collections
+
+    Args:
+        objects (list): the list of application ids of objects used by render material
+        value (RenderMaterial): the render material used by the objects
+    """
+
+    objects: List[str]
+    value: RenderMaterial
