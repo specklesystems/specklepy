@@ -139,7 +139,10 @@ class AutomationContext:
         return self.speckle_client.model.create(input)
 
     def get_model(self, model_id: str) -> Model:
-        """Gets the model that the automation was triggered on"""
+        """
+        Args:
+            model_id (str): The id of the model to get
+        """
         return self.speckle_client.model.get(
             model_id, self.automation_run_data.project_id
         )
