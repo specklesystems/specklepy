@@ -10,17 +10,6 @@ from specklepy.core.api.resources.current.subscription_resource import (
     SubscriptionResource,
 )
 from specklepy.core.api.resources.current.version_resource import VersionResource
-from specklepy.core.api.resources.deprecated import (
-    active_user,
-    branch,
-    commit,
-    object,
-    other_user,
-    server,
-    stream,
-    subscriptions,
-    user,
-)
 
 __all__ = [
     "ActiveUserResource",
@@ -31,13 +20,4 @@ __all__ = [
     "ServerResource",
     "SubscriptionResource",
     "VersionResource",
-    "active_user",
-    "branch",
-    "commit",
-    "object",
-    "other_user",
-    "server",
-    "stream",
-    "subscriptions",
-    "user",
 ]

@@ -31,5 +31,5 @@ class ProjectUpdatedMessage(GraphQLBaseModel):
 class ProjectVersionsUpdatedMessage(GraphQLBaseModel):
     id: str
     type: ProjectVersionsUpdatedMessageType
-    model_id: Optional[str]
+    model_id: str
     version: Optional[Version]

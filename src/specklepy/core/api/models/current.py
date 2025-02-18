@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Generic, List, Optional, TypeVar
 
 from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.models.deprecated import Streams
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 
 T = TypeVar("T")
@@ -17,7 +16,6 @@ class User(GraphQLBaseModel):
     avatar: Optional[str] = None
     verified: Optional[bool] = None
     role: Optional[str] = None
-    streams: Optional["Streams"] = None
 
     def __repr__(self):
         return (
