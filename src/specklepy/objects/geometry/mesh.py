@@ -36,7 +36,6 @@ class Mesh(
         return (
             f"{self.__class__.__name__}("
             f"vertices: {self.vertices_count}, "
-            f"faces: {self.faces_count}, "
             f"units: {self.units}, "
             f"has_colors: {len(self.colors) > 0}, "
             f"has_texture_coords: {len(self.textureCoordinates) > 0})"
