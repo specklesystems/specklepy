@@ -1,7 +1,5 @@
 import contextlib
 
-from deprecated import deprecated
-
 from specklepy.api.credentials import Account
 from specklepy.api.resources import (
     ActiveUserResource,
@@ -119,26 +117,6 @@ class SpeckleClient(CoreSpeckleClient):
             client=self.wsclient,
             # todo: why doesn't this take a server version
         )
-
-    @deprecated(
-        version="2.6.0",
-        reason=(
-            "Renamed: please use `authenticate_with_account` or"
-            " `authenticate_with_token` instead."
-        ),
-    )
-    def authenticate(self, token: str) -> None:
-        """Authenticate the client using a personal access token
-        The token is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            token {str} -- an api token
-        """
-        metrics.track(
-            metrics.SDK, self.account, {"name": "Client Authenticate_deprecated"}
-        )
-        return super().authenticate(token)
 
     def authenticate_with_token(self, token: str) -> None:
         """
