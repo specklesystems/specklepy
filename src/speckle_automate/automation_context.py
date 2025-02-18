@@ -105,7 +105,7 @@ class AutomationContext:
         version_id = self.automation_run_data.triggers[0].payload.version_id
         try:
             version = self.speckle_client.version.get(
-                self.automation_run_data.project_id, version_id
+                version_id, self.automation_run_data.project_id
             )
         except SpeckleException as err:
             raise ValueError(
