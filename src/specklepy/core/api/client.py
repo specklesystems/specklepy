@@ -8,7 +8,6 @@ from gql.transport.exceptions import TransportServerError
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
 
-from specklepy.core.api import resources
 from specklepy.core.api.credentials import Account
 from specklepy.core.api.resources import (
     ActiveUserResource,

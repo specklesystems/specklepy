@@ -6,7 +6,6 @@ import requests
 
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import Account, get_account_from_token
-from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
 
@@ -62,7 +61,6 @@ class ServerTransport(AbstractTransport):
         url: Optional[str] = None,
         name: str = "RemoteTransport",
     ) -> None:
-
         super().__init__()
         if client is None and account is None and token is None and url is None:
             raise SpeckleException(

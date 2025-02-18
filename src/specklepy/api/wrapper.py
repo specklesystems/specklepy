@@ -21,7 +21,7 @@ class StreamWrapper(CoreStreamWrapper):
     ```py
     from specklepy.api.wrapper import StreamWrapper
 
-    # provide a url for a model, version, or object 
+    # provide a url for a model, version, or object
     wrapper = StreamWrapper("https://app.speckle.systems/projects/3073b96e86/models/0fe47c9dca@604bea8cc6")
 
     # get an authenticated SpeckleClient if you have a local account for the server
