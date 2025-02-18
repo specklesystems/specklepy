@@ -23,7 +23,7 @@ class TestSerialization:
         assert base.units == "millimetres"
         assert isinstance(base.test_bases[0], Base)
         assert base["@revit_thing"].speckle_type == "SpecialRevitFamily"
-        assert base["@detach"].name == deserialized["@detach"].name
+        assert base["@detach"].applicationId == deserialized["@detach"].applicationId
 
     def test_detaching(self, mesh: FakeMesh):
         transport = MemoryTransport()
