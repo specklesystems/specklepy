@@ -58,7 +58,7 @@ class TestProjectResource:
         assert result.name == test_project.name
         assert result.description == test_project.description
         assert result.visibility == test_project.visibility
-        assert result.createdAt == test_project.createdAt
+        assert result.created_at == test_project.created_at
 
     def test_project_update(self, client: SpeckleClient, test_project: Project):
         new_name = "MY new name"

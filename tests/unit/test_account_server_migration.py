@@ -19,7 +19,7 @@ def _create_account(
         serverInfo=ServerInfo(
             url=url,
             name="myServer",
-            migration=ServerMigration(movedTo=movedTo, movedFrom=movedFrom),
+            migration=ServerMigration(moved_to=movedTo, moved_from=movedFrom),
         ),
         userInfo=UserInfo(id=id),
     )

@@ -1,7 +1,5 @@
 from typing import Optional
 
-from pydantic import BaseModel
-
 from specklepy.core.api.enums import (
     ProjectModelsUpdatedMessageType,
     ProjectUpdatedMessageType,
@@ -9,28 +7,29 @@ from specklepy.core.api.enums import (
     UserProjectsUpdatedMessageType,
 )
 from specklepy.core.api.models.current import Model, Project, Version
+from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 
 
-class UserProjectsUpdatedMessage(BaseModel):
+class UserProjectsUpdatedMessage(GraphQLBaseModel):
     id: str
     type: UserProjectsUpdatedMessageType
     project: Optional[Project]
 
 
-class ProjectModelsUpdatedMessage(BaseModel):
+class ProjectModelsUpdatedMessage(GraphQLBaseModel):
     id: str
     type: ProjectModelsUpdatedMessageType
     model: Optional[Model]
 
 
-class ProjectUpdatedMessage(BaseModel):
+class ProjectUpdatedMessage(GraphQLBaseModel):
     id: str
     type: ProjectUpdatedMessageType
     project: Optional[Project]
 
 
-class ProjectVersionsUpdatedMessage(BaseModel):
+class ProjectVersionsUpdatedMessage(GraphQLBaseModel):
     id: str
     type: ProjectVersionsUpdatedMessageType
-    modelId: str
+    model_id: str
     version: Optional[Version]

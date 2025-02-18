@@ -50,7 +50,7 @@ class TestSubscriptionResource:
     ) -> Model:
         model1 = subscription_client.model.create(
             CreateModelInput(
-                name="Test Model 1", description="", projectId=test_project.id
+                name="Test Model 1", description="", project_id=test_project.id
             )
         )
         return model1
@@ -107,7 +107,7 @@ class TestSubscriptionResource:
         await asyncio.sleep(WAIT_PERIOD)  # Give time to subscription to be setup
 
         input = CreateModelInput(
-            name="my model", description="myDescription", projectId=test_project.id
+            name="my model", description="myDescription", project_id=test_project.id
         )
         created = subscription_client.model.create(input)
 

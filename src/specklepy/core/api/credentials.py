@@ -150,7 +150,7 @@ def get_accounts_for_server(host: str) -> List[Account]:
 
     for acc in all_accounts:
         moved_from = (
-            acc.serverInfo.migration.movedFrom if acc.serverInfo.migration else None
+            acc.serverInfo.migration.moved_from if acc.serverInfo.migration else None
         )
 
         if moved_from and host == urlparse(moved_from).netloc:
