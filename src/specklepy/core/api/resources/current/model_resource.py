@@ -138,7 +138,7 @@ class ModelResource(ResourceBase):
             "versionsLimit": versions_limit,
             "versionsCursor": versions_cursor,
             "versionsFilter": (
-                versions_filter.model_dump(warnings="error")
+                versions_filter.model_dump(warnings="error", by_alias=True)
                 if versions_filter
                 else None
             ),
@@ -201,7 +201,9 @@ class ModelResource(ResourceBase):
             "modelsLimit": models_limit,
             "modelsCursor": models_cursor,
             "modelsFilter": (
-                models_filter.model_dump(warnings="error") if models_filter else None
+                models_filter.model_dump(warnings="error", by_alias=True)
+                if models_filter
+                else None
             ),
         }
 
@@ -238,7 +240,7 @@ class ModelResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -256,7 +258,7 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[bool]], QUERY, variables
@@ -291,7 +293,7 @@ class ModelResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(

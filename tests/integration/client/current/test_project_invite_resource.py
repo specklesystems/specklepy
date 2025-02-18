@@ -32,7 +32,7 @@ class TestProjectInviteResource:
         input = ProjectInviteCreateInput(
             email=second_client.account.userInfo.email,
             role=None,
-            serverRole=None,
+            server_role=None,
             userId=None,
         )
         res = client.project_invite.create(project.id, input)
@@ -45,7 +45,7 @@ class TestProjectInviteResource:
         input = ProjectInviteCreateInput(
             email=second_client.account.userInfo.email,
             role=None,
-            serverRole=None,
+            server_role=None,
             userId=None,
         )
         res = client.project_invite.create(project.id, input)
@@ -55,7 +55,7 @@ class TestProjectInviteResource:
 
         assert isinstance(res, ProjectWithTeam)
         assert res.id == project.id
-        assert len(res.invitedTeam) == 1
+        assert len(res.invited_team) == 1
 
         assert isinstance(invite.user, LimitedUser)
         assert invite.user.id == second_client.account.userInfo.id
@@ -67,15 +67,15 @@ class TestProjectInviteResource:
         input = ProjectInviteCreateInput(
             email=None,
             role=None,
-            serverRole=None,
+            server_role=None,
             userId=second_client.account.userInfo.id,
         )
         res = client.project_invite.create(project.id, input)
 
         assert isinstance(res, ProjectWithTeam)
         assert res.id == project.id
-        assert len(res.invitedTeam) == 1
-        invited_team_member = res.invitedTeam[0].user
+        assert len(res.invited_team) == 1
+        invited_team_member = res.invited_team[0].user
         assert isinstance(invited_team_member, LimitedUser)
         assert invited_team_member.id == second_client.account.userInfo.id
 
@@ -89,7 +89,7 @@ class TestProjectInviteResource:
             project.id, created_invite.token
         )
         assert isinstance(collaborator, PendingStreamCollaborator)
-        assert collaborator.inviteId == created_invite.inviteId
+        assert collaborator.invite_id == created_invite.invite_id
 
         assert isinstance(collaborator.user, LimitedUser)
         assert isinstance(created_invite.user, LimitedUser)
@@ -115,7 +115,7 @@ class TestProjectInviteResource:
         assert created_invite.token
 
         input = ProjectInviteUseInput(
-            accept=True, projectId=created_invite.projectId, token=created_invite.token
+            accept=True, project_id=created_invite.projectId, token=created_invite.token
         )
         res = second_client.project_invite.use(input)
 
@@ -136,11 +136,11 @@ class TestProjectInviteResource:
         self, client: SpeckleClient, created_invite: PendingStreamCollaborator
     ):
         res = client.project_invite.cancel(
-            created_invite.projectId, created_invite.inviteId
+            created_invite.projectId, created_invite.invite_id
         )
 
         assert isinstance(res, ProjectWithTeam)
-        assert len(res.invitedTeam) == 0
+        assert len(res.invited_team) == 0
 
     @pytest.mark.parametrize(
         "new_role", ["stream:owner", "stream:contributor", "stream:reviewer", None]
@@ -156,15 +156,15 @@ class TestProjectInviteResource:
         assert created_invite.token
 
         input = ProjectInviteUseInput(
-            accept=True, projectId=created_invite.projectId, token=created_invite.token
+            accept=True, project_id=created_invite.projectId, token=created_invite.token
         )
         res = second_client.project_invite.use(input)
 
         invitee_id = second_client.account.userInfo.id
         assert invitee_id
         input = ProjectUpdateRoleInput(
-            userId=invitee_id,
-            projectId=project.id,
+            user_id=invitee_id,
+            project_id=project.id,
             role=new_role,
         )
         res = client.project.update_role(input)

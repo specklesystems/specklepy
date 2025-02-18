@@ -10,7 +10,7 @@ class StreamWrapper(CoreStreamWrapper):
     The `StreamWrapper` gives you some handy helpers to deal with urls and
     get authenticated clients and transports.
 
-    Construct a `StreamWrapper` with a stream, branch, commit, or object URL.
+    Construct a `StreamWrapper` with a URL of a model, version, or object.
     The corresponding ids will be stored
     in the wrapper. If you have local accounts on the machine,
     you can use the `get_account` and `get_client` methods
@@ -21,8 +21,8 @@ class StreamWrapper(CoreStreamWrapper):
     ```py
     from specklepy.api.wrapper import StreamWrapper
 
-    # provide any stream, branch, commit, object, or globals url
-    wrapper = StreamWrapper("https://app.speckle.systems/streams/3073b96e86/commits/604bea8cc6")
+    # provide a url for a model, version, or object
+    wrapper = StreamWrapper("https://app.speckle.systems/projects/3073b96e86/models/0fe47c9dca@604bea8cc6")
 
     # get an authenticated SpeckleClient if you have a local account for the server
     client = wrapper.get_client()
