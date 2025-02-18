@@ -5,7 +5,7 @@
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import httpx
 from gql import gql
@@ -138,9 +138,15 @@ class AutomationContext:
 
         return self.speckle_client.model.create(input)
 
+    def get_model(self, model_id: str) -> Model:
+        """Gets the model that the automation was triggered on"""
+        return self.speckle_client.model.get(
+            model_id, self.automation_run_data.project_id
+        )
+
     def create_new_version_in_project(
         self, root_object: Base, model_id: str, version_message: str = ""
-    ) -> Tuple[Model, Version]:
+    ) -> Version:
         """Save a base model to a new version on the project.
 
         Args:
@@ -149,14 +155,10 @@ class AutomationContext:
             version_message (str): The message for the new version.
         """
 
-        model = self.speckle_client.model.get(
-            self.automation_run_data.project_id, model_id
-        )  # TODO: Did we want to avoid fetching the model? we needed it before in order to
-
         matching_trigger = [
             t
             for t in self.automation_run_data.triggers
-            if t.payload.model_id == model.id
+            if t.payload.model_id == model_id
         ]
         if matching_trigger:
             raise ValueError(
@@ -173,7 +175,7 @@ class AutomationContext:
 
         create_version_input = CreateVersionInput(
             object_id=root_object_id,
-            model_id=model.id,
+            model_id=model_id,
             project_id=self.automation_run_data.project_id,
             message=version_message,
             source_application="SpeckleAutomate",
@@ -181,7 +183,7 @@ class AutomationContext:
         version = self.speckle_client.version.create(create_version_input)
 
         self._automation_result.result_versions.append(version.id)
-        return model, version
+        return version
 
     @property
     def context_view(self) -> Optional[str]:
