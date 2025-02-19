@@ -6,7 +6,7 @@ services:
   # Speckle Server dependencies
   #######
   postgres:
-    image: "postgres:16-alpine"
+    image: "postgres:16.4-alpine3.20@sha256:d898b0b78a2627cb4ee63464a14efc9d296884f1b28c841b0ab7d7c42f1fffdf"
     restart: always
     environment:
       POSTGRES_DB: speckle
@@ -49,10 +49,6 @@ services:
       retries: 30
       start_period: 10s
 
-  ####
-  # Speckle Server
-  #######
-
   speckle-server:
     image: speckle/speckle-server:latest
     restart: always
@@ -79,6 +75,7 @@ services:
       # TODO: Change this to the URL of the speckle server, as accessed from the network
       CANONICAL_URL: "http://127.0.0.1:8080"
       SPECKLE_AUTOMATE_URL: "http://127.0.0.1:3030"
+      FRONTEND_ORIGIN: "http://127.0.0.1:8081"
 
       # TODO: Change thvolumes:
       REDIS_URL: "redis://redis"
