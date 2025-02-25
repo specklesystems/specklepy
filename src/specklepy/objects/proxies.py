@@ -9,7 +9,7 @@ from specklepy.objects.other import RenderMaterial
 @dataclass(kw_only=True)
 class ColorProxy(
     Base,
-    speckle_type="Models.Proxies.ColorProxy",
+    speckle_type="Speckle.Core.Models.Proxies.ColorProxy",
     detachable={"objects"},
 ):
     objects: List[str]
@@ -20,7 +20,7 @@ class ColorProxy(
 @dataclass(kw_only=True)
 class GroupProxy(
     Base,
-    speckle_type="Models.Proxies.GroupProxy",
+    speckle_type="Speckle.Core.Models.Proxies.GroupProxy",
     detachable={"objects"},
 ):
     objects: List[str]
@@ -31,7 +31,7 @@ class GroupProxy(
 class InstanceProxy(
     Base,
     IHasUnits,
-    speckle_type="Models.Proxies.InstanceProxy",
+    speckle_type="Speckle.Core.Models.Instances.InstanceProxy",
 ):
     definition_id: str
     transform: List[float]
@@ -41,7 +41,7 @@ class InstanceProxy(
 @dataclass(kw_only=True)
 class InstanceDefinitionProxy(
     Base,
-    speckle_type="Models.Proxies.InstanceDefinitionProxy",
+    speckle_type="Speckle.Core.Models.Instances.InstanceDefinitionProxy",
     detachable={"objects"},
 ):
     objects: List[str]
