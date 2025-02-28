@@ -133,7 +133,7 @@ def automate_function(
             raise ValueError("Cannot operate on objects without their id's.")
         automation_context.attach_error_to_objects(
             "Forbidden speckle_type",
-            version_root_object.id,
+            version_root_object,
             "This project should not contain the type: "
             f"{function_inputs.forbidden_speckle_type}",
         )

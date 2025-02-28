@@ -332,7 +332,7 @@ class AutomationContext:
     def attach_error_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
@@ -351,7 +351,7 @@ class AutomationContext:
         self.attach_result_to_objects(
             ObjectResultLevel.ERROR,
             category,
-            object_ids,
+            objects,
             message,
             metadata,
             visual_overrides,
@@ -360,7 +360,7 @@ class AutomationContext:
     def attach_warning_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
@@ -369,7 +369,7 @@ class AutomationContext:
         self.attach_result_to_objects(
             ObjectResultLevel.WARNING,
             category,
-            object_ids,
+            objects,
             message,
             metadata,
             visual_overrides,
@@ -378,7 +378,7 @@ class AutomationContext:
     def attach_success_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
@@ -387,7 +387,7 @@ class AutomationContext:
         self.attach_result_to_objects(
             ObjectResultLevel.SUCCESS,
             category,
-            object_ids,
+            objects,
             message,
             metadata,
             visual_overrides,
@@ -396,7 +396,7 @@ class AutomationContext:
     def attach_info_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
@@ -405,7 +405,7 @@ class AutomationContext:
         self.attach_result_to_objects(
             ObjectResultLevel.INFO,
             category,
-            object_ids,
+            objects,
             message,
             metadata,
             visual_overrides,
@@ -415,19 +415,22 @@ class AutomationContext:
         self,
         level: ObjectResultLevel,
         category: str,
-        object_ids: Union[str, List[str]],
+        objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        if isinstance(object_ids, list):
-            if len(object_ids) < 1:
+        if isinstance(objects, list):
+            if len(objects) < 1:
                 raise ValueError(
                     f"Need atleast one object_id to report a(n) {level.value.upper()}"
                 )
-            id_list = object_ids
+            id_list = [o.id for o in objects]
+            application_ids = [o.applicationId for o in objects]
         else:
-            id_list = [object_ids]
+            id_list = [objects.id]
+            application_ids = [objects.applicationId]
+        metadata["applicationIds"] = application_ids
         print(
             f"Created new {level.value.upper()}"
             f" category: {category} caused by: {message}"
