@@ -1,0 +1,27 @@
+site_name: SpecklePy API Docs
+theme:
+  name: mkdocs
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            members_order: source
+            separate_signature: true
+            filters: ["!^_"]
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+          import:
+            - url: https://docs.python.org/3/objects.inv
+              domains: [py, std]
+          # selection:
+          #   docstring_style: google # Ensures Google-style docstrings are parsed correctly
+          # rendering:
+          #   show_root_heading: true
+          #   show_source: true
