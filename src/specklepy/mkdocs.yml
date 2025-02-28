@@ -1,6 +1,6 @@
 site_name: SpecklePy API Docs
 theme:
-  name: mkdocs
+  name: material
 
 plugins:
   - search
@@ -17,6 +17,7 @@ plugins:
             merge_init_into_class: true
             show_signature_annotations: true
             signature_crossrefs: true
+            show_if_no_docstring: true
           import:
             - url: https://docs.python.org/3/objects.inv
               domains: [py, std]
