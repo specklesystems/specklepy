@@ -9,6 +9,18 @@ from specklepy.objects.interfaces import ICurve, IHasUnits
 
 @dataclass(kw_only=True)
 class Arc(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Arc"):
+    """
+
+    attributes:
+     plane: asdfji;sfd
+     plane: asdfji;sfd
+     midPoint: ajosdfds
+     endPoint: ajosdfds
+
+    properties:
+      radius: asdfsadf
+    """
+
     plane: Plane
     startPoint: Point
     midPoint: Point

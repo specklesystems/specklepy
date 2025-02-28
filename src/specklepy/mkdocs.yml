@@ -11,7 +11,7 @@ plugins:
           options:
             members_order: source
             separate_signature: true
-            filters: ["!^_"]
+            filters: ["!^_"] #Ignore _ prefixed properties
             docstring_options:
               ignore_init_summary: true
             merge_init_into_class: true
@@ -23,6 +23,6 @@ plugins:
               domains: [py, std]
           # selection:
           #   docstring_style: google # Ensures Google-style docstrings are parsed correctly
-          # rendering:
-          #   show_root_heading: true
-          #   show_source: true
+          rendering:
+            show_root_heading: true
+            show_source: true
