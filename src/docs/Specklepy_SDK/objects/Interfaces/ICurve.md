@@ -1,0 +1,1 @@
+::: specklepy.objects.interfaces.ICurve

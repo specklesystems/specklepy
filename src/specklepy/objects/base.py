@@ -323,6 +323,30 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
 
 @dataclass(kw_only=True)
 class Base(_RegisteringBase, speckle_type="Base"):
+    """Base class for all Speckle objects.
+
+    The base object class is the foundation of all data being
+    transferred with Speckle. Any custom data structure that you want to transfer via
+    Speckle should inherit from it.
+
+    Objects in Speckle are immutable for storage purposes. When any property changes,
+    the object gets a new identity (hash). This hash is stored in the `id` property
+    after serialization.
+
+    Attributes:
+        id: Unique identifier (hash) for the object. This is typically
+        set automatically during serialization and depends on the object's properties.
+        applicationId: Optional identifier for the application that created
+            this object, can store the host application's native object ID.
+
+    ```py title="Example"
+    from specklepy.objects.base import Base
+    obj = Base(id="some-id", applicationId="my-app")
+    obj["custom_prop"] = 42  # Add a dynamic property
+    obj["@detached_prop"] = another_object  # Add a detached property
+    ```
+    """
+
     id: Union[str, None] = None
     # totalChildrenCount: Union[int, None] = None
     applicationId: Union[str, None] = None
