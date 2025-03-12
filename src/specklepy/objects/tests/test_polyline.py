@@ -54,6 +54,7 @@ def test_polyline_creation(open_square_coords):
     polyline = Polyline(value=open_square_coords, units=Units.m)
     assert polyline.value == open_square_coords
     assert polyline.units == Units.m.value
+    assert polyline.closed is False
 
 
 def test_polyline_domain(sample_polyline):
@@ -63,23 +64,31 @@ def test_polyline_domain(sample_polyline):
 
 
 def test_polyline_is_closed(open_square_coords, closed_square_coords):
-    open_poly = Polyline(value=open_square_coords, units=Units.m)
-    closed_poly = Polyline(value=closed_square_coords, units=Units.m)
+    # Test the static method
+    assert not Polyline.is_closed(open_square_coords)
+    assert Polyline.is_closed(closed_square_coords)
 
-    assert not open_poly.is_closed()
-    assert closed_poly.is_closed()
+    # Test with closed flag
+    open_poly = Polyline(value=open_square_coords, units=Units.m)
+    closed_poly = Polyline(value=closed_square_coords, units=Units.m, closed=True)
+    assert not open_poly.closed
+    assert closed_poly.closed
 
 
 def test_polyline_is_closed_with_tolerance(open_square_coords):
     almost_closed = open_square_coords + [
         0.0,
         0.0,
-        0.001,
-    ]  # last point slightly above start
-    poly = Polyline(value=almost_closed, units=Units.m)
+        0.001,  # last point slightly above start
+    ]
+    # Test static method with tolerance
+    assert not Polyline.is_closed(almost_closed, tolerance=1e-6)
+    assert Polyline.is_closed(almost_closed, tolerance=0.01)
 
-    assert not poly.is_closed(tolerance=1e-6)
-    assert poly.is_closed(tolerance=0.01)
+    # Also test with instance
+    poly = Polyline(value=almost_closed, units=Units.m)
+    # poly.closed should reflect what was passed in construction, not computed
+    assert not poly.closed
 
 
 def test_polyline_length_open(sample_polyline):
@@ -88,14 +97,13 @@ def test_polyline_length_open(sample_polyline):
 
 
 def test_polyline_length_closed(closed_square_coords):
-    polyline = Polyline(value=closed_square_coords, units=Units.m)
+    polyline = Polyline(value=closed_square_coords, units=Units.m, closed=True)
     polyline.length = polyline.calculate_length()
     assert polyline.length == 4.0
 
 
 def test_polyline_get_points(sample_polyline):
     points = sample_polyline.get_points()
-
     assert len(points) == 4
     assert all(isinstance(p, Point) for p in points)
     assert all(p.units == Units.m.value for p in points)
@@ -125,16 +133,25 @@ def test_polyline_invalid_coordinates():
 def test_polyline_units(open_square_coords):
     polyline = Polyline(value=open_square_coords, units=Units.m)
     assert polyline.units == Units.m.value
-
     polyline.units = "mm"
     assert polyline.units == "mm"
+
+
+def test_polyline_closed_flag(open_square_coords, closed_square_coords):
+    # Test default value
+    poly1 = Polyline(value=open_square_coords, units=Units.m)
+    assert poly1.closed is False
+
+    # Test explicit value
+    poly2 = Polyline(value=closed_square_coords, units=Units.m, closed=True)
+    assert poly2.closed is True
 
 
 def test_polyline_serialization(sample_polyline):
     serialized = serialize(sample_polyline)
     deserialized = deserialize(serialized)
-
     assert deserialized.value == sample_polyline.value
     assert deserialized.units == sample_polyline.units
     assert deserialized.domain.start == sample_polyline.domain.start
     assert deserialized.domain.end == sample_polyline.domain.end
+    assert deserialized.closed == sample_polyline.closed
