@@ -39,7 +39,6 @@ def sample_loop2():
 
 @pytest.fixture
 def sample_region(sample_boundary, sample_loop1, sample_loop2):
-
     return Region(
         boundary=sample_boundary,
         innerLoops=[sample_loop1, sample_loop2],
@@ -50,17 +49,18 @@ def sample_region(sample_boundary, sample_loop1, sample_loop2):
 
 
 def test_region_creation(sample_boundary, sample_loop1, sample_loop2):
+    has_hatch_pattern = True
     region = Region(
         boundary=sample_boundary,
         innerLoops=[sample_loop1, sample_loop2],
-        hasHatchPattern=True,
+        hasHatchPattern=has_hatch_pattern,
         units=Units.m,
         displayValue=[],
     )
     assert region.boundary == sample_boundary
     assert region.innerLoops[0] == sample_loop1
     assert region.innerLoops[1] == sample_loop2
-    assert region.hasHatchPattern == True
+    assert region.hasHatchPattern == has_hatch_pattern
     assert len(region.displayValue) == 0
     assert region.units == Units.m.value
 
