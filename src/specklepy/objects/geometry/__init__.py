@@ -10,6 +10,7 @@ from .point import Point
 from .point_cloud import PointCloud
 from .polycurve import Polycurve
 from .polyline import Polyline
+from .region import Region
 from .spiral import Spiral
 from .surface import Surface
 from .vector import Vector
@@ -22,6 +23,7 @@ __all__ = [
     "Plane",
     "Point",
     "Polyline",
+    "Region",
     "Vector",
     "Box",
     "Circle",
