@@ -18,7 +18,7 @@ class Region(
     detachable={"displayValue"},
 ):
     """
-    Flat polygon, defined by an outer boundary and inner loops.
+    Flat shape, defined by an outer boundary and inner loops.
     """
 
     boundary: ICurve

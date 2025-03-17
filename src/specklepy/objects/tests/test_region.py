@@ -65,7 +65,7 @@ def test_region_creation(sample_boundary, sample_loop1, sample_loop2):
     assert region.units == Units.m.value
 
 
-def test_circle_serialization(sample_region):
+def test_region_serialization(sample_region):
     serialized = serialize(sample_region)
     deserialized = deserialize(serialized)
 
