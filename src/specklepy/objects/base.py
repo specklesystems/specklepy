@@ -16,7 +16,7 @@ from typing import (
 )
 from warnings import warn
 
-from stringcase import pascalcase
+from pydantic.alias_generators import to_pascal
 
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 from specklepy.objects.units import Units
@@ -148,7 +148,7 @@ class _RegisteringBase:
         # convert the module names to PascalCase to match c# namespace naming convention
         # also drop specklepy from the beginning
         namespace = ".".join(
-            pascalcase(m)
+            to_pascal(m)
             for m in filter(lambda name: name != "specklepy", cls.__module__.split("."))
         )
         return f"{namespace}.{cls.__name__}"

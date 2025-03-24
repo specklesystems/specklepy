@@ -9,8 +9,8 @@ repository = "https://github.com/specklesystems/speckle-py"
 documentation = "https://speckle.guide/dev/py-examples.html"
 homepage = "https://speckle.systems/"
 packages = [
-  { include = "specklepy", from = "src" },
-  { include = "speckle_automate", from = "src" },
+    { include = "specklepy", from = "src" },
+    { include = "speckle_automate", from = "src" },
 ]
 
 
@@ -21,7 +21,6 @@ appdirs = "^1.4.4"
 gql = { extras = ["requests", "websockets"], version = "^3.3.0" }
 ujson = "^5.3.0"
 Deprecated = "^1.2.13"
-stringcase = "^1.2.0"
 attrs = "^23.1.0"
 httpx = "^0.25.0"
 
