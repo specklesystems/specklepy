@@ -2,32 +2,50 @@
 name: "Publish to PyPI"
 
 on:
+
+  # triggers publish to test pypi when merge into v3-dev
   workflow_run:
     workflows: ["Specklepy test and build"]
     branches: [v3-dev]
     types:
       - completed
 
+  # triggers publish to pypi when a release is cut (or a tag created)
+  release:
+    types: [created]
+
 jobs:
   pypi-publish:
     name: Upload to PyPI
     runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-    permissions:
-      # For PyPI's trusted publishing.
-      id-token: write
     steps:
       - name: "Install uv"
         uses: astral-sh/setup-uv@v5
       - uses: actions/checkout@v4
         with:
-          # This is necessary so that we have the tags.
           fetch-depth: 0
+
+      # build the package
       - name: "Build artifacts"
         run: uv build
-      - name: Publish to PyPi
-        run: uv publish --index test
 
-      - name: Test package install
+      # for merges
+      - name: Publish to Test PyPI
+        if: github.event_name == 'workflow_run'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+      # for releases
+      - name: Publish to PyPI
+        if: github.event_name == 'release'
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      # test installation
+      - name: Test package install from Test PyPI
+        if: github.event_name == 'workflow_run'
         run: uv run --index test --with specklepy --no-project -- python -c "import specklepy"
+
+      - name: Test package install from PyPI
+        if: github.event_name == 'release'
+        run: uv run --with specklepy --no-project -- python -c "import specklepy"
