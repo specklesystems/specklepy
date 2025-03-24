@@ -82,6 +82,16 @@ class LimitedUser(GraphQLBaseModel):
     verified: Optional[bool]
     role: Optional[str]
 
+    def __repr__(self):
+        return (
+            f"(name: {self.name}, "
+            f"id: {self.id}, "
+            f"bio: {self.bio}, "
+            f"company: {self.company}, "
+            f"verified: {self.verified}, "
+            f"role: {self.role})"
+        )
+
 
 class PendingStreamCollaborator(GraphQLBaseModel):
     id: str
