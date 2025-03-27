@@ -4,7 +4,7 @@ from enum import Enum
 class ProjectVisibility(str, Enum):
     PRIVATE = "PRIVATE"
     PUBLIC = "PUBLIC"
-    UNLISTEd = "UNLISTED"
+    UNLISTED = "UNLISTED"
 
 
 class UserProjectsUpdatedMessageType(str, Enum):
