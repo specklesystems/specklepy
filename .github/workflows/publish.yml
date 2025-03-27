@@ -1,0 +1,33 @@
+# Publish a release to PyPI.
+name: "Publish to PyPI"
+
+on:
+  workflow_run:
+    workflows: ["Specklepy test and build"]
+    branches: [v3-dev]
+    types:
+      - completed
+
+jobs:
+  pypi-publish:
+    name: Upload to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+    permissions:
+      # For PyPI's trusted publishing.
+      id-token: write
+    steps:
+      - name: "Install uv"
+        uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v4
+        with:
+          # This is necessary so that we have the tags.
+          fetch-depth: 0
+      - name: "Build artifacts"
+        run: uv build
+      - name: Publish to PyPi
+        run: uv publish --index test
+
+      - name: Test package install
+        run: uv run --index test --with specklepy --no-project -- python -c "import specklepy"

@@ -61,10 +61,10 @@ class ServerResource(ResourceBase):
             query=query, return_type="serverInfo", schema=ServerInfo
         )
         if isinstance(server_info, ServerInfo) and isinstance(
-            server_info.canonicalUrl, str
+            server_info.canonical_url, str
         ):
             r = requests.get(
-                server_info.canonicalUrl, headers={"User-Agent": "specklepy SDK"}
+                server_info.canonical_url, headers={"User-Agent": "specklepy SDK"}
             )
             if "x-speckle-frontend-2" in r.headers:
                 server_info.frontend2 = True
@@ -80,7 +80,8 @@ class ServerResource(ResourceBase):
             the server version in the format (major, minor, patch, (tag, build))
             eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
         """
-        # not tracking as it will be called along with other mutations / queries as a check
+        # not tracking as it will be called along with other mutations / queries
+        # as a check
         query = gql(
             """
             query Server {

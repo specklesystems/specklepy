@@ -65,7 +65,12 @@ class ProjectResource(ResourceBase):
     ) -> ProjectWithModels:
         QUERY = gql(
             """
-            query ProjectGetWithModels($projectId: String!, $modelsLimit: Int!, $modelsCursor: String, $modelsFilter: ProjectModelsFilter) {
+            query ProjectGetWithModels(
+              $projectId: String!,
+              $modelsLimit: Int!,
+              $modelsCursor: String,
+              $modelsFilter: ProjectModelsFilter
+              ) {
               data:project(id: $projectId) {
                 id
                 name
@@ -77,7 +82,11 @@ class ProjectResource(ResourceBase):
                 updatedAt
                 sourceApps
                 workspaceId
-                models(limit: $modelsLimit, cursor: $modelsCursor, filter: $modelsFilter) {
+                models(
+                  limit: $modelsLimit,
+                  cursor: $modelsCursor,
+                  filter: $modelsFilter
+                  ) {
                   items {
                     id
                     name
@@ -109,7 +118,9 @@ class ProjectResource(ResourceBase):
             "modelsLimit": models_limit,
             "modelsCursor": models_cursor,
             "modelsFilter": (
-                models_filter.model_dump(warnings="error") if models_filter else None
+                models_filter.model_dump(warnings="error", by_alias=True)
+                if models_filter
+                else None
             ),
         }
 
@@ -209,7 +220,7 @@ class ProjectResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -239,7 +250,7 @@ class ProjectResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -328,7 +339,7 @@ class ProjectResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(

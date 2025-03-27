@@ -1,23 +1,7 @@
-"""Builtin Speckle object kit."""
-
-from specklepy.objects import (
-    GIS,
-    encoding,
-    geometry,
-    other,
-    primitive,
-    structural,
-    units,
-)
-from specklepy.objects.base import Base
+from .data_objects import Base, DataObject, QgisObject
 
 __all__ = [
     "Base",
-    "encoding",
-    "geometry",
-    "other",
-    "units",
-    "structural",
-    "primitive",
-    "GIS",
+    "DataObject",
+    "QgisObject",
 ]

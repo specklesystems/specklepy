@@ -67,7 +67,7 @@ def user_application_data_path() -> Path:
             else:
                 return _ensure_folder_exists(Path.home(), ".config")
     except Exception as ex:
-        raise Exception("Failed to initialize user application data path.", ex)
+        raise Exception("Failed to initialize user application data path.") from ex
 
 
 def user_speckle_folder_path() -> Path:
@@ -162,7 +162,10 @@ def install_requirements(host_application: str) -> None:
     )
 
     if completed_process.returncode != 0:
-        m = f"Failed to install dependenices through pip, got {completed_process.returncode} return code"
+        m = (
+            "Failed to install dependenices through pip, got ",
+            f"{completed_process.returncode} return code",
+        )
         print(m)
         raise Exception(m)
 
@@ -197,7 +200,8 @@ def ensure_dependencies(host_application: str) -> None:
         invalidate_caches()
         _import_dependencies()
         print("Successfully found dependencies")
-    except ImportError:
+    except ImportError as e:
         raise Exception(
-            f"Cannot automatically ensure Speckle dependencies. Please try restarting the host application {host_application}!"
-        )
+            "Cannot automatically ensure Speckle dependencies.",
+            f"Please try restarting the host application {host_application}!",
+        ) from e

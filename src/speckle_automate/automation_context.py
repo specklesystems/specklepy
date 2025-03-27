@@ -1,9 +1,11 @@
+# ignoring "line too long" check from linter
+# ruff: noqa: E501
 """This module provides an abstraction layer above the Speckle Automate runtime."""
 
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import httpx
 from gql import gql
@@ -18,7 +20,9 @@ from speckle_automate.schema import (
 )
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.models import Branch
+from specklepy.core.api.inputs.model_inputs import CreateModelInput
+from specklepy.core.api.inputs.version_inputs import CreateVersionInput
+from specklepy.core.api.models.current import Model, Version
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.transports.memory import MemoryTransport
@@ -96,24 +100,26 @@ class AutomationContext:
 
     def receive_version(self) -> Base:
         """Receive the Speckle project version that triggered this automation run."""
-        # TODO: this is a quick hack to keep implementation consistency. Move to proper receive many versions
+        # TODO: this is a quick hack to keep implementation consistency.
+        # Move to proper receive many versions
         version_id = self.automation_run_data.triggers[0].payload.version_id
-        commit = self.speckle_client.commit.get(
-            self.automation_run_data.project_id, version_id
-        )
-        if not commit or not commit.referencedObject:
+        try:
+            version = self.speckle_client.version.get(
+                version_id, self.automation_run_data.project_id
+            )
+        except SpeckleException as err:
             raise ValueError(
                 f"""\
                              Could not receive specified version.
-                             {"The commit has no referencedObject." if not commit.referencedObject else ""}
                              Is your environment configured correctly?
                              project_id: {self.automation_run_data.project_id}
                              model_id: {self.automation_run_data.triggers[0].payload.model_id}
                              version_id: {self.automation_run_data.triggers[0].payload.version_id}
                              """
-            )
+            ) from err
+
         base = operations.receive(
-            commit.referencedObject, self._server_transport, self._memory_transport
+            version.referenced_object, self._server_transport, self._memory_transport
         )
         print(
             f"It took {self.elapsed():.2f} seconds to receive",
@@ -121,45 +127,48 @@ class AutomationContext:
         )
         return base
 
+    def create_new_model_in_project(
+        self, model_name: str, model_description: Optional[str] = None
+    ) -> Model:
+        input = CreateModelInput(
+            name=model_name,
+            description=model_description,
+            project_id=self.automation_run_data.project_id,
+        )
+
+        return self.speckle_client.model.create(input)
+
+    def get_model(self, model_id: str) -> Model:
+        """
+        Args:
+            model_id (str): The id of the model to get
+        """
+        return self.speckle_client.model.get(
+            model_id, self.automation_run_data.project_id
+        )
+
     def create_new_version_in_project(
-        self, root_object: Base, model_name: str, version_message: str = ""
-    ) -> Tuple[str, str]:
+        self, root_object: Base, model_id: str, version_message: str = ""
+    ) -> Version:
         """Save a base model to a new version on the project.
 
         Args:
             root_object (Base): The Speckle base object for the new version.
-            model_id (str): For now please use a `branchName`!
+            model_id (str): Id of model to create the new version on.
             version_message (str): The message for the new version.
         """
 
-        branch = self.speckle_client.branch.get(
-            self.automation_run_data.project_id, model_name, 1
-        )
-        if isinstance(branch, Branch):
-            if not branch.id:
-                raise ValueError("Cannot use the branch without its id")
-            matching_trigger = [
-                t
-                for t in self.automation_run_data.triggers
-                if t.payload.model_id == branch.id
-            ]
-            if matching_trigger:
-                raise ValueError(
-                    f"The target model: {model_name} cannot match the model"
-                    f" that triggered this automation:"
-                    f" {matching_trigger[0].payload.model_id}"
-                )
-            model_id = branch.id
-
-        else:
-            # we just check if it exists
-            branch_create = self.speckle_client.branch.create(
-                self.automation_run_data.project_id,
-                model_name,
+        matching_trigger = [
+            t
+            for t in self.automation_run_data.triggers
+            if t.payload.model_id == model_id
+        ]
+        if matching_trigger:
+            raise ValueError(
+                f"The target model: {model_id} cannot match the model"
+                f" that triggered this automation:"
+                f" {matching_trigger[0].payload.model_id}"
             )
-            if isinstance(branch_create, Exception):
-                raise branch_create
-            model_id = branch_create
 
         root_object_id = operations.send(
             root_object,
@@ -167,19 +176,17 @@ class AutomationContext:
             use_default_cache=False,
         )
 
-        version_id = self.speckle_client.commit.create(
-            stream_id=self.automation_run_data.project_id,
+        create_version_input = CreateVersionInput(
             object_id=root_object_id,
-            branch_name=model_name,
+            model_id=model_id,
+            project_id=self.automation_run_data.project_id,
             message=version_message,
             source_application="SpeckleAutomate",
         )
+        version = self.speckle_client.version.create(create_version_input)
 
-        if isinstance(version_id, SpeckleException):
-            raise version_id
-
-        self._automation_result.result_versions.append(version_id)
-        return model_id, version_id
+        self._automation_result.result_versions.append(version.id)
+        return version
 
     @property
     def context_view(self) -> Optional[str]:
@@ -273,7 +280,8 @@ class AutomationContext:
 
         if not path_obj.exists():
             raise ValueError("The given file path doesn't exist")
-        files = {path_obj.name: open(str(path_obj), "rb")}
+
+        files = {path_obj.name: path_obj.open("rb")}
 
         url = (
             f"{self.automation_run_data.speckle_server_url}api/stream/"

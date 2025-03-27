@@ -5,9 +5,10 @@ from typing import Dict, List, Optional, Union
 import pytest
 
 from specklepy.api import operations
-from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
-from specklepy.objects.units import Units
+from specklepy.objects.interfaces import IHasUnits
+from specklepy.objects.models.units import Units
 
 
 @pytest.mark.parametrize(
@@ -42,7 +43,8 @@ def test_new_type_registration() -> None:
 
 
 def test_fake_base_serialization() -> None:
-    fake_model = FakeModel(foo="bar")
+    fake_model = FakeModel()
+    fake_model.foo = "bar"
 
     serialized = operations.serialize(fake_model)
     deserialized = operations.deserialize(serialized)
@@ -79,24 +81,32 @@ def test_attribute_name_validation(
 
 def test_speckle_type_cannot_be_set(base: Base) -> None:
     assert base.speckle_type == "Base"
-    base.speckle_type = "unset"
+    base.speckle_type = "unset"  # type: ignore
     assert base.speckle_type == "Base"
 
 
+class FakeUnitBase(Base, IHasUnits, speckle_type="UnityBase"):
+    pass
+
+
 def test_setting_units():
-    b = Base(units="foot")
+    b = FakeUnitBase()
+    b.units = "foot"
     assert b.units == "foot"
 
     # with pytest.raises(SpeckleInvalidUnitException):
     b.units = "big"
     assert b.units == "big"
 
-    with pytest.raises(SpeckleInvalidUnitException):
-        b.units = 7  # invalid args are skipped
+    # invalid args are skipped
+    with pytest.raises(SpeckleException):
+        b.units = 7  # type: ignore
     assert b.units == "big"
 
-    b.units = None  # None should be a valid arg
-    assert b.units is None
+    # None should be not be a valid arg
+    with pytest.raises(SpeckleException):
+        b.units = None  # type: ignore
+    assert b.units == "big"
 
     b.units = Units.none
     assert b.units == "none"
@@ -106,9 +116,9 @@ def test_setting_units():
 
 
 def test_base_of_custom_speckle_type() -> None:
-    b1 = Base.of_type("BirdHouse", name="Tweety's Crib")
+    b1 = Base.of_type("BirdHouse", applicationId="Tweety's Crib")
     assert b1.speckle_type == "BirdHouse"
-    assert b1.name == "Tweety's Crib"
+    assert b1.applicationId == "Tweety's Crib"
 
 
 class DietaryRestrictions(Enum):
@@ -133,22 +143,22 @@ def test_type_checking() -> None:
     order = FrozenYoghurt()
 
     order.servings = 2
-    order.price = "7"  # will get converted
+    order.price = "7"  # type: ignore - it will get converted
     order.customer = "izzy"
     order.dietary = DietaryRestrictions.VEGAN
     order.tag = "preorder"
     order.tag = 4411
 
     with pytest.raises(SpeckleException):
-        order.flavours = "not a list"
+        order.flavours = "not a list"  # type: ignore
     with pytest.raises(SpeckleException):
-        order.servings = "five"
+        order.servings = "five"  # type: ignore
     with pytest.raises(SpeckleException):
-        order.add_ons = ["sprinkles"]
+        order.add_ons = ["sprinkles"]  # type: ignore
     with pytest.raises(SpeckleException):
-        order.dietary = "no nuts plz"
+        order.dietary = "no nuts plz"  # type: ignore
     with pytest.raises(SpeckleException):
-        order.tag = ["tag01", "tag02"]
+        order.tag = ["tag01", "tag02"]  # type: ignore
 
     order.add_ons = {"sprinkles": 0.2, "chocolate": 1.0}
     order.flavours = ["strawberry", "lychee", "peach", "pineapple"]
@@ -158,14 +168,21 @@ def test_type_checking() -> None:
 
 
 def test_cached_deserialization() -> None:
-    material = Base(color="blue", opacity=0.5)
+    material = Base()
+    material.color = "blue"
+    material.opacity = 0.5
 
-    a = Base(name="a")
+    a = Base()
+    a.name = "a"
     a["@material"] = material
-    b = Base(name="b")
+
+    b = Base()
+    b.name = "b"
     b["@material"] = material
 
-    root = Base(a=a, b=b)
+    root = Base()
+    root.a = a
+    root.b = b
 
     serialized = operations.serialize(root)
     deserialized = operations.deserialize(serialized)

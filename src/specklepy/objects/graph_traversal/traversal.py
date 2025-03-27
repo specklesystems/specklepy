@@ -7,6 +7,10 @@ from specklepy.objects.base import Base
 
 
 class ITraversalRule(Protocol):
+    @property
+    def should_return(self) -> bool:
+        pass
+
     def get_members_to_traverse(self, o: Base) -> Set[str]:
         """Get the members to traverse."""
         pass
@@ -50,20 +54,27 @@ class GraphTraversal:
 
         while len(stack) > 0:
             head = stack.pop()
-            yield head
 
             current = head.current
             active_rule = self._get_active_rule_or_default_rule(current)
+
+            if active_rule.should_return:
+                yield head
+
             members_to_traverse = active_rule.get_members_to_traverse(current)
             for child_prop in members_to_traverse:
                 try:
                     if child_prop in {"speckle_type", "units", "applicationId"}:
-                        continue  # debug: to avoid noisy exceptions, explicitly avoid checking ones we know will fail, this is not exhaustive
+                        # debug: to avoid noisy exceptions,
+                        # explicitly avoid checking ones we know will fail,
+                        # this is not exhaustive
+                        continue
                     if getattr(current, child_prop, None):
                         value = current[child_prop]
                         self._traverse_member_to_stack(stack, value, child_prop, head)
                 except KeyError:
-                    # Unset application ids, and class variables like SpeckleType will throw when __getitem__ is called
+                    # Unset application ids, and class variables like SpeckleType will
+                    #  throw when __getitem__ is called
                     pass
 
     @staticmethod
@@ -114,12 +125,14 @@ class GraphTraversal:
 class TraversalRule:
     _conditions: Collection[Callable[[Base], bool]]
     _members_to_traverse: Callable[[Base], Iterable[str]]
+    _should_return_to_output: bool = True
+
+    @property
+    def should_return(self) -> bool:
+        return self._should_return_to_output
 
     def get_members_to_traverse(self, o: Base) -> Set[str]:
         return set(self._members_to_traverse(o))
 
     def does_rule_hold(self, o: Base) -> bool:
-        for condition in self._conditions:
-            if condition(o):
-                return True
-        return False
+        return any(condition(o) for condition in self._conditions)
