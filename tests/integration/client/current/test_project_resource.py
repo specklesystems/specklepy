@@ -27,6 +27,7 @@ class TestProjectResource:
         "name, description, visibility",
         [
             ("Very private project", "My secret project", ProjectVisibility.PRIVATE),
+            ("Very discoverable project", None, ProjectVisibility.UNLISTED),
             ("Very public project", None, ProjectVisibility.PUBLIC),
         ],
     )
@@ -48,7 +49,11 @@ class TestProjectResource:
         assert result.id is not None
         assert result.name == name
         assert result.description == (description or "")
-        assert result.visibility == visibility
+        # we've disabled creation of public projects for now, they fall back to unlisted
+        if visibility == ProjectVisibility.PUBLIC:
+            assert result.visibility == ProjectVisibility.UNLISTED
+        else:
+            assert result.visibility == visibility
 
     def test_project_get(self, client: SpeckleClient, test_project: Project):
         result = client.project.get(test_project.id)
@@ -78,7 +83,11 @@ class TestProjectResource:
         assert updated_project.id == test_project.id
         assert updated_project.name == new_name
         assert updated_project.description == new_description
-        assert updated_project.visibility == new_visibility
+        # we've disabled creation of public projects for now, they fall back to unlisted
+        if new_visibility == ProjectVisibility.PUBLIC:
+            assert updated_project.visibility == ProjectVisibility.UNLISTED
+        else:
+            assert updated_project.visibility == new_visibility
 
     def test_project_delete(self, client: SpeckleClient):
         """Test deleting a project."""

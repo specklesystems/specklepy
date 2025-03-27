@@ -94,6 +94,12 @@ class ServerTransport(AbstractTransport):
 
         self.session = requests.Session()
 
+        self.session.headers.update(
+            {
+                "Accept": "text/plain",
+            }
+        )
+
         if self.account is not None:
             self._batch_sender = BatchSender(
                 self.url, self.stream_id, self.account.token, max_batch_size_mb=1
@@ -101,7 +107,6 @@ class ServerTransport(AbstractTransport):
             self.session.headers.update(
                 {
                     "Authorization": f"Bearer {self.account.token}",
-                    "Accept": "text/plain",
                 }
             )
 

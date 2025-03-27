@@ -4,13 +4,13 @@ from enum import Enum
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-from stringcase import camelcase
+from pydantic.alias_generators import to_camel
 
 
 class AutomateBase(BaseModel):
     """Use this class as a base model for automate related DTO."""
 
-    model_config = ConfigDict(alias_generator=camelcase, populate_by_name=True)
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
 
 class VersionCreationTriggerPayload(AutomateBase):
@@ -39,7 +39,7 @@ class AutomationRunData(BaseModel):
     triggers: List[VersionCreationTrigger]
 
     model_config = ConfigDict(
-        alias_generator=camelcase, populate_by_name=True, protected_namespaces=()
+        alias_generator=to_camel, populate_by_name=True, protected_namespaces=()
     )
 
 
@@ -52,7 +52,7 @@ class TestAutomationRunData(BaseModel):
     triggers: List[VersionCreationTrigger]
 
     model_config = ConfigDict(
-        alias_generator=camelcase, populate_by_name=True, protected_namespaces=()
+        alias_generator=to_camel, populate_by_name=True, protected_namespaces=()
     )
 
 

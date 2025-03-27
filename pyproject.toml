@@ -15,7 +15,6 @@ dependencies = [
     "httpx>=0.28.1",
     "pydantic>=2.10.5",
     "pydantic-settings>=2.7.1",
-    "stringcase>=1.2.0",
     "ujson>=5.10.0",
 ]
 
