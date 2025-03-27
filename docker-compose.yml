@@ -13,7 +13,7 @@ services:
       POSTGRES_USER: speckle
       POSTGRES_PASSWORD: speckle
     volumes:
-      - postgres-data:/var/lib/postgresql/data/
+      - ./.volumes/postgres-data:/var/lib/postgresql/data/
     healthcheck:
       # the -U user has to match the POSTGRES_USER value
       test: ["CMD-SHELL", "pg_isready -U speckle"]
@@ -25,7 +25,7 @@ services:
     image: "redis:6.0-alpine"
     restart: always
     volumes:
-      - redis-data:/data
+      - ./.volumes/redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 5s
@@ -37,7 +37,7 @@ services:
     command: server /data --console-address ":9001"
     restart: always
     volumes:
-      - minio-data:/data
+      - ./.volumes/minio-data:/data
     healthcheck:
       test:
         [
@@ -109,6 +109,7 @@ services:
       POSTGRES_PASSWORD: "speckle"
       POSTGRES_DB: "speckle"
       ENABLE_MP: "false"
+      FRONTEND_ORIGIN: "http://127.0.0.1:8080"
 
 networks:
   default:
