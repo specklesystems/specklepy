@@ -1392,7 +1392,6 @@ dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
-    { name = "stringcase" },
     { name = "ujson" },
 ]
 
@@ -1422,7 +1421,6 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pydantic", specifier = ">=2.10.5" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
-    { name = "stringcase", specifier = ">=1.2.0" },
     { name = "ujson", specifier = ">=5.10.0" },
 ]
 
@@ -1442,12 +1440,6 @@ dev = [
     { name = "types-requests", specifier = ">=2.32.0.20241016" },
     { name = "types-ujson", specifier = ">=5.10.0.20240515" },
 ]
-
-[[package]]
-name = "stringcase"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple/" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/1f/1241aa3d66e8dc1612427b17885f5fcd9c9ee3079fc0d28e9a3aeeb36fa3/stringcase-1.2.0.tar.gz", hash = "sha256:48a06980661908efe8d9d34eab2b6c13aefa2163b3ced26972902e3bdfd87008", size = 2958 }
 
 [[package]]
 name = "termcolor"
