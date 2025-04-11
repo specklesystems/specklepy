@@ -45,7 +45,8 @@ def sample_curve(sample_polyline):
 
 def test_curve_creation(sample_polyline):
     """
-    test curve initialization with required properties."""
+    test curve initialization
+    """
     curve = Curve(
         degree=3,
         periodic=False,
@@ -70,7 +71,9 @@ def test_curve_creation(sample_polyline):
 
 
 def test_length_property(sample_polyline):
-    """Test the length property setter and getter."""
+    """
+    test the length property setter and getter
+    """
     curve = Curve(
         degree=1,
         periodic=False,
@@ -90,7 +93,9 @@ def test_length_property(sample_polyline):
 
 
 def test_area_property(sample_polyline):
-    """Test the area property setter and getter."""
+    """
+    test the area property setter and getter
+    """
     polyline = Polyline(
         value=[0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0], units=Units.m
     )
@@ -114,7 +119,9 @@ def test_area_property(sample_polyline):
 
 
 def test_curve_serialization(sample_curve):
-    """Test serialization and deserialization of the curve."""
+    """
+    test serialization and deserialization of the curve
+    """
     serialized = serialize(sample_curve)
     deserialized = deserialize(serialized)
 
@@ -130,7 +137,9 @@ def test_curve_serialization(sample_curve):
 
 @pytest.mark.parametrize("new_units", ["mm", "cm", "in"])
 def test_curve_units(sample_polyline, new_units):
-    """Test changing units of a curve."""
+    """
+    test changing units of a curve
+    """
     curve = Curve(
         degree=3,
         periodic=False,
