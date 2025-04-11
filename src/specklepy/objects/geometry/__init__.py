@@ -2,6 +2,7 @@ from .arc import Arc
 from .box import Box
 from .circle import Circle
 from .control_point import ControlPoint
+from .curve import Curve
 from .ellipse import Ellipse
 from .line import Line
 from .mesh import Mesh
@@ -33,4 +34,5 @@ __all__ = [
     "Polycurve",
     "Spiral",
     "Surface",
+    "Curve",
 ]
