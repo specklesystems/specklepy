@@ -1,7 +1,7 @@
 name: "Publish Python Package"
 on:
   workflow_run:
-    workflows: ["Specklepy test and build"]
+    workflows: [Specklepy test and build]
     branches: [v3-dev]
     types:
       - completed
