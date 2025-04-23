@@ -8,7 +8,7 @@ on:
       - "v3-dev"
     tags:
       - "v3.*.*"
-    
+
 jobs:
   ci:
     name: continuous-integration
