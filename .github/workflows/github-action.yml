@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - "v3-dev"
+    tags:
+      - "v3.*.*"
+
 jobs:
   ci:
     name: continuous-integration
@@ -39,8 +42,8 @@ jobs:
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
 
-      # - name: Run Speckle Server
-      #   run: docker compose up -d
+      - name: Run Speckle Server
+        run: docker compose up -d
 
       # - name: Run tests
       #   run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
