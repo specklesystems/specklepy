@@ -4,6 +4,7 @@ from typing import List
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.point import Point
 from specklepy.objects.interfaces import ICurve, IHasUnits
+from specklepy.objects.models.units import Units
 
 
 @dataclass(kw_only=True)
@@ -13,24 +14,28 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
     """
 
     value: List[float]
+    closed: bool = False
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(value: {self.value}, units: {self.units})"
+        return (
+            f"{self.__class__.__name__}("
+            f"value: {self.value}, "
+            f"closed: {self.closed}, "
+            f"units: {self.units})"
+        )
 
-    def is_closed(self, tolerance: float = 1e-6) -> bool:
+    @staticmethod
+    def is_closed(points: List[float], tolerance: float = 1e-6) -> bool:
         """
-        check if the polyline is closed (start point equals end point within tolerance)
+        check if the polyline is closed
         """
-        if len(self.value) < 6:  # need at least 2 points to be closed
+        if len(points) < 6:  # need at least 2 points to be closed
             return False
 
         # compare first and last points
-        start = Point(
-            x=self.value[0], y=self.value[1], z=self.value[2], units=self.units
-        )
-        end = Point(
-            x=self.value[-3], y=self.value[-2], z=self.value[-1], units=self.units
-        )
+        start = Point(x=points[0], y=points[1], z=points[2], units=Units.m)
+        end = Point(x=points[-3], y=points[-2], z=points[-1], units=Units.m)
+
         return start.distance_to(end) <= tolerance
 
     @property
@@ -46,7 +51,7 @@ class Polyline(Base, IHasUnits, ICurve, speckle_type="Objects.Geometry.Polyline"
         total_length = 0.0
         for i in range(len(points) - 1):
             total_length += points[i].distance_to(points[i + 1])
-        if self.is_closed() and points:
+        if self.closed and points:
             total_length += points[-1].distance_to(points[0])
         return total_length
 
