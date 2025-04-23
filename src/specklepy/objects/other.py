@@ -7,7 +7,6 @@ from specklepy.objects.base import Base
 class RenderMaterial(
     Base,
     speckle_type="Objects.Other.RenderMaterial",
-    serialize_ignore={"diffuse", "emissive"},
 ):
     """
     Minimal physically based material DTO class. Based on references from
