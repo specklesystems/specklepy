@@ -81,11 +81,11 @@ jobs:
 
       # Logic for TestPyPI (on v3-dev branch push)
       - name: "Publish to TestPyPI"
-        if: ${{ !github.ref_type == 'tag' }}
+        if: ${{ github.ref_type == 'branch' }}
         run: uv publish --index test
 
       - name: "Verify TestPyPI package installation"
-        if: ${{ !github.ref_type == 'tag' }}
+        if: ${{ github.ref_type == 'branch' }}
         run: uv run --index test --with specklepy --no-project -- python -c "import specklepy"
 
       # Logic for PyPI (on v3* tag creation)
