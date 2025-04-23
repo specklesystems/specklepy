@@ -4,7 +4,7 @@ on:
     branches:
       - "v3-dev"
     tags:
-      - "v3.*.*"
+      - "3.*.*"
 
 jobs:
   build-and-test:
@@ -63,8 +63,6 @@ jobs:
     # set the environment based on what triggered the workflow
     environment:
       name: ${{ github.ref_type == 'tag' && 'pypi' || 'testpypi' }}
-    env:
-      IS_TAG_BUILD: ${{ github.ref_type == 'tag' }}
 
     permissions:
       id-token: write
@@ -83,18 +81,18 @@ jobs:
 
       # Logic for TestPyPI (on v3-dev branch push)
       - name: "Publish to TestPyPI"
-        if: ${{ !env.IS_TAG_BUILD }}
+        if: ${{ !github.ref_type == 'tag' }}
         run: uv publish --index test
 
       - name: "Verify TestPyPI package installation"
-        if: ${{ !env.IS_TAG_BUILD }}
+        if: ${{ !github.ref_type == 'tag' }}
         run: uv run --index test --with specklepy --no-project -- python -c "import specklepy"
 
       # Logic for PyPI (on v3* tag creation)
       - name: "Publish to PyPI"
-        if: ${{ env.IS_TAG_BUILD }}
+        if: ${{ github.ref_type == 'tag' }}
         run: uv publish
 
       - name: "Verify PyPI package installation"
-        if: ${{ env.IS_TAG_BUILD }}
+        if: ${{ github.ref_type == 'tag' }}
         run: uv run --with specklepy --no-project -- python -c "import specklepy"
