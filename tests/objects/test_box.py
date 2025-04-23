@@ -116,6 +116,7 @@ def test_box_serialization(sample_box):
     serialized = serialize(sample_box)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Box)
     assert deserialized.basePlane.origin.x == sample_box.basePlane.origin.x
     assert deserialized.basePlane.origin.y == sample_box.basePlane.origin.y
     assert deserialized.basePlane.origin.z == sample_box.basePlane.origin.z

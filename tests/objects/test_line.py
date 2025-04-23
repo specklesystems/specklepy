@@ -83,6 +83,7 @@ def test_line_serialization(sample_line):
     serialized = serialize(sample_line)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Line)
     assert deserialized.start.x == sample_line.start.x
     assert deserialized.start.y == sample_line.start.y
     assert deserialized.start.z == sample_line.start.z

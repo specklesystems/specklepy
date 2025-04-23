@@ -151,6 +151,7 @@ def test_arc_serialization(sample_arc):
     serialized = serialize(sample_arc)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Arc)
     assert deserialized.startPoint.x == sample_arc.startPoint.x
     assert deserialized.startPoint.y == sample_arc.startPoint.y
     assert deserialized.startPoint.z == sample_arc.startPoint.z

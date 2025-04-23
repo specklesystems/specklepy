@@ -107,6 +107,7 @@ def test_circle_serialization(sample_circle):
     serialized = serialize(sample_circle)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Circle)
     assert deserialized.plane.origin.x == sample_circle.plane.origin.x
     assert deserialized.plane.origin.y == sample_circle.plane.origin.y
     assert deserialized.plane.origin.z == sample_circle.plane.origin.z

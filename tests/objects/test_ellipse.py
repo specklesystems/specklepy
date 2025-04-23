@@ -104,6 +104,7 @@ def test_ellipse_serialization(sample_ellipse):
     serialized = serialize(sample_ellipse)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Ellipse)
     assert deserialized.plane.origin.x == sample_ellipse.plane.origin.x
     assert deserialized.plane.origin.y == sample_ellipse.plane.origin.y
     assert deserialized.plane.origin.z == sample_ellipse.plane.origin.z

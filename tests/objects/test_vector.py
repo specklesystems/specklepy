@@ -36,6 +36,7 @@ def test_vector_serialization():
     serialized = serialize(v)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Vector)
     assert deserialized.x == v.x
     assert deserialized.y == v.y
     assert deserialized.z == v.z

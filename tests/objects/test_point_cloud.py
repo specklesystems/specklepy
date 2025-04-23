@@ -47,6 +47,7 @@ def test_point_cloud_serialization(sample_point_cloud):
     serialized = serialize(sample_point_cloud)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, PointCloud)
     assert len(deserialized.points) == len(sample_point_cloud.points)
 
     for orig_point, deserial_point in zip(
