@@ -2,33 +2,47 @@ name: "Publish Python Package"
 on:
   workflow_run:
     workflows: [Specklepy test and build]
-    branches: [v3-dev]
     types:
       - completed
 
-
 jobs:
-  test-pypi-publish:
-    name: Upload to TestPyPI
-    if: github.event_name == 'workflow_run'
+  publish-package:
+    name: "Build and Publish Python Package"
     runs-on: ubuntu-latest
+
+    # set the environment based on what triggered the workflow
     environment:
-      name: testpypi
+      name: ${{ contains(github.ref, 'refs/tags/v3') && 'pypi' || 'testpypi' }}
+
     permissions:
       id-token: write
-      contents: read
+
     steps:
       - name: "Install uv"
         uses: astral-sh/setup-uv@v5
-      - uses: actions/checkout@v4
+
+      - name: "Checkout code"
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: "Build artifacts"
+
+      - name: "Build package artifacts"
         run: uv build
-      - name: Publish to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          packages-dir: dist/
-      - name: Test package install
+
+      # Logic for TestPyPI (on v3-dev branch push)
+      - name: "Publish to TestPyPI"
+        if: ${{ !contains(github.ref, 'refs/tags/v3') }}
+        run: uv publish --index test
+
+      - name: "Verify TestPyPI package installation"
+        if: ${{ !contains(github.ref, 'refs/tags/v3') }}
         run: uv run --index test --with specklepy --no-project -- python -c "import specklepy"
+
+      # Logic for PyPI (on v3* tag creation)
+      - name: "Publish to PyPI"
+        if: ${{ contains(github.ref, 'refs/tags/v3') }}
+        run: uv publish
+
+      - name: "Verify PyPI package installation"
+        if: ${{ contains(github.ref, 'refs/tags/v3') }}
+        run: uv run --with specklepy --no-project -- python -c "import specklepy"
