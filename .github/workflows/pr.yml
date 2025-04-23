@@ -3,9 +3,6 @@ on:
   pull_request:
     branches:
       - "v3-dev"
-  push:
-    branches:
-      - "v3-dev"
 
 jobs:
   build-and-test:
