@@ -10,6 +10,13 @@ class ProjectCreateInput(GraphQLBaseModel):
     visibility: Optional[ProjectVisibility]
 
 
+class WorkspaceProjectCreateInput(GraphQLBaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    visibility: Optional[ProjectVisibility]
+    workspaceId: str
+
+
 class ProjectInviteCreateInput(GraphQLBaseModel):
     email: Optional[str]
     role: Optional[str]

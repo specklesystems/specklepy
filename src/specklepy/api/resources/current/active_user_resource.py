@@ -1,12 +1,17 @@
 from typing import List, Optional
 
-from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
+from specklepy.core.api.inputs.user_inputs import (
+    UserProjectsFilter,
+    UserUpdateInput,
+    UserWorkspacesFilter,
+)
 from specklepy.core.api.models import (
     PendingStreamCollaborator,
     Project,
     ResourceCollection,
     User,
 )
+from specklepy.core.api.models.current import PermissionCheckResult, Workspace
 from specklepy.core.api.resources import ActiveUserResource as CoreResource
 from specklepy.logging import metrics
 
@@ -51,3 +56,20 @@ class ActiveUserResource(CoreResource):
             metrics.SDK, self.account, {"name": "Active User Get Project Invites"}
         )
         return super().get_project_invites()
+
+    def can_create_personal_projects(self) -> PermissionCheckResult:
+        metrics.track(
+            metrics.SDK,
+            self.account,
+            {"name": "Active User Can Create Personal Projects Check"},
+        )
+        return super().can_create_personal_projects()
+
+    def get_workspaces(
+        self,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[UserWorkspacesFilter] = None,
+    ) -> ResourceCollection[Workspace]:
+        metrics.track(metrics.SDK, self.account, {"name": "Active User Get Workspaces"})
+        return super().get_workspaces(limit, cursor, filter)

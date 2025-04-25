@@ -7,6 +7,7 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectModelsFilter,
     ProjectUpdateInput,
     ProjectUpdateRoleInput,
+    WorkspaceProjectCreateInput,
 )
 from specklepy.core.api.models import Project, ProjectWithModels, ProjectWithTeam
 from specklepy.core.api.resource import ResourceBase
@@ -198,6 +199,12 @@ class ProjectResource(ResourceBase):
         ).data
 
     def create(self, input: ProjectCreateInput) -> Project:
+        """
+        Creates a non-workspace project (aka Personal Project)
+
+        see client.active_user.can_create_personal_projects to see if the user has
+        permission
+        """
         QUERY = gql(
             """
             mutation ProjectCreate($input: ProjectCreateInput) {
@@ -226,6 +233,45 @@ class ProjectResource(ResourceBase):
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Project]], QUERY, variables
         ).data.data
+
+    def create_in_workspace(self, input: WorkspaceProjectCreateInput) -> Project:
+        """
+        Creates a workspace project
+        This feature is only supported by Workspace Enabled Servers
+        (e.g. app.speckle.systems)
+
+        see `workspace.permissions.can_create_project` to see if the user has permission
+        """
+        QUERY = gql(
+            """
+          mutation WorkspaceProjectCreate($input: WorkspaceProjectCreateInput!) {
+            data:workspaceMutations {
+              data:projects {
+                data:create(input: $input) {
+                  id
+                  name
+                  description
+                  visibility
+                  allowPublicComments
+                  role
+                  createdAt
+                  updatedAt
+                  sourceApps
+                  workspaceId
+                }
+              }
+            }
+          }
+          """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[Project]]], QUERY, variables
+        ).data.data.data
 
     def update(self, input: ProjectUpdateInput) -> Project:
         QUERY = gql(

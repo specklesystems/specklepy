@@ -11,5 +11,9 @@ class UserUpdateInput(GraphQLBaseModel):
 
 
 class UserProjectsFilter(GraphQLBaseModel):
-    search: str
+    search: Optional[str] = None
     only_with_roles: Optional[Sequence[str]] = None
+
+
+class UserWorkspacesFilter(GraphQLBaseModel):
+    search: Optional[str]
