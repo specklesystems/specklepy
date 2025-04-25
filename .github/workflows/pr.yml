@@ -3,12 +3,10 @@ on:
   pull_request:
     branches:
       - "v3-dev"
-  push:
-    branches:
-      - "v3-dev"
+
 jobs:
-  ci:
-    name: continuous-integration
+  build-and-test:
+    name: build-and-test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,8 +37,8 @@ jobs:
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
 
-      # - name: Run Speckle Server
-      #   run: docker compose up -d
+      - name: Run Speckle Server
+        run: docker compose up -d
 
       # - name: Run tests
       #   run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
