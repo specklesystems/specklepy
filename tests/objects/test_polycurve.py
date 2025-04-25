@@ -86,15 +86,21 @@ def test_polycurve_serialization(sample_polycurve: Polycurve):
     serialized = serialize(sample_polycurve)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Polycurve)
     assert len(deserialized.segments) == len(sample_polycurve.segments)
     assert deserialized.units == sample_polycurve.units
 
-    assert deserialized.segments[0].start.x == sample_polycurve.segments[0].start.x
-    assert deserialized.segments[0].start.y == sample_polycurve.segments[0].start.y
-    assert deserialized.segments[0].start.z == sample_polycurve.segments[0].start.z
-    assert deserialized.segments[0].end.x == sample_polycurve.segments[0].end.x
-    assert deserialized.segments[0].end.y == sample_polycurve.segments[0].end.y
-    assert deserialized.segments[0].end.z == sample_polycurve.segments[0].end.z
+    expectedSegment = sample_polycurve.segments[0]
+    segment = deserialized.segments[0]
+    assert isinstance(expectedSegment, Line)
+    assert isinstance(segment, Line)
+
+    assert segment.start.x == expectedSegment.start.x
+    assert segment.start.y == expectedSegment.start.y
+    assert segment.start.z == expectedSegment.start.z
+    assert segment.end.x == expectedSegment.end.x
+    assert segment.end.y == expectedSegment.end.y
+    assert segment.end.z == expectedSegment.end.z
 
 
 def test_polycurve_empty():

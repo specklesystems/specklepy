@@ -134,6 +134,7 @@ def test_polyline_serialization(sample_polyline):
     serialized = serialize(sample_polyline)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Polyline)
     assert deserialized.value == sample_polyline.value
     assert deserialized.units == sample_polyline.units
     assert deserialized.domain.start == sample_polyline.domain.start

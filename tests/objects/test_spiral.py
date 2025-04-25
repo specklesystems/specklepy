@@ -113,6 +113,7 @@ def test_spiral_serialization(sample_spiral: Spiral):
     serialized = serialize(sample_spiral)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Spiral)
     assert deserialized.start_point.x == sample_spiral.start_point.x
     assert deserialized.start_point.y == sample_spiral.start_point.y
     assert deserialized.start_point.z == sample_spiral.start_point.z

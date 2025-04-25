@@ -140,6 +140,7 @@ def test_surface_serialization(sample_surface: Surface):
     serialized = serialize(sample_surface)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Surface)
     assert deserialized.degreeU == sample_surface.degreeU
     assert deserialized.degreeV == sample_surface.degreeV
     assert deserialized.rational == sample_surface.rational
