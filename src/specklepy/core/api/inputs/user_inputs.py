@@ -15,6 +15,7 @@ class UserProjectsFilter(GraphQLBaseModel):
     only_with_roles: Optional[Sequence[str]] = None
     workspaceId: Optional[str] = None
     personalOnly: Optional[bool] = None
+    include_implicit_access: Optional[bool] = None
 
 
 class UserWorkspacesFilter(GraphQLBaseModel):
