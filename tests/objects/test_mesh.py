@@ -155,6 +155,7 @@ def test_mesh_creation(cube_vertices, cube_faces):
     assert mesh.faces == cube_faces
     assert mesh.colors == []
     assert mesh.textureCoordinates == []
+    assert mesh.vertexNormals == []
     assert mesh.units == Units.m.value
 
 
@@ -239,6 +240,7 @@ def test_mesh_serialization(full_mesh):
     serialized = serialize(full_mesh)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Mesh)
     assert deserialized.vertices == full_mesh.vertices
     assert deserialized.faces == full_mesh.faces
     assert deserialized.colors == full_mesh.colors

@@ -70,6 +70,7 @@ def test_control_point_serialization(sample_control_point):
     serialized = serialize(sample_control_point)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, ControlPoint)
     assert deserialized.x == sample_control_point.x
     assert deserialized.y == sample_control_point.y
     assert deserialized.z == sample_control_point.z

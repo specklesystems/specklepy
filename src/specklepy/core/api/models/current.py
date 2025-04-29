@@ -129,7 +129,8 @@ class ProjectCollaborator(GraphQLBaseModel):
 class Version(GraphQLBaseModel):
     author_user: Optional[LimitedUser]
     created_at: datetime
-    id: str
+    id: Optional[str]
+    """Maybe null if workspaces version history limit has been exceeded"""
     message: Optional[str]
     preview_url: str
     referenced_object: Optional[str]

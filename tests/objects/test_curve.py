@@ -125,6 +125,7 @@ def test_curve_serialization(sample_curve):
     serialized = serialize(sample_curve)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Curve)
     assert deserialized.degree == sample_curve.degree
     assert deserialized.periodic == sample_curve.periodic
     assert deserialized.rational == sample_curve.rational

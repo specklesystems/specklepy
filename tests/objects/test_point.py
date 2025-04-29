@@ -30,6 +30,7 @@ def test_point_serialization():
     serialized = serialize(p1)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Point)
     assert deserialized.x == p1.x
     assert deserialized.y == p1.y
     assert deserialized.z == p1.z

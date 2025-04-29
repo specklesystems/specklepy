@@ -13,12 +13,13 @@ class Mesh(
     IHasVolume,
     IHasUnits,
     speckle_type="Objects.Geometry.Mesh",
-    detachable={"vertices", "faces", "colors", "textureCoordinates"},
+    detachable={"vertices", "faces", "colors", "textureCoordinates", "vertexNormals"},
     chunkable={
         "vertices": 31250,
         "faces": 62500,
         "colors": 62500,
         "textureCoordinates": 31250,
+        "vertexNormals": 31250,
     },
     serialize_ignore={"vertices_count", "texture_coordinates_count"},
 ):
@@ -31,6 +32,7 @@ class Mesh(
     faces: List[int]
     colors: List[int] = field(default_factory=list)
     textureCoordinates: List[float] = field(default_factory=list)
+    vertexNormals: List[float] = field(default_factory=list)
 
     def __repr__(self) -> str:
         return (

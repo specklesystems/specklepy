@@ -69,6 +69,7 @@ def test_region_serialization(sample_region):
     serialized = serialize(sample_region)
     deserialized = deserialize(serialized)
 
+    assert isinstance(deserialized, Region)
     assert deserialized.hasHatchPattern == sample_region.hasHatchPattern
     assert deserialized.units == sample_region.units
 
