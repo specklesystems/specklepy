@@ -152,6 +152,12 @@ class ModelWithVersions(Model):
     versions: ResourceCollection[Version]
 
 
+class ProjectPermissionChecks(GraphQLBaseModel):
+    canCreateModel: "PermissionCheckResult"
+    canDelete: "PermissionCheckResult"
+    canUpdate: "PermissionCheckResult"
+
+
 class Project(GraphQLBaseModel):
     allow_public_comments: bool
     created_at: datetime
@@ -163,6 +169,7 @@ class Project(GraphQLBaseModel):
     updated_at: datetime
     visibility: ProjectVisibility
     workspace_id: Optional[str]
+    permissions: ProjectPermissionChecks
 
 
 class ProjectWithModels(Project):

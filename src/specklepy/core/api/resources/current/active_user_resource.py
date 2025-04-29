@@ -116,6 +116,20 @@ class ActiveUserResource(ResourceBase):
                       updatedAt
                       sourceApps
                       workspaceId
+                      permissions {
+                        canCreateModel {
+                          authorized
+                          code
+                          message
+                          payload
+                        }
+                        canDelete {
+                          authorized
+                          code
+                          message
+                          payload
+                        }
+                      }
                    }
                 }
               }
@@ -272,6 +286,50 @@ class ActiveUserResource(ResourceBase):
             DataResponse[Optional[DataResponse[ResourceCollection[Workspace]]]],
             QUERY,
             variables,
+        )
+
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
+
+        return response.data.data
+
+    def get_active_workspace(self) -> Workspace:
+        """
+        This feature is only available on Workspace enabled servers  (server versions
+        >=2.23.17) e.g. app.speckle.systems
+        """
+        QUERY = gql(
+            """
+            query ActiveUser {
+              data:activeUser {
+                data:activeWorkspace {
+                  id
+                  name
+                  role
+                  slug
+                  logo
+                  createdAt
+                  updatedAt
+                  readOnly
+                  description
+                  permissions {
+                    canCreateProject {
+                      authorized
+                      code
+                      message
+                    }
+                  }
+                }
+              }
+            }
+            """  # noqa: E501
+        )
+
+        response = self.make_request_and_parse_response(
+            DataResponse[Optional[DataResponse[Workspace]]],
+            QUERY,
         )
 
         if response.data is None:

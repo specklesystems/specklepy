@@ -1,6 +1,9 @@
+from typing import Optional
+
 from gql import gql
 
-from specklepy.core.api.models.current import Workspace
+from specklepy.core.api.inputs.project_inputs import WorksaceProjectsFilter
+from specklepy.core.api.models.current import Project, ResourceCollection, Workspace
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 
@@ -51,4 +54,63 @@ class WorkspaceResource(ResourceBase):
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Workspace]], QUERY, variables
+        ).data.data
+
+    def get_projects(
+        self,
+        workspace_id: str,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[WorksaceProjectsFilter] = None,
+    ) -> ResourceCollection[Project]:
+        QUERY = gql(
+            """
+            query Workspace($workspaceId: String!, $limit: Int!, $cursor: String, $filter: WorkspaceProjectsFilter) {
+              data:workspace(id: $workspaceId) {
+                data:projects(limit: $limit, cursor: $cursor, filter: $filter) {
+                  cursor
+                  items {
+                    allowPublicComments
+                    createdAt
+                    description
+                    id
+                    name
+                    role
+                    sourceApps
+                    updatedAt
+                    visibility
+                    workspaceId
+                    permissions {
+                      canCreateModel {
+                        authorized
+                        code
+                        message
+                        payload
+                      }
+                      canDelete {
+                        authorized
+                        code
+                        message
+                        payload
+                      }
+                    }
+                  }
+                  totalCount
+                }
+              }
+            }
+            """  # noqa: E501
+        )
+
+        variables = {
+            "workspaceId": workspace_id,
+            "limit": limit,
+            "cursor": cursor,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[ResourceCollection[Project]]], QUERY, variables
         ).data.data

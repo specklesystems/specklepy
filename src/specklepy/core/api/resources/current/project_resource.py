@@ -43,6 +43,20 @@ class ProjectResource(ResourceBase):
                 updatedAt
                 visibility
                 workspaceId
+                permissions {
+                  canCreateModel {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                  canDelete {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                }
               }
             }
             """
@@ -83,6 +97,20 @@ class ProjectResource(ResourceBase):
                 updatedAt
                 sourceApps
                 workspaceId
+                permissions {
+                  canCreateModel {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                  canDelete {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                }
                 models(
                   limit: $modelsLimit,
                   cursor: $modelsCursor,
@@ -185,6 +213,20 @@ class ProjectResource(ResourceBase):
                   }
                 }
                 workspaceId
+                permissions {
+                  canCreateModel {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                  canDelete {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                }
               }
             }
             """
@@ -220,6 +262,20 @@ class ProjectResource(ResourceBase):
                   updatedAt
                   sourceApps
                   workspaceId
+                  permissions {
+                  canCreateModel {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                  canDelete {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                }
                 }
               }
             }
@@ -258,6 +314,20 @@ class ProjectResource(ResourceBase):
                   updatedAt
                   sourceApps
                   workspaceId
+                  permissions {
+                  canCreateModel {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                  canDelete {
+                    authorized
+                    code
+                    message
+                    payload
+                  }
+                }
                 }
               }
             }
@@ -289,6 +359,20 @@ class ProjectResource(ResourceBase):
                   updatedAt
                   visibility
                   workspaceId
+                  permissions {
+                    canCreateModel {
+                      authorized
+                      code
+                      message
+                      payload
+                    }
+                    canDelete {
+                      authorized
+                      code
+                      message
+                      payload
+                    }
+                  }
                 }
               }
             }
