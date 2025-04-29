@@ -10,6 +10,13 @@ class ProjectCreateInput(GraphQLBaseModel):
     visibility: Optional[ProjectVisibility]
 
 
+class WorkspaceProjectCreateInput(GraphQLBaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    visibility: Optional[ProjectVisibility]
+    workspaceId: str
+
+
 class ProjectInviteCreateInput(GraphQLBaseModel):
     email: Optional[str]
     role: Optional[str]
@@ -44,3 +51,12 @@ class ProjectUpdateRoleInput(GraphQLBaseModel):
     user_id: str
     project_id: str
     role: Optional[str]
+
+
+class WorksaceProjectsFilter(GraphQLBaseModel):
+    search: str
+    """Filter out projects by name"""
+    with_project_role_only: bool
+    """
+    Only return workspace projects that the active user has an explicit project role in
+    """

@@ -3,6 +3,7 @@ from typing import Generic, List, Optional, TypeVar
 
 from specklepy.core.api.enums import ProjectVisibility
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.logging.exceptions import WorkspacePermissionException
 
 T = TypeVar("T")
 
@@ -52,6 +53,10 @@ class ServerConfiguration(GraphQLBaseModel):
     object_size_limit_bytes: int
 
 
+class ServerWorkspacesInfo(GraphQLBaseModel):
+    workspaces_enabled: bool
+
+
 # Keeping this one all Optionals at the minute,
 #  because its used both as a deserialization model for GQL and Account Management
 class ServerInfo(GraphQLBaseModel):
@@ -61,13 +66,11 @@ class ServerInfo(GraphQLBaseModel):
     admin_contact: Optional[str] = None
     description: Optional[str] = None
     canonical_url: Optional[str] = None
-    roles: Optional[List[dict]] = None
     scopes: Optional[List[dict]] = None
     auth_strategies: Optional[List[dict]] = None
     version: Optional[str] = None
-    frontend2: Optional[bool] = None
     migration: Optional[ServerMigration] = None
-
+    workspaces: Optional[ServerWorkspacesInfo] = None
     # TODO separate gql model from account management model
 
 
@@ -126,11 +129,11 @@ class ProjectCollaborator(GraphQLBaseModel):
 class Version(GraphQLBaseModel):
     author_user: Optional[LimitedUser]
     created_at: datetime
-    id: Optional[str]
-    """Maybe null if workspaces version history limit has been exceeded"""
+    id: str
     message: Optional[str]
     preview_url: str
-    referenced_object: str
+    referenced_object: Optional[str]
+    """Maybe null if workspaces version history limit has been exceeded"""
     source_application: Optional[str]
 
 
@@ -147,6 +150,11 @@ class Model(GraphQLBaseModel):
 
 class ModelWithVersions(Model):
     versions: ResourceCollection[Version]
+
+
+class ProjectPermissionChecks(GraphQLBaseModel):
+    canCreateModel: "PermissionCheckResult"
+    canDelete: "PermissionCheckResult"
 
 
 class Project(GraphQLBaseModel):
@@ -178,3 +186,31 @@ class ProjectCommentCollection(ResourceCollection[T], Generic[T]):
 class UserSearchResultCollection(GraphQLBaseModel):
     items: List[LimitedUser]
     cursor: Optional[str] = None
+
+
+class PermissionCheckResult(GraphQLBaseModel):
+    authorized: bool
+    code: str
+    message: str
+
+    def ensure_authorised(self) -> None:
+        """Raises WorkspacePermissionException if not authorized"""
+        if not self.authorized:
+            raise WorkspacePermissionException(self.message)
+
+
+class WorkspacePermissionChecks(GraphQLBaseModel):
+    can_create_project: PermissionCheckResult
+
+
+class Workspace(GraphQLBaseModel):
+    id: str
+    name: str
+    role: Optional[str]
+    slug: str
+    logo: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+    read_only: bool
+    description: Optional[str]
+    permissions: WorkspacePermissionChecks

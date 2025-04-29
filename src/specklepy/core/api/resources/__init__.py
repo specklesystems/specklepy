@@ -10,6 +10,7 @@ from specklepy.core.api.resources.current.subscription_resource import (
     SubscriptionResource,
 )
 from specklepy.core.api.resources.current.version_resource import VersionResource
+from specklepy.core.api.resources.current.workspace_resource import WorkspaceResource
 
 __all__ = [
     "ActiveUserResource",
@@ -20,4 +21,5 @@ __all__ = [
     "ServerResource",
     "SubscriptionResource",
     "VersionResource",
+    "WorkspaceResource",
 ]
