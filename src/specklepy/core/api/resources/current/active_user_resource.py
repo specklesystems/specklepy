@@ -266,7 +266,13 @@ class ActiveUserResource(ResourceBase):
             """  # noqa: E501
         )
 
-        variables = {"limit": limit, "cursor": cursor, "filter": filter}
+        variables = {
+            "limit": limit,
+            "cursor": cursor,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
+        }
 
         response = self.make_request_and_parse_response(
             DataResponse[Optional[DataResponse[ResourceCollection[Workspace]]]],
