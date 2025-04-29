@@ -281,7 +281,7 @@ class ActiveUserResource(ResourceBase):
 
         return response.data.data
 
-    def get_active_workspace(self) -> Workspace:
+    def get_active_workspace(self) -> Optional[Workspace]:
         """
         This feature is only available on Workspace enabled servers  (server versions
         >=2.23.17) e.g. app.speckle.systems
@@ -314,7 +314,7 @@ class ActiveUserResource(ResourceBase):
         )
 
         response = self.make_request_and_parse_response(
-            DataResponse[Optional[DataResponse[Workspace]]],
+            DataResponse[Optional[DataResponse[Optional[Workspace]]]],
             QUERY,
         )
 

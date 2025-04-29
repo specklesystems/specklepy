@@ -80,7 +80,6 @@ class TestActiveUserResource:
     def test_get_active_workspace(self, client: SpeckleClient):
         """
         Test server is not workspace enabled, so we can't really test everything here
-        We'll just test client's error handling
         """
-        with pytest.raises(GraphQLException):
-            client.active_user.get_active_workspace()
+        res = client.active_user.get_active_workspace()
+        assert res is None

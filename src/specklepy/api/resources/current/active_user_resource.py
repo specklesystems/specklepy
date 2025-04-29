@@ -74,7 +74,7 @@ class ActiveUserResource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Active User Get Workspaces"})
         return super().get_workspaces(limit, cursor, filter)
 
-    def get_active_workspace(self) -> Workspace:
+    def get_active_workspace(self) -> Optional[Workspace]:
         metrics.track(
             metrics.SDK, self.account, {"name": "Active User Get Active Workspace"}
         )
