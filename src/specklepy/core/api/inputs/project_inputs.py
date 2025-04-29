@@ -54,9 +54,9 @@ class ProjectUpdateRoleInput(GraphQLBaseModel):
 
 
 class WorksaceProjectsFilter(GraphQLBaseModel):
-    search: str
+    search: Optional[str]
     """Filter out projects by name"""
-    with_project_role_only: bool
+    with_project_role_only: Optional[bool]
     """
     Only return workspace projects that the active user has an explicit project role in
     """
