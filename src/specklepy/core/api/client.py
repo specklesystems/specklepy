@@ -18,6 +18,7 @@ from specklepy.core.api.resources import (
     ServerResource,
     SubscriptionResource,
     VersionResource,
+    WorkspaceResource,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
@@ -218,6 +219,12 @@ class SpeckleClient:
             server_version=server_version,
         )
         self.version = VersionResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.workspace = WorkspaceResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,
