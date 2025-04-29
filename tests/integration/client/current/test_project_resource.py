@@ -73,7 +73,7 @@ class TestProjectResource:
 
         assert isinstance(result, ProjectPermissionChecks)
         assert result.can_create_model.authorized is True
-        assert result.can_celete.authorized is True
+        assert result.can_delete.authorized is True
 
     def test_project_update(self, client: SpeckleClient, test_project: Project):
         new_name = "MY new name"

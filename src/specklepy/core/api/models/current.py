@@ -154,7 +154,7 @@ class ModelWithVersions(Model):
 
 class ProjectPermissionChecks(GraphQLBaseModel):
     can_create_model: "PermissionCheckResult"
-    can_celete: "PermissionCheckResult"
+    can_delete: "PermissionCheckResult"
 
 
 class Project(GraphQLBaseModel):
