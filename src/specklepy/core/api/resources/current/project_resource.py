@@ -10,6 +10,7 @@ from specklepy.core.api.inputs.project_inputs import (
     WorkspaceProjectCreateInput,
 )
 from specklepy.core.api.models import Project, ProjectWithModels, ProjectWithTeam
+from specklepy.core.api.models.current import ProjectPermissionChecks
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 
@@ -43,7 +44,25 @@ class ProjectResource(ResourceBase):
                 updatedAt
                 visibility
                 workspaceId
-                permissions {
+              }
+            }
+            """
+        )
+
+        variables = {
+            "projectId": project_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[Project], QUERY, variables
+        ).data
+
+    def get_permissions(self, project_id: str) -> ProjectPermissionChecks:
+        QUERY = gql(
+            """
+            query Project($projectId: String!) {
+              data:project(id: $projectId) {
+                data:permissions {
                   canCreateModel {
                     authorized
                     code
@@ -67,8 +86,8 @@ class ProjectResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[Project], QUERY, variables
-        ).data
+            DataResponse[DataResponse[ProjectPermissionChecks]], QUERY, variables
+        ).data.data
 
     def get_with_models(
         self,
@@ -97,20 +116,6 @@ class ProjectResource(ResourceBase):
                 updatedAt
                 sourceApps
                 workspaceId
-                permissions {
-                  canCreateModel {
-                    authorized
-                    code
-                    message
-                    payload
-                  }
-                  canDelete {
-                    authorized
-                    code
-                    message
-                    payload
-                  }
-                }
                 models(
                   limit: $modelsLimit,
                   cursor: $modelsCursor,
@@ -213,20 +218,6 @@ class ProjectResource(ResourceBase):
                   }
                 }
                 workspaceId
-                permissions {
-                  canCreateModel {
-                    authorized
-                    code
-                    message
-                    payload
-                  }
-                  canDelete {
-                    authorized
-                    code
-                    message
-                    payload
-                  }
-                }
               }
             }
             """
@@ -262,20 +253,6 @@ class ProjectResource(ResourceBase):
                   updatedAt
                   sourceApps
                   workspaceId
-                  permissions {
-                  canCreateModel {
-                    authorized
-                    code
-                    message
-                    payload
-                  }
-                  canDelete {
-                    authorized
-                    code
-                    message
-                    payload
-                  }
-                }
                 }
               }
             }
@@ -314,20 +291,6 @@ class ProjectResource(ResourceBase):
                   updatedAt
                   sourceApps
                   workspaceId
-                  permissions {
-                  canCreateModel {
-                    authorized
-                    code
-                    message
-                    payload
-                  }
-                  canDelete {
-                    authorized
-                    code
-                    message
-                    payload
-                  }
-                }
                 }
               }
             }
@@ -359,20 +322,6 @@ class ProjectResource(ResourceBase):
                   updatedAt
                   visibility
                   workspaceId
-                  permissions {
-                    canCreateModel {
-                      authorized
-                      code
-                      message
-                      payload
-                    }
-                    canDelete {
-                      authorized
-                      code
-                      message
-                      payload
-                    }
-                  }
                 }
               }
             }

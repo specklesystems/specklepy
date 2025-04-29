@@ -94,20 +94,6 @@ class ProjectInviteResource(ResourceBase):
                         role
                       }
                     }
-                    permissions {
-                      canCreateModel {
-                        authorized
-                        code
-                        message
-                        payload
-                      }
-                      canDelete {
-                        authorized
-                        code
-                        message
-                        payload
-                      }
-                    }
                   }
                 }
               }
@@ -252,20 +238,6 @@ class ProjectInviteResource(ResourceBase):
                         avatar
                         verified
                         role
-                      }
-                    }
-                    permissions {
-                      canCreateModel {
-                        authorized
-                        code
-                        message
-                        payload
-                      }
-                      canDelete {
-                        authorized
-                        code
-                        message
-                        payload
                       }
                     }
                   }

@@ -8,6 +8,7 @@ from specklepy.core.api.inputs.project_inputs import (
     WorkspaceProjectCreateInput,
 )
 from specklepy.core.api.models import Project, ProjectWithModels, ProjectWithTeam
+from specklepy.core.api.models.current import ProjectPermissionChecks
 from specklepy.core.api.resources import ProjectResource as CoreResource
 from specklepy.logging import metrics
 
@@ -26,6 +27,12 @@ class ProjectResource(CoreResource):
     def get(self, project_id: str) -> Project:
         metrics.track(metrics.SDK, self.account, {"name": "Project Get "})
         return super().get(project_id)
+
+    def get_permissions(self, project_id: str) -> ProjectPermissionChecks:
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Project Project Permissions "}
+        )
+        return super().get_permissions(project_id)
 
     def get_with_models(
         self,

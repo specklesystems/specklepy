@@ -168,7 +168,6 @@ class Project(GraphQLBaseModel):
     updated_at: datetime
     visibility: ProjectVisibility
     workspace_id: Optional[str]
-    permissions: ProjectPermissionChecks
 
 
 class ProjectWithModels(Project):

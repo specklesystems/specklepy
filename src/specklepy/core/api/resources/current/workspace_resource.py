@@ -80,20 +80,6 @@ class WorkspaceResource(ResourceBase):
                     updatedAt
                     visibility
                     workspaceId
-                    permissions {
-                      canCreateModel {
-                        authorized
-                        code
-                        message
-                        payload
-                      }
-                      canDelete {
-                        authorized
-                        code
-                        message
-                        payload
-                      }
-                    }
                   }
                   totalCount
                 }

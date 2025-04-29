@@ -116,20 +116,6 @@ class ActiveUserResource(ResourceBase):
                       updatedAt
                       sourceApps
                       workspaceId
-                      permissions {
-                        canCreateModel {
-                          authorized
-                          code
-                          message
-                          payload
-                        }
-                        canDelete {
-                          authorized
-                          code
-                          message
-                          payload
-                        }
-                      }
                    }
                 }
               }
