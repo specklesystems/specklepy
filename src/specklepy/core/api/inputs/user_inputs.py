@@ -17,6 +17,5 @@ class UserProjectsFilter(GraphQLBaseModel):
     personalOnly: Optional[bool] = None
 
 
-
 class UserWorkspacesFilter(GraphQLBaseModel):
     search: Optional[str]
