@@ -67,13 +67,11 @@ class ProjectResource(ResourceBase):
                     authorized
                     code
                     message
-                    payload
                   }
                   canDelete {
                     authorized
                     code
                     message
-                    payload
                   }
                 }
               }
