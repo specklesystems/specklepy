@@ -36,6 +36,10 @@ class WorkspaceResource(ResourceBase):
                 updatedAt
                 readOnly
                 description
+                creationState
+                {
+                  completed
+                }
                 permissions {
                   canCreateProject {
                     authorized

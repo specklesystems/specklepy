@@ -202,7 +202,9 @@ class PermissionCheckResult(GraphQLBaseModel):
 class WorkspacePermissionChecks(GraphQLBaseModel):
     can_create_project: PermissionCheckResult
 
-
+class WorkspaceCreationState(GraphQLBaseModel):
+    completed: bool
+    
 class Workspace(GraphQLBaseModel):
     id: str
     name: str
@@ -213,4 +215,5 @@ class Workspace(GraphQLBaseModel):
     updated_at: datetime
     read_only: bool
     description: Optional[str]
+    creation_state: Optional[WorkspaceCreationState]
     permissions: WorkspacePermissionChecks
