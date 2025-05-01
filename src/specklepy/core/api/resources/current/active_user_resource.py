@@ -252,6 +252,10 @@ class ActiveUserResource(ResourceBase):
                     updatedAt
                     readOnly
                     description
+                    creationState
+                    {
+                      completed
+                    }
                     permissions {
                       canCreateProject {
                         authorized
