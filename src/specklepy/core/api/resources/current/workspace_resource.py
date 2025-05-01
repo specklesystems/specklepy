@@ -57,7 +57,7 @@ class WorkspaceResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Workspace]], QUERY, variables
+            DataResponse[Workspace], QUERY, variables
         ).data.data
 
     def get_projects(
