@@ -47,7 +47,6 @@ class Region(
 
     @property
     def displayValue(self) -> List[Mesh]:
-        print(self._displayValue)
         return self._displayValue
 
     @displayValue.setter
