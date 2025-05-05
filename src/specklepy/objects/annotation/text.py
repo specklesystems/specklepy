@@ -28,7 +28,7 @@ class Text(Base, IHasUnits, speckle_type="Objects.Annotation.Text"):
 
     value: str  # Plain text, without formatting
     origin: Point  # Origin point, relation to the text is defined by AlignmentHorizontal and AlignmentVertical
-    height: float  # Height in linear units or pixels (if Units.None)
+    height: float  # Font height in linear units or pixels (if Units.None)
     alignmentH: AlignmentHorizontal = field(
         default_factory=lambda: AlignmentHorizontal.Left
     )
