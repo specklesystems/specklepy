@@ -28,8 +28,10 @@ class Text(Base, IHasUnits, speckle_type="Objects.Annotation.Text"):
     value: str
     origin: Point
     height: float
-    alignmentH: AlignmentHorizontal = field(default_factory=AlignmentHorizontal.Left)
-    alignmentV: AlignmentVertical = field(default_factory=AlignmentVertical.Top)
+    alignmentH: AlignmentHorizontal = field(
+        default_factory=lambda: AlignmentHorizontal.Left
+    )
+    alignmentV: AlignmentVertical = field(default_factory=lambda: AlignmentVertical.Top)
     plane: Optional[Plane] = field(default_factory=lambda: None)
     maxWidth: Optional[float] = field(default_factory=lambda: None)
 
