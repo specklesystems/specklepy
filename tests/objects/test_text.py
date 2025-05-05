@@ -7,7 +7,7 @@ from specklepy.objects.models.units import Units
 
 
 @pytest.fixture
-def sample_point():
+def sample_point() -> Point:
     return Point(x=0.0, y=0.0, z=0.0, units=Units.m)
 
 
@@ -22,8 +22,22 @@ def sample_plane(sample_point: Point) -> Plane:
 
 
 @pytest.fixture
-def sample_text(sample_point: Point) -> Plane:
+def sample_text(sample_point: Point) -> Text:
     return Text(value="text", origin=sample_point, height=0.5, units=Units.m)
+
+
+@pytest.fixture
+def sample_text_all_properties(sample_point: Point) -> Text:
+    return Text(
+        value="text",
+        origin=sample_point,
+        height=0.5,
+        alignmentH=AlignmentHorizontal.Center,
+        alignmentV=AlignmentVertical.Center,
+        plane=sample_plane,
+        maxWidth=20,
+        units=Units.m,
+    )
 
 
 def test_text_creation_minimal(sample_point: Point):
@@ -64,7 +78,7 @@ def test_text_creation_extended(sample_point: Point, sample_plane: Plane):
     assert text_obj.units == Units.m.value
 
 
-def test_point_serialization(sample_text: Text):
+def test_point_serialization(sample_text_all_properties: Text):
     serialized = serialize(sample_text)
     deserialized = deserialize(serialized)
 
