@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 
 from specklepy.objects.base import Base
-from specklepy.objects.geometry import Point, Plane
+from specklepy.objects.geometry import Plane, Point
 from specklepy.objects.interfaces import IHasUnits
 
 
@@ -27,7 +27,7 @@ class Text(Base, IHasUnits, speckle_type="Objects.Annotation.Text"):
     """
 
     value: str  # Plain text, without formatting
-    origin: Point  # Origin point, relation to the text is defined by AlignmentHorizontal and AlignmentVertical
+    origin: Point  # Relation to the text is defined by AlignmentH and AlignmentV
     height: float  # Font height in linear units or pixels (if Units.None)
     alignmentH: AlignmentHorizontal = field(
         default_factory=lambda: AlignmentHorizontal.Left
