@@ -21,7 +21,7 @@ def sample_plane(sample_point: Point) -> Plane:
         origin=sample_point, normal=normal, xdir=xdir, ydir=ydir, units=Units.m
     )
 
-    
+
 @pytest.fixture
 def sample_text(sample_point: Point) -> Plane:
     return Text(value="text", origin=sample_point, height=0.5, units=Units.m)
@@ -45,7 +45,16 @@ def test_text_creation_extended(sample_point: Point, sample_plane: Plane):
     text_value = "text"
     max_width = 20
 
-    text_obj = Text(value=text_value, origin=sample_point, height=0.5, alignmentH = AlignmentHorizontal.Center, alignmentV = AlignmentVertical.Center, plane = sample_plane, maxWidth = max_width, units=Units.m)
+    text_obj = Text(
+        value=text_value,
+        origin=sample_point,
+        height=0.5,
+        alignmentH=AlignmentHorizontal.Center,
+        alignmentV=AlignmentVertical.Center,
+        plane=sample_plane,
+        maxWidth=max_width,
+        units=Units.m,
+    )
     assert text_obj.value == text_value
     assert text_obj.origin == sample_point
     assert text_obj.height == 0.5

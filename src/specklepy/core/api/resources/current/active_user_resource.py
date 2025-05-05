@@ -126,9 +126,9 @@ class ActiveUserResource(ResourceBase):
         variables = {
             "limit": limit,
             "cursor": cursor,
-            "filter": filter.model_dump(warnings="error", by_alias=True)
-            if filter
-            else None,
+            "filter": (
+                filter.model_dump(warnings="error", by_alias=True) if filter else None
+            ),
         }
 
         response = self.make_request_and_parse_response(
@@ -273,9 +273,9 @@ class ActiveUserResource(ResourceBase):
         variables = {
             "limit": limit,
             "cursor": cursor,
-            "filter": filter.model_dump(warnings="error", by_alias=True)
-            if filter
-            else None,
+            "filter": (
+                filter.model_dump(warnings="error", by_alias=True) if filter else None
+            ),
         }
 
         response = self.make_request_and_parse_response(
