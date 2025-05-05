@@ -23,17 +23,22 @@ class AlignmentVertical(Enum):
 class Text(Base, IHasUnits, speckle_type="Objects.Annotation.Text"):
     """
     Text class for representation in the viewer.
+    Units will be 'Units.None' if the text size is defined in pixels.
     """
 
-    value: str
-    origin: Point
-    height: float
+    value: str  # Plain text, without formatting
+    origin: Point  # Origin point, relation to the text is defined by AlignmentHorizontal and AlignmentVertical
+    height: float  # Height in linear units or pixels (if Units.None)
     alignmentH: AlignmentHorizontal = field(
         default_factory=lambda: AlignmentHorizontal.Left
     )
     alignmentV: AlignmentVertical = field(default_factory=lambda: AlignmentVertical.Top)
-    plane: Optional[Plane] = field(default_factory=lambda: None)
-    maxWidth: Optional[float] = field(default_factory=lambda: None)
+    plane: Optional[Plane] = field(
+        default_factory=lambda: None
+    )  # None if the text object orientation follows camera view
+    maxWidth: Optional[float] = field(
+        default_factory=lambda: None
+    )  # Maximum width of the text field. None, if don't split into lines
 
     def __repr__(self) -> str:
         return (
