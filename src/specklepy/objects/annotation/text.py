@@ -1,0 +1,47 @@
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Optional
+
+from specklepy.objects.base import Base
+from specklepy.objects.geometry import Point, Plane
+from specklepy.objects.interfaces import IHasUnits
+
+
+class AlignmentHorizontal(Enum):
+    Left = 0
+    Center = 1
+    Right = 2
+
+
+class AlignmentVertical(Enum):
+    Top = 0
+    Center = 1
+    Bottom = 2
+
+
+@dataclass(kw_only=True)
+class Text(Base, IHasUnits, speckle_type="Objects.Annotation.Text"):
+    """
+    Text class for representation in the viewer.
+    """
+
+    value: str
+    origin: Point
+    height: float
+    alignmentH: AlignmentHorizontal = field(default_factory=AlignmentHorizontal.Left)
+    alignmentV: AlignmentVertical = field(default_factory=AlignmentVertical.Top)
+    plane: Optional[Plane] = field(default_factory=lambda: None)
+    maxWidth: Optional[float] = field(default_factory=lambda: None)
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"value: {self.value}, "
+            f"origin: {self.origin}, "
+            f"height: {self.height}, "
+            f"alignmentH: {self.alignmentH}, "
+            f"alignmentV: {self.alignmentV}, "
+            f"plane: {self.plane}, "
+            f"maxWidth: {self.maxWidth}, "
+            f"units: {self.units})"
+        )
