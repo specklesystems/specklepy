@@ -70,10 +70,17 @@ def test_point_serialization(sample_text: Text):
 
     assert isinstance(deserialized, Text)
     assert deserialized.value == sample_text.value
-    assert deserialized.origin == sample_text.origin
+    assert deserialized.origin.x == sample_text.origin.x
+    assert deserialized.origin.y == sample_text.origin.y
+    assert deserialized.origin.z == sample_text.origin.z
     assert deserialized.height == sample_text.height
     assert deserialized.alignmentH == sample_text.alignmentH
     assert deserialized.alignmentV == sample_text.alignmentV
-    assert deserialized.plane == sample_text.plane
+    assert deserialized.plane.origin.x == sample_text.plane.origin.x
+    assert deserialized.plane.origin.y == sample_text.plane.origin.y
+    assert deserialized.plane.origin.z == sample_text.plane.origin.z
+    assert deserialized.plane.normal.x == sample_text.plane.normal.x
+    assert deserialized.plane.normal.y == sample_text.plane.normal.y
+    assert deserialized.plane.normal.z == sample_text.plane.normal.z
     assert deserialized.maxWidth == sample_text.maxWidth
     assert deserialized.units == sample_text.units
