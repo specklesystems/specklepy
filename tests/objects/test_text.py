@@ -27,7 +27,7 @@ def sample_text(sample_point: Point) -> Text:
 
 
 @pytest.fixture
-def sample_text_all_properties(sample_point: Point) -> Text:
+def sample_text_all_properties(sample_point: Point, sample_plane: Plane) -> Text:
     return Text(
         value="text",
         origin=sample_point,
