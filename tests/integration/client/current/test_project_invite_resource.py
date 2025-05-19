@@ -3,6 +3,7 @@ from typing import Optional
 import pytest
 
 from specklepy.api.client import SpeckleClient
+from specklepy.core.api.enums import ProjectVisibility
 from specklepy.core.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectInviteCreateInput,
@@ -22,7 +23,9 @@ class TestProjectInviteResource:
     @pytest.fixture
     def project(self, client: SpeckleClient):
         return client.project.create(
-            ProjectCreateInput(name="test", description=None, visibility=None)
+            ProjectCreateInput(
+                name="test", description=None, visibility=ProjectVisibility.PUBLIC
+            )
         )
 
     @pytest.fixture

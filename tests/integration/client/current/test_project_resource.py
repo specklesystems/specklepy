@@ -50,8 +50,8 @@ class TestProjectResource:
         assert result.name == name
         assert result.description == (description or "")
         # we've disabled creation of public projects for now, they fall back to unlisted
-        if visibility == ProjectVisibility.PUBLIC:
-            assert result.visibility == ProjectVisibility.UNLISTED
+        if visibility == ProjectVisibility.UNLISTED:
+            assert result.visibility == ProjectVisibility.PUBLIC
         else:
             assert result.visibility == visibility
 
@@ -68,7 +68,7 @@ class TestProjectResource:
     def test_project_update(self, client: SpeckleClient, test_project: Project):
         new_name = "MY new name"
         new_description = "MY new desc"
-        new_visibility = ProjectVisibility.PUBLIC
+        new_visibility = ProjectVisibility.UNLISTED
 
         update_data = ProjectUpdateInput(
             id=test_project.id,
@@ -84,8 +84,8 @@ class TestProjectResource:
         assert updated_project.name == new_name
         assert updated_project.description == new_description
         # we've disabled creation of public projects for now, they fall back to unlisted
-        if new_visibility == ProjectVisibility.PUBLIC:
-            assert updated_project.visibility == ProjectVisibility.UNLISTED
+        if new_visibility == ProjectVisibility.UNLISTED:
+            assert updated_project.visibility == ProjectVisibility.PUBLIC
         else:
             assert updated_project.visibility == new_visibility
 

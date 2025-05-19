@@ -5,6 +5,7 @@ class ProjectVisibility(str, Enum):
     PRIVATE = "PRIVATE"
     PUBLIC = "PUBLIC"
     UNLISTED = "UNLISTED"
+    WORKSPACE = "WORKSPACE"
 
 
 class UserProjectsUpdatedMessageType(str, Enum):
