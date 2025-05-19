@@ -23,7 +23,9 @@ class TestProjectInviteResource:
     @pytest.fixture
     def project(self, client: SpeckleClient):
         return client.project.create(
-            ProjectCreateInput(name="test", description=None, visibility=ProjectVisibility.PUBLIC)
+            ProjectCreateInput(
+                name="test", description=None, visibility=ProjectVisibility.PUBLIC
+            )
         )
 
     @pytest.fixture
