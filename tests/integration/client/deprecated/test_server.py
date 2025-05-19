@@ -14,6 +14,9 @@ class TestServer:
             "lifespan": 9001,
         }
 
+    @pytest.skip(
+        "Docker yml file is not configured to return the canonical url properly enough for server.get to fetch the fe2 headers"
+    )
     def test_server_get(self, client: SpeckleClient):
         server = client.server.get()
 
