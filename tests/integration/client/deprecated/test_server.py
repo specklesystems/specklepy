@@ -1,7 +1,6 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.api.models import ServerInfo
 
 
 @pytest.fixture(scope="module")
@@ -14,14 +13,14 @@ def token_info():
     }
 
 
-@pytest.skip(
-    "Docker yml file is not configured to return the canonical url properly enough for server.get to fetch the fe2 headers"
-)
-def test_server_get(client: SpeckleClient):
-    server = client.server.get()
+# @pytest.skip(
+#     "Docker yml file is not configured to return the canonical url properly enough for server.get to fetch the fe2 headers"
+# )
+# def test_server_get(client: SpeckleClient):
+#     server = client.server.get()
 
-    assert isinstance(server, ServerInfo)
-    assert isinstance(server.frontend2, bool)
+#     assert isinstance(server, ServerInfo)
+#     assert isinstance(server.frontend2, bool)
 
 
 def test_server_version(client: SpeckleClient):
