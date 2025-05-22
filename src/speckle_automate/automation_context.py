@@ -1,5 +1,3 @@
-# ignoring "line too long" check from linter
-# ruff: noqa: E501
 """This module provides an abstraction layer above the Speckle Automate runtime."""
 
 import time
@@ -75,7 +73,7 @@ class AutomationContext:
         speckle_client.authenticate_with_token(speckle_token)
         if not speckle_client.account:
             msg = (
-                f"Could not autenticate to {automation_run_data.speckle_server_url}",
+                f"Could not authenticate to {automation_run_data.speckle_server_url}",
                 "with the provided token",
             )
             raise ValueError(msg)
@@ -109,18 +107,24 @@ class AutomationContext:
             )
         except SpeckleException as err:
             raise ValueError(
-                f"""\
-                             Could not receive specified version.
-                             Is your environment configured correctly?
-                             project_id: {self.automation_run_data.project_id}
-                             model_id: {self.automation_run_data.triggers[0].payload.model_id}
-                             version_id: {self.automation_run_data.triggers[0].payload.version_id}
-                             """
+                f"""Could not receive specified version.
+                Is your environment configured correctly?
+                project_id: {self.automation_run_data.project_id}
+                model_id: {self.automation_run_data.triggers[0].payload.model_id}
+                version_id: {self.automation_run_data.triggers[0].payload.version_id}
+                """
             ) from err
+
+        if not version.referenced_object:
+            raise Exception(
+                "This version is past the version history limit,",
+                " cannot execute an automation on it",
+            )
 
         base = operations.receive(
             version.referenced_object, self._server_transport, self._memory_transport
         )
+        # self._closure_tree = base["__closure"]
         print(
             f"It took {self.elapsed():.2f} seconds to receive",
             f" the speckle version {version_id}",
@@ -242,7 +246,7 @@ class AutomationContext:
         )
         if self.run_status in [AutomationStatus.SUCCEEDED, AutomationStatus.FAILED]:
             object_results = {
-                "version": 1,
+                "version": 2,
                 "values": {
                     "objectResults": self._automation_result.model_dump(by_alias=True)[
                         "objectResults"
@@ -332,26 +336,24 @@ class AutomationContext:
     def attach_error_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Add a new error case to the run results.
-
-        If the error cause has already created an error case,
-        the error will be extended with a new case refering to the causing objects.
         Args:
-            error_tag (str): A short tag for the error type.
-            causing_object_ids (str[]): A list of object_id-s that are causing the error
-            error_messagge (Optional[str]): Optional error message.
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the error case.
+            message (Optional[str]): Optional message.
             metadata: User provided metadata key value pairs
             visual_overrides: Case specific 3D visual overrides.
         """
         self.attach_result_to_objects(
             ObjectResultLevel.ERROR,
             category,
-            object_ids,
+            affected_objects,
             message,
             metadata,
             visual_overrides,
@@ -360,16 +362,25 @@ class AutomationContext:
     def attach_warning_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Add a new warning case to the run results."""
+        """Add a new warning case to the run results.
+
+        Args:
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the warning case.
+            message (Optional[str]): Optional message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
         self.attach_result_to_objects(
             ObjectResultLevel.WARNING,
             category,
-            object_ids,
+            affected_objects,
             message,
             metadata,
             visual_overrides,
@@ -378,16 +389,25 @@ class AutomationContext:
     def attach_success_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Add a new success case to the run results."""
+        """Add a new success case to the run results.
+
+        Args:
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the success case.
+            message (Optional[str]): Optional message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
         self.attach_result_to_objects(
             ObjectResultLevel.SUCCESS,
             category,
-            object_ids,
+            affected_objects,
             message,
             metadata,
             visual_overrides,
@@ -396,16 +416,25 @@ class AutomationContext:
     def attach_info_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Add a new info case to the run results."""
+        """Add a new info case to the run results.
+
+        Args:
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the info case.
+            message (Optional[str]): Optional message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
         self.attach_result_to_objects(
             ObjectResultLevel.INFO,
             category,
-            object_ids,
+            affected_objects,
             message,
             metadata,
             visual_overrides,
@@ -415,19 +444,40 @@ class AutomationContext:
         self,
         level: ObjectResultLevel,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        if isinstance(object_ids, list):
-            if len(object_ids) < 1:
+        """Add a new result case to the run results.
+
+        Args:
+            level: Result level.
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the info case.
+            message (Optional[str]): Optional message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
+        # validate that the Base.id is not None. If its a None, throw an Exception
+        if isinstance(affected_objects, list):
+            if len(affected_objects) < 1:
                 raise ValueError(
                     f"Need atleast one object_id to report a(n) {level.value.upper()}"
                 )
-            id_list = object_ids
+            object_list = affected_objects
         else:
-            id_list = [object_ids]
+            object_list = [affected_objects]
+
+        ids: Dict[str, Optional[str]] = {}
+        for o in object_list:
+            # TODO: check if the object_id is in the closure of the root commit object
+            if not o.id:
+                raise Exception(
+                    f"You can only attach {level} results to objects with an id."
+                )
+            ids[o.id] = o.applicationId
         print(
             f"Created new {level.value.upper()}"
             f" category: {category} caused by: {message}"
@@ -436,7 +486,7 @@ class AutomationContext:
             ResultCase(
                 category=category,
                 level=level,
-                object_ids=id_list,
+                object_app_ids=ids,
                 message=message,
                 metadata=metadata,
                 visual_overrides=visual_overrides,
