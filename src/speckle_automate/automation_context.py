@@ -464,7 +464,7 @@ class AutomationContext:
         if isinstance(affected_objects, list):
             if len(affected_objects) < 1:
                 raise ValueError(
-                    f"Need atleast one object_id to report a(n) {level.value.upper()}"
+                    f"Need atleast one object to report a(n) {level.value.upper()}"
                 )
             object_list = affected_objects
         else:
