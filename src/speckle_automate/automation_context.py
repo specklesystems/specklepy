@@ -460,7 +460,6 @@ class AutomationContext:
             metadata: User provided metadata key value pairs
             visual_overrides: Case specific 3D visual overrides.
         """
-        # validate that the Base.id is not None. If its a None, throw an Exception
         if isinstance(affected_objects, list):
             if len(affected_objects) < 1:
                 raise ValueError(
@@ -472,7 +471,7 @@ class AutomationContext:
 
         ids: Dict[str, Optional[str]] = {}
         for o in object_list:
-            # TODO: check if the object_id is in the closure of the root commit object
+            # validate that the Base.id is not None. If its a None, throw an Exception
             if not o.id:
                 raise Exception(
                     f"You can only attach {level} results to objects with an id."
