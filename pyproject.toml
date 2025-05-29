@@ -47,6 +47,10 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 source = "vcs"
 
+[tool.hatch.build.targets.wheel]
+only-include = ["src"]
+sources = ["src"]
+
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
 
