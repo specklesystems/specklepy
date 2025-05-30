@@ -18,6 +18,10 @@ class DataObject(
     speckle_type="Objects.Data.DataObject",
     detachable={"displayValue"},
 ):
+    """
+    A generic data object that can hold arbitrary properties and display values.
+    """
+
     name: str
     properties: Dict[str, object]
     displayValue: List[Base]
