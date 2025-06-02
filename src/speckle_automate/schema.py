@@ -80,7 +80,7 @@ class ResultCase(AutomateBase):
 
     category: str
     level: ObjectResultLevel
-    object_ids: List[str]
+    object_app_ids: Dict[str, Optional[str]]
     message: Optional[str]
     metadata: Optional[Dict[str, Any]]
     visual_overrides: Optional[Dict[str, Any]]

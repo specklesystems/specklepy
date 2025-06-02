@@ -2,9 +2,12 @@ from enum import Enum
 
 
 class ProjectVisibility(str, Enum):
+    """Supported project visibility types"""
+
     PRIVATE = "PRIVATE"
     PUBLIC = "PUBLIC"
     UNLISTED = "UNLISTED"
+    WORKSPACE = "WORKSPACE"
 
 
 class UserProjectsUpdatedMessageType(str, Enum):

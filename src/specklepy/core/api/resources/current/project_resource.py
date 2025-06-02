@@ -73,6 +73,16 @@ class ProjectResource(ResourceBase):
                     code
                     message
                   }
+                  canLoad {
+                    authorized
+                    code
+                    message
+                  }
+                  canPublish {
+                    authorized
+                    code
+                    message
+                  }
                 }
               }
             }
