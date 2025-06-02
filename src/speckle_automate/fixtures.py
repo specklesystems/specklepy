@@ -16,7 +16,7 @@ class TestAutomationEnvironment(BaseSettings):
     """Get known environment variables from local `.env` file"""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file="../.env",
         env_file_encoding="utf-8",
         env_prefix="speckle_",
         extra="ignore",
