@@ -1,12 +1,13 @@
-name: "Specklepy test and build"
+name: "Specklepy test"
 on:
+  workflow_call:
   pull_request:
     branches:
-      - "v3-dev"
+      - "main"
 
 jobs:
-  build-and-test:
-    name: build-and-test
+  test:
+    name: test
     runs-on: ubuntu-latest
     strategy:
       matrix:
