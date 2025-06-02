@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     uses: "./.github/workflows/pr.yml"
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   publish-package:
     name: "Build and Publish Python Package"
