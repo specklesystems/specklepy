@@ -1,15 +1,14 @@
+import contextlib
 import re
 from typing import Dict
 from warnings import warn
 
-from deprecated import deprecated
 from gql import Client
 from gql.transport.exceptions import TransportServerError
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
 
-from specklepy.core.api import resources
-from specklepy.core.api.credentials import Account, get_account_from_token
+from specklepy.core.api.credentials import Account
 from specklepy.core.api.resources import (
     ActiveUserResource,
     ModelResource,
@@ -19,12 +18,7 @@ from specklepy.core.api.resources import (
     ServerResource,
     SubscriptionResource,
     VersionResource,
-    branch,
-    commit,
-    object,
-    stream,
-    subscriptions,
-    user,
+    WorkspaceResource,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
@@ -43,21 +37,24 @@ class SpeckleClient:
 
     ```py
     from specklepy.api.client import SpeckleClient
+    from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
     from specklepy.api.credentials import get_default_account
 
     # initialise the client
     client = SpeckleClient(host="app.speckle.systems") # or whatever your host is
     # client = SpeckleClient(host="localhost:3000", use_ssl=False) or use local server
 
-    # authenticate the client with an account (account has been added in Speckle Manager)
+    # authenticate the client with an account
+    # (account has been added in Speckle Manager)
     account = get_default_account()
     client.authenticate_with_account(account)
 
-    # create a new stream. this returns the stream id
-    new_stream_id = client.stream.create(name="a shiny new stream")
+    # create a new project
+    input = ProjectCreateInput(name="a shiny new project")
+    project = self.project.create(input)
 
-    # use that stream id to get the stream from the server
-    new_stream = client.stream.get(id=new_stream_id)
+    # or, use a project id to get an existing project from the server
+    new_stream = client.project.get("abcdefghij")
     ```
     """
 
@@ -102,7 +99,8 @@ class SpeckleClient:
 
         self._init_resources()
 
-        # ? Check compatibility with the server - i think we can skip this at this point? save a request
+        # ? Check compatibility with the server
+        # - i think we can skip this at this point? save a request
         # try:
         #     server_info = self.server.get()
         #     if isinstance(server_info, Exception):
@@ -119,23 +117,6 @@ class SpeckleClient:
             f"SpeckleClient( server: {self.url}, authenticated:"
             f" {self.account.token is not None} )"
         )
-
-    @deprecated(
-        version="2.6.0",
-        reason=(
-            "Renamed: please use `authenticate_with_account` or"
-            " `authenticate_with_token` instead."
-        ),
-    )
-    def authenticate(self, token: str) -> None:
-        """Authenticate the client using a personal access token
-        The token is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            token {str} -- an api token
-        """
-        self.authenticate_with_account(get_account_from_token(token))
 
     def authenticate_with_token(self, token: str) -> None:
         """
@@ -187,9 +168,10 @@ class SpeckleClient:
                 if ex.exception.code == 403:
                     warn(
                         SpeckleWarning(
-                            "Possibly invalid token - could not authenticate Speckle Client"
-                            f" for server {self.url}"
-                        )
+                            "Possibly invalid token - could not authenticate "
+                            f"Speckle Client for server {self.url}"
+                        ),
+                        stacklevel=2,
                     )
                 else:
                     raise ex
@@ -203,10 +185,8 @@ class SpeckleClient:
         )
 
         server_version = None
-        try:
+        with contextlib.suppress(Exception):
             server_version = self.server.version()
-        except Exception:
-            pass
 
         self.other_user = OtherUserResource(
             account=self.account,
@@ -244,46 +224,14 @@ class SpeckleClient:
             client=self.httpclient,
             server_version=server_version,
         )
+        self.workspace = WorkspaceResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
         self.subscription = SubscriptionResource(
             account=self.account,
             basepath=self.ws_url,
             client=self.wsclient,
         )
-        # Deprecated Resources
-        self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.stream = stream.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.commit = commit.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.branch = branch.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.object = object.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.subscribe = subscriptions.Resource(
-            account=self.account,
-            basepath=self.ws_url,
-            client=self.wsclient,
-        )
-
-    def __getattr__(self, name):
-        try:
-            attr = getattr(resources, name)
-            return attr.Resource(
-                account=self.account, basepath=self.url, client=self.httpclient
-            )
-        except AttributeError:
-            raise SpeckleException(
-                f"Method {name} is not supported by the SpeckleClient class"
-            )

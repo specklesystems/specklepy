@@ -76,14 +76,24 @@ class ModelResource(ResourceBase):
     ) -> ModelWithVersions:
         QUERY = gql(
             """
-            query ModelGetWithVersions($modelId: String!, $projectId: String!, $versionsLimit: Int!, $versionsCursor: String, $versionsFilter: ModelVersionsFilter) {
+            query ModelGetWithVersions(
+              $modelId: String!,
+              $projectId: String!,
+              $versionsLimit: Int!,
+              $versionsCursor: String,
+              $versionsFilter: ModelVersionsFilter
+              ) {
               data:project(id: $projectId) {
                 data:model(id: $modelId) {
                   id
                   name
                   previewUrl
                   updatedAt
-                  versions(limit: $versionsLimit, cursor: $versionsCursor, filter: $versionsFilter) {
+                  versions(
+                    limit: $versionsLimit,
+                    cursor: $versionsCursor,
+                    filter: $versionsFilter
+                    ) {
                     items {
                       id
                       referencedObject
@@ -128,7 +138,7 @@ class ModelResource(ResourceBase):
             "versionsLimit": versions_limit,
             "versionsCursor": versions_cursor,
             "versionsFilter": (
-                versions_filter.model_dump(warnings="error")
+                versions_filter.model_dump(warnings="error", by_alias=True)
                 if versions_filter
                 else None
             ),
@@ -148,9 +158,18 @@ class ModelResource(ResourceBase):
     ) -> ResourceCollection[Model]:
         QUERY = gql(
             """
-            query ProjectGetWithModels($projectId: String!, $modelsLimit: Int!, $modelsCursor: String, $modelsFilter: ProjectModelsFilter) {
+            query ProjectGetWithModels(
+              $projectId: String!,
+              $modelsLimit: Int!,
+              $modelsCursor: String,
+              $modelsFilter: ProjectModelsFilter
+              ) {
               data:project(id: $projectId) {
-                data:models(limit: $modelsLimit, cursor: $modelsCursor, filter: $modelsFilter) {
+                data:models(
+                  limit: $modelsLimit,
+                  cursor: $modelsCursor,
+                  filter: $modelsFilter
+                  ) {
                   items {
                     id
                     name
@@ -182,7 +201,9 @@ class ModelResource(ResourceBase):
             "modelsLimit": models_limit,
             "modelsCursor": models_cursor,
             "modelsFilter": (
-                models_filter.model_dump(warnings="error") if models_filter else None
+                models_filter.model_dump(warnings="error", by_alias=True)
+                if models_filter
+                else None
             ),
         }
 
@@ -219,7 +240,7 @@ class ModelResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -237,7 +258,7 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[bool]], QUERY, variables
@@ -272,7 +293,7 @@ class ModelResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(

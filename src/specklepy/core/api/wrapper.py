@@ -18,7 +18,7 @@ class StreamWrapper:
     The `StreamWrapper` gives you some handy helpers to deal with urls and
     get authenticated clients and transports.
 
-    Construct a `StreamWrapper` with a stream, branch, commit, or object URL.
+    Construct a `StreamWrapper` with a URL of a model, version, or object.
     The corresponding ids will be stored
     in the wrapper. If you have local accounts on the machine,
     you can use the `get_account` and `get_client` methods
@@ -29,8 +29,8 @@ class StreamWrapper:
     ```py
     from specklepy.api.wrapper import StreamWrapper
 
-    # provide any stream, branch, commit, object, or globals url
-    wrapper = StreamWrapper("https://app.speckle.systems/streams/3073b96e86/commits/604bea8cc6")
+    # provide a url for a model, version, or object
+    wrapper = StreamWrapper("https://app.speckle.systems/projects/3073b96e86/models/0fe47c9dca@604bea8cc6")
 
     # get an authenticated SpeckleClient if you have a local account for the server
     client = wrapper.get_client()
@@ -159,11 +159,12 @@ class StreamWrapper:
             try:
                 self.branch_name = project["project"]["model"]["name"]
             except KeyError as ke:
-                raise SpeckleException("Project model name is not found", ke)
+                raise SpeckleException("Project model name is not found", ke) from ke
 
         if not self.stream_id:
             raise SpeckleException(
-                f"Cannot parse {url} into a stream wrapper class - no {key_stream} id found."
+                f"Cannot parse {url} into a stream wrapper class - no {key_stream} "
+                "id found.",
             )
 
     @property
@@ -213,7 +214,11 @@ class StreamWrapper:
             self._client = SpeckleClient(host=self.host, use_ssl=self.use_ssl)
 
         if self._account.token is None and token is None:
-            warn(f"No local account found for server {self.host}", SpeckleWarning)
+            warn(
+                f"No local account found for server {self.host}",
+                SpeckleWarning,
+                stacklevel=2,
+            )
             return self._client
 
         if self._account.token:
@@ -266,14 +271,20 @@ class StreamWrapper:
         if use_fe2 is False or (use_fe2 is True and not self.model_id):
             base_url = f"{self.server_url}{key_streams}{self.stream_id}"
         else:  # fe2 is True and model_id available
-            base_url = f"{self.server_url}{key_streams}{self.stream_id}{key_branches}{value_branch}"
+            base_url = (
+                f"{self.server_url}{key_streams}"
+                f"{self.stream_id}{key_branches}{value_branch}"
+            )
 
         if wrapper_type == "object":
             return f"{base_url}{key_objects}{self.object_id}"
         elif wrapper_type == "commit":
             return f"{base_url}{key_commits}{self.commit_id}"
         elif wrapper_type == "branch":
-            return f"{self.server_url}{key_streams}{self.stream_id}{key_branches}{value_branch}"
+            return (
+                f"{self.server_url}{key_streams}{self.stream_id}"
+                f"{key_branches}{value_branch}"
+            )
         elif wrapper_type == "stream":
             return f"{self.server_url}{key_streams}{self.stream_id}"
         else:

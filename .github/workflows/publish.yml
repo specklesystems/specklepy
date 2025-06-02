@@ -1,0 +1,98 @@
+name: "Publish Python Package"
+on:
+  push:
+    branches:
+      - "v3-dev"
+    tags:
+      - "3.*.*"
+
+jobs:
+  build-and-test:
+    name: continuous-integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit/
+          key: ${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files
+
+      - name: Run Speckle Server
+        run: docker compose up -d
+
+      # - name: Run tests
+      #   run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
+
+      # - uses: codecov/codecov-action@v5
+      #   if: matrix.python-version == 3.13
+      #   with:
+      #     fail_ci_if_error: true # optional (default = false)
+      #     files: ./reports/test-results.xml # optional
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Minimize uv cache
+        run: uv cache prune --ci
+
+  publish-package:
+    name: "Build and Publish Python Package"
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    # set the environment based on what triggered the workflow
+    environment:
+      name: ${{ github.ref_type == 'tag' && 'pypi' || 'testpypi' }}
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: "Install uv"
+        uses: astral-sh/setup-uv@v5
+
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Build package artifacts"
+        run: uv build
+
+      # Logic for TestPyPI (on v3-dev branch push)
+      - name: "Publish to TestPyPI"
+        if: ${{ github.ref_type == 'branch' }}
+        run: uv publish --index test
+
+      - name: "Verify TestPyPI package installation"
+        if: ${{ github.ref_type == 'branch' }}
+        run: uv run --index test --with specklepy --no-project -- python -c "import specklepy"
+
+      # Logic for PyPI (on v3* tag creation)
+      - name: "Publish to PyPI"
+        if: ${{ github.ref_type == 'tag' }}
+        run: uv publish
+
+      - name: "Verify PyPI package installation"
+        if: ${{ github.ref_type == 'tag' }}
+        run: uv run --with specklepy --no-project -- python -c "import specklepy"

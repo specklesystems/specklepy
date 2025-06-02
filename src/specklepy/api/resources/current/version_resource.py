@@ -42,7 +42,7 @@ class VersionResource(CoreResource):
             model_id, project_id, limit=limit, cursor=cursor, filter=filter
         )
 
-    def create(self, input: CreateVersionInput) -> str:
+    def create(self, input: CreateVersionInput) -> Version:
         metrics.track(metrics.SDK, self.account, {"name": "Version Create"})
         return super().create(input)
 

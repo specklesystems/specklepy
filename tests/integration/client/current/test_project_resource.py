@@ -7,6 +7,7 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectUpdateInput,
 )
 from specklepy.core.api.models import Project
+from specklepy.core.api.models.current import ProjectPermissionChecks
 from specklepy.logging.exceptions import GraphQLException
 
 
@@ -63,7 +64,16 @@ class TestProjectResource:
         assert result.name == test_project.name
         assert result.description == test_project.description
         assert result.visibility == test_project.visibility
-        assert result.createdAt == test_project.createdAt
+        assert result.created_at == test_project.created_at
+
+    def test_project_get_permissions(
+        self, client: SpeckleClient, test_project: Project
+    ):
+        result = client.project.get_permissions(test_project.id)
+
+        assert isinstance(result, ProjectPermissionChecks)
+        assert result.can_create_model.authorized is True
+        assert result.can_delete.authorized is True
 
     def test_project_update(self, client: SpeckleClient, test_project: Project):
         new_name = "MY new name"

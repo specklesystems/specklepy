@@ -31,7 +31,8 @@ class ServerResource(CoreResource):
             the server version in the format (major, minor, patch, (tag, build))
             eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
         """
-        # not tracking as it will be called along with other mutations / queries as a check
+        # not tracking as it will be called along with other
+        # mutations / queries as a check
         return super().version()
 
     def apps(self) -> Dict:

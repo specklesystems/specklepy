@@ -3,7 +3,7 @@
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import httpx
 from gql import gql
@@ -18,7 +18,9 @@ from speckle_automate.schema import (
 )
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.models import Branch
+from specklepy.core.api.inputs.model_inputs import CreateModelInput
+from specklepy.core.api.inputs.version_inputs import CreateVersionInput
+from specklepy.core.api.models.current import Model, Version
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.transports.memory import MemoryTransport
@@ -71,7 +73,7 @@ class AutomationContext:
         speckle_client.authenticate_with_token(speckle_token)
         if not speckle_client.account:
             msg = (
-                f"Could not autenticate to {automation_run_data.speckle_server_url}",
+                f"Could not authenticate to {automation_run_data.speckle_server_url}",
                 "with the provided token",
             )
             raise ValueError(msg)
@@ -96,70 +98,81 @@ class AutomationContext:
 
     def receive_version(self) -> Base:
         """Receive the Speckle project version that triggered this automation run."""
-        # TODO: this is a quick hack to keep implementation consistency. Move to proper receive many versions
+        # TODO: this is a quick hack to keep implementation consistency.
+        # Move to proper receive many versions
         version_id = self.automation_run_data.triggers[0].payload.version_id
-        commit = self.speckle_client.commit.get(
-            self.automation_run_data.project_id, version_id
-        )
-        if not commit or not commit.referencedObject:
-            raise ValueError(
-                f"""\
-                             Could not receive specified version.
-                             {"The commit has no referencedObject." if not commit.referencedObject else ""}
-                             Is your environment configured correctly?
-                             project_id: {self.automation_run_data.project_id}
-                             model_id: {self.automation_run_data.triggers[0].payload.model_id}
-                             version_id: {self.automation_run_data.triggers[0].payload.version_id}
-                             """
+        try:
+            version = self.speckle_client.version.get(
+                version_id, self.automation_run_data.project_id
             )
+        except SpeckleException as err:
+            raise ValueError(
+                f"""Could not receive specified version.
+                Is your environment configured correctly?
+                project_id: {self.automation_run_data.project_id}
+                model_id: {self.automation_run_data.triggers[0].payload.model_id}
+                version_id: {self.automation_run_data.triggers[0].payload.version_id}
+                """
+            ) from err
+
+        if not version.referenced_object:
+            raise Exception(
+                "This version is past the version history limit,",
+                " cannot execute an automation on it",
+            )
+
         base = operations.receive(
-            commit.referencedObject, self._server_transport, self._memory_transport
+            version.referenced_object, self._server_transport, self._memory_transport
         )
+        # self._closure_tree = base["__closure"]
         print(
             f"It took {self.elapsed():.2f} seconds to receive",
             f" the speckle version {version_id}",
         )
         return base
 
+    def create_new_model_in_project(
+        self, model_name: str, model_description: Optional[str] = None
+    ) -> Model:
+        input = CreateModelInput(
+            name=model_name,
+            description=model_description,
+            project_id=self.automation_run_data.project_id,
+        )
+
+        return self.speckle_client.model.create(input)
+
+    def get_model(self, model_id: str) -> Model:
+        """
+        Args:
+            model_id (str): The id of the model to get
+        """
+        return self.speckle_client.model.get(
+            model_id, self.automation_run_data.project_id
+        )
+
     def create_new_version_in_project(
-        self, root_object: Base, model_name: str, version_message: str = ""
-    ) -> Tuple[str, str]:
+        self, root_object: Base, model_id: str, version_message: str = ""
+    ) -> Version:
         """Save a base model to a new version on the project.
 
         Args:
             root_object (Base): The Speckle base object for the new version.
-            model_id (str): For now please use a `branchName`!
+            model_id (str): Id of model to create the new version on.
             version_message (str): The message for the new version.
         """
 
-        branch = self.speckle_client.branch.get(
-            self.automation_run_data.project_id, model_name, 1
-        )
-        if isinstance(branch, Branch):
-            if not branch.id:
-                raise ValueError("Cannot use the branch without its id")
-            matching_trigger = [
-                t
-                for t in self.automation_run_data.triggers
-                if t.payload.model_id == branch.id
-            ]
-            if matching_trigger:
-                raise ValueError(
-                    f"The target model: {model_name} cannot match the model"
-                    f" that triggered this automation:"
-                    f" {matching_trigger[0].payload.model_id}"
-                )
-            model_id = branch.id
-
-        else:
-            # we just check if it exists
-            branch_create = self.speckle_client.branch.create(
-                self.automation_run_data.project_id,
-                model_name,
+        matching_trigger = [
+            t
+            for t in self.automation_run_data.triggers
+            if t.payload.model_id == model_id
+        ]
+        if matching_trigger:
+            raise ValueError(
+                f"The target model: {model_id} cannot match the model"
+                f" that triggered this automation:"
+                f" {matching_trigger[0].payload.model_id}"
             )
-            if isinstance(branch_create, Exception):
-                raise branch_create
-            model_id = branch_create
 
         root_object_id = operations.send(
             root_object,
@@ -167,19 +180,17 @@ class AutomationContext:
             use_default_cache=False,
         )
 
-        version_id = self.speckle_client.commit.create(
-            stream_id=self.automation_run_data.project_id,
+        create_version_input = CreateVersionInput(
             object_id=root_object_id,
-            branch_name=model_name,
+            model_id=model_id,
+            project_id=self.automation_run_data.project_id,
             message=version_message,
             source_application="SpeckleAutomate",
         )
+        version = self.speckle_client.version.create(create_version_input)
 
-        if isinstance(version_id, SpeckleException):
-            raise version_id
-
-        self._automation_result.result_versions.append(version_id)
-        return model_id, version_id
+        self._automation_result.result_versions.append(version.id)
+        return version
 
     @property
     def context_view(self) -> Optional[str]:
@@ -235,7 +246,7 @@ class AutomationContext:
         )
         if self.run_status in [AutomationStatus.SUCCEEDED, AutomationStatus.FAILED]:
             object_results = {
-                "version": 1,
+                "version": 2,
                 "values": {
                     "objectResults": self._automation_result.model_dump(by_alias=True)[
                         "objectResults"
@@ -273,7 +284,8 @@ class AutomationContext:
 
         if not path_obj.exists():
             raise ValueError("The given file path doesn't exist")
-        files = {path_obj.name: open(str(path_obj), "rb")}
+
+        files = {path_obj.name: path_obj.open("rb")}
 
         url = (
             f"{self.automation_run_data.speckle_server_url}api/stream/"
@@ -324,26 +336,24 @@ class AutomationContext:
     def attach_error_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Add a new error case to the run results.
-
-        If the error cause has already created an error case,
-        the error will be extended with a new case refering to the causing objects.
         Args:
-            error_tag (str): A short tag for the error type.
-            causing_object_ids (str[]): A list of object_id-s that are causing the error
-            error_messagge (Optional[str]): Optional error message.
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the error case.
+            message (Optional[str]): Optional message.
             metadata: User provided metadata key value pairs
             visual_overrides: Case specific 3D visual overrides.
         """
         self.attach_result_to_objects(
             ObjectResultLevel.ERROR,
             category,
-            object_ids,
+            affected_objects,
             message,
             metadata,
             visual_overrides,
@@ -352,16 +362,25 @@ class AutomationContext:
     def attach_warning_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Add a new warning case to the run results."""
+        """Add a new warning case to the run results.
+
+        Args:
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the warning case.
+            message (Optional[str]): Optional message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
         self.attach_result_to_objects(
             ObjectResultLevel.WARNING,
             category,
-            object_ids,
+            affected_objects,
             message,
             metadata,
             visual_overrides,
@@ -370,16 +389,25 @@ class AutomationContext:
     def attach_success_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Add a new success case to the run results."""
+        """Add a new success case to the run results.
+
+        Args:
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the success case.
+            message (Optional[str]): Optional message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
         self.attach_result_to_objects(
             ObjectResultLevel.SUCCESS,
             category,
-            object_ids,
+            affected_objects,
             message,
             metadata,
             visual_overrides,
@@ -388,16 +416,25 @@ class AutomationContext:
     def attach_info_to_objects(
         self,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Add a new info case to the run results."""
+        """Add a new info case to the run results.
+
+        Args:
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the info case.
+            message (Optional[str]): Optional message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
         self.attach_result_to_objects(
             ObjectResultLevel.INFO,
             category,
-            object_ids,
+            affected_objects,
             message,
             metadata,
             visual_overrides,
@@ -407,19 +444,39 @@ class AutomationContext:
         self,
         level: ObjectResultLevel,
         category: str,
-        object_ids: Union[str, List[str]],
+        affected_objects: Union[Base, List[Base]],
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         visual_overrides: Optional[Dict[str, Any]] = None,
     ) -> None:
-        if isinstance(object_ids, list):
-            if len(object_ids) < 1:
+        """Add a new result case to the run results.
+
+        Args:
+            level: Result level.
+            category (str): A short tag for the event type.
+            affected_objects (Union[Base, List[Base]]): A single object or a list of
+                objects that are causing the info case.
+            message (Optional[str]): Optional message.
+            metadata: User provided metadata key value pairs
+            visual_overrides: Case specific 3D visual overrides.
+        """
+        if isinstance(affected_objects, list):
+            if len(affected_objects) < 1:
                 raise ValueError(
-                    f"Need atleast one object_id to report a(n) {level.value.upper()}"
+                    f"Need atleast one object to report a(n) {level.value.upper()}"
                 )
-            id_list = object_ids
+            object_list = affected_objects
         else:
-            id_list = [object_ids]
+            object_list = [affected_objects]
+
+        ids: Dict[str, Optional[str]] = {}
+        for o in object_list:
+            # validate that the Base.id is not None. If its a None, throw an Exception
+            if not o.id:
+                raise Exception(
+                    f"You can only attach {level} results to objects with an id."
+                )
+            ids[o.id] = o.applicationId
         print(
             f"Created new {level.value.upper()}"
             f" category: {category} caused by: {message}"
@@ -428,7 +485,7 @@ class AutomationContext:
             ResultCase(
                 category=category,
                 level=level,
-                object_ids=id_list,
+                object_app_ids=ids,
                 message=message,
                 metadata=metadata,
                 visual_overrides=visual_overrides,

@@ -1,4 +1,4 @@
-from deprecated import deprecated
+import contextlib
 
 from specklepy.api.credentials import Account
 from specklepy.api.resources import (
@@ -10,12 +10,7 @@ from specklepy.api.resources import (
     ServerResource,
     SubscriptionResource,
     VersionResource,
-    branch,
-    commit,
-    object,
-    stream,
-    subscriptions,
-    user,
+    WorkspaceResource,
 )
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.logging import metrics
@@ -34,21 +29,24 @@ class SpeckleClient(CoreSpeckleClient):
 
     ```py
     from specklepy.api.client import SpeckleClient
+    from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
     from specklepy.api.credentials import get_default_account
 
     # initialise the client
     client = SpeckleClient(host="app.speckle.systems") # or whatever your host is
     # client = SpeckleClient(host="localhost:3000", use_ssl=False) or use local server
 
-    # authenticate the client with an account (account has been added in Speckle Manager)
+    # authenticate the client with an account
+    # (account has been added in Speckle Manager)
     account = get_default_account()
     client.authenticate_with_account(account)
 
-    # create a new stream. this returns the stream id
-    new_stream_id = client.stream.create(name="a shiny new stream")
+    # create a new project
+    input = ProjectCreateInput(name="a shiny new project")
+    project = self.project.create(input)
 
-    # use that stream id to get the stream from the server
-    new_stream = client.stream.get(id=new_stream_id)
+    # or, use a project id to get an existing project from the server
+    new_stream = client.project.get("abcdefghij")
     ```
     """
 
@@ -74,10 +72,9 @@ class SpeckleClient(CoreSpeckleClient):
         )
 
         server_version = None
-        try:
+
+        with contextlib.suppress(Exception):
             server_version = self.server.version()
-        except Exception:
-            pass
 
         self.other_user = OtherUserResource(
             account=self.account,
@@ -115,59 +112,18 @@ class SpeckleClient(CoreSpeckleClient):
             client=self.httpclient,
             server_version=server_version,
         )
+        self.workspace = WorkspaceResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
         self.subscription = SubscriptionResource(
             account=self.account,
             basepath=self.ws_url,
             client=self.wsclient,
             # todo: why doesn't this take a server version
         )
-        # Deprecated Resources
-        self.user = user.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.stream = stream.Resource(
-            account=self.account,
-            basepath=self.url,
-            client=self.httpclient,
-            server_version=server_version,
-        )
-        self.commit = commit.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.branch = branch.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.object = object.Resource(
-            account=self.account, basepath=self.url, client=self.httpclient
-        )
-        self.subscribe = subscriptions.Resource(
-            account=self.account,
-            basepath=self.ws_url,
-            client=self.wsclient,
-        )
-
-    @deprecated(
-        version="2.6.0",
-        reason=(
-            "Renamed: please use `authenticate_with_account` or"
-            " `authenticate_with_token` instead."
-        ),
-    )
-    def authenticate(self, token: str) -> None:
-        """Authenticate the client using a personal access token
-        The token is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            token {str} -- an api token
-        """
-        metrics.track(
-            metrics.SDK, self.account, {"name": "Client Authenticate_deprecated"}
-        )
-        return super().authenticate(token)
 
     def authenticate_with_token(self, token: str) -> None:
         """

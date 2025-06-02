@@ -1,4 +1,5 @@
 import contextlib
+from dataclasses import dataclass, field
 from enum import Enum
 from inspect import isclass
 from typing import (
@@ -18,8 +19,7 @@ from warnings import warn
 
 from pydantic.alias_generators import to_pascal
 
-from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
-from specklepy.objects.units import Units
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.memory import MemoryTransport
 
 PRIMITIVES = (int, float, str, bool)
@@ -65,7 +65,6 @@ REMOVE_FROM_DIR = {
     "_handle_object_count",
     "_type_check",
     "_type_registry",
-    "_units",
     "add_chunkable_attrs",
     "add_detachable_attrs",
     "get_children_count",
@@ -116,7 +115,7 @@ class _RegisteringBase:
     @classmethod
     def _determine_speckle_type(cls) -> str:
         """
-        This method brings the speckle_type construction in par with peckle-sharp/Core.
+        This method brings the speckle_type construction in par with Speckle-sharp/Core.
 
         The implementation differs, because in Core the basis of the speckle_type if
         type.FullName, which includes the dotnet namespace name too.
@@ -168,8 +167,11 @@ class _RegisteringBase:
         initialization. This is reused to register each subclassing type into a class
         level dictionary.
         """
+        # if not speckle_type:
+        #     raise Exception("no type")
         cls._speckle_type_override = speckle_type
         cls.speckle_type = cls._determine_speckle_type()
+        # cls.speckle_type = speckle_type
         if cls._full_name() in cls._type_registry:
             raise ValueError(
                 f"The speckle_type: {speckle_type} is already registered for type: "
@@ -222,7 +224,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
         if isinstance(t, ForwardRef):
             return True, value
 
-        origin = getattr(t, "__origin__")
+        origin = t.__origin__
         # below is what in nicer for >= py38
         # origin = get_origin(t)
 
@@ -287,7 +289,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
             if len(args) != len(value):
                 return False, value
             values = []
-            for t_item, v_item in zip(args, value):
+            for t_item, v_item in zip(args, value, strict=True):
                 item_valid, item_value = _validate_type(t_item, v_item)
                 if not item_valid:
                     return False, value
@@ -319,22 +321,17 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
     return False, value
 
 
-class Base(_RegisteringBase):
+@dataclass(kw_only=True)
+class Base(_RegisteringBase, speckle_type="Base"):
     id: Union[str, None] = None
-    totalChildrenCount: Union[int, None] = None
+    # totalChildrenCount: Union[int, None] = None
     applicationId: Union[str, None] = None
-    _units: Union[None, str] = None
-
-    def __init__(self, **kwargs) -> None:
-        super().__init__()
-        for k, v in kwargs.items():
-            self.__setattr__(k, v)
 
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(id: {self.id}, "
             f"speckle_type: {self.speckle_type}, "
-            f"totalChildrenCount: {self.totalChildrenCount})"
+            # f"totalChildrenCount: {self.totalChildrenCount})"
         )
 
     def __str__(self) -> str:
@@ -375,7 +372,8 @@ class Base(_RegisteringBase):
         if name == "speckle_type":
             # not sure if we should raise an exception here??
             # raise SpeckleException(
-            #     "Cannot override the `speckle_type`. This is set manually by the class or on deserialisation"
+            #     "Cannot override the `speckle_type`."
+            #     "This is set manually by the class or on deserialisation"
             # )
             return
         # if value is not None:
@@ -403,7 +401,10 @@ class Base(_RegisteringBase):
         try:
             cls._attr_types = get_type_hints(cls)
         except Exception as e:
-            warn(f"Could not update forward refs for class {cls.__name__}: {e}")
+            warn(
+                f"Could not update forward refs for class {cls.__name__}: {e}",
+                stacklevel=2,
+            )
 
     @classmethod
     def validate_prop_name(cls, name: str) -> None:
@@ -462,21 +463,22 @@ class Base(_RegisteringBase):
         """
         self._detachable = self._detachable.union(names)
 
-    @property
-    def units(self) -> Union[str, None]:
-        return self._units
+    # @property
+    # def units(self) -> Union[str, None]:
+    #     return self._units
 
-    @units.setter
-    def units(self, value: Union[str, Units, None]):
-        """While this property accepts any string value, geometry expects units to be specific strings (see Units enum)"""
-        if isinstance(value, str) or value is None:
-            self._units = value
-        elif isinstance(value, Units):
-            self._units = value.value
-        else:
-            raise SpeckleInvalidUnitException(
-                f"Unknown type {type(value)} received for units"
-            )
+    # @units.setter
+    # def units(self, value: Union[str, Units, None]):
+    #     """While this property accepts any string value,
+    #        geometry expects units to be specific strings (see Units enum)"""
+    #     if isinstance(value, str) or value is None:
+    #         self._units = value
+    #     elif isinstance(value, Units):
+    #         self._units = value.value
+    #     else:
+    #         raise SpeckleInvalidUnitException(
+    #             f"Unknown type {type(value)} received for units"
+    #         )
 
     def get_member_names(self) -> List[str]:
         """Get all of the property names on this object, dynamic or not"""
@@ -568,9 +570,6 @@ class Base(_RegisteringBase):
 Base.update_forward_refs()
 
 
+@dataclass(kw_only=True)
 class DataChunk(Base, speckle_type="Speckle.Core.Models.DataChunk"):
-    data: Union[List[Any], None] = None
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.data = []
+    data: List[Any] = field(default_factory=list)

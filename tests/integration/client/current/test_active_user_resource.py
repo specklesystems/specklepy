@@ -4,6 +4,7 @@ from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
 from specklepy.core.api.models import ResourceCollection, User
+from specklepy.logging.exceptions import GraphQLException
 
 
 @pytest.mark.run()
@@ -45,7 +46,8 @@ class TestActiveUserResource:
 
     def test_active_user_get_projects_with_filter(self, client: SpeckleClient):
         # Since the client may be reused for other tests,
-        # this test does rely on no other test creating a project with "Search for me" in its name
+        # this test does rely on no other test creating a project
+        # with "Search for me" in its name
         p1 = client.project.create(
             ProjectCreateInput(name="Search for me!", description=None, visibility=None)
         )
@@ -58,5 +60,26 @@ class TestActiveUserResource:
 
         assert isinstance(res, ResourceCollection)
         assert len(res.items) == 1
-        assert res.totalCount == 1
+        assert res.total_count == 1
         assert res.items[0].id == p1.id
+
+    def test_can_create_personal_projects(self, client: SpeckleClient):
+        res = client.active_user.can_create_personal_projects()
+        res.ensure_authorised()
+
+        assert res.authorized is True
+
+    def test_get_workspaces(self, client: SpeckleClient):
+        """
+        Test server is not workspace enabled, so we can't really test everything here
+        We'll just test client's error handling
+        """
+        with pytest.raises(GraphQLException):
+            _ = client.active_user.get_workspaces()
+
+    def test_get_active_workspace(self, client: SpeckleClient):
+        """
+        Test server is not workspace enabled, so we can't really test everything here
+        """
+        res = client.active_user.get_active_workspace()
+        assert res is None

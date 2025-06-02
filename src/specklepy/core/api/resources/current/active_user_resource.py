@@ -1,21 +1,19 @@
-from datetime import datetime, timezone
-from typing import List, Optional, overload
+from typing import List, Optional
 
-from deprecated import deprecated
 from gql import gql
 
-from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
+from specklepy.core.api.inputs.user_inputs import (
+    UserProjectsFilter,
+    UserUpdateInput,
+    UserWorkspacesFilter,
+)
 from specklepy.core.api.models import (
-    ActivityCollection,
     PendingStreamCollaborator,
     Project,
     ResourceCollection,
     User,
 )
-from specklepy.core.api.models.deprecated import (
-    FE1_DEPRECATION_REASON,
-    FE1_DEPRECATION_VERSION,
-)
+from specklepy.core.api.models.current import PermissionCheckResult, Workspace
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import GraphQLException
@@ -37,10 +35,12 @@ class ActiveUserResource(ResourceBase):
         self.schema = User
 
     def get(self) -> Optional[User]:
-        """Gets the currently active user profile (as extracted from the authorization header)
+        """Gets the currently active user profile
+        (as extracted from the authorization header)
 
         Returns:
-            User -- the requested user, or none if no authentication token is provided to the Client
+            User -- the requested user, or none if no authentication token
+            is provided to the Client
         """
         QUERY = gql(
             """
@@ -65,7 +65,7 @@ class ActiveUserResource(ResourceBase):
             DataResponse[Optional[User]], QUERY, variables
         ).data
 
-    def _update(self, input: UserUpdateInput) -> User:
+    def update(self, input: UserUpdateInput) -> User:
         QUERY = gql(
             """
             mutation ActiveUserMutations($input: UserUpdateInput!) {
@@ -85,45 +85,11 @@ class ActiveUserResource(ResourceBase):
            """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[User]], QUERY, variables
         ).data.data
-
-    @deprecated("Use UserUpdateInput overload", version=FE1_DEPRECATION_VERSION)
-    @overload
-    def update(
-        self,
-        name: Optional[str] = None,
-        company: Optional[str] = None,
-        bio: Optional[str] = None,
-        avatar: Optional[str] = None,
-    ) -> User: ...
-
-    @overload
-    def update(self, *, input: UserUpdateInput) -> User: ...
-
-    def update(
-        self,
-        name: Optional[str] = None,
-        company: Optional[str] = None,
-        bio: Optional[str] = None,
-        avatar: Optional[str] = None,
-        *,
-        input: Optional[UserUpdateInput] = None,
-    ) -> User:
-        if isinstance(input, UserUpdateInput):
-            return self._update(input=input)
-        else:
-            return self._update(
-                input=UserUpdateInput(
-                    name=name,
-                    company=company,
-                    bio=bio,
-                    avatar=avatar,
-                )
-            )
 
     def get_projects(
         self,
@@ -160,7 +126,9 @@ class ActiveUserResource(ResourceBase):
         variables = {
             "limit": limit,
             "cursor": cursor,
-            "filter": filter.model_dump(warnings="error") if filter else None,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
         }
 
         response = self.make_request_and_parse_response(
@@ -228,183 +196,145 @@ class ActiveUserResource(ResourceBase):
 
         return response.data.data
 
-    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
-    def activity(
-        self,
-        limit: int = 20,
-        action_type: Optional[str] = None,
-        before: Optional[datetime] = None,
-        after: Optional[datetime] = None,
-        cursor: Optional[datetime] = None,
-    ) -> ActivityCollection:
-        """
-        Get the activity from a given stream in an Activity collection.
-        Step into the activity `items` for the list of activity.
-        If no id argument is provided, will return the current authenticated user's
-        activity (as extracted from the authorization header).
-
-        Note: all timestamps arguments should be `datetime` of any tz as they will be
-        converted to UTC ISO format strings
-
-        user_id {str} -- the id of the user to get the activity from
-        action_type {str} -- filter results to a single action type
-            (eg: `commit_create` or `commit_receive`)
-        limit {int} -- max number of Activity items to return
-        before {datetime} -- latest cutoff for activity
-            (ie: return all activity _before_ this time)
-        after {datetime} -- oldest cutoff for activity
-            (ie: return all activity _after_ this time)
-        cursor {datetime} -- timestamp cursor for pagination
-        """
-
-        query = gql(
+    def can_create_personal_projects(self) -> PermissionCheckResult:
+        QUERY = gql(
             """
-            query UserActivity(
-                $action_type: String,
-                $before:DateTime,
-                $after: DateTime,
-                $cursor: DateTime,
-                $limit: Int
-                ){
-                activeUser {
-                    activity(
-                        actionType: $action_type,
-                        before: $before,
-                        after: $after,
-                        cursor: $cursor,
-                        limit: $limit
-                        ) {
-                        totalCount
-                        cursor
-                        items {
-                            actionType
-                            info
-                            userId
-                            streamId
-                            resourceId
-                            resourceType
-                            message
-                            time
-                        }
-                    }
+            query CanCreatePersonalProject {
+              data:activeUser {
+                data:permissions {
+                  data:canCreatePersonalProject {
+                    authorized
+                    code
+                    message
+                  }
                 }
+              }
             }
             """
         )
 
-        params = {
+        response = self.make_request_and_parse_response(
+            DataResponse[Optional[DataResponse[DataResponse[PermissionCheckResult]]]],
+            QUERY,
+        )
+
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
+
+        return response.data.data.data
+
+    def get_workspaces(
+        self,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[UserWorkspacesFilter] = None,
+    ) -> ResourceCollection[Workspace]:
+        """
+        This feature is only available on Workspace enabled servers  (server versions
+        >=2.23.17) e.g. app.speckle.systems
+        """
+        QUERY = gql(
+            """
+            query ActiveUser($limit: Int!, $cursor: String, $filter: UserWorkspacesFilter) {
+              data:activeUser {
+                data:workspaces(limit: $limit, cursor: $cursor, filter: $filter) {
+                  cursor
+                  totalCount
+                  items {
+                    id
+                    name
+                    role
+                    slug
+                    logo
+                    createdAt
+                    updatedAt
+                    readOnly
+                    description
+                    creationState
+                    {
+                      completed
+                    }
+                    permissions {
+                      canCreateProject {
+                        authorized
+                        code
+                        message
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """  # noqa: E501
+        )
+
+        variables = {
             "limit": limit,
-            "action_type": action_type,
-            "before": before.astimezone(timezone.utc).isoformat() if before else before,
-            "after": after.astimezone(timezone.utc).isoformat() if after else after,
-            "cursor": cursor.astimezone(timezone.utc).isoformat() if cursor else cursor,
+            "cursor": cursor,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
         }
 
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type=["activeUser", "activity"],
-            schema=ActivityCollection,
+        response = self.make_request_and_parse_response(
+            DataResponse[Optional[DataResponse[ResourceCollection[Workspace]]]],
+            QUERY,
+            variables,
         )
 
-    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
-    def get_all_pending_invites(self) -> List[PendingStreamCollaborator]:
-        """Get all of the active user's pending stream invites
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
 
-        Requires Speckle Server version >= 2.6.4
+        return response.data.data
 
-        Returns:
-            List[PendingStreamCollaborator]
-            -- a list of pending invites for the current user
+    def get_active_workspace(self) -> Optional[Workspace]:
         """
-        self._check_invites_supported()
-
-        query = gql(
-            """
-            query StreamInvites {
-                streamInvites{
-                    id
-                    token
-                    inviteId
-                    streamId
-                    streamName
-                    projectId
-                    projectName
-                    title
-                    role
-                    invitedBy {
-                        id
-                        name
-                        bio
-                        company
-                        avatar
-                        verified
-                        role
-                    }
-                }
-            }
-            """
-        )
-
-        return self.make_request(
-            query=query,
-            return_type="streamInvites",
-            schema=PendingStreamCollaborator,
-        )
-
-    @deprecated(reason=FE1_DEPRECATION_REASON, version=FE1_DEPRECATION_VERSION)
-    def get_pending_invite(
-        self, stream_id: str, token: Optional[str] = None
-    ) -> Optional[PendingStreamCollaborator]:
-        """Get a particular pending invite for the active user on a given stream.
-        If no invite_id is provided, any valid invite will be returned.
-
-        Requires Speckle Server version >= 2.6.4
-
-        Arguments:
-            stream_id {str} -- the id of the stream to look for invites on
-            token {str} -- the token of the invite to look for (optional)
-
-        Returns:
-            PendingStreamCollaborator
-            -- the invite for the given stream (or None if it isn't found)
+        This feature is only available on Workspace enabled servers  (server versions
+        >=2.23.17) e.g. app.speckle.systems
         """
-        self._check_invites_supported()
-
-        query = gql(
+        QUERY = gql(
             """
-            query StreamInvite($streamId: String!, $token: String) {
-                streamInvite(streamId: $streamId, token: $token) {
-                    id
-                    token
-                    inviteId
-                    streamId
-                    streamName
-                    projectId
-                    projectName
-                    title
-                    role
-                    invitedBy {
-                        id
-                        name
-                        bio
-                        company
-                        avatar
-                        verified
-                        role
+            query ActiveUser {
+              data:activeUser {
+                data:activeWorkspace {
+                  id
+                  name
+                  role
+                  slug
+                  logo
+                  createdAt
+                  updatedAt
+                  readOnly
+                  description
+                  creationState
+                  {
+                    completed
+                  }
+                  permissions {
+                    canCreateProject {
+                      authorized
+                      code
+                      message
                     }
+                  }
                 }
+              }
             }
-            """
+            """  # noqa: E501
         )
 
-        params = {"streamId": stream_id}
-        if token:
-            params["token"] = token
-
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="streamInvite",
-            schema=PendingStreamCollaborator,
+        response = self.make_request_and_parse_response(
+            DataResponse[Optional[DataResponse[Optional[Workspace]]]],
+            QUERY,
         )
+
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
+
+        return response.data.data

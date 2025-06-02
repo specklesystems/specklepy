@@ -76,7 +76,13 @@ class VersionResource(ResourceBase):
     ) -> ResourceCollection[Version]:
         QUERY = gql(
             """
-            query VersionGetVersions($projectId: String!, $modelId: String!, $limit: Int!, $cursor: String, $filter: ModelVersionsFilter) {
+            query VersionGetVersions(
+              $projectId: String!,
+              $modelId: String!,
+              $limit: Int!,
+              $cursor: String,
+              $filter: ModelVersionsFilter
+              ) {
               data:project(id: $projectId) {
                 data:model(id: $modelId) {
                   data:versions(limit: $limit, cursor: $cursor, filter: $filter) {
@@ -111,7 +117,9 @@ class VersionResource(ResourceBase):
             "modelId": model_id,
             "limit": limit,
             "cursor": cursor,
-            "filter": filter.model_dump(warnings="error") if filter else None,
+            "filter": (
+                filter.model_dump(warnings="error", by_alias=True) if filter else None
+            ),
         }
 
         return self.make_request_and_parse_response(
@@ -120,26 +128,39 @@ class VersionResource(ResourceBase):
             variables,
         ).data.data.data
 
-    def create(self, input: CreateVersionInput) -> str:
+    def create(self, input: CreateVersionInput) -> Version:
         QUERY = gql(
             """
             mutation Create($input: CreateVersionInput!) {
               data:versionMutations {
                 data:create(input: $input) {
-                  data:id
+                  id
+                  referencedObject
+                  message
+                  sourceApplication
+                  createdAt
+                  previewUrl
+                  authorUser {
+                    id
+                    name
+                    bio
+                    company
+                    verified
+                    role
+                    avatar
+                  }
                 }
               }
             }
             """
         )
-
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[str]]], QUERY, variables
-        ).data.data.data
+            DataResponse[DataResponse[Version]], QUERY, variables
+        ).data.data
 
     def update(self, input: UpdateVersionInput) -> Version:
         QUERY = gql(
@@ -168,7 +189,7 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error")}
+        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Version]], QUERY, variables
@@ -188,7 +209,7 @@ class VersionResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -207,7 +228,7 @@ class VersionResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
@@ -226,7 +247,7 @@ class VersionResource(ResourceBase):
         )
 
         variables = {
-            "input": input.model_dump(warnings="error"),
+            "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(

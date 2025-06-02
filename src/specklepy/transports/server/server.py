@@ -24,24 +24,31 @@ class ServerTransport(AbstractTransport):
 
     ```py
     from specklepy.api import operations
+    from specklepy.api.client import SpeckleClient
+    from specklepy.core.api.inputs.version_inputs import CreateVersionInput
     from specklepy.transports.server import ServerTransport
 
     # here's the data you want to send
     block = Block(length=2, height=4)
 
-    # next create the server transport - this is the vehicle through which
+    # here's the project and model you want to send to
+    project_id = "abcdefghi"
+    model_id = "ihgfedcba"
+
+    # next, create the server transport - this is the vehicle through which
     # you will send and receive
-    transport = ServerTransport(stream_id=new_stream_id, client=client)
+    transport = ServerTransport(stream_id=project_id, client=client)
 
     # this serialises the block and sends it to the transport
     hash = operations.send(base=block, transports=[transport])
 
-    # you can now create a commit on your stream with this object
-    commit_id = client.commit.create(
-        stream_id=new_stream_id,
-        obj_id=hash,
-        message="this is a block I made in speckle-py",
+    # you can now create tag this version of the model with this object
+    input = CreateVersionInput(
+        objectId = hash,
+        modelId = model_id,
+        projectId = project_id,
     )
+    version = client.version.create(input)
     ```
     """
 
@@ -74,7 +81,8 @@ class ServerTransport(AbstractTransport):
                     SpeckleWarning(
                         "Unauthenticated Speckle Client provided to Server Transport"
                         f" for {url}. Receiving from private streams will fail."
-                    )
+                    ),
+                    stacklevel=2,
                 )
             else:
                 self.account = client.account
@@ -131,8 +139,7 @@ class ServerTransport(AbstractTransport):
 
         raise SpeckleException(
             "Getting a single object using `ServerTransport.get_object()` is not"
-            " implemented. To get an object from the server, please use the"
-            " `SpeckleClient.object.get()` route",
+            " implemented.",
             NotImplementedError(),
         )
 

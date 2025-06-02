@@ -1,7 +1,6 @@
 import re
 from typing import Any, Dict, List, Tuple
 
-import requests
 from gql import gql
 
 from specklepy.core.api.models import ServerInfo
@@ -38,11 +37,6 @@ class ServerResource(ResourceBase):
                     adminContact
                     canonicalUrl
                     version
-                    roles {
-                        name
-                        description
-                        resourceTarget
-                    }
                     scopes {
                         name
                         description
@@ -52,6 +46,9 @@ class ServerResource(ResourceBase):
                         name
                         icon
                     }
+                    workspaces {
+                      workspacesEnabled
+                    }
                 }
             }
             """
@@ -60,16 +57,6 @@ class ServerResource(ResourceBase):
         server_info = self.make_request(
             query=query, return_type="serverInfo", schema=ServerInfo
         )
-        if isinstance(server_info, ServerInfo) and isinstance(
-            server_info.canonicalUrl, str
-        ):
-            r = requests.get(
-                server_info.canonicalUrl, headers={"User-Agent": "specklepy SDK"}
-            )
-            if "x-speckle-frontend-2" in r.headers:
-                server_info.frontend2 = True
-            else:
-                server_info.frontend2 = False
 
         return server_info
 
@@ -80,7 +67,8 @@ class ServerResource(ResourceBase):
             the server version in the format (major, minor, patch, (tag, build))
             eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
         """
-        # not tracking as it will be called along with other mutations / queries as a check
+        # not tracking as it will be called along with other mutations / queries
+        # as a check
         query = gql(
             """
             query Server {
