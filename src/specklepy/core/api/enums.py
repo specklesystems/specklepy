@@ -10,9 +10,6 @@ class ProjectVisibility(str, Enum):
     WORKSPACE = "WORKSPACE"
 
 
-foo = ProjectVisibility.PRIVATE
-
-
 class UserProjectsUpdatedMessageType(str, Enum):
     ADDED = "ADDED"
     REMOVED = "REMOVED"
