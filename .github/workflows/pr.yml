@@ -1,6 +1,9 @@
 name: "Specklepy test"
 on:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
   pull_request:
     branches:
       - "main"
