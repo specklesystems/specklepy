@@ -1,7 +1,12 @@
 from typing import Optional
 
 from specklepy.core.api.inputs.project_inputs import WorksaceProjectsFilter
-from specklepy.core.api.models.current import Project, ResourceCollection, Workspace
+from specklepy.core.api.models.current import (
+    Project,
+    ProjectWithPermissions,
+    ResourceCollection,
+    Workspace,
+)
 from specklepy.core.api.resources import WorkspaceResource as CoreResource
 from specklepy.logging import metrics
 
@@ -30,3 +35,19 @@ class WorkspaceResource(CoreResource):
     ) -> ResourceCollection[Project]:
         metrics.track(metrics.SDK, self.account, {"name": "Workspace Get Projects"})
         return super().get_projects(workspace_id, limit, cursor, filter)
+
+    def get_projects_with_permissions(
+        self,
+        workspace_id: str,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[WorksaceProjectsFilter] = None,
+    ) -> ResourceCollection[ProjectWithPermissions]:
+        metrics.track(
+            metrics.SDK,
+            self.account,
+            {"name": "Workspace Get Projects With Permissions"},
+        )
+        return super().get_projects_with_permissions(
+            workspace_id, limit, cursor, filter
+        )

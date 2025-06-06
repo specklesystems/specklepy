@@ -11,7 +11,11 @@ from specklepy.core.api.models import (
     ResourceCollection,
     User,
 )
-from specklepy.core.api.models.current import PermissionCheckResult, Workspace
+from specklepy.core.api.models.current import (
+    PermissionCheckResult,
+    ProjectWithPermissions,
+    Workspace,
+)
 from specklepy.core.api.resources import ActiveUserResource as CoreResource
 from specklepy.logging import metrics
 
@@ -50,6 +54,22 @@ class ActiveUserResource(CoreResource):
     ) -> ResourceCollection[Project]:
         metrics.track(metrics.SDK, self.account, {"name": "Active User Get Projects"})
         return super().get_projects(limit=limit, cursor=cursor, filter=filter)
+
+    def get_projects_with_permissions(
+        self,
+        *,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[UserProjectsFilter] = None,
+    ) -> ResourceCollection[ProjectWithPermissions]:
+        metrics.track(
+            metrics.SDK,
+            self.account,
+            {"name": "Active User Get Projects With Permissions"},
+        )
+        return super().get_projects_with_permissions(
+            limit=limit, cursor=cursor, filter=filter
+        )
 
     def get_project_invites(self) -> List[PendingStreamCollaborator]:
         metrics.track(

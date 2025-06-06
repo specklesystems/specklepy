@@ -13,7 +13,11 @@ from specklepy.core.api.models import (
     ResourceCollection,
     User,
 )
-from specklepy.core.api.models.current import PermissionCheckResult, Workspace
+from specklepy.core.api.models.current import (
+    PermissionCheckResult,
+    ProjectWithPermissions,
+    Workspace,
+)
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import GraphQLException
@@ -330,6 +334,87 @@ class ActiveUserResource(ResourceBase):
         response = self.make_request_and_parse_response(
             DataResponse[Optional[DataResponse[Optional[Workspace]]]],
             QUERY,
+        )
+
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
+
+        return response.data.data
+
+    def get_projects_with_permissions(
+        self,
+        *,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[UserProjectsFilter] = None,
+    ) -> ResourceCollection[ProjectWithPermissions]:
+        """
+        Gets the currently active user's projects with their permissions.
+        This is useful for checking what actions can be performed on each project.
+        """
+        QUERY = gql(
+            """
+          query User($limit : Int!, $cursor: String, $filter: UserProjectsFilter) {
+            data:activeUser {
+              data:projects(limit: $limit, cursor: $cursor, filter: $filter) {
+                totalCount
+                cursor
+                items {
+                    id
+                    name
+                    description
+                    visibility
+                    allowPublicComments
+                    role
+                    createdAt
+                    updatedAt
+                    sourceApps
+                    workspaceId
+                    permissions {
+                      canCreateModel {
+                        code
+                        authorized
+                        message
+                      }
+                      canDelete {
+                        code
+                        authorized
+                        message
+                      }
+                      canLoad {
+                        code
+                        authorized
+                        message
+                      }
+                      canPublish {
+                        code
+                        authorized
+                        message
+                      }
+                    }
+                }
+              }
+            }
+          }
+          """
+        )
+
+        variables = {
+            "limit": limit,
+            "cursor": cursor,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
+        }
+
+        response = self.make_request_and_parse_response(
+            DataResponse[
+                Optional[DataResponse[ResourceCollection[ProjectWithPermissions]]]
+            ],
+            QUERY,
+            variables,
         )
 
         if response.data is None:

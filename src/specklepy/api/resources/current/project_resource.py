@@ -7,8 +7,17 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectUpdateRoleInput,
     WorkspaceProjectCreateInput,
 )
-from specklepy.core.api.models import Project, ProjectWithModels, ProjectWithTeam
-from specklepy.core.api.models.current import ProjectPermissionChecks
+from specklepy.core.api.inputs.user_inputs import UserProjectsFilter
+from specklepy.core.api.models import (
+    Project,
+    ProjectWithModels,
+    ProjectWithTeam,
+    ResourceCollection,
+)
+from specklepy.core.api.models.current import (
+    ProjectPermissionChecks,
+    ProjectWithPermissions,
+)
 from specklepy.core.api.resources import ProjectResource as CoreResource
 from specklepy.logging import metrics
 
@@ -73,3 +82,19 @@ class ProjectResource(CoreResource):
     def update_role(self, input: ProjectUpdateRoleInput) -> ProjectWithTeam:
         metrics.track(metrics.SDK, self.account, {"name": "Project Update Role"})
         return super().update_role(input)
+
+    def get_projects_with_permissions(
+        self,
+        *,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[UserProjectsFilter] = None,
+    ) -> ResourceCollection[ProjectWithPermissions]:
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Project Get Projects With Permissions"}
+        )
+        return super().get_projects_with_permissions(
+            limit=limit,
+            cursor=cursor,
+            filter=filter,
+        )
