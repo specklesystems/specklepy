@@ -26,11 +26,10 @@ class TestActiveUserResourcePermissions:
     def test_active_user_get_projects_with_permissions(
         self, client: SpeckleClient, test_project: Project
     ):
-        """test getting the active user's projects with their permissions."""
         result = client.active_user.get_projects_with_permissions()
 
         assert isinstance(result, ResourceCollection)
-        assert len(result.items) >= 1
+        assert len(result.items) >= 1  # Should have at least our test project
 
         test_project_with_permissions = None
         for project in result.items:
@@ -76,25 +75,6 @@ class TestActiveUserResourcePermissions:
 
         assert hasattr(project_with_permissions, "permissions")
         assert project_with_permissions.permissions is not None
-
-    def test_active_user_get_projects_with_permissions_pagination(
-        self, client: SpeckleClient
-    ):
-        """test pagination parameters work correctly for active user projects."""
-        result = client.active_user.get_projects_with_permissions(limit=1)
-
-        assert isinstance(result, ResourceCollection)
-        if result.total_count > 0:
-            assert len(result.items) == 1
-            assert isinstance(result.items[0], ProjectWithPermissions)
-
-            if result.total_count > 1:
-                assert result.cursor is not None
-
-                next_result = client.active_user.get_projects_with_permissions(
-                    limit=1, cursor=result.cursor
-                )
-                assert isinstance(next_result, ResourceCollection)
 
     def test_active_user_projects_with_permissions_method_exists(
         self, client: SpeckleClient

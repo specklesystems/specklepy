@@ -10,10 +10,10 @@ class TestWorkspaceResourcePermissions:
         with pytest.raises(GraphQLException):
             client.workspace.get_projects_with_permissions("not a real id")
 
-    def test_get_projects_with_permissions_returns_correct_type(
-        self, client: SpeckleClient
-    ):
+    def test_get_projects_with_permissions_method_exists(self, client: SpeckleClient):
+        """
+        test that the method exists with the correct signature.
+        """
         assert hasattr(client.workspace, "get_projects_with_permissions")
-
         method = client.workspace.get_projects_with_permissions
         assert callable(method)
