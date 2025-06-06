@@ -176,6 +176,10 @@ class ProjectWithModels(Project):
     models: ResourceCollection[Model]
 
 
+class ProjectWithPermissions(Project):
+    permissions: ProjectPermissionChecks
+
+
 class ProjectWithTeam(Project):
     invited_team: List[PendingStreamCollaborator]
     team: List[ProjectCollaborator]

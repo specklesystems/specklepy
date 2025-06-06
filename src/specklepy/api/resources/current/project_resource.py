@@ -7,7 +7,11 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectUpdateRoleInput,
     WorkspaceProjectCreateInput,
 )
-from specklepy.core.api.models import Project, ProjectWithModels, ProjectWithTeam
+from specklepy.core.api.models import (
+    Project,
+    ProjectWithModels,
+    ProjectWithTeam,
+)
 from specklepy.core.api.models.current import ProjectPermissionChecks
 from specklepy.core.api.resources import ProjectResource as CoreResource
 from specklepy.logging import metrics
