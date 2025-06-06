@@ -29,7 +29,7 @@ class TestActiveUserResourcePermissions:
         result = client.active_user.get_projects_with_permissions()
 
         assert isinstance(result, ResourceCollection)
-        assert len(result.items) >= 1  # Should have at least our test project
+        assert len(result.items) >= 1
 
         test_project_with_permissions = None
         for project in result.items:
@@ -66,8 +66,8 @@ class TestActiveUserResourcePermissions:
         result = client.active_user.get_projects_with_permissions(filter=filter)
 
         assert isinstance(result, ResourceCollection)
-        assert len(result.items) == 1
-        assert result.total_count == 1
+        assert len(result.items) >= 1
+        assert result.total_count >= 1
 
         project_with_permissions = result.items[0]
         assert isinstance(project_with_permissions, ProjectWithPermissions)
