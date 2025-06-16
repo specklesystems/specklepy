@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Sequence
 from typing import cast
 
@@ -12,74 +13,74 @@ def geometry_to_speckle(geometry: Triangulation, ifc_model: file) -> list[Base]:
     materials = cast(Sequence[int], geometry.materials)
     MESH_COUNT = max(len(materials), 1)
 
-    meshes: list[Mesh] = [
-        Mesh(units="m", vertices=[], faces=[]) for i in range(MESH_COUNT)
-    ]
-    index_counters = [0] * MESH_COUNT
-
+    material_ids = cast(Sequence[int], geometry.material_ids)
     faces = cast(Sequence[int], geometry.faces)
     verts = cast(Sequence[float], geometry.verts)
-    normals = cast(Sequence[float], geometry.normals)
-    uvs = cast(Sequence[float], geometry.uvs)
 
-    material_ids = cast(Sequence[int], geometry.material_ids)
+    mapped_meshes = _pre_alloc_mesh_lists(material_ids, MESH_COUNT)
+    mapped_faces_pointers = [0] * MESH_COUNT
+    mapped_vertices_pointers = [0] * MESH_COUNT
+    mapped_index_counters = [0] * MESH_COUNT
 
     FACE_COUNT = len(material_ids)
 
     assert len(faces) == FACE_COUNT * 3
-    # assert len(normals) == len(verts)
-    # assert len(uvs) == len(verts) ||
 
     i = 0
     face_index = 0
     while i < FACE_COUNT:
-        mesh: Mesh = meshes[material_ids[i]]
+        mesh_index = material_ids[i]
+        mesh: Mesh = mapped_meshes[mesh_index]
+
+        face_ptr = mapped_faces_pointers[mesh_index]
+        vert_ptr = mapped_vertices_pointers[mesh_index]
 
         # Add triangle
-        mesh.faces.append(3)
+        mesh.faces[face_ptr] = 3
+        for j in range(3):
+            # Add vert
+            mesh.faces[face_ptr + 1 + j] = mapped_index_counters[mesh_index] + j
+            vert_index = faces[face_index + j] * 3
+            mapped_vert_offset = vert_ptr + (j * 3)
 
-        mesh.faces.append(index_counters[material_ids[i]])
-        mesh.vertices.append(verts[faces[face_index] * 3])
-        mesh.vertices.append(verts[faces[face_index] * 3 + 1])
-        mesh.vertices.append(verts[faces[face_index] * 3 + 2])
+            mesh.vertices[mapped_vert_offset] = verts[vert_index]
+            mesh.vertices[mapped_vert_offset + 1] = verts[vert_index + 1]
+            mesh.vertices[mapped_vert_offset + 2] = verts[vert_index + 2]
 
-        mesh.faces.append(index_counters[material_ids[i]] + 1)
-        mesh.vertices.append(verts[faces[face_index + 1] * 3])
-        mesh.vertices.append(verts[faces[face_index + 1] * 3 + 1])
-        mesh.vertices.append(verts[faces[face_index + 1] * 3 + 2])
-
-        mesh.faces.append(index_counters[material_ids[i]] + 2)
-        mesh.vertices.append(verts[faces[face_index + 2] * 3])
-        mesh.vertices.append(verts[faces[face_index + 2] * 3 + 1])
-        mesh.vertices.append(verts[faces[face_index + 2] * 3 + 2])
-
-        # Add normals
-        if len(normals) > 0:
-            mesh.vertexNormals.append(normals[faces[face_index] * 3])
-            mesh.vertexNormals.append(normals[faces[face_index] * 3 + 1])
-            mesh.vertexNormals.append(normals[faces[face_index] * 3 + 2])
-
-            mesh.vertexNormals.append(normals[faces[face_index + 1] * 3])
-            mesh.vertexNormals.append(normals[faces[face_index + 1] * 3 + 1])
-            mesh.vertexNormals.append(normals[faces[face_index + 1] * 3 + 2])
-
-            mesh.vertexNormals.append(normals[faces[face_index + 2] * 3])
-            mesh.vertexNormals.append(normals[faces[face_index + 2] * 3 + 1])
-            mesh.vertexNormals.append(normals[faces[face_index + 2] * 3 + 2])
-
-        # Add uvs
-        if len(uvs) > 0:
-            mesh.textureCoordinates.append(uvs[faces[face_index] * 3])
-            mesh.textureCoordinates.append(uvs[faces[face_index] * 3 + 1])
-
-            mesh.textureCoordinates.append(uvs[faces[face_index + 1] * 3])
-            mesh.textureCoordinates.append(uvs[faces[face_index + 1] * 3 + 1])
-
-            mesh.textureCoordinates.append(uvs[faces[face_index + 2] * 3])
-            mesh.textureCoordinates.append(uvs[faces[face_index + 2] * 3 + 1])
-
-        index_counters[material_ids[i]] += 3
         i += 1
-        face_index += 3
+        face_index += 3  # number of items in the faces list we just jumped over
 
-    return meshes  # type: ignore
+        mapped_index_counters[
+            mesh_index
+        ] += 3  # number of verts we just added to the mesh.vertices i.e. the next index
+        mapped_faces_pointers[
+            mesh_index
+        ] += 4  # number of item's we've just added to the mesh.faces list
+        mapped_vertices_pointers[
+            mesh_index
+        ] += 9  # number of item's we've just added to the mesh.vertices list
+
+    return mapped_meshes  # type: ignore
+
+
+def _pre_alloc_mesh_lists(material_ids: Sequence[int], MESH_COUNT: int) -> list[Mesh]:
+    """
+    This is a performance optimisation to pre-size the lists
+    since we're expecting potential hundreds of thousands of verts in a single model
+    This is very much in the hot path, so worth the extra bit of convoluted logic
+    """
+
+    material_face_counts = defaultdict(int)
+    for mat_id in material_ids:
+        material_face_counts[mat_id] += 1
+
+    meshes = []
+    for mat_id in range(MESH_COUNT):
+        face_count = material_face_counts.get(mat_id, 0)
+        mesh = Mesh(
+            units="m",
+            vertices=[-1] * (face_count * 9),
+            faces=[-1] * (face_count * 4),  # 1 marker + 3 vertex indices
+        )
+        meshes.append(mesh)
+    return meshes

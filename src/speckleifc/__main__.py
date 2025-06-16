@@ -13,7 +13,8 @@ def main() -> Version:
     MODEL_ID = "0e23cfdea3"
     SERVER_URL = "app.speckle.systems"
     # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\60mins.ifc"
-    FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\hillside_house_meters.ifc"
+    # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\hillside_house_meters.ifc"
+    FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"
 
     # Conversion
     data = convert_file(FILE)

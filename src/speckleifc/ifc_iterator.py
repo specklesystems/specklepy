@@ -10,7 +10,6 @@ def _create_settings() -> settings:
     ifc_settings.set("triangulation-type", ifcopenshell_wrapper.TRIANGLE_MESH)
     ifc_settings.set("weld-vertices", False)
     ifc_settings.set("use-world-coords", True)
-    ifc_settings.set("use-world-coords", True)
 
     return ifc_settings
 
@@ -27,4 +26,4 @@ def open_ifc(file_path: str) -> file:
 def create_geometry_iterator(ifc_file: file | sqlite) -> iterator:
     settings = _create_settings()
 
-    return iterator(settings, ifc_file, multiprocessing.cpu_count())
+    return iterator(settings, ifc_file, multiprocessing.cpu_count() // 2)
