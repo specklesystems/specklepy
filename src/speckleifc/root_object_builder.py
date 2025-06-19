@@ -32,12 +32,12 @@ class RootObjectBuilder:
         step_element: entity_instance,
         shape: Element | None,
     ) -> None:
-        step_id = cast(int, step_element.id)
+        step_id = step_element.id()
         self.converted[step_id] = conversion_result
 
         if shape is None:
             parent = get_container(step_element)
-            parent_id = cast(int, parent.id) if parent else None
+            parent_id = parent.id() if parent else None
         else:
             parent_id = cast(int, shape.parent_id)
 
@@ -53,6 +53,10 @@ class RootObjectBuilder:
 
     def apply_relationships(self, root_commit_object: Base) -> None:
         for step_id, c in self.converted.items():
+
+            if step_id not in self._parent_infos:
+                continue
+
             try:
                 self.apply_relationship(c, step_id, root_commit_object)
             except Exception as ex:

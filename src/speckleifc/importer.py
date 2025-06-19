@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
@@ -8,8 +9,10 @@ from specklepy.objects import Base
 from specklepy.objects.models.collections.collection import Collection
 
 from speckleifc.converter.data_object_converter import data_object_to_speckle
+from speckleifc.converter.project_converter import project_to_speckle
 from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
-from speckleifc.ifc_geometry_processing import create_geometry_iterator, get_shape
+from speckleifc.ifc_geometry_processing import create_geometry_iterator
+from speckleifc.ifc_openshell_helpers import get_aggregates
 from speckleifc.root_object_builder import RootObjectBuilder
 
 
@@ -19,12 +22,22 @@ class ImportJob:
         self.builder = RootObjectBuilder()
 
     def convert(self) -> Collection:
-        self._convert_spatial_elements()
+        # we're doing a bit of a hybrid approach to traversing the IFC graph.
+        # First we convert the aggregates graph of spatial elements using a depth first
+        # traversal of the aggregate relationships, starting from the project.
+        # This will convert the IfcProject, IfcSite, IfcBuilding, IfcBuildingStorey etc..
+        # Note that some of these, like IfcSite may still have geometry...
+        #
+        # This DFS approach is similar to how the v2 and v3 web-ifc based importers worked
+        # But here, is only doing Spatial elements, not walls
+        root = self._convert_project_tree()
 
+        # Then, geometry is converted using the geometry iterator, this is efficient
+        # but returns objects in a non-reliable order, so we use the RootObjectBuilder
+        # to differ building the rest of the Speckle objects tree
         self._convert_geometry()
-
-        root = Collection(name="root collection")  # todo: replace with project
         self.builder.build_commit_object(root)
+
         return root
 
     def _convert_geometry(self) -> None:
@@ -46,18 +59,37 @@ class ImportJob:
             if not geometry_iterator.next():
                 break
 
-    def _convert_spatial_elements(self) -> None:
-        spatial_elements = self._ifc_file.by_type("IfcProject")
+    def _convert_spatial_elements_tree(
+        self, step_element: entity_instance
+    ) -> Collection:
 
-        for step_element in spatial_elements:
-            shape = (
-                get_shape(step_element)
-                if step_element.Representation is not None
-                else None
-            )
+        children = self._convert_aggregates(step_element)
 
-            converted = spatial_element_to_speckle(step_element, shape)
-            self.builder.include_object(converted, step_element, shape)
+        result = spatial_element_to_speckle(step_element, children)
+
+        # Include object in the converted dictionary,
+        # but no need to set relationships, since we're correctly handling those already
+        # the the spatial elements traversed here
+        self.builder.converted[step_element.id()] = result
+        return result
+
+    def _convert_project_tree(self) -> Collection:
+        projects = self._ifc_file.by_type("IfcProject", False)
+        if len(projects) != 1:
+            raise SpeckleException("Expected exactly one IfcProject in file")
+        project = projects[0]
+
+        children = self._convert_aggregates(project)
+        result = project_to_speckle(project, children)
+
+        self.builder.converted[project.id()] = result
+
+        return result
+
+    def _convert_aggregates(self, step_element: entity_instance) -> list[Base]:
+        return [
+            self._convert_spatial_elements_tree(i) for i in get_aggregates(step_element)
+        ]
 
     @staticmethod
     def convert_geometry_element(

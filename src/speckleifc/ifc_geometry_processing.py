@@ -2,6 +2,7 @@ import multiprocessing
 from typing import cast
 
 from ifcopenshell import file, ifcopenshell_wrapper, open, sqlite
+from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.geom import create_shape, iterator, settings
 from ifcopenshell.ifcopenshell_wrapper import TriangulationElement
 from specklepy.logging.exceptions import SpeckleException
@@ -39,6 +40,9 @@ def create_geometry_iterator(ifc_file: file | sqlite) -> iterator:
     return iterator(_IFC_ITERATOR_SETTINGS, ifc_file, multiprocessing.cpu_count() // 2)
 
 
-def get_shape(element) -> TriangulationElement:
+def try_get_shape(element: entity_instance) -> TriangulationElement | None:
+    if element.Representation is None:
+        return None
+
     shape = create_shape(_IFC_SETTINGS, element)
     return cast(TriangulationElement, shape)
