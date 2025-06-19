@@ -23,7 +23,7 @@ def data_object_to_speckle(
     # TODO: children as "elements"
     # data_object["@elements"] = children_converter.convert_children(shape, ifc_model)
 
-    data_object["ifcType"] = step_element.is_a()
-    data_object["expressId"] = step_element.id()
-    data_object["description"] = cast(str | None, step_element.Description)
+    data_object["ifcType"] = cast(str, shape.type)
+    data_object["expressId"] = cast(int, shape.id)
+    data_object["description"] = cast(str, step_element.Description)
     return data_object

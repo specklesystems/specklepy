@@ -1,17 +1,29 @@
 import multiprocessing
+from typing import cast
 
 from ifcopenshell import file, ifcopenshell_wrapper, open, sqlite
-from ifcopenshell.geom import iterator, settings
+from ifcopenshell.geom import create_shape, iterator, settings
+from ifcopenshell.ifcopenshell_wrapper import TriangulationElement
 from specklepy.logging.exceptions import SpeckleException
 
 
-def _create_settings() -> settings:
+def _create_base_settings() -> settings:
     ifc_settings = settings()
     ifc_settings.set("triangulation-type", ifcopenshell_wrapper.TRIANGLE_MESH)
     ifc_settings.set("weld-vertices", False)
     ifc_settings.set("use-world-coords", True)
 
     return ifc_settings
+
+
+def _create_iterator_settings() -> settings:
+    ifc_settings = _create_base_settings()
+
+    return ifc_settings
+
+
+_IFC_ITERATOR_SETTINGS = _create_iterator_settings()
+_IFC_SETTINGS = _create_base_settings()
 
 
 def open_ifc(file_path: str) -> file:
@@ -24,6 +36,10 @@ def open_ifc(file_path: str) -> file:
 
 
 def create_geometry_iterator(ifc_file: file | sqlite) -> iterator:
-    settings = _create_settings()
 
-    return iterator(settings, ifc_file, multiprocessing.cpu_count() // 2)
+    return iterator(_IFC_ITERATOR_SETTINGS, ifc_file, multiprocessing.cpu_count() // 2)
+
+
+def get_shape(element) -> TriangulationElement:
+    shape = create_shape(_IFC_SETTINGS, element)
+    return cast(TriangulationElement, shape)

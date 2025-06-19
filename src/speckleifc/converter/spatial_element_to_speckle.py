@@ -1,18 +1,21 @@
 from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
-from ifcopenshell.ifcopenshell_wrapper import Triangulation, TriangulationElement
+from ifcopenshell.ifcopenshell_wrapper import Triangulation
 from specklepy.objects.data_objects import DataObject
 
 from speckleifc.converter.geometry_converter import geometry_to_speckle
+from speckleifc.ifc_geometry_processing import get_shape
 
 
-def data_object_to_speckle(
-    shape: TriangulationElement, step_element: entity_instance
-) -> DataObject:
+def spatial_element_to_speckle(step_element: entity_instance) -> DataObject:
 
-    geometry = cast(Triangulation, shape.geometry)
-    display_value = geometry_to_speckle(geometry)
+    if step_element.Representation is not None:
+        shape = get_shape(step_element)
+        geometry = cast(Triangulation, shape.geometry)
+        display_value = geometry_to_speckle(geometry)
+    else:
+        display_value = []
 
     data_object = DataObject(
         applicationId=cast(str, shape.guid),
