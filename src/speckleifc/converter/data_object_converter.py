@@ -10,7 +10,6 @@ def data_object_to_speckle(
     step_element: entity_instance,
     children: list[Base],
 ) -> DataObject:
-
     guid = cast(str, step_element.GlobalId)
     name = cast(str, step_element.Name or guid)
 

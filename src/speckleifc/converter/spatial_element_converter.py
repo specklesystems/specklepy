@@ -11,7 +11,6 @@ def spatial_element_to_speckle(
     step_element: entity_instance,
     relational_children: list[Base],
 ) -> Collection:
-
     direct_geometry = _convert_as_data_object(display_value, step_element)
     all_children = [direct_geometry] + relational_children
 
@@ -28,7 +27,6 @@ def spatial_element_to_speckle(
 def _convert_as_data_object(
     display_value: list[Base], step_element: entity_instance
 ) -> DataObject:
-
     guid = cast(str, step_element.GlobalId)
     name = cast(str, step_element.Name or step_element.LongName or guid)
     data_object = DataObject(

@@ -8,13 +8,10 @@ from specklepy.objects.models.collections.collection import Collection
 def project_to_speckle(
     step_element: entity_instance, children: list[Base]
 ) -> Collection:
-
     guid = cast(str, step_element.GlobalId)
     name = cast(str, step_element.Name or step_element.LongName or guid)
 
     project = Collection(applicationId=guid, name=name, elements=children)
-    # TODO: children as "elements"
-    # data_object["@elements"] = children_converter.convert_children(shape, ifc_model)
 
     project["expressId"] = step_element.id()
     project["ifcType"] = step_element.is_a()

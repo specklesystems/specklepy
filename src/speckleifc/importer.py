@@ -12,13 +12,11 @@ from speckleifc.converter.project_converter import project_to_speckle
 from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
-from speckleifc.root_object_builder import RootObjectBuilder
 
 
 class ImportJob:
     def __init__(self, ifc_file: file):
         self._ifc_file = ifc_file
-        self.builder = RootObjectBuilder()
         self.cached_display_values: dict[int, list[Base]] = {}
 
     def convert_element(self, step_element: entity_instance) -> Base:
@@ -36,7 +34,6 @@ class ImportJob:
         return [self.convert_element(i) for i in get_children(step_element)]
 
     def convert(self) -> Base:
-
         self.pre_process_geometry()
 
         root = self._convert_project_tree()
@@ -44,7 +41,6 @@ class ImportJob:
         return root
 
     def pre_process_geometry(self) -> None:
-
         iterator = create_geometry_iterator(self._ifc_file)
         if not iterator.initialize():
             raise SpeckleException(

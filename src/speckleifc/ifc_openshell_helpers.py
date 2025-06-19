@@ -6,7 +6,6 @@ from ifcopenshell.entity_instance import entity_instance
 
 
 def get_children(step_element: entity_instance) -> Generator[entity_instance]:
-
     yield from chain(
         get_spatial_children(step_element), get_aggregate_children(step_element)
     )
