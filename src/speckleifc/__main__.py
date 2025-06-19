@@ -16,7 +16,7 @@ from speckleifc.importer import ImportJob
 # I'm hoping that POLYGONS_WITHOUT_HOLES is faster than TRIANGLES
 # but nothing concretely confirmed
 # tldr: send is not much slower in py from C#
-# geometry itterator is pretty slow
+# geometry iterator is pretty slow
 
 
 def main() -> Version:
