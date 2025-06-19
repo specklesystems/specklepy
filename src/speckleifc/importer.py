@@ -8,7 +8,8 @@ from specklepy.objects import Base
 from specklepy.objects.models.collections.collection import Collection
 
 from speckleifc.converter.data_object_converter import data_object_to_speckle
-from speckleifc.ifc_geometry_processing import create_geometry_iterator
+from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
+from speckleifc.ifc_geometry_processing import create_geometry_iterator, get_shape
 from speckleifc.root_object_builder import RootObjectBuilder
 
 
@@ -40,16 +41,23 @@ class ImportJob:
             step_element = self._ifc_file.by_id(step_id)
 
             converted = self.convert_geometry_element(shape, step_element)
-            self.builder.include_shape(converted, shape)
+            self.builder.include_object(converted, step_element, shape)
 
             if not geometry_iterator.next():
                 break
 
     def _convert_spatial_elements(self) -> None:
-        spatial_elements = self._ifc_file.by_type("IfcSpatialElement")
+        spatial_elements = self._ifc_file.by_type("IfcProject")
 
-        for element in spatial_elements:
-            element
+        for step_element in spatial_elements:
+            shape = (
+                get_shape(step_element)
+                if step_element.Representation is not None
+                else None
+            )
+
+            converted = spatial_element_to_speckle(step_element, shape)
+            self.builder.include_object(converted, step_element, shape)
 
     @staticmethod
     def convert_geometry_element(

@@ -2,7 +2,9 @@ from collections.abc import Sequence
 from typing import cast
 
 from attrs import define
+from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.ifcopenshell_wrapper import Element
+from ifcopenshell.util.element import get_container
 from specklepy.objects.base import Base
 from specklepy.objects.graph_traversal.commit_object_builder import (
     get_detached_prop,
@@ -24,14 +26,22 @@ class RootObjectBuilder:
         self.converted = {}
         self._parent_infos = {}
 
-    def include_shape(self, conversion_result: Base, shape: Element) -> None:
-        step_id = cast(int, shape.id)
-
+    def include_object(
+        self,
+        conversion_result: Base,
+        step_element: entity_instance,
+        shape: Element | None,
+    ) -> None:
+        step_id = cast(int, step_element.id)
         self.converted[step_id] = conversion_result
 
-        self.set_relationship(
-            step_id, ((cast(int, shape.parent_id), ELEMENTS), (ROOT, ELEMENTS))
-        )
+        if shape is None:
+            parent = get_container(step_element)
+            parent_id = cast(int, parent.id) if parent else None
+        else:
+            parent_id = cast(int, shape.parent_id)
+
+        self.set_relationship(step_id, ((parent_id, ELEMENTS), (ROOT, ELEMENTS)))
 
     def build_commit_object(self, root_commit_object: Base) -> None:
         self.apply_relationships(root_commit_object)
