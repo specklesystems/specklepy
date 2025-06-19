@@ -8,7 +8,6 @@ from speckleifc.converter.geometry_converter import geometry_to_speckle
 
 
 def data_object_to_speckle(shape: TriangulationElement, ifc_model: file) -> DataObject:
-
     geometry = cast(Triangulation, shape.geometry)
     display_value = geometry_to_speckle(geometry, ifc_model)
 

@@ -1,4 +1,5 @@
 import time
+
 from specklepy.api.operations import send
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import get_accounts_for_server
@@ -23,8 +24,8 @@ def main() -> Version:
     SERVER_URL = "app.speckle.systems"
     # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\60mins.ifc"
     FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\hillside_house_meters.ifc"
-    # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"
-    # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"
+    # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
+    # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
 
     start = time.time()
     data = convert_file(FILE)
