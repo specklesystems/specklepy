@@ -41,7 +41,16 @@ def create_geometry_iterator(ifc_file: file | sqlite) -> iterator:
 
 
 def try_get_shape(element: entity_instance) -> TriangulationElement | None:
-    if element.Representation is None:
+    representation = getattr(element, "Representation", None)
+    if representation is None:
+        return None
+
+    has_body = any(
+        getattr(r, "RepresentationIdentifier", "").lower() == "body"
+        for r in representation.Representations
+    )
+
+    if not has_body:
         return None
 
     shape = create_shape(_IFC_SETTINGS, element)
