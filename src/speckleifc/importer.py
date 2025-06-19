@@ -13,7 +13,6 @@ from speckleifc.root_object_builder import RootObjectBuilder
 
 
 class ImportJob:
-
     def __init__(self, ifc_file: file):
         self._ifc_file = ifc_file
         self.builder = RootObjectBuilder()

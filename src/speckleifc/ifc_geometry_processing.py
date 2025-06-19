@@ -36,7 +36,6 @@ def open_ifc(file_path: str) -> file:
 
 
 def create_geometry_iterator(ifc_file: file | sqlite) -> iterator:
-
     return iterator(_IFC_ITERATOR_SETTINGS, ifc_file, multiprocessing.cpu_count() // 2)
 
 

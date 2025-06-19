@@ -51,7 +51,6 @@ class RootObjectBuilder:
     def apply_relationship(
         self, current: Base, step_id: int, root_commit_object: Base
     ) -> None:
-
         parents = self._parent_infos[step_id]
 
         for parent_id, prop_name in parents:

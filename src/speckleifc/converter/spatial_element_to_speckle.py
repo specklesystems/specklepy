@@ -9,7 +9,6 @@ from speckleifc.ifc_geometry_processing import get_shape
 
 
 def spatial_element_to_speckle(step_element: entity_instance) -> DataObject:
-
     if step_element.Representation is not None:
         shape = get_shape(step_element)
         geometry = cast(Triangulation, shape.geometry)

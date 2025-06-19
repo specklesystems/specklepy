@@ -8,7 +8,6 @@ from specklepy.objects.geometry import Mesh
 
 
 def geometry_to_speckle(geometry: Triangulation) -> list[Base]:
-
     materials = cast(Sequence[int], geometry.materials)
     MESH_COUNT = max(len(materials), 1)
 
@@ -49,15 +48,15 @@ def geometry_to_speckle(geometry: Triangulation) -> list[Base]:
         i += 1
         face_index += 3  # number of items in the faces list we just jumped over
 
-        mapped_index_counters[
-            mesh_index
-        ] += 3  # number of verts we just added to the mesh.vertices i.e. the next index
-        mapped_faces_pointers[
-            mesh_index
-        ] += 4  # number of item's we've just added to the mesh.faces list
-        mapped_vertices_pointers[
-            mesh_index
-        ] += 9  # number of item's we've just added to the mesh.vertices list
+        mapped_index_counters[mesh_index] += (
+            3  # number of verts we just added to the mesh.vertices i.e. the next index
+        )
+        mapped_faces_pointers[mesh_index] += (
+            4  # number of item's we've just added to the mesh.faces list
+        )
+        mapped_vertices_pointers[mesh_index] += (
+            9  # number of item's we've just added to the mesh.vertices list
+        )
 
     return mapped_meshes  # type: ignore
 
