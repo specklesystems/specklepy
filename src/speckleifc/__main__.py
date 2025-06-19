@@ -7,7 +7,8 @@ from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.core.api.models import Version
 from specklepy.transports.server import ServerTransport
 
-from speckleifc.importer import convert_file
+from speckleifc.ifc_geometry_processing import open_ifc
+from speckleifc.importer import ImportJob
 
 ###
 
@@ -15,7 +16,7 @@ from speckleifc.importer import convert_file
 # I'm hoping that POLYGONS_WITHOUT_HOLES is faster than TRIANGLES
 # but nothing concretely confirmed
 # tldr: send is not much slower in py from C#
-# geometry itterator is pretty slow
+# geometry iterator is pretty slow
 
 
 def main() -> Version:
@@ -23,12 +24,16 @@ def main() -> Version:
     MODEL_ID = "0e23cfdea3"
     SERVER_URL = "app.speckle.systems"
     # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\60mins.ifc"
-    FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\hillside_house_meters.ifc"
-    # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
-    # FILE = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
+    FILE_PATH = "C:\\Users\\Jedd\\Desktop\\openshell\\hillside_house_meters.ifc"
+    # FILE_PATH = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
+    # FILE_PATH = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
 
     start = time.time()
-    data = convert_file(FILE)
+
+    ifc_file = open_ifc(FILE_PATH)
+    import_job = ImportJob(ifc_file)
+    data = import_job.convert()
+
     print(f"File conversion complete after {(time.time() - start) * 1000}ms")
 
     start = time.time()
@@ -36,7 +41,7 @@ def main() -> Version:
 
     remote_transport = ServerTransport(PROJECT_ID, account=account)
 
-    root_id = send(data, transports=[remote_transport])
+    root_id = send(data, transports=[remote_transport], use_default_cache=False)
     print(f"Sending to speckle complete after: {(time.time() - start) * 1000}ms")
 
     start = time.time()
@@ -53,4 +58,6 @@ def main() -> Version:
 
 
 if __name__ == "__main__":
+    start = time.time()
     main()
+    print(f"Total time: {(time.time() - start) * 1000}ms")

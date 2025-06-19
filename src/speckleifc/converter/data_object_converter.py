@@ -1,27 +1,28 @@
 from typing import cast
 
-from ifcopenshell import file
-from ifcopenshell.ifcopenshell_wrapper import Triangulation, TriangulationElement
+from ifcopenshell.entity_instance import entity_instance
+from specklepy.objects.base import Base
 from specklepy.objects.data_objects import DataObject
 
-from speckleifc.converter.geometry_converter import geometry_to_speckle
 
+def data_object_to_speckle(
+    display_value: list[Base],
+    step_element: entity_instance,
+    children: list[Base],
+) -> DataObject:
 
-def data_object_to_speckle(shape: TriangulationElement, ifc_model: file) -> DataObject:
-    geometry = cast(Triangulation, shape.geometry)
-    display_value = geometry_to_speckle(geometry, ifc_model)
+    guid = cast(str, step_element.GlobalId)
+    name = cast(str, step_element.Name or guid)
 
     data_object = DataObject(
-        applicationId=cast(str, shape.guid),
+        applicationId=guid,
         properties={},
-        name=cast(str, shape.name) or cast(str, shape.guid),
+        name=name or guid,
         displayValue=display_value,
     )
-    # TODO: children as "elements"
-    # data_object["@elements"] = children_converter.convert_children(shape, ifc_model)
 
-    data_object["ifcType"] = cast(str, shape.type)
-    data_object["expressId"] = cast(str, shape.id)
-    data_object["ownerId"] = cast(str, shape.parent_id)
-    data_object["description"] = cast(str, shape.unique_id)
+    data_object["@elements"] = children
+    data_object["ifcType"] = step_element.is_a()
+    data_object["expressId"] = step_element.id()
+    data_object["description"] = cast(str | None, step_element.Description)
     return data_object

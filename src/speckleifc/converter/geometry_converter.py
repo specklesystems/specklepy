@@ -2,13 +2,12 @@ from collections import defaultdict
 from collections.abc import Sequence
 from typing import cast
 
-from ifcopenshell import file
 from ifcopenshell.ifcopenshell_wrapper import Triangulation
 from specklepy.objects import Base
 from specklepy.objects.geometry import Mesh
 
 
-def geometry_to_speckle(geometry: Triangulation, ifc_model: file) -> list[Base]:
+def geometry_to_speckle(geometry: Triangulation) -> list[Base]:
     materials = cast(Sequence[int], geometry.materials)
     MESH_COUNT = max(len(materials), 1)
 
