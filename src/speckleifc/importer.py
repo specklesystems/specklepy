@@ -2,7 +2,7 @@ from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.geom import file
-from ifcopenshell.ifcopenshell_wrapper import Triangulation, TriangulationElement
+from ifcopenshell.ifcopenshell_wrapper import TriangulationElement
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects import Base
 
@@ -12,12 +12,14 @@ from speckleifc.converter.project_converter import project_to_speckle
 from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
+from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
 
 
 class ImportJob:
     def __init__(self, ifc_file: file):
         self._ifc_file = ifc_file
         self.cached_display_values: dict[int, list[Base]] = {}
+        self._render_material_manager = RenderMaterialProxyManager()
 
     def convert_element(self, step_element: entity_instance) -> Base:
         children = self._convert_children(step_element)
@@ -49,15 +51,14 @@ class ImportJob:
 
         while True:
             shape = cast(TriangulationElement, iterator.get())
-            geometry = cast(Triangulation, shape.geometry)
+
             id = cast(int, shape.id)
 
-            display_value = geometry_to_speckle(geometry)
+            display_value = geometry_to_speckle(shape, self._render_material_manager)
             self.cached_display_values[id] = display_value
 
             if not iterator.next():
                 break
-        pass
 
     def _convert_project_tree(self) -> Base:
         projects = self._ifc_file.by_type("IfcProject", False)
@@ -66,5 +67,8 @@ class ImportJob:
         project = projects[0]
 
         tree = self.convert_element(project)
+        tree["renderMaterialProxies"] = list(
+            self._render_material_manager.render_material_proxies.values()
+        )
 
         return tree
