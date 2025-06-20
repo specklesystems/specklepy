@@ -4,6 +4,8 @@ from ifcopenshell.entity_instance import entity_instance
 from specklepy.objects.base import Base
 from specklepy.objects.data_objects import DataObject
 
+from speckleifc.property_extraction import extract_properties
+
 
 def data_object_to_speckle(
     display_value: list[Base],
@@ -15,7 +17,7 @@ def data_object_to_speckle(
 
     data_object = DataObject(
         applicationId=guid,
-        properties={},
+        properties=extract_properties(step_element),
         name=name or guid,
         displayValue=display_value,
     )

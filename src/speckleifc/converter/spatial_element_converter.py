@@ -5,6 +5,8 @@ from specklepy.objects.base import Base
 from specklepy.objects.data_objects import DataObject
 from specklepy.objects.models.collections.collection import Collection
 
+from speckleifc.property_extraction import extract_properties
+
 
 def spatial_element_to_speckle(
     display_value: list[Base],
@@ -31,7 +33,7 @@ def _convert_as_data_object(
     name = cast(str, step_element.Name or step_element.LongName or guid)
     data_object = DataObject(
         applicationId=guid,
-        properties={},
+        properties=extract_properties(step_element),
         name=name,
         displayValue=display_value,
     )
