@@ -25,6 +25,13 @@ def geometry_to_speckle(
     material_ids = cast(Sequence[int], geometry.material_ids)
     faces = cast(Sequence[int], geometry.faces)
     verts = cast(Sequence[float], geometry.verts)
+    normals = cast(Sequence[float], geometry.normals)
+
+    FACE_COUNT = len(material_ids)
+
+    if len(faces) != FACE_COUNT * 3:
+        # Not really expected, but occasionally some meshes fail to triangulate
+        return []
 
     mapped_meshes = _pre_alloc_mesh_lists(shape, material_ids, MESH_COUNT)
     for i, mesh in enumerate(mapped_meshes):
@@ -34,10 +41,6 @@ def geometry_to_speckle(
     mapped_faces_pointers = [0] * MESH_COUNT
     mapped_vertices_pointers = [0] * MESH_COUNT
     mapped_index_counters = [0] * MESH_COUNT
-
-    FACE_COUNT = len(material_ids)
-
-    assert len(faces) == FACE_COUNT * 3
 
     i = 0
     face_index = 0
@@ -59,6 +62,10 @@ def geometry_to_speckle(
             mesh.vertices[mapped_vert_offset] = verts[vert_index]
             mesh.vertices[mapped_vert_offset + 1] = verts[vert_index + 1]
             mesh.vertices[mapped_vert_offset + 2] = verts[vert_index + 2]
+
+            mesh.vertexNormals[mapped_vert_offset] = normals[vert_index]
+            mesh.vertexNormals[mapped_vert_offset + 1] = normals[vert_index + 1]
+            mesh.vertexNormals[mapped_vert_offset + 2] = normals[vert_index + 2]
 
         i += 1
         face_index += 3  # number of items in the faces list we just jumped over
@@ -115,6 +122,7 @@ def _pre_alloc_mesh_lists(
         mesh = Mesh(
             units="m",
             vertices=[-1] * (face_count * 9),
+            vertexNormals=[-1] * (face_count * 9),
             faces=[-1] * (face_count * 4),  # 1 marker + 3 vertex indices
             applicationId=f"{appId}_mat{mat_id}",
         )

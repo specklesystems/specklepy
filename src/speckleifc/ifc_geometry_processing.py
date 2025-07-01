@@ -13,6 +13,18 @@ def _create_iterator_settings() -> settings:
     ifc_settings.set("weld-vertices", False)
     # Speckle meshes are all in world coords
     ifc_settings.set("use-world-coords", True)
+    # Tiny performance improvement,
+    ifc_settings.set("no-wire-intersection-check", True)
+
+    # IfcOpenshell defaults to 0.001mm here, which leads to very dense meshes.
+    # lowering the mesh quality a bit here leads to meshes
+    # that are still much higher quality than webifc
+
+    # We still need to experiment with the affect on memory usage
+    # It may be desirable to lower this further, and increase the angular deflection
+    # to compensate. This would allow large meshes to be lower quality,
+    # while keeping small meshes relatively similar.
+    ifc_settings.set("mesher-linear-deflection", 0.2)
 
     return ifc_settings
 
@@ -27,6 +39,4 @@ def open_ifc(file_path: str) -> file:
 
 
 def create_geometry_iterator(ifc_file: file | sqlite) -> iterator:
-    return iterator(
-        _create_iterator_settings(), ifc_file, multiprocessing.cpu_count() // 2
-    )
+    return iterator(_create_iterator_settings(), ifc_file, multiprocessing.cpu_count())

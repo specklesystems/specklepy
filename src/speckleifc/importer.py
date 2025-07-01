@@ -1,3 +1,4 @@
+import time
 from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
@@ -20,10 +21,15 @@ class ImportJob:
         self._ifc_file = ifc_file
         self.cached_display_values: dict[int, list[Base]] = {}
         self._render_material_manager = RenderMaterialProxyManager()
+        self.geometries_count = 0
+        self.geometries_used = 0
 
     def convert_element(self, step_element: entity_instance) -> Base:
         children = self._convert_children(step_element)
         display_value = self.cached_display_values.get(step_element.id(), [])
+
+        if display_value is not None:
+            self.geometries_used += 1
 
         if step_element.is_a("IfcProject"):
             return project_to_speckle(step_element, children)
@@ -36,10 +42,15 @@ class ImportJob:
         return [self.convert_element(i) for i in get_children(step_element)]
 
     def convert(self) -> Base:
+        start = time.time()
         self.pre_process_geometry()
+        print(f"Geometry conversion complete after {(time.time() - start) * 1000}ms")
+        print(f"Created {self.geometries_count} geometries")
 
+        start = time.time()
         root = self._convert_project_tree()
-
+        print(f"Object tree conversion complete after {(time.time() - start) * 1000}ms")
+        print(f"Used {self.geometries_used} geometries")
         return root
 
     def pre_process_geometry(self) -> None:
@@ -48,10 +59,10 @@ class ImportJob:
             raise SpeckleException(
                 "geometry iterator failed to initialize for the given file"
             )
-
+        self.geometries_count = 0
         while True:
             shape = cast(TriangulationElement, iterator.get())
-
+            self.geometries_count += 1
             id = cast(int, shape.id)
 
             display_value = geometry_to_speckle(shape, self._render_material_manager)
