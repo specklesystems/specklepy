@@ -96,7 +96,7 @@ def open_and_convert_file(
     start = time.time()
     server_url = account.serverInfo.url
     assert server_url
-    client = SpeckleClient(host=server_url)
+    client = SpeckleClient(host=server_url, use_ssl=server_url.startswith("https"))
     client.authenticate_with_account(account)
 
     create_version = CreateVersionInput(
