@@ -94,7 +94,9 @@ def open_and_convert_file(
     print(f"Sending to speckle complete after: {(time.time() - start) * 1000}ms")
 
     start = time.time()
-    client = SpeckleClient()
+    server_url = account.serverInfo.url
+    assert server_url
+    client = SpeckleClient(host=server_url)
     client.authenticate_with_account(account)
 
     create_version = CreateVersionInput(
