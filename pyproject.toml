@@ -5,7 +5,7 @@ description = "Add your description here"
 authors = [{ name = "Speckle Systems", email = "devops@speckle.systems" }]
 license = { text = "Apache-2.0" }
 readme = "README.md"
-requires-python = ">=3.12, <4.0"
+requires-python = ">=3.12, <3.13"
 dependencies = [
     "ifcopenshell>=0.8.2",
     "specklepy>=3.0.1",

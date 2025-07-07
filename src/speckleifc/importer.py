@@ -39,7 +39,23 @@ class ImportJob:
             return data_object_to_speckle(display_value, step_element, children)
 
     def _convert_children(self, step_element: entity_instance) -> list[Base]:
-        return [self.convert_element(i) for i in get_children(step_element)]
+        return [
+            self.convert_element(i)
+            for i in get_children(step_element)
+            if self._should_convert(i)
+        ]
+
+    @staticmethod
+    def _should_convert(step_element: entity_instance) -> bool:
+        # We only consider IfcRoot objects convertible
+        # This is the super class for root level entities that have a GUID...
+        # This will ignore some types like IfcGridAxis
+        s = step_element.is_a("IfcRoot")
+        if not s:
+            print(
+                f"Skipping #{step_element.id()} because it's type ({step_element.is_a()}) it not an IfcRoot"  # noqa: E501
+            )
+        return s
 
     def convert(self) -> Base:
         start = time.time()
