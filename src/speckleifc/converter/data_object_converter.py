@@ -24,6 +24,5 @@ def data_object_to_speckle(
 
     data_object["@elements"] = children
     data_object["ifcType"] = step_element.is_a()
-    data_object["expressId"] = step_element.id()
-    data_object["description"] = cast(str | None, step_element.Description)
+
     return data_object

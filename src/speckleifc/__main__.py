@@ -16,7 +16,6 @@ from speckleifc.importer import ImportJob
 
 
 def cmd_line_import() -> None:
-
     parser = ArgumentParser(
         prog="speckleifc",
         description="imports a file",
@@ -76,7 +75,6 @@ def open_and_convert_file(
     model_id: str,
     account: Account,
 ) -> Version:
-
     start = time.time()
     very_start = start
 

@@ -20,7 +20,6 @@ def spatial_element_to_speckle(
     name = cast(str, step_element.Name or step_element.LongName or guid)
 
     data_object = Collection(applicationId=guid, name=name, elements=all_children)
-    data_object["expressId"] = step_element.id()
     data_object["ifcType"] = step_element.is_a()
 
     return data_object
@@ -38,11 +37,6 @@ def _convert_as_data_object(
         displayValue=display_value,
     )
 
-    data_object["expressId"] = step_element.id()
     data_object["ifcType"] = step_element.is_a()
-    data_object["description"] = cast(str | None, step_element.Description)
-    data_object["objectType"] = step_element.ObjectType
-    data_object["compositionType"] = step_element.CompositionType
-    data_object["longName"] = step_element.LongName
 
     return data_object
