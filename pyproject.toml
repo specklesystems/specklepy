@@ -18,6 +18,11 @@ dependencies = [
     "ujson>=5.10.0",
 ]
 
+[project.optional-dependencies]
+speckleifc = [
+    "ifcopenshell>=0.8.2",
+]
+
 [dependency-groups]
 dev = [
     "commitizen>=4.1.0",
