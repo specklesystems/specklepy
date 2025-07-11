@@ -11,7 +11,11 @@
     The Python SDK
 </h3>
 
-<p align="center"><a href="https://codecov.io/gh/specklesystems/specklepy"><img src="https://codecov.io/gh/specklesystems/specklepy/branch/main/graph/badge.svg?token=8KQFL5N0YF" alt="Codecov"></a></p>
+<p align="center">
+  <a href="https://pypi.org/project/specklepy/"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/specklepy"></a>
+  <a href="https://codecov.io/gh/specklesystems/specklepy"><img src="https://codecov.io/gh/specklesystems/specklepy/branch/main/graph/badge.svg?token=8KQFL5N0YF" alt="Codecov"></a>
+  <a href="https://github.com/specklesystems/specklepy/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/specklesystems/specklepy"></a>
+</p>
 
 # Repo structure
 
