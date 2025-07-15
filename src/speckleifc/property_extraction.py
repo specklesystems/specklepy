@@ -6,7 +6,7 @@ from ifcopenshell.util.element import get_type
 
 def extract_properties(element: entity_instance) -> dict[str, object]:
     properties: dict[str, object] = {
-        "Attributes": get_attributes(element),
+        "Attributes": _get_attributes(element),
         "Property Sets": _get_ifc_object_properties(element),
     }
 
@@ -14,11 +14,14 @@ def extract_properties(element: entity_instance) -> dict[str, object]:
         properties["Element Type Property Sets"] = _get_ifc_element_type_properties(
             ifc_type,
         )
+        properties["Element Type Attributes"] = _get_attributes(
+            ifc_type,
+        )
 
     return properties
 
 
-def get_attributes(element: entity_instance) -> dict[str, object]:
+def _get_attributes(element: entity_instance) -> dict[str, object]:
     return element.get_info(True, False, scalar_only=True)
 
 

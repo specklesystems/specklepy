@@ -102,6 +102,7 @@ def open_and_convert_file(
         model_id=model_id,
         project_id=project_id,
         message=version_message,
+        source_application="IFC",
     )
     version = client.version.create(create_version)
     end = time.time()
