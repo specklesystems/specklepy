@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from os import getenv
 
 from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.credentials import Account, get_accounts_for_server
+from specklepy.core.api.credentials import Account
 from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.core.api.models.current import Version
 from specklepy.core.api.operations import send
