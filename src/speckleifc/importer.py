@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass, field
 from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
@@ -16,13 +17,15 @@ from speckleifc.ifc_openshell_helpers import get_children
 from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
 
 
+@dataclass
 class ImportJob:
-    def __init__(self, ifc_file: file):
-        self._ifc_file = ifc_file
-        self.cached_display_values: dict[int, list[Base]] = {}
-        self._render_material_manager = RenderMaterialProxyManager()
-        self.geometries_count = 0
-        self.geometries_used = 0
+    ifc_file: file
+    cached_display_values: dict[int, list[Base]] = field(default_factory=dict)  # noqa: F821
+    _render_material_manager: RenderMaterialProxyManager = field(
+        default_factory=lambda: RenderMaterialProxyManager()
+    )
+    geometries_count: int = 0
+    geometries_used: int = 0
 
     def convert_element(self, step_element: entity_instance) -> Base:
         children = self._convert_children(step_element)
@@ -70,7 +73,7 @@ class ImportJob:
         return root
 
     def pre_process_geometry(self) -> None:
-        iterator = create_geometry_iterator(self._ifc_file)
+        iterator = create_geometry_iterator(self.ifc_file)
         if not iterator.initialize():
             raise SpeckleException(
                 "geometry iterator failed to initialize for the given file"
@@ -88,7 +91,7 @@ class ImportJob:
                 break
 
     def _convert_project_tree(self) -> Base:
-        projects = self._ifc_file.by_type("IfcProject", False)
+        projects = self.ifc_file.by_type("IfcProject", False)
         if len(projects) != 1:
             raise SpeckleException("Expected exactly one IfcProject in file")
         project = projects[0]
