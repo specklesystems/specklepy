@@ -42,7 +42,9 @@ def _get_ifc_object_properties(element: entity_instance) -> dict[str, object]:
         if not rel.is_a("IfcRelDefinesByProperties"):
             continue
 
-        definition: entity_instance = rel.RelatingPropertyDefinition
+        definition: entity_instance | None = rel.RelatingPropertyDefinition
+        if not definition:
+            continue
 
         if not definition.is_a("IfcPropertySet"):
             continue
