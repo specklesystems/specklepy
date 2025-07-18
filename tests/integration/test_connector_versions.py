@@ -20,8 +20,10 @@ def test_connector_versions():
 
 
 def test_get_latest_version_throws_no_slug():
-    with pytest.raises(HTTPStatusError):
+    with pytest.raises(HTTPStatusError) as ex:
         get_latest_version("non-existent-connector!", True)
+
+    assert "404" in str(ex.value)
 
 
 def test_get_latest_version():
