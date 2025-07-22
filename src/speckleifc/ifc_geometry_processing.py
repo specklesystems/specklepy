@@ -15,6 +15,8 @@ def _create_iterator_settings() -> settings:
     ifc_settings.set("use-world-coords", True)
     # Tiny performance improvement,
     ifc_settings.set("no-wire-intersection-check", True)
+    # Rendermaterials inherit the material names instead of type + unique id
+    ifc_settings.set("use-material-names", True)
 
     # IfcOpenshell defaults to 0.001mm here, which leads to very dense meshes.
     # lowering the mesh quality a bit here leads to meshes
