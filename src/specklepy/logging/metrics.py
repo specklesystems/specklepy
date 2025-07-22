@@ -10,6 +10,8 @@ from typing import Optional
 
 import requests
 
+from specklepy.core.api.credentials import Account
+
 """
 Anonymous telemetry to help us understand how to make a better Speckle.
 This really helps us to deliver a better open source project and product!
@@ -62,7 +64,7 @@ def set_host_app(host_app: str, host_app_version: Optional[str] = None):
 
 def track(
     action: str,
-    account=None,
+    account: Optional[Account] = None,
     custom_props: Optional[dict] = None,
 ):
     if not TRACK:
@@ -91,7 +93,7 @@ def track(
         LOG.debug(f"Error queueing metrics request: {str(ex)}")
 
 
-def initialise_tracker(account=None):
+def initialise_tracker(account: Optional[Account] = None):
     global METRICS_TRACKER
     if not METRICS_TRACKER:
         METRICS_TRACKER = MetricsTracker()
