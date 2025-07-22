@@ -4,15 +4,14 @@ import traceback
 from argparse import ArgumentParser
 from os import getenv
 
+from speckleifc.ifc_geometry_processing import open_ifc
+from speckleifc.importer import ImportJob
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import Account
 from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.core.api.models.current import Version
 from specklepy.core.api.operations import send
 from specklepy.transports.server import ServerTransport
-
-from speckleifc.ifc_geometry_processing import open_ifc
-from speckleifc.importer import ImportJob
 
 
 def cmd_line_import() -> None:

@@ -5,8 +5,6 @@ from typing import cast
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.geom import file
 from ifcopenshell.ifcopenshell_wrapper import TriangulationElement
-from specklepy.logging.exceptions import SpeckleException
-from specklepy.objects import Base
 
 from speckleifc.converter.data_object_converter import data_object_to_speckle
 from speckleifc.converter.geometry_converter import geometry_to_speckle
@@ -15,6 +13,8 @@ from speckleifc.converter.spatial_element_converter import spatial_element_to_sp
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
 from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
+from specklepy.logging.exceptions import SpeckleException
+from specklepy.objects import Base
 
 
 @dataclass

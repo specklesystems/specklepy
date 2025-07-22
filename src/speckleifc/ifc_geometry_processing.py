@@ -2,6 +2,7 @@ import multiprocessing
 
 from ifcopenshell import file, ifcopenshell_wrapper, open, sqlite
 from ifcopenshell.geom import iterator, settings
+
 from specklepy.logging.exceptions import SpeckleException
 
 

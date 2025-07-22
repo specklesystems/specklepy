@@ -1,11 +1,11 @@
 from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
+
+from speckleifc.property_extraction import extract_properties
 from specklepy.objects.base import Base
 from specklepy.objects.data_objects import DataObject
 from specklepy.objects.models.collections.collection import Collection
-
-from speckleifc.property_extraction import extract_properties
 
 
 def spatial_element_to_speckle(

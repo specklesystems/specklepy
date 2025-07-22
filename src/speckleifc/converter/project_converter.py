@@ -1,6 +1,7 @@
 from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
+
 from specklepy.objects.base import Base
 from specklepy.objects.models.collections.collection import Collection
 

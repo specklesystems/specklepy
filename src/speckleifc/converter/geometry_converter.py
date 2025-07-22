@@ -8,11 +8,11 @@ from ifcopenshell.ifcopenshell_wrapper import (
     colour,
     style,
 )
+
+from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Mesh
 from specklepy.objects.other import RenderMaterial
-
-from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
 
 
 def geometry_to_speckle(

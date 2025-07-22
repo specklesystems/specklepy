@@ -1,10 +1,10 @@
 from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
-from specklepy.objects.base import Base
-from specklepy.objects.data_objects import DataObject
 
 from speckleifc.property_extraction import extract_properties
+from specklepy.objects.base import Base
+from specklepy.objects.data_objects import DataObject
 
 
 def data_object_to_speckle(
