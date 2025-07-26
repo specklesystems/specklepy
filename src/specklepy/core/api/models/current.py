@@ -213,16 +213,19 @@ class WorkspaceCreationState(GraphQLBaseModel):
     completed: bool
 
 
-class Workspace(GraphQLBaseModel):
+class LimitedWorkspace(GraphQLBaseModel):
     id: str
     name: str
     role: str | None
     slug: str
     logo: str | None
+    description: str | None
+
+
+class Workspace(LimitedWorkspace):
     created_at: datetime
     updated_at: datetime
     read_only: bool
-    description: str | None
     creation_state: WorkspaceCreationState | None
     permissions: WorkspacePermissionChecks
 
