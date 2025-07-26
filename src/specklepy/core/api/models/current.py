@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, List, TypeVar
 
 from specklepy.core.api.enums import ProjectVisibility
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
@@ -10,13 +10,13 @@ T = TypeVar("T")
 
 class User(GraphQLBaseModel):
     id: str
-    email: Optional[str] = None
+    email: str | None = None
     name: str
-    bio: Optional[str] = None
-    company: Optional[str] = None
-    avatar: Optional[str] = None
-    verified: Optional[bool] = None
-    role: Optional[str] = None
+    bio: str | None = None
+    company: str | None = None
+    avatar: str | None = None
+    verified: bool | None = None
+    role: str | None = None
 
     def __repr__(self):
         return (
@@ -31,16 +31,16 @@ class User(GraphQLBaseModel):
 class ResourceCollection(GraphQLBaseModel, Generic[T]):
     total_count: int
     items: List[T]
-    cursor: Optional[str] = None
+    cursor: str | None = None
 
 
 class ServerMigration(GraphQLBaseModel):
-    moved_from: Optional[str]
-    moved_to: Optional[str]
+    moved_from: str | None
+    moved_to: str | None
 
 
 class AuthStrategy(GraphQLBaseModel):
-    color: Optional[str]
+    color: str | None
     icon: str
     id: str
     name: str
@@ -60,17 +60,17 @@ class ServerWorkspacesInfo(GraphQLBaseModel):
 # Keeping this one all Optionals at the minute,
 #  because its used both as a deserialization model for GQL and Account Management
 class ServerInfo(GraphQLBaseModel):
-    name: Optional[str] = None
-    company: Optional[str] = None
-    url: Optional[str] = None
-    admin_contact: Optional[str] = None
-    description: Optional[str] = None
-    canonical_url: Optional[str] = None
-    scopes: Optional[List[dict]] = None
-    auth_strategies: Optional[List[dict]] = None
-    version: Optional[str] = None
-    migration: Optional[ServerMigration] = None
-    workspaces: Optional[ServerWorkspacesInfo] = None
+    name: str | None = None
+    company: str | None = None
+    url: str | None = None
+    admin_contact: str | None = None
+    description: str | None = None
+    canonical_url: str | None = None
+    scopes: List[dict] | None = None
+    auth_strategies: List[dict] | None = None
+    version: str | None = None
+    migration: ServerMigration | None = None
+    workspaces: ServerWorkspacesInfo | None = None
     # TODO separate gql model from account management model
 
 
@@ -79,11 +79,11 @@ class LimitedUser(GraphQLBaseModel):
 
     id: str
     name: str
-    bio: Optional[str]
-    company: Optional[str]
-    avatar: Optional[str]
-    verified: Optional[bool]
-    role: Optional[str]
+    bio: str | None
+    company: str | None
+    avatar: str | None
+    verified: bool | None
+    role: str | None
 
     def __repr__(self):
         return (
@@ -99,15 +99,15 @@ class LimitedUser(GraphQLBaseModel):
 class PendingStreamCollaborator(GraphQLBaseModel):
     id: str
     invite_id: str
-    stream_id: Optional[str] = None
+    stream_id: str | None = None
     projectId: str
-    stream_name: Optional[str] = None
+    stream_name: str | None = None
     project_name: str
     title: str
     role: str
     invited_by: LimitedUser
-    user: Optional[LimitedUser] = None
-    token: Optional[str]
+    user: LimitedUser | None = None
+    token: str | None
 
     def __repr__(self):
         return (
@@ -127,24 +127,24 @@ class ProjectCollaborator(GraphQLBaseModel):
 
 
 class Version(GraphQLBaseModel):
-    author_user: Optional[LimitedUser]
+    author_user: LimitedUser | None
     created_at: datetime
     id: str
-    message: Optional[str]
+    message: str | None
     preview_url: str
-    referenced_object: Optional[str]
+    referenced_object: str | None
     """Maybe null if workspaces version history limit has been exceeded"""
-    source_application: Optional[str]
+    source_application: str | None
 
 
 class Model(GraphQLBaseModel):
-    author: Optional[LimitedUser]
+    author: LimitedUser | None
     created_at: datetime
-    description: Optional[str]
+    description: str | None
     display_name: str
     id: str
     name: str
-    preview_url: Optional[str]
+    preview_url: str | None
     updated_at: datetime
 
 
@@ -162,14 +162,14 @@ class ProjectPermissionChecks(GraphQLBaseModel):
 class Project(GraphQLBaseModel):
     allow_public_comments: bool
     created_at: datetime
-    description: Optional[str]
+    description: str | None
     id: str
     name: str
-    role: Optional[str]
+    role: str | None
     source_apps: List[str]
     updated_at: datetime
     visibility: ProjectVisibility
-    workspace_id: Optional[str]
+    workspace_id: str | None
 
 
 class ProjectWithModels(Project):
@@ -191,7 +191,7 @@ class ProjectCommentCollection(ResourceCollection[T], Generic[T]):
 
 class UserSearchResultCollection(GraphQLBaseModel):
     items: List[LimitedUser]
-    cursor: Optional[str] = None
+    cursor: str | None = None
 
 
 class PermissionCheckResult(GraphQLBaseModel):
@@ -216,12 +216,34 @@ class WorkspaceCreationState(GraphQLBaseModel):
 class Workspace(GraphQLBaseModel):
     id: str
     name: str
-    role: Optional[str]
+    role: str | None
     slug: str
-    logo: Optional[str]
+    logo: str | None
     created_at: datetime
     updated_at: datetime
     read_only: bool
-    description: Optional[str]
-    creation_state: Optional[WorkspaceCreationState]
+    description: str | None
+    creation_state: WorkspaceCreationState | None
     permissions: WorkspacePermissionChecks
+
+
+class FileImport(GraphQLBaseModel):
+    id: str
+    project_id: str
+    converted_version_id: str | None
+    user_id: str
+    converted_status: int
+    converted_message: str | None
+    model_id: str | None
+    updated_at: datetime
+
+
+class FileImportCollection(GraphQLBaseModel):
+    total_count: int
+    cursor: str | None
+    items: list[FileImport]
+
+
+class FileUploadUrl(GraphQLBaseModel):
+    url: str
+    file_id: str
