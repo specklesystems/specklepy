@@ -18,6 +18,9 @@ dependencies = [
     "ujson>=5.10.0",
 ]
 
+[project.optional-dependencies]
+speckleifc = ["ifcopenshell>=0.8.2"]
+
 [dependency-groups]
 dev = [
     "commitizen>=4.1.0",
@@ -48,8 +51,11 @@ build-backend = "hatchling.build"
 source = "vcs"
 
 [tool.hatch.build.targets.wheel]
-only-include = ["src"]
+only-include = ["src", "licenses"]
 sources = ["src"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "licenses"]
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
