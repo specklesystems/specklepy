@@ -2,7 +2,7 @@
 dynamic = ["version"]
 # version = "3.0.0a1"
 name = "specklepy"
-description = "The Python SDK for Speckle 2.0"
+description = "The Python SDK for Speckle"
 readme = "README.md"
 authors = [{ name = "Speckle Systems", email = "devops@speckle.systems" }]
 license = { text = "Apache-2.0" }

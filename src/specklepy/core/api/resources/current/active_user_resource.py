@@ -14,6 +14,7 @@ from specklepy.core.api.models import (
     User,
 )
 from specklepy.core.api.models.current import (
+    LimitedWorkspace,
     PermissionCheckResult,
     ProjectWithPermissions,
     Workspace,
@@ -295,7 +296,7 @@ class ActiveUserResource(ResourceBase):
 
         return response.data.data
 
-    def get_active_workspace(self) -> Optional[Workspace]:
+    def get_active_workspace(self) -> Optional[LimitedWorkspace]:
         """
         This feature is only available on Workspace enabled servers  (server versions
         >=2.23.17) e.g. app.speckle.systems
@@ -310,29 +311,15 @@ class ActiveUserResource(ResourceBase):
                   role
                   slug
                   logo
-                  createdAt
-                  updatedAt
-                  readOnly
                   description
-                  creationState
-                  {
-                    completed
-                  }
-                  permissions {
-                    canCreateProject {
-                      authorized
-                      code
-                      message
-                    }
-                  }
                 }
               }
             }
-            """  # noqa: E501
+            """
         )
 
         response = self.make_request_and_parse_response(
-            DataResponse[Optional[DataResponse[Optional[Workspace]]]],
+            DataResponse[Optional[DataResponse[Optional[LimitedWorkspace]]]],
             QUERY,
         )
 
