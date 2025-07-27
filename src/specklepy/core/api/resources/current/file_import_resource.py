@@ -149,8 +149,6 @@ class FileImportResource(ResourceBase):
 
     def download_file(self, project_id: str, file_id: str, target_file: Path) -> Path:
         """Download a file blob attached to the project, to the target path."""
-        if target_file.exists():
-            raise SpeckleException("The target file already exists")
         if not target_file.parent.exists():
             target_file.parent.mkdir(parents=True)
         url = f"{self.basepath}/api/stream/{project_id}/blob/{file_id}"
