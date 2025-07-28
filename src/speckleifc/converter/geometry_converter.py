@@ -29,7 +29,7 @@ def geometry_to_speckle(
 
     FACE_COUNT = len(material_ids)
 
-    if len(faces) != FACE_COUNT * 3:
+    if len(faces) != FACE_COUNT * 3 or FACE_COUNT == 0:
         # Not really expected, but occasionally some meshes fail to triangulate
         return []
 
