@@ -152,7 +152,9 @@ class FileImportResource(ResourceBase):
         if not target_file.parent.exists():
             target_file.parent.mkdir(parents=True)
         url = f"{self.basepath}/api/stream/{project_id}/blob/{file_id}"
-        with httpx.stream("GET", url) as response:
+        with httpx.stream(
+            "GET", url, headers={"Authorization": f"Bearer {self.account.token}"}
+        ) as response:
             _ = response.raise_for_status()
             with target_file.open("wb") as f:
                 for chunk in response.iter_bytes(chunk_size=8192):

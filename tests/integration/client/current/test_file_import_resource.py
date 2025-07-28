@@ -33,7 +33,7 @@ class TestFileImportResource:
     def project(self, client: SpeckleClient) -> Project:
         return client.project.create(
             ProjectCreateInput(
-                name="test", description=None, visibility=ProjectVisibility.PUBLIC
+                name="test", description=None, visibility=ProjectVisibility.PRIVATE
             )
         )
 
