@@ -241,12 +241,6 @@ class FileImport(GraphQLBaseModel):
     updated_at: datetime
 
 
-class FileImportCollection(GraphQLBaseModel):
-    total_count: int
-    cursor: str | None
-    items: list[FileImport]
-
-
 class FileUploadUrl(GraphQLBaseModel):
     url: str
     file_id: str

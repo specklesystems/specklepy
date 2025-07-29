@@ -10,13 +10,11 @@ from specklepy.core.api.inputs.file_import_inputs import (
     GenerateFileUploadUrlInput,
     StartFileImportInput,
 )
-from specklepy.core.api.models import FileImport, FileImportCollection, FileUploadUrl
+from specklepy.core.api.models import FileImport, FileUploadUrl, ResourceCollection
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
-
-NAME = "project_invite"
 
 
 class UploadFileResponse(GraphQLBaseModel):
@@ -37,8 +35,8 @@ class FileImportResource(ResourceBase):
             account=account,
             basepath=basepath,
             client=client,
-            name=NAME,
             server_version=server_version,
+            name="file-import",
         )
 
     def finish_file_import_job(self, input: FinishFileImportInput) -> bool:
@@ -168,7 +166,7 @@ class FileImportResource(ResourceBase):
         model_id: str,
         limit: int = 25,
         cursor: str | None = None,
-    ) -> FileImportCollection:
+    ) -> ResourceCollection[FileImport]:
         QUERY = gql(
             """
             query ModelFileImportJobs(
@@ -208,7 +206,7 @@ class FileImportResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[FileImportCollection]]],
+            DataResponse[DataResponse[DataResponse[ResourceCollection[FileImport]]]],
             QUERY,
             variables,
         ).data.data.data

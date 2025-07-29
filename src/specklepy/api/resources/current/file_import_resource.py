@@ -8,7 +8,7 @@ from specklepy.core.api.inputs import (
     StartFileImportInput,
 )
 from specklepy.core.api.models import FileImport, FileUploadUrl
-from specklepy.core.api.models.current import FileImportCollection
+from specklepy.core.api.models.current import ResourceCollection
 from specklepy.core.api.resources import FileImportResource as CoreResource
 from specklepy.core.api.resources.current.file_import_resource import UploadFileResponse
 from specklepy.logging import metrics
@@ -80,7 +80,7 @@ class FileImportResource(CoreResource):
         model_id: str,
         limit: int = 25,
         cursor: str | None = None,
-    ) -> FileImportCollection:
+    ) -> ResourceCollection[FileImport]:
         metrics.track(metrics.SDK, self.account, {"name": "File Import Get Model Jobs"})
         return super().get_model_file_import_jobs(
             project_id=project_id, model_id=model_id, limit=limit, cursor=cursor

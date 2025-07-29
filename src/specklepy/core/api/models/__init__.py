@@ -1,7 +1,6 @@
 from specklepy.core.api.models.current import (
     AuthStrategy,
     FileImport,
-    FileImportCollection,
     FileUploadUrl,
     LimitedUser,
     Model,
@@ -53,5 +52,4 @@ __all__ = [
     "ProjectVersionsUpdatedMessage",
     "FileImport",
     "FileUploadUrl",
-    "FileImportCollection",
 ]
