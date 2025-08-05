@@ -2,7 +2,7 @@
 dynamic = ["version"]
 # version = "3.0.0a1"
 name = "specklepy"
-description = "The Python SDK for Speckle 2.0"
+description = "The Python SDK for Speckle"
 readme = "README.md"
 authors = [{ name = "Speckle Systems", email = "devops@speckle.systems" }]
 license = { text = "Apache-2.0" }
@@ -17,6 +17,9 @@ dependencies = [
     "pydantic-settings>=2.7.1",
     "ujson>=5.10.0",
 ]
+
+[project.optional-dependencies]
+speckleifc = ["ifcopenshell>=0.8.2"]
 
 [dependency-groups]
 dev = [
@@ -48,8 +51,11 @@ build-backend = "hatchling.build"
 source = "vcs"
 
 [tool.hatch.build.targets.wheel]
-only-include = ["src"]
+only-include = ["src", "licenses"]
 sources = ["src"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "licenses"]
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"
