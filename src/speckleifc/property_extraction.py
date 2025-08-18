@@ -7,6 +7,9 @@ from ifcopenshell.util.unit import get_full_unit_name, get_project_unit
 # Global cache for project units per IFC file
 _file_project_units_cache: dict[int, dict[str, Any]] = {}
 
+# Cache for unit information by quantity field name per file
+_quantity_field_units_cache: dict[int, dict[str, dict[str, str]]] = {}
+
 
 def extract_properties(element: entity_instance) -> dict[str, object]:
     properties: dict[str, object] = {
@@ -135,13 +138,43 @@ def _get_cached_project_unit(element: entity_instance, unit_type: str):
         return None
 
 
+def _get_cached_field_unit_info(element: entity_instance, qty_entity) -> dict[str, str]:
+    """
+    Get unit info for quantity field with caching by quantity type.
+
+    Args:
+        element: The IFC element to get the project context from
+        qty_entity: The IFC quantity entity
+
+    Returns:
+        Dict containing unit name, or empty dict if unit not found
+    """
+    file_id = id(element.file)
+    quantity_type = qty_entity.is_a()
+
+    # Initialize file cache if needed
+    if file_id not in _quantity_field_units_cache:
+        _quantity_field_units_cache[file_id] = {}
+
+    field_cache = _quantity_field_units_cache[file_id]
+
+    # Check if we already cached this quantity type for this file
+    if quantity_type in field_cache:
+        return field_cache[quantity_type]
+
+    # Not cached - compute unit info and cache it
+    unit_info = _get_unit_info(element, quantity_type)
+    field_cache[quantity_type] = unit_info
+    return unit_info
+
+
 def _format_unit_name(unit_name: str) -> str:
     """
     Convert IFC unit names to user-friendly format.
     """
     if not unit_name:
         return ""
-    
+
     # Convert underscore-separated words to space-separated and title case
     return unit_name.replace("_", " ").title()
 
@@ -231,8 +264,7 @@ def _get_quantities(element: entity_instance) -> dict[str, object]:
                 # Get the IFC quantity entity for unit information
                 qty_entity = quantity_entities.get(qty_name)
                 if qty_entity:
-                    quantity_type = qty_entity.is_a()
-                    unit_info = _get_unit_info(element, quantity_type)
+                    unit_info = _get_cached_field_unit_info(element, qty_entity)
 
                     if unit_info:
                         # Create structured quantity object with units
