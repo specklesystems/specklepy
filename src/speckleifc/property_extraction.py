@@ -1,7 +1,7 @@
 from typing import Any
 
 from ifcopenshell.entity_instance import entity_instance
-from ifcopenshell.util.element import get_type
+from ifcopenshell.util.element import get_psets, get_type
 
 
 def extract_properties(element: entity_instance) -> dict[str, object]:
@@ -9,6 +9,11 @@ def extract_properties(element: entity_instance) -> dict[str, object]:
         "Attributes": _get_attributes(element),
         "Property Sets": _get_ifc_object_properties(element),
     }
+
+    # Add quantities if they exist
+    quantities = _get_quantities(element)
+    if quantities:
+        properties["Quantities"] = quantities
 
     if (ifc_type := get_type(element)) is not None:
         properties["Element Type Property Sets"] = _get_ifc_element_type_properties(
@@ -90,3 +95,17 @@ def _get_properties(properties: entity_instance) -> dict[str, Any]:
         # elif prop.is_a("IfcPropertyTableValue"):
         #     properties[name] = #not sure if we want to support these...
     return result
+
+
+def _get_quantities(element: entity_instance) -> dict[str, object]:
+    """
+    Extract quantity takeoffs (QTOs) from an IFC element using get_psets with qtos_only=True.
+    
+    Args:
+        element: The IFC entity instance to extract quantities from
+        
+    Returns:
+        Dictionary with quantity set names as keys and quantity data as values
+    """
+    quantities = get_psets(element, qtos_only=True)
+    return quantities if quantities else {}
