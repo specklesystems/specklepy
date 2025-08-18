@@ -133,10 +133,6 @@ def get_quantities(element: entity_instance) -> dict[str, object]:
         try:
             # Get the actual IfcElementQuantity entity
             pset_entity = element.file.by_id(pset_data["id"])
-            if not pset_entity or not hasattr(pset_entity, "Quantities"):
-                # Fallback if entity not found or invalid
-                enhanced_quantities[pset_name] = pset_data
-                continue
 
             # Transform quantities to include unit information
             enhanced_pset = {"id": pset_data["id"]}
@@ -151,28 +147,24 @@ def get_quantities(element: entity_instance) -> dict[str, object]:
                     continue
 
                 # Get the IFC quantity entity for unit information
-                qty_entity = quantity_entities.get(qty_name)
-                if qty_entity:
-                    unit_info = _get_cached_field_unit_info(element, qty_entity)
+                qty_entity = quantity_entities[qty_name]
+                unit_info = _get_cached_field_unit_info(element, qty_entity)
 
-                    if unit_info:
-                        # Create structured quantity object with units
-                        enhanced_pset[qty_name] = {
-                            "name": qty_name,
-                            "value": qty_value,
-                            **unit_info,
-                        }
-                    else:
-                        # No unit info available, keep as simple value with name
-                        enhanced_pset[qty_name] = {"name": qty_name, "value": qty_value}
+                if unit_info:
+                    # Create structured quantity object with units
+                    enhanced_pset[qty_name] = {
+                        "name": qty_name,
+                        "value": qty_value,
+                        **unit_info,
+                    }
                 else:
-                    # Quantity entity not found, keep as simple value with name
+                    # No unit info available, keep as simple value with name
                     enhanced_pset[qty_name] = {"name": qty_name, "value": qty_value}
 
             enhanced_quantities[pset_name] = enhanced_pset
 
-        except Exception:
-            # If anything fails for this pset, use original data
+        except (KeyError, AttributeError):
+            # If entity access fails, use original data as fallback
             enhanced_quantities[pset_name] = pset_data
 
     return enhanced_quantities
