@@ -7,7 +7,7 @@ from ifcopenshell.util.unit import get_full_unit_name, get_project_unit
 # Global cache for project units per IFC file
 _file_project_units_cache: dict[int, dict[str, Any]] = {}
 
-# Cache for unit information by quantity field name per file
+# Cache for unit information by field name per file
 _quantity_field_units_cache: dict[int, dict[str, dict[str, str]]] = {}
 
 
@@ -40,10 +40,14 @@ def _get_cached_project_unit(element: entity_instance, unit_type: str):
 
 def _get_cached_field_unit_info(element: entity_instance, qty_entity) -> dict[str, str]:
     """
-    Get unit info for quantity field with caching by quantity type.
+    Get unit info for quantity field with caching by field name.
     """
     file_id = id(element.file)
-    quantity_type = qty_entity.is_a()
+    field_name = qty_entity.Name
+
+    # Handle empty field names with fallback to direct computation
+    if not field_name:
+        return _get_unit_info(element, qty_entity.is_a())
 
     # Initialize file cache if needed
     if file_id not in _quantity_field_units_cache:
@@ -51,13 +55,13 @@ def _get_cached_field_unit_info(element: entity_instance, qty_entity) -> dict[st
 
     field_cache = _quantity_field_units_cache[file_id]
 
-    # Check if we already cached this quantity type for this file
-    if quantity_type in field_cache:
-        return field_cache[quantity_type]
+    # Check if we already cached this field name for this file
+    if field_name in field_cache:
+        return field_cache[field_name]
 
-    # Not cached - compute unit info and cache it
-    unit_info = _get_unit_info(element, quantity_type)
-    field_cache[quantity_type] = unit_info
+    # Not cached - compute unit info and cache it by field name
+    unit_info = _get_unit_info(element, qty_entity.is_a())
+    field_cache[field_name] = unit_info
     return unit_info
 
 
