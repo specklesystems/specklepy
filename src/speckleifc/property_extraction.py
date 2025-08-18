@@ -99,13 +99,7 @@ def _get_properties(properties: entity_instance) -> dict[str, Any]:
 
 def _get_quantities(element: entity_instance) -> dict[str, object]:
     """
-    Extract quantity takeoffs (QTOs) from an IFC element using get_psets with qtos_only=True.
-    
-    Args:
-        element: The IFC entity instance to extract quantities from
-        
-    Returns:
-        Dictionary with quantity set names as keys and quantity data as values
+    Extract quantity takeoffs (QTOs) from an IFC element.
     """
     quantities = get_psets(element, qtos_only=True)
     return quantities if quantities else {}
