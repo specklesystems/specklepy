@@ -2,7 +2,10 @@ from typing import Any
 
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.util.element import get_psets, get_type
-from ifcopenshell.util.unit import get_full_unit_name, get_project_unit, get_unit_symbol
+from ifcopenshell.util.unit import get_full_unit_name, get_project_unit
+
+# Global cache for project units per IFC file
+_file_project_units_cache: dict[int, dict[str, Any]] = {}
 
 
 def extract_properties(element: entity_instance) -> dict[str, object]:
@@ -98,40 +101,49 @@ def _get_properties(properties: entity_instance) -> dict[str, Any]:
     return result
 
 
+def _get_cached_project_unit(element: entity_instance, unit_type: str):
+    """
+    Get project unit with caching per file.
+
+    Args:
+        element: The IFC element to get the project context from
+        unit_type: The unit type (e.g., 'LENGTHUNIT', 'AREAUNIT')
+
+    Returns:
+        Project unit object or None if not found
+    """
+    file_id = id(element.file)  # Use file object ID as cache key
+
+    # Initialize cache for this file if needed
+    if file_id not in _file_project_units_cache:
+        _file_project_units_cache[file_id] = {}
+
+    file_cache = _file_project_units_cache[file_id]
+
+    # Check if we already cached this unit type for this file
+    if unit_type in file_cache:
+        return file_cache[unit_type]
+
+    # Not cached - get project unit and cache it
+    try:
+        project_unit = get_project_unit(element.file, unit_type)
+        file_cache[unit_type] = project_unit
+        return project_unit
+    except Exception:
+        # Cache None for failed lookups to avoid repeated failures
+        file_cache[unit_type] = None
+        return None
+
+
 def _format_unit_name(unit_name: str) -> str:
     """
     Convert IFC unit names to user-friendly format.
-
-    Args:
-        unit_name: The raw IFC unit name (e.g., 'SQUARE_METRE')
-
-    Returns:
-        User-friendly unit name (e.g., 'Square metre')
     """
     if not unit_name:
         return ""
-
+    
     # Convert underscore-separated words to space-separated and title case
-    formatted = unit_name.replace("_", " ").lower()
-
-    # Special cases for better formatting
-    unit_replacements = {
-        "metre": "metre",
-        "meter": "meter",
-        "square metre": "Square metre",
-        "square meter": "Square meter",
-        "cubic metre": "Cubic metre",
-        "cubic meter": "Cubic meter",
-        "kilogram": "Kilogram",
-        "gram": "Gram",
-        "second": "Second",
-        "minute": "Minute",
-        "hour": "Hour",
-        "day": "Day",
-    }
-
-    # Apply replacements or default to title case
-    return unit_replacements.get(formatted, formatted.title())
+    return unit_name.replace("_", " ").title()
 
 
 def _get_unit_info(element: entity_instance, quantity_type: str) -> dict[str, str]:
@@ -144,7 +156,7 @@ def _get_unit_info(element: entity_instance, quantity_type: str) -> dict[str, st
                       (e.g., 'IfcQuantityLength', 'IfcQuantityArea')
 
     Returns:
-        Dict containing unit name and symbol, or empty dict if unit not found
+        Dict containing unit name, or empty dict if unit not found
     """
     try:
         # Map IFC quantity types to unit types
@@ -161,19 +173,18 @@ def _get_unit_info(element: entity_instance, quantity_type: str) -> dict[str, st
         if not unit_type:
             return {}
 
-        # Get the project unit for this unit type
-        project_unit = get_project_unit(element.file, unit_type)
+        # Get the project unit for this unit type (cached)
+        project_unit = _get_cached_project_unit(element, unit_type)
         if not project_unit:
             return {}
 
-        # Get unit name and symbol
+        # Get unit name
         unit_name = get_full_unit_name(project_unit)
-        unit_symbol = get_unit_symbol(project_unit)
 
         # Format the unit name to be user-friendly
         formatted_unit_name = _format_unit_name(unit_name)
 
-        return {"units": formatted_unit_name, "unit_symbol": unit_symbol or ""}
+        return {"units": formatted_unit_name}
     except Exception:
         # If anything fails, return empty dict to maintain robustness
         return {}
