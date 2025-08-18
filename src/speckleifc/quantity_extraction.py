@@ -14,13 +14,6 @@ _quantity_field_units_cache: dict[int, dict[str, dict[str, str]]] = {}
 def _get_cached_project_unit(element: entity_instance, unit_type: str):
     """
     Get project unit with caching per file.
-
-    Args:
-        element: The IFC element to get the project context from
-        unit_type: The unit type (e.g., 'LENGTHUNIT', 'AREAUNIT')
-
-    Returns:
-        Project unit object or None if not found
     """
     file_id = id(element.file)  # Use file object ID as cache key
 
@@ -48,13 +41,6 @@ def _get_cached_project_unit(element: entity_instance, unit_type: str):
 def _get_cached_field_unit_info(element: entity_instance, qty_entity) -> dict[str, str]:
     """
     Get unit info for quantity field with caching by quantity type.
-
-    Args:
-        element: The IFC element to get the project context from
-        qty_entity: The IFC quantity entity
-
-    Returns:
-        Dict containing unit name, or empty dict if unit not found
     """
     file_id = id(element.file)
     quantity_type = qty_entity.is_a()
@@ -89,14 +75,6 @@ def _format_unit_name(unit_name: str) -> str:
 def _get_unit_info(element: entity_instance, quantity_type: str) -> dict[str, str]:
     """
     Get unit information for a given quantity type from the IFC project.
-
-    Args:
-        element: The IFC element to get the project context from
-        quantity_type: The IFC quantity type
-                      (e.g., 'IfcQuantityLength', 'IfcQuantityArea')
-
-    Returns:
-        Dict containing unit name, or empty dict if unit not found
     """
     try:
         # Map IFC quantity types to unit types
