@@ -17,6 +17,11 @@ UNIT_MAPPING = {
 def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
     """Get unit information for a quantity."""
     try:
+        # Early return for count quantities - they don't have units
+        quantity_type = quantity.is_a()
+        if quantity_type == "IfcQuantityCount":
+            return {}
+            
         if quantity.Unit is not None:
             # Quantity has its own unit
             try:
@@ -28,7 +33,6 @@ def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
                 return {"units": str(quantity.Unit)}
         else:
             # Fall back to project unit based on quantity type
-            quantity_type = quantity.is_a()
             unit_type = UNIT_MAPPING.get(quantity_type)
             if not unit_type:
                 return {}
