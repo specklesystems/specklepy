@@ -50,6 +50,26 @@ class InstanceDefinitionProxy(
 
 
 @dataclass(kw_only=True)
+class LevelProxy(
+    Base,
+    speckle_type="Objects.Other.LevelProxy",
+    detachable={"objects"},
+):
+    """
+    used to store building storey to object relationships in root collections
+
+    Args:
+        objects (list): the list of application ids of objects in this building storey
+        value (DataObject): the building storey data object with all properties
+        applicationId (str): the GUID of the building storey
+    """
+
+    objects: List[str]
+    value: Base
+    applicationId: str
+
+
+@dataclass(kw_only=True)
 class RenderMaterialProxy(
     Base,
     speckle_type="Objects.Other.RenderMaterialProxy",
