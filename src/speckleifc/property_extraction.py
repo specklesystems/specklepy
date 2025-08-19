@@ -10,6 +10,10 @@ def extract_properties(element: entity_instance) -> dict[str, object]:
         "Property Sets": _get_ifc_object_properties(element),
     }
 
+    # Add building storey information if element is contained in a storey
+    if storey_name := _get_containing_storey(element):
+        properties["Building Storey"] = storey_name
+
     if (ifc_type := get_type(element)) is not None:
         properties["Element Type Property Sets"] = _get_ifc_element_type_properties(
             ifc_type,
@@ -90,3 +94,38 @@ def _get_properties(properties: entity_instance) -> dict[str, Any]:
         # elif prop.is_a("IfcPropertyTableValue"):
         #     properties[name] = #not sure if we want to support these...
     return result
+
+
+def _get_containing_storey(element: entity_instance) -> str | None:
+    """
+    Find the containing IfcBuildingStorey for an element by traversing up
+    the spatial hierarchy. Returns the storey name if found, None otherwise.
+    """
+    # Check if element has spatial containment relationships
+    containment_rels = getattr(element, "ContainedInStructure", None)
+    if not containment_rels:
+        return None
+
+    # Traverse the spatial containment relationships
+    for rel in containment_rels:
+        if not rel.is_a("IfcRelContainedInSpatialStructure"):
+            continue
+
+        relating_structure = getattr(rel, "RelatingStructure", None)
+        if not relating_structure:
+            continue
+
+        # Check if this structure is a building storey
+        if relating_structure.is_a("IfcBuildingStorey"):
+            return (
+                relating_structure.Name
+                or relating_structure.LongName
+                or relating_structure.GlobalId
+            )
+
+        # If not, recursively check the parent structure
+        parent_storey = _get_containing_storey(relating_structure)
+        if parent_storey:
+            return parent_storey
+
+    return None
