@@ -4,66 +4,6 @@ from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.util.element import get_psets
 from ifcopenshell.util.unit import get_full_unit_name, get_project_unit
 
-# Global cache for project units per IFC file
-_file_project_units_cache: dict[int, dict[str, Any]] = {}
-
-# Cache for unit information by field name per file
-_quantity_field_units_cache: dict[int, dict[str, dict[str, str]]] = {}
-
-
-def _get_cached_project_unit(element: entity_instance, unit_type: str):
-    """
-    Get project unit with caching per file.
-    """
-    file_id = id(element.file)  # Use file object ID as cache key
-
-    # Initialize cache for this file if needed
-    if file_id not in _file_project_units_cache:
-        _file_project_units_cache[file_id] = {}
-
-    file_cache = _file_project_units_cache[file_id]
-
-    # Check if we already cached this unit type for this file
-    if unit_type in file_cache:
-        return file_cache[unit_type]
-
-    # Not cached - get project unit and cache it
-    try:
-        project_unit = get_project_unit(element.file, unit_type)
-        file_cache[unit_type] = project_unit
-        return project_unit
-    except Exception:
-        # Cache None for failed lookups to avoid repeated failures
-        file_cache[unit_type] = None
-        return None
-
-
-def _get_cached_field_unit_info(element: entity_instance, qty_entity) -> dict[str, str]:
-    """
-    Get unit info for quantity field with caching by field name.
-    """
-    file_id = id(element.file)
-    field_name = qty_entity.Name
-
-    # Handle empty field names with fallback to direct computation
-    if not field_name:
-        return _get_unit_info(element, qty_entity.is_a())
-
-    # Initialize file cache if needed
-    if file_id not in _quantity_field_units_cache:
-        _quantity_field_units_cache[file_id] = {}
-
-    field_cache = _quantity_field_units_cache[file_id]
-
-    # Check if we already cached this field name for this file
-    if field_name in field_cache:
-        return field_cache[field_name]
-
-    # Not cached - compute unit info and cache it by field name
-    unit_info = _get_unit_info(element, qty_entity.is_a())
-    field_cache[field_name] = unit_info
-    return unit_info
-
 
 def _format_unit_name(unit_name: str) -> str:
     """
@@ -95,8 +35,8 @@ def _get_unit_info(element: entity_instance, quantity_type: str) -> dict[str, st
         if not unit_type:
             return {}
 
-        # Get the project unit for this unit type (cached)
-        project_unit = _get_cached_project_unit(element, unit_type)
+        # Get the project unit for this unit type (with built-in caching)
+        project_unit = get_project_unit(element.file, unit_type, use_cache=True)
         if not project_unit:
             return {}
 
@@ -117,7 +57,7 @@ def get_quantities(element: entity_instance) -> dict[str, object]:
     Extract quantity takeoffs (QTOs) from an IFC element with unit information.
     """
     # Get basic quantities using existing utility
-    quantities = get_psets(element, qtos_only=True)
+    quantities = get_psets(element, qtos_only=True, should_inherit=False)
     if not quantities:
         return {}
 
@@ -148,7 +88,7 @@ def get_quantities(element: entity_instance) -> dict[str, object]:
 
                 # Get the IFC quantity entity for unit information
                 qty_entity = quantity_entities[qty_name]
-                unit_info = _get_cached_field_unit_info(element, qty_entity)
+                unit_info = _get_unit_info(element, qty_entity.is_a())
 
                 if unit_info:
                     # Create structured quantity object with units

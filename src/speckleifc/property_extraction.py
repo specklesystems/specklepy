@@ -3,7 +3,7 @@ from typing import Any
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.util.element import get_type
 
-from speckleifc.quantity_extraction import get_quantities
+from speckleifc.qtos_only import get_quantities
 
 
 def extract_properties(element: entity_instance) -> dict[str, object]:
