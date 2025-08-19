@@ -3,12 +3,12 @@ from typing import Any
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.util.unit import get_full_unit_name, get_project_unit
 
-# Module-level constants for performance
+# Module-level constants for units
 UNIT_MAPPING = {
     "IfcQuantityLength": "LENGTHUNIT",
     "IfcQuantityArea": "AREAUNIT", 
     "IfcQuantityVolume": "VOLUMEUNIT",
-    "IfcQuantityCount": None,  # Count quantities typically have no units
+    "IfcQuantityCount": None,  # Count quantities have no units
     "IfcQuantityWeight": "MASSUNIT",
     "IfcQuantityTime": "TIMEUNIT"
 }
@@ -26,7 +26,6 @@ def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
             # Quantity has its own unit
             try:
                 unit_name = get_full_unit_name(quantity.Unit)
-                # Inline format logic for performance
                 formatted_unit_name = unit_name.replace("_", " ").title() if unit_name else ""
                 return {"units": formatted_unit_name}
             except:
@@ -37,18 +36,18 @@ def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
             if not unit_type:
                 return {}
                 
-            # Get the project unit for this unit type (with built-in caching)
+            # Get the project unit for this unit type
             project_unit = get_project_unit(element.file, unit_type, use_cache=True)
             if not project_unit:
                 return {}
                 
-            # Get unit name and format inline for performance
+            # Get unit name and format
             unit_name = get_full_unit_name(project_unit)
             formatted_unit_name = unit_name.replace("_", " ").title() if unit_name else ""
             
             return {"units": formatted_unit_name}
     except Exception:
-        # If anything fails, return empty dict to maintain robustness
+        # If anything fails, return empty dict
         return {}
 
 
