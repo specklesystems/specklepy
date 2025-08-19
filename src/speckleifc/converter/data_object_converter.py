@@ -11,13 +11,20 @@ def data_object_to_speckle(
     display_value: list[Base],
     step_element: entity_instance,
     children: list[Base],
+    current_storey: str | None = None,
 ) -> DataObject:
     guid = cast(str, step_element.GlobalId)
     name = cast(str, step_element.Name or guid)
 
+    properties = extract_properties(step_element)
+
+    # Add building storey information if available and not a building storey itself
+    if current_storey and not step_element.is_a("IfcBuildingStorey"):
+        properties["Building Storey"] = current_storey
+
     data_object = DataObject(
         applicationId=guid,
-        properties=extract_properties(step_element),
+        properties=properties,
         name=name or guid,
         displayValue=display_value,
     )

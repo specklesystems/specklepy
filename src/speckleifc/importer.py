@@ -26,8 +26,16 @@ class ImportJob:
     )
     geometries_count: int = 0
     geometries_used: int = 0
+    _current_storey: str | None = field(default=None, init=False)
 
     def convert_element(self, step_element: entity_instance) -> Base:
+        # Track current storey context
+        previous_storey = self._current_storey
+        if step_element.is_a("IfcBuildingStorey"):
+            self._current_storey = (
+                step_element.Name or step_element.LongName or step_element.GlobalId
+            )
+
         children = self._convert_children(step_element)
         display_value = self.cached_display_values.get(step_element.id(), [])
 
@@ -35,11 +43,19 @@ class ImportJob:
             self.geometries_used += 1
 
         if step_element.is_a("IfcProject"):
-            return project_to_speckle(step_element, children)
+            result = project_to_speckle(step_element, children)
         elif step_element.is_a("IfcSpatialStructureElement"):
-            return spatial_element_to_speckle(display_value, step_element, children)
+            result = spatial_element_to_speckle(
+                display_value, step_element, children, self._current_storey
+            )
         else:
-            return data_object_to_speckle(display_value, step_element, children)
+            result = data_object_to_speckle(
+                display_value, step_element, children, self._current_storey
+            )
+
+        # Restore previous storey context
+        self._current_storey = previous_storey
+        return result
 
     def _convert_children(self, step_element: entity_instance) -> list[Base]:
         return [
