@@ -3,6 +3,16 @@ from typing import Any
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.util.unit import get_full_unit_name, get_project_unit
 
+# Module-level constants for performance
+UNIT_MAPPING = {
+    "IfcQuantityLength": "LENGTHUNIT",
+    "IfcQuantityArea": "AREAUNIT", 
+    "IfcQuantityVolume": "VOLUMEUNIT",
+    "IfcQuantityCount": None,  # Count quantities typically have no units
+    "IfcQuantityWeight": "MASSUNIT",
+    "IfcQuantityTime": "TIMEUNIT"
+}
+
 
 def _format_unit_name(unit_name: str) -> str:
     """
@@ -28,17 +38,8 @@ def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
                 return {"units": str(quantity.Unit)}
         else:
             # Fall back to project unit based on quantity type
-            unit_mapping = {
-                "IfcQuantityLength": "LENGTHUNIT",
-                "IfcQuantityArea": "AREAUNIT", 
-                "IfcQuantityVolume": "VOLUMEUNIT",
-                "IfcQuantityCount": None,  # Count quantities typically have no units
-                "IfcQuantityWeight": "MASSUNIT",
-                "IfcQuantityTime": "TIMEUNIT"
-            }
-            
             quantity_type = quantity.is_a()
-            unit_type = unit_mapping.get(quantity_type)
+            unit_type = UNIT_MAPPING.get(quantity_type)
             if not unit_type:
                 return {}
                 
