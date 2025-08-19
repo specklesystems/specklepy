@@ -14,25 +14,15 @@ UNIT_MAPPING = {
 }
 
 
-def _format_unit_name(unit_name: str) -> str:
-    """
-    Convert IFC unit names to user-friendly format.
-    """
-    if not unit_name:
-        return ""
-
-    # Convert underscore-separated words to space-separated and title case
-    return unit_name.replace("_", " ").title()
-
-
 def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
     """Get unit information for a quantity."""
     try:
-        if hasattr(quantity, 'Unit') and quantity.Unit:
+        if quantity.Unit is not None:
             # Quantity has its own unit
             try:
                 unit_name = get_full_unit_name(quantity.Unit)
-                formatted_unit_name = _format_unit_name(unit_name)
+                # Inline format logic for performance
+                formatted_unit_name = unit_name.replace("_", " ").title() if unit_name else ""
                 return {"units": formatted_unit_name}
             except:
                 return {"units": str(quantity.Unit)}
@@ -48,11 +38,9 @@ def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
             if not project_unit:
                 return {}
                 
-            # Get unit name
+            # Get unit name and format inline for performance
             unit_name = get_full_unit_name(project_unit)
-            
-            # Format the unit name to be user-friendly
-            formatted_unit_name = _format_unit_name(unit_name)
+            formatted_unit_name = unit_name.replace("_", " ").title() if unit_name else ""
             
             return {"units": formatted_unit_name}
     except Exception:
@@ -65,7 +53,9 @@ def _get_quantities(quantities: list[entity_instance], element: entity_instance)
     results = {}
     for quantity in quantities or []:
         quantity_name = quantity.Name
-        if quantity.is_a("IfcPhysicalSimpleQuantity"):
+        quantity_type = quantity.is_a()  # Cache the type check
+        
+        if quantity_type == "IfcPhysicalSimpleQuantity":
             # Get the quantity value (3rd attribute for simple quantities)
             value = getattr(quantity, quantity.attribute_name(3))
             unit_info = _get_unit_info(element, quantity)
@@ -81,7 +71,7 @@ def _get_quantities(quantities: list[entity_instance], element: entity_instance)
                 # No unit info available, keep as simple value with name
                 results[quantity_name] = {"name": quantity_name, "value": value}
             
-        elif quantity.is_a("IfcPhysicalComplexQuantity"):
+        elif quantity_type == "IfcPhysicalComplexQuantity":
             # Handle complex quantities
             data = {k: v for k, v in quantity.get_info().items() if v is not None and k != "Name"}
             data["properties"] = _get_quantities(quantity.HasQuantities, element)
@@ -96,8 +86,8 @@ def get_quantities(element: entity_instance) -> dict[str, object]:
     """
     qtos = {}
     
-    # Handle elements with IsDefinedBy relationship
-    if hasattr(element, "IsDefinedBy") and element.IsDefinedBy:
+    # Handle elements with IsDefinedBy relationship  
+    if element.IsDefinedBy:
         for relationship in element.IsDefinedBy:
             if relationship.is_a("IfcRelDefinesByProperties"):
                 definition = relationship.RelatingPropertyDefinition
