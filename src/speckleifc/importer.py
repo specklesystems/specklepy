@@ -48,12 +48,15 @@ class ImportJob:
         if display_value is not None:
             self.geometries_used += 1
 
+        # Extract current storey name from DataObject if available
+        current_storey_name = self._current_storey_data_object.name if self._current_storey_data_object else None
+        
         if step_element.is_a("IfcProject"):
             result = project_to_speckle(step_element, children)
         elif step_element.is_a("IfcSpatialStructureElement"):
-            result = spatial_element_to_speckle(display_value, step_element, children)
+            result = spatial_element_to_speckle(display_value, step_element, children, current_storey_name)
         else:
-            result = data_object_to_speckle(display_value, step_element, children)
+            result = data_object_to_speckle(display_value, step_element, children, current_storey_name)
             # Associate non-spatial elements with current storey for level proxies
             if self._current_storey_data_object is not None and result.applicationId:
                 self._level_proxy_manager.add_element_level_mapping(
