@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 # following imports seem to be unnecessary, but they need to stay
 # to not break the scripts using these functions as non-core
 from specklepy.core.api.credentials import (  # noqa: F401
@@ -14,7 +12,7 @@ from specklepy.core.api.credentials import get_local_accounts as core_get_local_
 from specklepy.logging import metrics
 
 
-def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
+def get_local_accounts(base_path: str | None = None) -> list[Account]:
     """Gets all the accounts present in this environment
 
     Arguments:
@@ -38,7 +36,7 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
     return accounts
 
 
-def get_default_account(base_path: Optional[str] = None) -> Optional[Account]:
+def get_default_account(base_path: str | None = None) -> Account | None:
     """
     Gets this environment's default account if any. If there is no default,
     the first found will be returned and set as default.
@@ -61,7 +59,7 @@ def get_default_account(base_path: Optional[str] = None) -> Optional[Account]:
     return default
 
 
-def get_account_from_token(token: str, server_url: str = None) -> Account:
+def get_account_from_token(token: str, server_url: str | None = None) -> Account:
     """Gets the local account for the token if it exists
     Arguments:
         token {str} -- the api token
