@@ -1,4 +1,5 @@
 from specklepy.api.resources.current.active_user_resource import ActiveUserResource
+from specklepy.api.resources.current.file_import_resource import FileImportResource
 from specklepy.api.resources.current.model_resource import ModelResource
 from specklepy.api.resources.current.other_user_resource import OtherUserResource
 from specklepy.api.resources.current.project_invite_resource import (
@@ -11,6 +12,7 @@ from specklepy.api.resources.current.version_resource import VersionResource
 from specklepy.api.resources.current.workspace_resource import WorkspaceResource
 
 __all__ = [
+    "FileImportResource",
     "ActiveUserResource",
     "ModelResource",
     "OtherUserResource",
