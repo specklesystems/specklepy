@@ -22,8 +22,8 @@ def extract_properties(element: entity_instance) -> dict[str, object]:
         "Property Sets": psets,
     }
 
-    # if qtos:
-    #     properties["Quantities"] = qtos
+    if qtos:
+        properties["Quantities"] = qtos
 
     if (ifc_type := get_type(element)) is not None:
         properties["Element Type Property Sets"] = _get_ifc_element_type_properties(
@@ -53,7 +53,7 @@ def _get_ifc_element_type_properties(element: entity_instance) -> dict[str, obje
 def _get_ifc_object_properties(
     element: entity_instance,
 ) -> Tuple[dict[str, object], dict[str, object]]:
-    properties: dict[str, object] = {}
+    psets: dict[str, object] = {}
     qtos: dict[str, object] = {}
 
     for rel in getattr(element, "IsDefinedBy", []):
@@ -69,7 +69,7 @@ def _get_ifc_object_properties(
             properties = _get_properties(definition.HasProperties)
 
             if properties:
-                properties[set_name] = properties
+                psets[set_name] = properties
 
         elif definition.is_a("IfcElementQuantity"):
             try:
@@ -80,7 +80,7 @@ def _get_ifc_object_properties(
                 # If entity access fails, skip this quantity set
                 continue
 
-    return (properties, qtos)
+    return (psets, qtos)
 
 
 def _get_properties(properties: entity_instance) -> dict[str, Any]:
