@@ -7,7 +7,7 @@ from os import getenv
 from speckleifc.ifc_geometry_processing import open_ifc
 from speckleifc.importer import ImportJob
 from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.credentials import Account
+from specklepy.core.api.credentials import Account, get_accounts_for_server
 from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.core.api.models.current import Version
 from specklepy.core.api.operations import send
@@ -99,7 +99,25 @@ def open_and_convert_file(
     return version
 
 
+def manual_import() -> None:
+    PROJECT_ID = "f3a42bdf24"
+    MODEL_ID = "0e23cfdea3"
+    SERVER_URL = "app.speckle.systems"
+    # FILE_PATH = "C:\\Users\\Jedd\\Desktop\\openshell\\60mins.ifc"
+    # FILE_PATH = "C:\\Users\\Jedd\\Desktop\\openshell\\hillside_house_meters.ifc"
+    # FILE_PATH = "C:\\Users\\Jedd\\Desktop\\openshell\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
+    # FILE_PATH = (
+    #     "C:\\Test Files\\ifc\\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
+    # )
+    FILE_PATH = "C:\\Test Files\\ifc\\Building-Architecture.ifc"  # noqa: E501
+
+    account = get_accounts_for_server(SERVER_URL)[0]
+
+    open_and_convert_file(FILE_PATH, PROJECT_ID, None, MODEL_ID, account)
+
+
 if __name__ == "__main__":
     start = time.time()
-    cmd_line_import()
+    # cmd_line_import()
+    manual_import()
     print(f"Total time (including cleanup): {(time.time() - start) * 1000}ms")

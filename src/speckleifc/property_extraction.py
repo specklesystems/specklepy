@@ -1,21 +1,29 @@
-from typing import Any
+from typing import Any, Tuple
 
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.util.element import get_type
+from ifcopenshell.util.unit import get_full_unit_name, get_project_unit
 
-from speckleifc.qtos_only import get_quantities
+UNIT_MAPPING = {
+    "IfcQuantityLength": "LENGTHUNIT",
+    "IfcQuantityArea": "AREAUNIT",
+    "IfcQuantityVolume": "VOLUMEUNIT",
+    "IfcQuantityCount": None,  # Count quantities have no units
+    "IfcQuantityWeight": "MASSUNIT",
+    "IfcQuantityTime": "TIMEUNIT",
+}
 
 
 def extract_properties(element: entity_instance) -> dict[str, object]:
+    (psets, qtos) = _get_ifc_object_properties(element)
+
     properties: dict[str, object] = {
         "Attributes": _get_attributes(element),
-        "Property Sets": _get_ifc_object_properties(element),
+        "Property Sets": psets,
     }
 
-    # Add quantities if they exist
-    quantities = get_quantities(element)
-    if quantities:
-        properties["Quantities"] = quantities
+    # if qtos:
+    #     properties["Quantities"] = qtos
 
     if (ifc_type := get_type(element)) is not None:
         properties["Element Type Property Sets"] = _get_ifc_element_type_properties(
@@ -42,8 +50,11 @@ def _get_ifc_element_type_properties(element: entity_instance) -> dict[str, obje
     return result
 
 
-def _get_ifc_object_properties(element: entity_instance) -> dict[str, object]:
-    result: dict[str, object] = {}
+def _get_ifc_object_properties(
+    element: entity_instance,
+) -> Tuple[dict[str, object], dict[str, object]]:
+    properties: dict[str, object] = {}
+    qtos: dict[str, object] = {}
 
     for rel in getattr(element, "IsDefinedBy", []):
         if not rel.is_a("IfcRelDefinesByProperties"):
@@ -53,16 +64,23 @@ def _get_ifc_object_properties(element: entity_instance) -> dict[str, object]:
         if not definition:
             continue
 
-        if not definition.is_a("IfcPropertySet"):
-            continue
+        if definition.is_a("IfcPropertySet"):
+            set_name = definition.Name
+            properties = _get_properties(definition.HasProperties)
 
-        set_name = definition.Name
-        properties = _get_properties(definition.HasProperties)
+            if properties:
+                properties[set_name] = properties
 
-        if properties:
-            result[set_name] = properties
+        elif definition.is_a("IfcElementQuantity"):
+            try:
+                quantities_data = _get_quantities(definition.Quantities, element)
+                quantities_data["id"] = definition.id()
+                qtos[definition.Name] = quantities_data
+            except (KeyError, AttributeError):
+                # If entity access fails, skip this quantity set
+                continue
 
-    return result
+    return (properties, qtos)
 
 
 def _get_properties(properties: entity_instance) -> dict[str, Any]:
@@ -97,3 +115,72 @@ def _get_properties(properties: entity_instance) -> dict[str, Any]:
         # elif prop.is_a("IfcPropertyTableValue"):
         #     properties[name] = #not sure if we want to support these...
     return result
+
+
+def _get_quantities(
+    quantities: list[entity_instance], element: entity_instance
+) -> dict[str, Any]:
+    """Extract quantity values from IfcPhysicalQuantity entities."""
+    results: dict[str, Any] = {}
+    for quantity in quantities or []:
+        quantity_name = quantity.Name
+        quantity_type = quantity.is_a()  # Cache the type check
+
+        if quantity_type == "IfcPhysicalSimpleQuantity":
+            # Get the quantity value (3rd attribute for simple quantities)
+            value = getattr(quantity, quantity.attribute_name(3))
+            unit_info = _get_unit_info(element, quantity)
+
+            if unit_info:
+                # Create structured quantity object with units
+                results[quantity_name] = {
+                    "name": quantity_name,
+                    "value": value,
+                    **unit_info,
+                }
+            else:
+                # No unit info available, keep as simple value with name
+                results[quantity_name] = {"name": quantity_name, "value": value}
+
+        elif quantity_type == "IfcPhysicalComplexQuantity":
+            # Handle complex quantities
+            data = {
+                k: v
+                for k, v in quantity.get_info().items()
+                if v is not None and k != "Name"
+            }
+            data["properties"] = _get_quantities(quantity.HasQuantities, element)
+            del data["HasQuantities"]
+            results[quantity_name] = data
+    return results
+
+
+def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
+    """Get unit information for a quantity."""
+    # Early return for count quantities - they don't have units
+    quantity_type = quantity.is_a()
+    if quantity_type == "IfcQuantityCount":
+        return {}
+
+    if quantity.Unit is not None:
+        # Quantity has its own unit
+        unit_name = get_full_unit_name(quantity.Unit)
+        formatted_unit_name = unit_name.replace("_", " ").title() if unit_name else ""
+        return {"units": formatted_unit_name}
+
+    else:
+        # Fall back to project unit based on quantity type
+        unit_type = UNIT_MAPPING.get(quantity_type)
+        if not unit_type:
+            return {}
+
+        # Get the project unit for this unit type
+        project_unit = get_project_unit(element.file, unit_type, use_cache=True)
+        if not project_unit:
+            return {}
+
+        # Get unit name and format
+        unit_name = get_full_unit_name(project_unit)
+        formatted_unit_name = unit_name.replace("_", " ").title() if unit_name else ""
+
+        return {"units": formatted_unit_name}
