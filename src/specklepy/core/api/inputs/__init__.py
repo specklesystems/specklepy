@@ -1,3 +1,10 @@
+from specklepy.core.api.inputs.file_import_inputs import (
+    FileImportErrorInput,
+    FileImportSuccessInput,
+    FinishFileImportInput,
+    GenerateFileUploadUrlInput,
+    StartFileImportInput,
+)
 from specklepy.core.api.inputs.model_inputs import (
     CreateModelInput,
     DeleteModelInput,
@@ -22,6 +29,11 @@ from specklepy.core.api.inputs.version_inputs import (
 )
 
 __all__ = [
+    "FileImportErrorInput",
+    "FileImportSuccessInput",
+    "FinishFileImportInput",
+    "StartFileImportInput",
+    "GenerateFileUploadUrlInput",
     "CreateModelInput",
     "DeleteModelInput",
     "UpdateModelInput",
