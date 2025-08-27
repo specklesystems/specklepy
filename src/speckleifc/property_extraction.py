@@ -158,16 +158,19 @@ def _get_quantities(
     return results
 
 
-def _get_unit_info(element: entity_instance, quantity) -> dict[str, str]:
+def _get_unit_info(
+    element: entity_instance, quantity: entity_instance
+) -> dict[str, str]:
     """Get unit information for a quantity."""
     # Early return for count quantities - they don't have units
     quantity_type = quantity.is_a()
     if quantity_type == "IfcQuantityCount":
         return {}
 
-    if quantity.Unit is not None:
+    unit = getattr(element, "Unit", None)
+    if unit:
         # Quantity has its own unit
-        unit_name = get_full_unit_name(quantity.Unit)
+        unit_name = get_full_unit_name(unit)
         formatted_unit_name = unit_name.replace("_", " ").title() if unit_name else ""
         return {"units": formatted_unit_name}
 
