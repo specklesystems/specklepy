@@ -48,7 +48,7 @@ jobs:
         run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
 
       - uses: codecov/codecov-action@v5
-        if: matrix.python-version == 3.13
+        if: matrix.python-version == 3.12
         with:
           fail_ci_if_error: true # optional (default = false)
           files: ./reports/test-results.xml # optional

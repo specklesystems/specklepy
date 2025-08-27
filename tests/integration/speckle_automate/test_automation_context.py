@@ -15,11 +15,11 @@ from speckle_automate import (
 )
 from speckle_automate.fixtures import (
     create_test_automation_run_data,
-    crypto_random_string,
 )
 from speckle_automate.schema import AutomateBase
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.models.current import Model, Version
+from specklepy.core.helpers import crypto_random_string
 from specklepy.objects.base import Base
 
 
