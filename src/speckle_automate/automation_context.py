@@ -268,7 +268,7 @@ class AutomationContext:
         print(f"Reporting run status with content: {params}")
         self.speckle_client.httpclient.execute(query, params)
 
-    def store_file_result(self, file_path: Union[Path, str]) -> None:
+    def store_file_result(self, file_path: Union[Path, str]) -> str:
         """Save a file attached to the project of this automation."""
         path_obj = (
             Path(file_path).resolve() if isinstance(file_path, str) else file_path
@@ -309,6 +309,8 @@ class AutomationContext:
         self._automation_result.blobs.extend(
             [upload_result.blob_id for upload_result in upload_response.upload_results]
         )
+
+        return upload_response.upload_results[0].blob_id
 
     def mark_run_failed(self, status_message: str) -> None:
         """Mark the current run a failure."""
