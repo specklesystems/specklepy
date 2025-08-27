@@ -64,21 +64,25 @@ def _get_ifc_object_properties(
         if not definition:
             continue
 
-        if definition.is_a("IfcPropertySet"):
-            set_name = definition.Name
-            properties = _get_properties(definition.HasProperties)
+        try:
+            if definition.is_a("IfcPropertySet"):
+                set_name = definition.Name
+                properties = _get_properties(definition.HasProperties)
 
-            if properties:
-                psets[set_name] = properties
+                if properties:
+                    psets[set_name] = properties
 
-        elif definition.is_a("IfcElementQuantity"):
-            try:
+            elif definition.is_a("IfcElementQuantity"):
                 quantities_data = _get_quantities(definition.Quantities, element)
+                if not quantities_data:
+                    continue
                 quantities_data["id"] = definition.id()
                 qtos[definition.Name] = quantities_data
-            except (KeyError, AttributeError):
-                # If entity access fails, skip this quantity set
-                continue
+
+        except (KeyError, AttributeError):
+            # If entity access fails, skip this quantity set
+            print(f"Skipping {definition}")
+            continue
 
     return (psets, qtos)
 
@@ -124,9 +128,8 @@ def _get_quantities(
     results: dict[str, Any] = {}
     for quantity in quantities or []:
         quantity_name = quantity.Name
-        quantity_type = quantity.is_a()  # Cache the type check
 
-        if quantity_type == "IfcPhysicalSimpleQuantity":
+        if quantity.is_a("IfcPhysicalSimpleQuantity"):
             # Get the quantity value (3rd attribute for simple quantities)
             value = getattr(quantity, quantity.attribute_name(3))
             unit_info = _get_unit_info(element, quantity)
@@ -142,7 +145,7 @@ def _get_quantities(
                 # No unit info available, keep as simple value with name
                 results[quantity_name] = {"name": quantity_name, "value": value}
 
-        elif quantity_type == "IfcPhysicalComplexQuantity":
+        elif quantity.is_a("IfcPhysicalComplexQuantity"):
             # Handle complex quantities
             data = {
                 k: v
