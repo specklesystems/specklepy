@@ -12,10 +12,11 @@ from speckleifc.converter.project_converter import project_to_speckle
 from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
-from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
 from speckleifc.level_proxy_manager import LevelProxyManager
+from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects import Base
+from specklepy.objects.data_objects import DataObject
 
 
 @dataclass
@@ -30,7 +31,7 @@ class ImportJob:
     )
     geometries_count: int = 0
     geometries_used: int = 0
-    _current_storey_data_object: "DataObject | None" = field(default=None, init=False)
+    _current_storey_data_object: DataObject | None = field(default=None, init=False)
 
     def convert_element(self, step_element: entity_instance) -> Base:
         # Track current storey context and store for level proxies
