@@ -136,5 +136,6 @@ class ImportJob:
             self._render_material_manager.render_material_proxies.values()
         )
         tree["levelProxies"] = list(self._level_proxy_manager.level_proxies.values())
+        tree["version"] = 3
 
         return tree
