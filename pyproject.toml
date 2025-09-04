@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-speckleifc = ["ifcopenshell>=0.8.2"]
+speckleifc = ["ifcopenshell>=0.8.3.post2"]
 
 [dependency-groups]
 dev = [
