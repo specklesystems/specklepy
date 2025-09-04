@@ -6,7 +6,6 @@ import platform
 import queue
 import sys
 import threading
-from typing import Optional
 
 import requests
 
@@ -56,7 +55,7 @@ def enable():
     TRACK = True
 
 
-def set_host_app(host_app: str, host_app_version: Optional[str] = None):
+def set_host_app(host_app: str, host_app_version: str | None = None):
     global HOST_APP, HOST_APP_VERSION
     HOST_APP = host_app
     HOST_APP_VERSION = host_app_version or HOST_APP_VERSION
@@ -64,8 +63,8 @@ def set_host_app(host_app: str, host_app_version: Optional[str] = None):
 
 def track(
     action: str,
-    account: Optional[Account] = None,
-    custom_props: Optional[dict] = None,
+    account: Account | None = None,
+    custom_props: dict | None = None,
 ):
     if not TRACK:
         return
@@ -93,7 +92,7 @@ def track(
         LOG.debug(f"Error queueing metrics request: {str(ex)}")
 
 
-def initialise_tracker(account: Optional[Account] = None):
+def initialise_tracker(account: Account | None = None):
     global METRICS_TRACKER
     if not METRICS_TRACKER:
         METRICS_TRACKER = MetricsTracker()
