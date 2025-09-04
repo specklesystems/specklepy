@@ -12,9 +12,11 @@ from speckleifc.converter.project_converter import project_to_speckle
 from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
+from speckleifc.level_proxy_manager import LevelProxyManager
 from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects import Base
+from specklepy.objects.data_objects import DataObject
 
 
 @dataclass
@@ -24,22 +26,55 @@ class ImportJob:
     _render_material_manager: RenderMaterialProxyManager = field(
         default_factory=lambda: RenderMaterialProxyManager()
     )
+    _level_proxy_manager: LevelProxyManager = field(
+        default_factory=lambda: LevelProxyManager()
+    )
     geometries_count: int = 0
     geometries_used: int = 0
+    _current_storey_data_object: DataObject | None = field(default=None, init=False)
 
     def convert_element(self, step_element: entity_instance) -> Base:
+        # Track current storey context and store for level proxies
+        previous_storey_data_object = self._current_storey_data_object
+        if step_element.is_a("IfcBuildingStorey"):
+            # Convert the building storey to a DataObject for the level proxy
+            storey_display_value = self.cached_display_values.get(step_element.id(), [])
+            self._current_storey_data_object = data_object_to_speckle(
+                storey_display_value, step_element, []
+            )
+
         children = self._convert_children(step_element)
         display_value = self.cached_display_values.get(step_element.id(), [])
 
         if display_value is not None:
             self.geometries_used += 1
 
+        # Extract current storey name from DataObject if available
+        current_storey_name = (
+            self._current_storey_data_object.name
+            if self._current_storey_data_object
+            else None
+        )
+
         if step_element.is_a("IfcProject"):
-            return project_to_speckle(step_element, children)
+            result = project_to_speckle(step_element, children)
         elif step_element.is_a("IfcSpatialStructureElement"):
-            return spatial_element_to_speckle(display_value, step_element, children)
+            result = spatial_element_to_speckle(
+                display_value, step_element, children, current_storey_name
+            )
         else:
-            return data_object_to_speckle(display_value, step_element, children)
+            result = data_object_to_speckle(
+                display_value, step_element, children, current_storey_name
+            )
+            # Associate non-spatial elements with current storey for level proxies
+            if self._current_storey_data_object is not None and result.applicationId:
+                self._level_proxy_manager.add_element_level_mapping(
+                    self._current_storey_data_object, result.applicationId
+                )
+
+        # Restore previous storey context
+        self._current_storey_data_object = previous_storey_data_object
+        return result
 
     def _convert_children(self, step_element: entity_instance) -> list[Base]:
         return [
@@ -100,6 +135,7 @@ class ImportJob:
         tree["renderMaterialProxies"] = list(
             self._render_material_manager.render_material_proxies.values()
         )
+        tree["levelProxies"] = list(self._level_proxy_manager.level_proxies.values())
         tree["version"] = 3
 
         return tree
