@@ -100,5 +100,6 @@ class ImportJob:
         tree["renderMaterialProxies"] = list(
             self._render_material_manager.render_material_proxies.values()
         )
+        tree["version"] = 3
 
         return tree

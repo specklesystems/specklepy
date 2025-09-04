@@ -1,8 +1,5 @@
 """Some useful helpers for working with automation data."""
 
-import secrets
-import string
-
 import pytest
 from gql import gql
 from pydantic import Field
@@ -138,12 +135,6 @@ def test_automation_run_data(
     test_automation_environment: TestAutomationEnvironment,
 ) -> AutomationRunData:
     return create_test_automation_run_data(speckle_client, test_automation_environment)
-
-
-def crypto_random_string(length: int) -> str:
-    """Generate a semi crypto random string of a given length."""
-    alphabet = string.ascii_letters + string.digits
-    return "".join(secrets.choice(alphabet) for _ in range(length)).lower()
 
 
 __all__ = [
