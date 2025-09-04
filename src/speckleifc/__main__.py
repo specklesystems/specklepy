@@ -6,6 +6,7 @@ from os import getenv
 
 from speckleifc.main import open_and_convert_file
 from specklepy.core.api.client import SpeckleClient
+from specklepy.logging import metrics
 
 
 def cmd_line_import() -> None:
@@ -27,12 +28,18 @@ def cmd_line_import() -> None:
     assert TOKEN is not None
     SERVER_URL = getenv("SPECKLE_SERVER_URL") or "http://127.0.0.1:3000"
 
+    metrics.set_host_app(
+        "ifc",
+    )
+
     try:
         client = SpeckleClient(SERVER_URL, use_ssl=not SERVER_URL.startswith("http://"))
         client.authenticate_with_token(TOKEN)
+        project = client.project.get(args.project_id)
+
         version = open_and_convert_file(
             args.file_path,
-            args.project_id,
+            project,
             args.version_message,
             args.model_id,
             client,
