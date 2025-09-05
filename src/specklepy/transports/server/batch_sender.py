@@ -123,8 +123,8 @@ class BatchSender:
         upload_data = "[" + ",".join(new_objects) + "]"
         upload_data_gzip = gzip.compress(upload_data.encode())
         LOG.info(
-            "Uploading batch of {batch_size} objects {new_object_count}: ",
-            "(size: {upload_size}, compressed size: {upload_data_size})",
+            "Uploading batch of {batch_size} objects {new_object_count}: "
+            + "(size: {upload_size}, compressed size: {upload_data_size})",
             {
                 "batch_size": len(batch),
                 "new_object_count": len(new_objects),
