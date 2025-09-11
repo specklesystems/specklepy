@@ -155,6 +155,21 @@ class SpeckleClient:
         self.account = account
         self._set_up_client()
 
+        try:
+            _ = self.active_user.get()
+        except SpeckleException as ex:
+            if isinstance(ex.exception, TransportServerError):
+                if ex.exception.code == 403:
+                    warn(
+                        SpeckleWarning(
+                            "Possibly invalid token - could not authenticate "
+                            f"Speckle Client for server {self.url}"
+                        ),
+                        stacklevel=2,
+                    )
+                else:
+                    raise ex
+
     def _set_up_client(self) -> None:
         headers = {
             "Authorization": f"Bearer {self.account.token}",
@@ -173,21 +188,6 @@ class SpeckleClient:
         self.wsclient = Client(transport=wstransport)
 
         self._init_resources()
-
-        try:
-            _ = self.active_user.get()
-        except SpeckleException as ex:
-            if isinstance(ex.exception, TransportServerError):
-                if ex.exception.code == 403:
-                    warn(
-                        SpeckleWarning(
-                            "Possibly invalid token - could not authenticate "
-                            f"Speckle Client for server {self.url}"
-                        ),
-                        stacklevel=2,
-                    )
-                else:
-                    raise ex
 
     def execute_query(self, query: str) -> Dict:
         return self.httpclient.execute(query)
