@@ -102,14 +102,8 @@ def initialise_tracker(account: Account | None = None):
 
     if account.userInfo:
         METRICS_TRACKER.set_last_user(account.userInfo.email)
-
-    if account.serverInfo:
-        # canonical url is public url...
-        # url may be a private network url...
-        # Prefer using the canonical url if we have it
-        METRICS_TRACKER.set_last_server(
-            account.serverInfo.canonical_url or account.serverInfo.url
-        )
+    if account.serverInfo.url:
+        METRICS_TRACKER.set_last_server(account.serverInfo.url)
 
 
 class Singleton(type):
