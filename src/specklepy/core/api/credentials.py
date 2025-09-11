@@ -37,7 +37,7 @@ class Account(BaseModel):
         return self.__repr__()
 
     @classmethod
-    def from_token(cls, token: str, server_url: str = None):
+    def from_token(cls, token: str, server_url: str | None = None):
         acct = cls(token=token)
         acct.serverInfo.url = server_url
         return acct
