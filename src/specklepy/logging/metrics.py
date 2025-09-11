@@ -102,7 +102,7 @@ def initialise_tracker(account: Account | None = None):
 
     if account.userInfo:
         METRICS_TRACKER.set_last_user(account.userInfo.email)
-    if account.serverInfo.url:
+    if account.serverInfo:
         METRICS_TRACKER.set_last_server(account.serverInfo.url)
 
 
