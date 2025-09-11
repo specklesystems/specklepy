@@ -100,10 +100,8 @@ def initialise_tracker(account: Account | None = None):
     if not account:
         return
 
-    if account.userInfo:
-        METRICS_TRACKER.set_last_user(account.userInfo.email)
-    if account.serverInfo:
-        METRICS_TRACKER.set_last_server(account.serverInfo.url)
+    METRICS_TRACKER.set_last_user(account.userInfo.email)
+    METRICS_TRACKER.set_last_server(account.serverInfo.url)
 
 
 class Singleton(type):
