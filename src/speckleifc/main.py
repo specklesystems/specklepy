@@ -26,6 +26,7 @@ def open_and_convert_file(
     remote_transport = ServerTransport(project.id, account=account)
 
     ifc_file = open_ifc(file_path)  # pyright: ignore[reportUnknownVariableType]
+
     import_job = ImportJob(ifc_file)  # pyright: ignore[reportUnknownArgumentType]
     data = import_job.convert()
 

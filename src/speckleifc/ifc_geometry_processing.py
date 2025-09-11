@@ -1,6 +1,6 @@
 import multiprocessing
 
-from ifcopenshell import file, ifcopenshell_wrapper, open, sqlite
+from ifcopenshell import SchemaError, file, ifcopenshell_wrapper, open, sqlite
 from ifcopenshell.geom import iterator, settings
 
 from specklepy.logging.exceptions import SpeckleException
@@ -33,7 +33,14 @@ def _create_iterator_settings() -> settings:
 
 
 def open_ifc(file_path: str) -> file:
-    ifc_file = open(file_path)
+    try:
+        ifc_file = open(file_path)
+    except SchemaError:
+        raise
+    except FileNotFoundError:
+        raise
+    except Exception as ex:
+        raise SpeckleException("File could not be opened as an IFC file") from ex
 
     if isinstance(ifc_file, file):
         return ifc_file

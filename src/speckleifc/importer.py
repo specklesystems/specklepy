@@ -34,6 +34,16 @@ class ImportJob:
     _current_storey_data_object: DataObject | None = field(default=None, init=False)
 
     def convert_element(self, step_element: entity_instance) -> Base:
+        try:
+            return self._convert_element(step_element)
+        except SpeckleException:
+            raise
+        except Exception as ex:
+            raise SpeckleException(
+                f"Failed to convert {step_element.is_a()} #{step_element.id()}"
+            ) from ex
+
+    def _convert_element(self, step_element: entity_instance) -> Base:
         # Track current storey context and store for level proxies
         previous_storey_data_object = self._current_storey_data_object
         if step_element.is_a("IfcBuildingStorey"):
@@ -110,18 +120,22 @@ class ImportJob:
     def pre_process_geometry(self) -> None:
         iterator = create_geometry_iterator(self.ifc_file)
         if not iterator.initialize():
-            raise SpeckleException(
-                "geometry iterator failed to initialize for the given file"
-            )
+            raise SpeckleException("Failed to find any geometry in file")
         self.geometries_count = 0
         while True:
             shape = cast(TriangulationElement, iterator.get())
             self.geometries_count += 1
             id = cast(int, shape.id)
 
-            display_value = geometry_to_speckle(shape, self._render_material_manager)
-            self.cached_display_values[id] = display_value
-
+            try:
+                display_value = geometry_to_speckle(
+                    shape, self._render_material_manager
+                )
+                self.cached_display_values[id] = display_value
+            except Exception as ex:
+                raise SpeckleException(
+                    f"Failed to convert geometry with id: {id}"
+                ) from ex
             if not iterator.next():
                 break
 
