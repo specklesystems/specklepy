@@ -142,6 +142,7 @@ class SpeckleClient:
             self.account.userInfo.avatar = userData.avatar
 
         self.account.serverInfo = self.server.get()
+        self.account.serverInfo.url = self.url
 
     def authenticate_with_account(self, account: Account) -> None:
         """Authenticate the client using an Account object
