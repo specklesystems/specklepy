@@ -63,6 +63,7 @@ class ServerInfo(GraphQLBaseModel):
     name: str | None = None
     company: str | None = None
     url: str | None = None
+    """Url used to communicate with the server"""
     admin_contact: str | None = None
     description: str | None = None
     canonical_url: str | None = None

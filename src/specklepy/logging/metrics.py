@@ -97,10 +97,19 @@ def initialise_tracker(account: Account | None = None):
     if not METRICS_TRACKER:
         METRICS_TRACKER = MetricsTracker()
 
-    if account and account.userInfo.email:
+    if not account:
+        return
+
+    if account.userInfo:
         METRICS_TRACKER.set_last_user(account.userInfo.email)
-    if account and account.serverInfo.url:
-        METRICS_TRACKER.set_last_server(account.serverInfo.url)
+
+    if account.serverInfo:
+        # canonical url is public url... 
+        # url may be a private network url...
+        # Prefer using the canonical url if we have it
+        METRICS_TRACKER.set_last_server(
+            account.serverInfo.canonical_url or account.serverInfo.url
+        )
 
 
 class Singleton(type):
@@ -132,12 +141,12 @@ class MetricsTracker(metaclass=Singleton):
             if node and user:
                 self.last_user = f"@{self.hash(f'{node}-{user}')}"
 
-    def set_last_user(self, email: str):
+    def set_last_user(self, email: str | None):
         if not email:
             return
         self.last_user = f"@{self.hash(email)}"
 
-    def set_last_server(self, server: str):
+    def set_last_server(self, server: str | None):
         if not server:
             return
         self.last_server = self.hash(server)
