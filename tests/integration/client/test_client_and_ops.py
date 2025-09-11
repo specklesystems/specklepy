@@ -6,7 +6,7 @@ from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.core.helpers import speckle_path_provider
-from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.transports.server import ServerTransport
 
@@ -17,7 +17,7 @@ def test_invalid_authentication():
     speckle_path_provider.override_application_data_path(gettempdir())
     client = SpeckleClient()
 
-    with pytest.warns(SpeckleWarning):
+    with pytest.raises(SpeckleException):
         client.authenticate_with_token("fake token")
 
     # remove path override
