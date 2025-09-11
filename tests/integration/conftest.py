@@ -8,11 +8,12 @@ import requests
 
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api import operations
+from specklepy.core.api.credentials import Account, UserInfo
 from specklepy.core.api.enums import ProjectVisibility
 from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.core.api.inputs.version_inputs import CreateVersionInput
 from specklepy.core.api.models import Version
-from specklepy.core.api.models.current import Project
+from specklepy.core.api.models.current import Project, ServerInfo
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Point
@@ -89,13 +90,15 @@ def second_user_dict(host: str) -> Dict[str, str]:
 def create_client(host: str, token: str) -> SpeckleClient:
     client = SpeckleClient(host=host, use_ssl=False)
     client.authenticate_with_token(token)
-    user = client.active_user.get()
-    assert user
-    client.account.userInfo.id = user.id
-    client.account.userInfo.email = user.email
-    client.account.userInfo.name = user.name
-    client.account.userInfo.company = user.company
-    client.account.userInfo.avatar = user.avatar
+
+    assert isinstance(client.account, Account)
+    assert isinstance(client.account.userInfo, UserInfo)
+    assert client.account.userInfo.id
+    assert client.account.userInfo.name
+    assert isinstance(client.account.serverInfo, ServerInfo)
+    assert client.account.serverInfo.url
+    assert client.account.serverInfo.name
+
     return client
 
 
