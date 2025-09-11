@@ -131,6 +131,18 @@ class SpeckleClient:
         self.account = Account.from_token(token, self.url)
         self._set_up_client()
 
+        userData = self.active_user.get()
+
+        # None if the token lacked the profile:read scope or if it was None
+        if userData:
+            self.account.userInfo.id = userData.id
+            self.account.userInfo.email = userData.email
+            self.account.userInfo.name = userData.name
+            self.account.userInfo.company = userData.company
+            self.account.userInfo.avatar = userData.avatar
+
+        self.account.serverInfo = self.server.get()
+
     def authenticate_with_account(self, account: Account) -> None:
         """Authenticate the client using an Account object
         The account is saved in the client object and a synchronous GraphQL
