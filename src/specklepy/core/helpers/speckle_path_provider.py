@@ -88,6 +88,8 @@ def user_application_data_path() -> Path:
                     message="Cannot get appdata path from environment."
                 )
             return Path(app_data_path)
+        if sys.platform.startswith("darwin"):  # macOS
+            return _ensure_folder_exists(Path.home() / "Library", "Application Support")
         else:
             # try getting the standard XDG_DATA_HOME value
             # as that is used as an override
@@ -98,7 +100,7 @@ def user_application_data_path() -> Path:
                 return _ensure_folder_exists(Path.home(), ".config")
     except Exception as ex:
         raise SpeckleException(
-            message="Failed to initialize user application data path.", exception=ex
+            message="Failed to initialize user application data path."
         ) from ex
 
 
