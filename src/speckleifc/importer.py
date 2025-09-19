@@ -54,9 +54,10 @@ class ImportJob:
             )
 
         children = self._convert_children(step_element)
-        display_value = self.cached_display_values.get(step_element.id(), [])
+        id = step_element.id()
+        display_value = self.cached_display_values.get(id, [])
 
-        if display_value is not None:
+        if display_value:
             self.geometries_used += 1
 
         # Extract current storey name from DataObject if available
