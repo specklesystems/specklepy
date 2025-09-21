@@ -128,6 +128,7 @@ class ImportJob:
             self.geometries_count += 1
             id = cast(int, shape.id)
 
+            print(f"converted {id}")
             try:
                 display_value = geometry_to_speckle(
                     shape, self._render_material_manager

@@ -13,7 +13,8 @@ def _create_iterator_settings() -> settings:
     # no need to weld verts
     ifc_settings.set("weld-vertices", False)
     # Speckle meshes are all in world coords
-    ifc_settings.set("use-world-coords", True)
+    ifc_settings.set("use-world-coords", False)
+    ifc_settings.set("permissive-shape-reuse", False)
     # Tiny performance improvement,
     ifc_settings.set("no-wire-intersection-check", True)
     # Rendermaterials inherit the material names instead of type + unique id
