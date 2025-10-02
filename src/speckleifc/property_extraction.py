@@ -1,3 +1,4 @@
+import math
 from typing import Any, Tuple
 
 from ifcopenshell.entity_instance import entity_instance
@@ -133,6 +134,10 @@ def _get_quantities(
             # Get the quantity value (3rd attribute for simple quantities)
             value = getattr(quantity, quantity.attribute_name(3))
             unit_info = _get_unit_info(element, quantity)
+
+            # Server does not consider `NaN` valid json
+            if math.isnan(value):
+                value = None
 
             if unit_info:
                 # Create structured quantity object with units
