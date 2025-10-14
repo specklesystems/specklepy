@@ -42,7 +42,7 @@ jobs:
         run: uv run pre-commit run --all-files
 
       - name: Run Speckle Server
-        run: docker compose up --target docker-compose-internal.yml --detach --wait
+        run: docker compose up --file docker-compose-internal.yml --detach --wait
 
       - name: Run tests
         run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
@@ -58,7 +58,7 @@ jobs:
         run: uv cache prune --ci
 
   test-public: # Run integration tests against the public server image
-    name: test
+    name: test public
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -87,7 +87,7 @@ jobs:
         run: uv run pre-commit run --all-files
 
       - name: Run Speckle Server
-        run: docker compose up --target docker-compose.yml --detach --wait
+        run: docker compose up --file docker-compose.yml --detach --wait
 
       - name: Run tests
         run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
