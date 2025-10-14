@@ -41,8 +41,15 @@ jobs:
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
       - name: Run Speckle Server
-        run: docker compose up --detach --wait
+        run: docker compose --file docker-compose-internal.yml up --detach --wait
 
       - name: Run tests
         run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
@@ -53,6 +60,46 @@ jobs:
           fail_ci_if_error: true # optional (default = false)
           files: ./reports/test-results.xml # optional
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Minimize uv cache
+        run: uv cache prune --ci
+
+  test-public: # Run integration tests against the public server image
+    name: test public
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Run Speckle Server
+        run: docker compose --file docker-compose.yml up --detach --wait
+
+      - name: Run tests
+        run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
 
       - name: Minimize uv cache
         run: uv cache prune --ci
