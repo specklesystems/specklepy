@@ -33,14 +33,6 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
 
-      - uses: actions/cache@v3
-        with:
-          path: ~/.cache/pre-commit/
-          key: ${{ hashFiles('.pre-commit-config.yaml') }}
-
-      - name: Run pre-commit
-        run: uv run pre-commit run --all-files
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -88,12 +80,13 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: actions/cache@v3
         with:
-          registry: "ghcr.io"
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+          path: ~/.cache/pre-commit/
+          key: ${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files
 
       - name: Run Speckle Server
         run: docker compose --file docker-compose.yml up --detach --wait
