@@ -52,7 +52,7 @@ services:
       start_period: 10s
 
   speckle-server:
-    image: speckle/speckle-server:latest
+    image: ghcr.io/specklesystems/speckle-server:latest
     restart: always
     healthcheck:
       test:
