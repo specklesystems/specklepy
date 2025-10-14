@@ -9,8 +9,8 @@ on:
       - "main"
 
 jobs:
-  test:
-    name: test
+  test-internal: # Run integration tests against the internal server image
+    name: Test (internal)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -57,7 +57,7 @@ jobs:
         run: uv cache prune --ci
 
   test-public: # Run integration tests against the public server image
-    name: test public
+    name: Test (public)
     runs-on: ubuntu-latest
     strategy:
       matrix:
