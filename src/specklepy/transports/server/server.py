@@ -2,12 +2,11 @@ import json
 from typing import Dict, List, Optional
 from warnings import warn
 
-import requests
-
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import Account, get_account_from_token
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
+from specklepy.transports.server.retry_policy import setup_session
 
 from .batch_sender import BatchSender
 
@@ -92,23 +91,13 @@ class ServerTransport(AbstractTransport):
         self.stream_id = stream_id
         self.url = url
 
-        self.session = requests.Session()
-
-        self.session.headers.update(
-            {
-                "Accept": "text/plain",
-            }
-        )
-
         if self.account is not None:
             self._batch_sender = BatchSender(
                 self.url, self.stream_id, self.account.token, max_batch_size_mb=1
             )
-            self.session.headers.update(
-                {
-                    "Authorization": f"Bearer {self.account.token}",
-                }
-            )
+        self.session = setup_session(
+            self.account.token if self.account is not None else None
+        )
 
     @property
     def name(self) -> str:
