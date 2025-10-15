@@ -7,6 +7,7 @@ import threading
 import requests
 
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.server.retry_policy import setup_session
 
 LOG = logging.getLogger(__name__)
 
@@ -72,10 +73,7 @@ class BatchSender:
 
     def _sending_thread_main(self):
         try:
-            session = requests.Session()
-            session.headers.update(
-                {"Authorization": f"Bearer {self._token}", "Accept": "text/plain"}
-            )
+            session = setup_session(self._token)
 
             while True:
                 batch = self._batches.get()
