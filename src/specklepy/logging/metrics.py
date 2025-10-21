@@ -6,9 +6,9 @@ import platform
 import queue
 import sys
 import threading
+from typing import Any
 
 import requests
-from uv import Any
 
 from specklepy.core.api.credentials import Account
 
