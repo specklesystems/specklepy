@@ -56,6 +56,6 @@ def open_and_convert_file(
     custom_properties = {"ui": "dui3", "actionSource": "import"}
     if project.workspace_id:
         custom_properties["workspace_id"] = project.workspace_id
-    metrics.track(metrics.SEND, account, custom_properties)
+    metrics.track(metrics.SEND, account, custom_properties, send_sync=True)
 
     return version
