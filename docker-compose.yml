@@ -96,7 +96,6 @@ services:
       SESSION_SECRET: "TODO:ReplaceWithLongString"
 
       STRATEGY_LOCAL: "true"
-      DEBUG: "speckle:*"
 
       POSTGRES_URL: "postgres"
       POSTGRES_USER: "speckle"
