@@ -19,6 +19,8 @@
 
 # Repo structure
 
+README EDIT FOR CI TEST
+
 ## Usage
 
 Send and receive data from a Speckle Server with `operations`, interact with the Speckle API with the `SpeckleClient`, create and extend your own custom Speckle Objects with `Base`, and more!
