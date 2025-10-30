@@ -12,8 +12,10 @@ def _create_iterator_settings() -> settings:
     ifc_settings.set("triangulation-type", ifcopenshell_wrapper.TRIANGLE_MESH)
     # no need to weld verts
     ifc_settings.set("weld-vertices", False)
-    # Speckle meshes are all in world coords
-    ifc_settings.set("use-world-coords", True)
+    #
+    ifc_settings.set("use-world-coords", False)
+    ifc_settings.set("permissive-shape-reuse", True)
+
     # Tiny performance improvement,
     ifc_settings.set("no-wire-intersection-check", True)
     # Rendermaterials inherit the material names instead of type + unique id

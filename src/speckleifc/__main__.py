@@ -6,6 +6,7 @@ from os import getenv
 
 from speckleifc.main import open_and_convert_file
 from specklepy.core.api.client import SpeckleClient
+from specklepy.core.api.credentials import get_accounts_for_server
 from specklepy.logging import metrics
 
 
@@ -55,7 +56,27 @@ def cmd_line_import() -> None:
             json.dump({"success": False, "error": str(e)}, f)
 
 
+def manual_import() -> None:
+    PROJECT_ID = "f3a42bdf24"
+    MODEL_ID = "0e23cfdea3"
+    SERVER_URL = "app.speckle.systems"
+    FILE_PATH = "C:\\Test Files\\Non-conf\\objects_R25_IFC4x3.ifc"  # noqa: E501
+
+    metrics.set_host_app(
+        "ifc",
+    )
+
+    account = get_accounts_for_server(SERVER_URL)[0]
+    client = SpeckleClient(SERVER_URL, use_ssl=not SERVER_URL.startswith("http://"))
+    client.authenticate_with_account(account)
+    project = client.project.get(PROJECT_ID)
+
+    open_and_convert_file(FILE_PATH, project, None, MODEL_ID, client)
+
+
 if __name__ == "__main__":
     start = time.time()
-    cmd_line_import()
+    # cmd_line_import()
+
+    manual_import()
     print(f"Total time (including cleanup): {(time.time() - start) * 1000}ms")

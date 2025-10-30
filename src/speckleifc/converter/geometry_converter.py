@@ -9,7 +9,9 @@ from ifcopenshell.ifcopenshell_wrapper import (
     style,
 )
 
-from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
+from speckleifc.proxy_managers.render_material_proxy_manager import (
+    RenderMaterialProxyManager,
+)
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Mesh
 from specklepy.objects.other import RenderMaterial
@@ -110,7 +112,7 @@ def _pre_alloc_mesh_lists(
     since we're expecting potential hundreds of thousands of verts in a single model
     This is very much in the hot path, so worth the extra bit of convoluted logic
     """
-    appId = cast(str, shape.guid)
+    appId = cast(str, shape.geometry.id)  # todo: might need to use geometry id instead
 
     material_face_counts = defaultdict(int)
     for mat_id in material_ids:
