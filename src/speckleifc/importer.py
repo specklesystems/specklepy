@@ -183,7 +183,8 @@ class ImportJob:
                     units="m",
                     definitionId=definition_id,
                     transform=transposed,
-                    maxDepth=1,
+                    maxDepth=0,
+                    applicationId=f"{shape.guid}:{definition_id}",
                 ),
             )
             for definition_id in definition_ids

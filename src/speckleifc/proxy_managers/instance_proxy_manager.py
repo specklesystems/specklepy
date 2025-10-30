@@ -26,7 +26,7 @@ class InstanceProxyManager:
                 raise ValueError("geometry with no applicationId cannot be proxied ")
             definition_id = f"DEFINITION:{m.applicationId}"
             result.append(definition_id)
-            self._add_definition(definition_id, [m.applicationId], 1)
+            self._add_definition(definition_id, [m.applicationId], 0)
             self._instance_geometry[m.applicationId] = m
 
         return result
