@@ -4,7 +4,7 @@ from typing import List, cast
 
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.geom import file
-from ifcopenshell.ifcopenshell_wrapper import TriangulationElement
+from ifcopenshell.ifcopenshell_wrapper import Triangulation, TriangulationElement
 
 from speckleifc.converter.data_object_converter import data_object_to_speckle
 from speckleifc.converter.geometry_converter import geometry_to_speckle
@@ -149,8 +149,9 @@ class ImportJob:
                 break
 
     def _create_display_value(self, shape: TriangulationElement) -> List[Base]:
+        geometry = cast(Triangulation, shape.geometry)
         display_value_geometry = geometry_to_speckle(
-            shape, self._render_material_manager
+            geometry, self._render_material_manager
         )
 
         definition_ids = self._instance_proxy_manager.add_display_value_definitions(
