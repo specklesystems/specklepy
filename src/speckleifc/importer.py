@@ -209,7 +209,7 @@ class ImportJob:
         )
         tree.elements.append(
             Collection(
-                name="revitInstancedObjects",
+                name="instancedGeometry",
                 elements=list(self._instance_proxy_manager.instance_geometry.values()),
             )
         )
