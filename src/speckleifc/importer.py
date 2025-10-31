@@ -1,10 +1,10 @@
 import time
 from dataclasses import dataclass, field
-from typing import cast
+from typing import List, cast
 
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.geom import file
-from ifcopenshell.ifcopenshell_wrapper import TriangulationElement
+from ifcopenshell.ifcopenshell_wrapper import Triangulation, TriangulationElement
 
 from speckleifc.converter.data_object_converter import data_object_to_speckle
 from speckleifc.converter.geometry_converter import geometry_to_speckle
@@ -12,26 +12,37 @@ from speckleifc.converter.project_converter import project_to_speckle
 from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
-from speckleifc.level_proxy_manager import LevelProxyManager
-from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
+from speckleifc.proxy_managers.instance_proxy_manager import InstanceProxyManager
+from speckleifc.proxy_managers.level_proxy_manager import LevelProxyManager
+from speckleifc.proxy_managers.render_material_proxy_manager import (
+    RenderMaterialProxyManager,
+)
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects import Base
 from specklepy.objects.data_objects import DataObject
+from specklepy.objects.models.collections.collection import Collection
+from specklepy.objects.proxies import InstanceProxy
 
 
 @dataclass
 class ImportJob:
     ifc_file: file
-    cached_display_values: dict[int, list[Base]] = field(default_factory=dict)  # noqa: F821
+
     _render_material_manager: RenderMaterialProxyManager = field(
         default_factory=lambda: RenderMaterialProxyManager()
     )
     _level_proxy_manager: LevelProxyManager = field(
         default_factory=lambda: LevelProxyManager()
     )
+    _instance_proxy_manager: InstanceProxyManager = field(
+        default_factory=lambda: InstanceProxyManager()
+    )
     geometries_count: int = 0
     geometries_used: int = 0
     _current_storey_data_object: DataObject | None = field(default=None, init=False)
+
+    _display_value_cache: dict[int, list[Base]] = field(default_factory=dict)
+    """Maps an instance step ID to a list of instances"""
 
     def convert_element(self, step_element: entity_instance) -> Base:
         try:
@@ -48,14 +59,14 @@ class ImportJob:
         previous_storey_data_object = self._current_storey_data_object
         if step_element.is_a("IfcBuildingStorey"):
             # Convert the building storey to a DataObject for the level proxy
-            storey_display_value = self.cached_display_values.get(step_element.id(), [])
+            storey_display_value = self._display_value_cache.get(step_element.id(), [])
             self._current_storey_data_object = data_object_to_speckle(
                 storey_display_value, step_element, []
             )
 
         children = self._convert_children(step_element)
         id = step_element.id()
-        display_value = self.cached_display_values.get(id, [])
+        display_value = self._display_value_cache.get(id, [])
 
         if display_value:
             self.geometries_used += 1
@@ -127,18 +138,46 @@ class ImportJob:
             shape = cast(TriangulationElement, iterator.get())
             self.geometries_count += 1
             id = cast(int, shape.id)
-
             try:
-                display_value = geometry_to_speckle(
-                    shape, self._render_material_manager
-                )
-                self.cached_display_values[id] = display_value
+                display_value = self._create_display_value(shape)
+                self._display_value_cache[id] = display_value
             except Exception as ex:
                 raise SpeckleException(
                     f"Failed to convert geometry with id: {id}"
                 ) from ex
             if not iterator.next():
                 break
+
+    def _create_display_value(self, shape: TriangulationElement) -> List[Base]:
+        geometry = cast(Triangulation, shape.geometry)
+        display_value_geometry = geometry_to_speckle(
+            geometry, self._render_material_manager
+        )
+
+        definition_ids = self._instance_proxy_manager.add_display_value_definitions(
+            display_value_geometry
+        )
+        matrix = shape.transformation.matrix
+        transposed = [
+            matrix[0], matrix[4], matrix[8], matrix[12],
+            matrix[1], matrix[5], matrix[9], matrix[13],
+            matrix[2], matrix[6], matrix[10], matrix[14],
+            matrix[3], matrix[7], matrix[11], matrix[15],
+        ]  # fmt: skip
+
+        return [
+            cast(
+                Base,
+                InstanceProxy(
+                    units="m",
+                    definitionId=definition_id,
+                    transform=transposed,
+                    maxDepth=0,
+                    applicationId=f"{shape.guid}:{definition_id}",
+                ),
+            )
+            for definition_id in definition_ids
+        ]
 
     def _convert_project_tree(self) -> Base:
         projects = self.ifc_file.by_type("IfcProject", False)
@@ -147,10 +186,22 @@ class ImportJob:
         project = projects[0]
 
         tree = self.convert_element(project)
+        if not isinstance(tree, Collection):
+            raise TypeError("Expected root object to convert to a Collection")
+
         tree["renderMaterialProxies"] = list(
             self._render_material_manager.render_material_proxies.values()
         )
         tree["levelProxies"] = list(self._level_proxy_manager.level_proxies.values())
+        tree["instanceDefinitionProxies"] = list(
+            self._instance_proxy_manager.instance_definition_proxies.values()
+        )
+        tree.elements.append(
+            Collection(
+                name="definitionGeometry",
+                elements=list(self._instance_proxy_manager.instance_geometry.values()),
+            )
+        )
         tree["version"] = 3
 
         return tree

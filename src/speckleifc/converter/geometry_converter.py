@@ -4,21 +4,21 @@ from typing import cast
 
 from ifcopenshell.ifcopenshell_wrapper import (
     Triangulation,
-    TriangulationElement,
     colour,
     style,
 )
 
-from speckleifc.render_material_proxy_manager import RenderMaterialProxyManager
+from speckleifc.proxy_managers.render_material_proxy_manager import (
+    RenderMaterialProxyManager,
+)
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Mesh
 from specklepy.objects.other import RenderMaterial
 
 
 def geometry_to_speckle(
-    shape: TriangulationElement, render_material_manager: RenderMaterialProxyManager
+    geometry: Triangulation, render_material_manager: RenderMaterialProxyManager
 ) -> list[Base]:
-    geometry = cast(Triangulation, shape.geometry)
     materials = cast(Sequence[style], geometry.materials)
     MESH_COUNT = max(len(materials), 1)
 
@@ -33,7 +33,7 @@ def geometry_to_speckle(
         # Not really expected, but occasionally some meshes fail to triangulate
         return []
 
-    mapped_meshes = _pre_alloc_mesh_lists(shape, material_ids, MESH_COUNT)
+    mapped_meshes = _pre_alloc_mesh_lists(geometry, material_ids, MESH_COUNT)
     for i, mesh in enumerate(mapped_meshes):
         material = _material_to_speckle(materials[i])
         render_material_manager.add_mesh_material_mapping(material, mesh)
@@ -103,14 +103,14 @@ def _color_to_argb(colour: colour) -> int:
 
 
 def _pre_alloc_mesh_lists(
-    shape: TriangulationElement, material_ids: Sequence[int], MESH_COUNT: int
+    geometry: Triangulation, material_ids: Sequence[int], MESH_COUNT: int
 ) -> list[Mesh]:
     """
     This is a performance optimisation to pre-size the lists
     since we're expecting potential hundreds of thousands of verts in a single model
     This is very much in the hot path, so worth the extra bit of convoluted logic
     """
-    appId = cast(str, shape.guid)
+    appId = cast(str, geometry.id)
 
     material_face_counts = defaultdict(int)
     for mat_id in material_ids:

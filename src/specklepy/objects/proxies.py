@@ -33,9 +33,9 @@ class InstanceProxy(
     IHasUnits,
     speckle_type="Speckle.Core.Models.Instances.InstanceProxy",
 ):
-    definition_id: str
+    definitionId: str
     transform: List[float]
-    max_depth: int
+    maxDepth: int
 
 
 @dataclass(kw_only=True)
@@ -45,7 +45,7 @@ class InstanceDefinitionProxy(
     detachable={"objects"},
 ):
     objects: List[str]
-    max_depth: int
+    maxDepth: int
     name: str
 
 
