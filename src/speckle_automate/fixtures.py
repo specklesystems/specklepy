@@ -88,10 +88,8 @@ def create_test_automation_run(
 
     print(result)
 
-    return (
-        result.get("projectMutations")
-        .get("automationMutations")
-        .get("createTestAutomationRun")
+    return TestAutomationRunData.model_validate(
+        result["projectMutations"]["automationMutations"]["createTestAutomationRun"]
     )
 
 
@@ -123,9 +121,9 @@ def create_test_automation_run_data(
         project_id=test_automation_environment.project_id,
         speckle_server_url=test_automation_environment.server_url,
         automation_id=test_automation_environment.automation_id,
-        automation_run_id=test_automation_run_data["automationRunId"],
-        function_run_id=test_automation_run_data["functionRunId"],
-        triggers=test_automation_run_data["triggers"],
+        automation_run_id=test_automation_run_data.automation_run_id,
+        function_run_id=test_automation_run_data.function_run_id,
+        triggers=test_automation_run_data.triggers,
     )
 
 
