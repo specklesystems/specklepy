@@ -315,7 +315,15 @@ class AutomationContext:
     def mark_run_failed(
         self, status_message: str, version_result: dict[str, Any] | None = None
     ) -> None:
-        """Mark the current run a failure."""
+        """
+        Mark the current run a failure.
+
+        Args:
+            status_message: Optional message to be displayed.
+            version_result: Optional data object,
+                that will be attached to the run results.
+                The dictionary should be JSON serializable
+        """
         self._mark_run(AutomationStatus.FAILED, status_message, version_result)
 
     def mark_run_exception(self, status_message: str) -> None:
@@ -325,7 +333,15 @@ class AutomationContext:
     def mark_run_success(
         self, status_message: str | None, version_result: dict[str, Any] | None = None
     ) -> None:
-        """Mark the current run a success with an optional message."""
+        """
+        Mark the current run a success with an optional message.
+
+        Args:
+            status_message: Optional message to be displayed.
+            version_result: Optional data object,
+                that will be attached to the run results.
+                The dictionary should be JSON serializable
+        """
         self._mark_run(AutomationStatus.SUCCEEDED, status_message, version_result)
 
     def _mark_run(
