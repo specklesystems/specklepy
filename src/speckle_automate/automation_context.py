@@ -245,24 +245,24 @@ class AutomationContext:
         """
         )
         if self.run_status in [AutomationStatus.SUCCEEDED, AutomationStatus.FAILED]:
-            object_results = {
-                "version": 2,
+            results_dict = self._automation_result.model_dump(by_alias=True)
+            results = {
+                "version": 3,
                 "values": {
-                    "objectResults": self._automation_result.model_dump(by_alias=True)[
-                        "objectResults"
-                    ],
+                    "objectResults": results_dict["objectResults"],
+                    "versionResult": results_dict["versionResult"],
                     "blobIds": self._automation_result.blobs,
                 },
             }
         else:
-            object_results = None
+            results = None
 
         params = {
             "projectId": self.automation_run_data.project_id,
             "functionRunId": self.automation_run_data.function_run_id,
             "status": self.run_status.value,
             "statusMessage": self._automation_result.status_message,
-            "results": object_results,
+            "results": results,
             "contextView": self._automation_result.result_view,
         }
         print(f"Reporting run status with content: {params}")
@@ -312,25 +312,49 @@ class AutomationContext:
 
         return upload_response.upload_results[0].blob_id
 
-    def mark_run_failed(self, status_message: str) -> None:
-        """Mark the current run a failure."""
-        self._mark_run(AutomationStatus.FAILED, status_message)
+    def mark_run_failed(
+        self, status_message: str, version_result: dict[str, Any] | None = None
+    ) -> None:
+        """
+        Mark the current run a failure.
+
+        Args:
+            status_message: Optional message to be displayed.
+            version_result: Optional data object,
+                that will be attached to the run results.
+                The dictionary should be JSON serializable
+        """
+        self._mark_run(AutomationStatus.FAILED, status_message, version_result)
 
     def mark_run_exception(self, status_message: str) -> None:
         """Mark the current run a failure."""
-        self._mark_run(AutomationStatus.EXCEPTION, status_message)
+        self._mark_run(AutomationStatus.EXCEPTION, status_message, None)
 
-    def mark_run_success(self, status_message: Optional[str]) -> None:
-        """Mark the current run a success with an optional message."""
-        self._mark_run(AutomationStatus.SUCCEEDED, status_message)
+    def mark_run_success(
+        self, status_message: str | None, version_result: dict[str, Any] | None = None
+    ) -> None:
+        """
+        Mark the current run a success with an optional message.
+
+        Args:
+            status_message: Optional message to be displayed.
+            version_result: Optional data object,
+                that will be attached to the run results.
+                The dictionary should be JSON serializable
+        """
+        self._mark_run(AutomationStatus.SUCCEEDED, status_message, version_result)
 
     def _mark_run(
-        self, status: AutomationStatus, status_message: Optional[str]
+        self,
+        status: AutomationStatus,
+        status_message: str | None,
+        version_result: dict[str, Any] | None,
     ) -> None:
         duration = self.elapsed()
         self._automation_result.status_message = status_message
         self._automation_result.run_status = status
         self._automation_result.elapsed = duration
+        self._automation_result.version_result = version_result
 
         msg = f"Automation run {status.value} after {duration:.2f} seconds."
         print("\n".join([msg, status_message]) if status_message else msg)

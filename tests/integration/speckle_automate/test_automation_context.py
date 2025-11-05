@@ -14,10 +14,14 @@ from speckle_automate import (
     run_function,
 )
 from speckle_automate.fixtures import (
+    TestAutomationEnvironment,
     create_test_automation_run_data,
 )
 from speckle_automate.schema import AutomateBase
 from specklepy.api.client import SpeckleClient
+from specklepy.core.api.enums import ProjectVisibility
+from specklepy.core.api.inputs import ProjectCreateInput
+from specklepy.core.api.models import Project
 from specklepy.core.api.models.current import Model, Version
 from specklepy.core.helpers import crypto_random_string
 from specklepy.objects.base import Base
@@ -44,16 +48,31 @@ def test_client(speckle_server_url: str, speckle_token: str) -> SpeckleClient:
 
 
 @pytest.fixture
+def project(test_client: SpeckleClient) -> Project:
+    return test_client.project.create(
+        ProjectCreateInput(
+            name="test", description=None, visibility=ProjectVisibility.PRIVATE
+        )
+    )
+
+
+@pytest.fixture
 def automation_run_data(
-    test_client: SpeckleClient, speckle_server_url: str
+    test_client: SpeckleClient,
+    speckle_server_url: str,
+    speckle_token: str,
+    project: Project,
 ) -> AutomationRunData:
     """TODO: Set up a test automation for integration testing"""
-    project_id = crypto_random_string(10)
     test_automation_id = crypto_random_string(10)
-
-    return create_test_automation_run_data(
-        test_client, speckle_server_url, project_id, test_automation_id
+    environment = TestAutomationEnvironment(
+        token=speckle_token,
+        server_url=speckle_server_url,
+        project_id=project.id,
+        automation_id=test_automation_id,
     )
+
+    return create_test_automation_run_data(test_client, environment)
 
 
 @pytest.fixture
@@ -133,7 +152,7 @@ def automate_function(
             raise ValueError("Cannot operate on objects without their id's.")
         automation_context.attach_error_to_objects(
             "Forbidden speckle_type",
-            version_root_object.id,
+            version_root_object,
             "This project should not contain the type: "
             f"{function_inputs.forbidden_speckle_type}",
         )
@@ -164,7 +183,7 @@ def test_function_run(automation_context: AutomationContext) -> None:
     assert automation_context.run_status == AutomationStatus.FAILED
     status = get_automation_status(
         automation_context.automation_run_data.project_id,
-        automation_context.automation_run_data.model_id,
+        automation_context.automation_run_data.triggers[0].payload.model_id,
         automation_context.speckle_client,
     )
     assert status["status"] == automation_context.run_status
@@ -205,7 +224,7 @@ def test_create_version_in_project_raises_error_for_same_model(
 ) -> None:
     with pytest.raises(ValueError):
         automation_context.create_new_version_in_project(
-            Base(), automation_context.automation_run_data.branch_name
+            Base(), automation_context.automation_run_data.triggers[0].payload.model_id
         )
 
 
@@ -220,8 +239,8 @@ def test_create_version_in_project(
     model, version = automation_context.create_new_version_in_project(
         root_object, "foobar"
     )
-    isinstance(model, Model)
-    isinstance(version, Version)
+    assert isinstance(model, Model)
+    assert isinstance(version, Version)
 
 
 @pytest.mark.skip(
@@ -230,9 +249,11 @@ def test_create_version_in_project(
 def test_set_context_view(automation_context: AutomationContext) -> None:
     automation_context.set_context_view()
 
+    trigger = automation_context.automation_run_data.triggers[0].payload
+
     assert automation_context.context_view is not None
     assert automation_context.context_view.endswith(
-        f"models/{automation_context.automation_run_data.model_id}@{automation_context.automation_run_data.version_id}"
+        f"models/{trigger.model_id}@{trigger.version_id}"
     )
 
     automation_context.report_run_status()
@@ -244,7 +265,7 @@ def test_set_context_view(automation_context: AutomationContext) -> None:
 
     assert automation_context.context_view is not None
     assert automation_context.context_view.endswith(
-        f"models/{automation_context.automation_run_data.model_id}@{automation_context.automation_run_data.version_id},{dummy_context}"
+        f"models/{trigger.model_id}@{trigger.version_id},{dummy_context}"
     )
     automation_context.report_run_status()
 
