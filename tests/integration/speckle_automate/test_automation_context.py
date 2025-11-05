@@ -169,9 +169,9 @@ def automate_function(
         automation_context.mark_run_success("No forbidden types found.")
 
 
-# @pytest.mark.skip(
-#     "currently the function run cannot be integration tested with the server"
-# )
+@pytest.mark.skip(
+    "currently the function run cannot be integration tested with the server"
+)
 def test_function_run(automation_context: AutomationContext) -> None:
     """Run an integration test for the automate function."""
     automation_context = run_function(
