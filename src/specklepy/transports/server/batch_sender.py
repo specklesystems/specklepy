@@ -7,6 +7,7 @@ import threading
 import requests
 
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.transports.server.retry_policy import setup_session
 
 LOG = logging.getLogger(__name__)
 
@@ -72,10 +73,7 @@ class BatchSender:
 
     def _sending_thread_main(self):
         try:
-            session = requests.Session()
-            session.headers.update(
-                {"Authorization": f"Bearer {self._token}", "Accept": "text/plain"}
-            )
+            session = setup_session(self._token)
 
             while True:
                 batch = self._batches.get()
@@ -123,8 +121,8 @@ class BatchSender:
         upload_data = "[" + ",".join(new_objects) + "]"
         upload_data_gzip = gzip.compress(upload_data.encode())
         LOG.info(
-            "Uploading batch of {batch_size} objects {new_object_count}: ",
-            "(size: {upload_size}, compressed size: {upload_data_size})",
+            "Uploading batch of {batch_size} objects {new_object_count}: "
+            + "(size: {upload_size}, compressed size: {upload_data_size})",
             {
                 "batch_size": len(batch),
                 "new_object_count": len(new_objects),

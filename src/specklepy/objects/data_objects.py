@@ -3,7 +3,12 @@ from typing import Dict, List
 
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
-from specklepy.objects.interfaces import IDataObject, IGisObject, IHasUnits
+from specklepy.objects.interfaces import (
+    IBlenderObject,
+    IDataObject,
+    IGisObject,
+    IHasUnits,
+)
 
 
 @dataclass(kw_only=True)
@@ -67,6 +72,27 @@ class DataObject(
 @dataclass(kw_only=True)
 class QgisObject(
     DataObject, IGisObject, IHasUnits, speckle_type="Objects.Data.QgisObject"
+):
+    type: str
+    _type: str = field(repr=False, init=False)
+
+    @property
+    def type(self) -> str:
+        return self._type
+
+    @type.setter
+    def type(self, value: str):
+        if isinstance(value, str):
+            self._type = value
+        else:
+            raise SpeckleException(
+                f"'type' value should be string, received {type(value)}"
+            )
+
+
+@dataclass(kw_only=True)
+class BlenderObject(
+    DataObject, IBlenderObject, IHasUnits, speckle_type="Objects.Data.BlenderObject"
 ):
     type: str
     _type: str = field(repr=False, init=False)

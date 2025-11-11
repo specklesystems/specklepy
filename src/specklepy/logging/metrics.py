@@ -6,9 +6,11 @@ import platform
 import queue
 import sys
 import threading
-from typing import Optional
+from typing import Any
 
 import requests
+
+from specklepy.core.api.credentials import Account
 
 """
 Anonymous telemetry to help us understand how to make a better Speckle.
@@ -28,21 +30,6 @@ CONNECTOR = "Connector Action"
 RECEIVE = "Receive"
 SEND = "Send"
 
-# not in use since 2.15
-ACCOUNTS = "Get Local Accounts"
-BRANCH = "Branch Action"
-CLIENT = "Speckle Client"
-COMMIT = "Commit Action"
-DESERIALIZE = "serialization/deserialize"
-INVITE = "Invite Action"
-OTHER_USER = "Other User Action"
-PERMISSION = "Permission Action"
-SERIALIZE = "serialization/serialize"
-SERVER = "Server Action"
-STREAM = "Stream Action"
-STREAM_WRAPPER = "Stream Wrapper"
-USER = "User Action"
-
 
 def disable():
     global TRACK
@@ -54,7 +41,7 @@ def enable():
     TRACK = True
 
 
-def set_host_app(host_app: str, host_app_version: Optional[str] = None):
+def set_host_app(host_app: str, host_app_version: str | None = None):
     global HOST_APP, HOST_APP_VERSION
     HOST_APP = host_app
     HOST_APP_VERSION = host_app_version or HOST_APP_VERSION
@@ -62,44 +49,45 @@ def set_host_app(host_app: str, host_app_version: Optional[str] = None):
 
 def track(
     action: str,
-    account=None,
-    custom_props: Optional[dict] = None,
+    account: Account | None = None,
+    custom_props: dict | None = None,
+    send_sync: bool = False,
 ):
     if not TRACK:
         return
-    try:
-        initialise_tracker(account)
-        event_params = {
-            "event": action,
-            "properties": {
-                "distinct_id": METRICS_TRACKER.last_user,
-                "server_id": METRICS_TRACKER.last_server,
-                "token": METRICS_TRACKER.analytics_token,
-                "hostApp": HOST_APP,
-                "hostAppVersion": HOST_APP_VERSION,
-                "$os": METRICS_TRACKER.platform,
-                "type": "action",
-            },
-        }
-        if custom_props:
-            event_params["properties"].update(custom_props)
 
-        METRICS_TRACKER.queue.put_nowait(event_params)
-    except Exception as ex:
-        # wrapping this whole thing in a try except as we never want a failure here
-        # to annoy users!
-        LOG.debug(f"Error queueing metrics request: {str(ex)}")
+    tracker = initialise_tracker(account)
+    event_params: dict[str, Any] = {
+        "event": action,
+        "properties": {
+            "distinct_id": tracker.last_user,
+            "server_id": tracker.last_server,
+            "token": tracker.analytics_token,
+            "hostApp": HOST_APP,
+            "hostAppVersion": HOST_APP_VERSION,
+            "$os": tracker.platform,
+            "type": "action",
+        },
+    }
+    if custom_props:
+        event_params["properties"].update(custom_props)
+
+    if send_sync:
+        tracker.send_event(event_params)
+    else:
+        tracker.queue_event(event_params)
 
 
-def initialise_tracker(account=None):
+def initialise_tracker(account: Account | None = None) -> "MetricsTracker":
     global METRICS_TRACKER
     if not METRICS_TRACKER:
         METRICS_TRACKER = MetricsTracker()
 
-    if account and account.userInfo.email:
+    if account:
         METRICS_TRACKER.set_last_user(account.userInfo.email)
-    if account and account.serverInfo.url:
         METRICS_TRACKER.set_last_server(account.serverInfo.url)
+
+    return METRICS_TRACKER
 
 
 class Singleton(type):
@@ -112,48 +100,62 @@ class Singleton(type):
 
 
 class MetricsTracker(metaclass=Singleton):
-    analytics_url = "https://analytics.speckle.systems/track?ip=1"
-    analytics_token = "acd87c5a50b56df91a795e999812a3a4"
-    last_user = ""
-    last_server = None
-    platform = None
-    sending_thread = None
-    queue = queue.Queue(1000)
+    analytics_url: str = "https://analytics.speckle.systems/track?ip=1"
+    analytics_token: str = "acd87c5a50b56df91a795e999812a3a4"
+    last_user: str = ""
+    last_server: str | None = None
+    platform: str
+
+    _sending_thread: threading.Thread
+    _queue: queue.Queue[dict[str, Any]] = queue.Queue(1000)
+    _session = requests.Session()
 
     def __init__(self) -> None:
-        self.sending_thread = threading.Thread(
+        self._sending_thread = threading.Thread(
             target=self._send_tracking_requests, daemon=True
         )
         self.platform = PLATFORMS.get(sys.platform, "linux")
-        self.sending_thread.start()
+        self._sending_thread.start()
         with contextlib.suppress(Exception):
             node, user = platform.node(), getpass.getuser()
             if node and user:
                 self.last_user = f"@{self.hash(f'{node}-{user}')}"
 
-    def set_last_user(self, email: str):
+    def set_last_user(self, email: str | None) -> None:
         if not email:
             return
         self.last_user = f"@{self.hash(email)}"
 
-    def set_last_server(self, server: str):
+    def set_last_server(self, server: str | None) -> None:
         if not server:
             return
         self.last_server = self.hash(server)
 
-    def hash(self, value: str):
+    def hash(self, value: str) -> str:
         inputList = value.lower().split("://")
         input = inputList[len(inputList) - 1].split("/")[0].split("?")[0]
         return hashlib.md5(input.encode("utf-8")).hexdigest().upper()
 
-    def _send_tracking_requests(self):
-        session = requests.Session()
+    def queue_event(self, event_params: dict[str, Any]) -> None:
+        try:
+            self._queue.put_nowait(event_params)
+        except queue.Full:
+            LOG.warning(
+                "Metrics event was skipped because the metrics queue was was full",
+                exc_info=True,
+            )
+
+    def send_event(self, event_params: dict[str, Any]) -> None:
+        response = self._session.post(self.analytics_url, json=[event_params])
+        response.raise_for_status()
+
+    def _send_tracking_requests(self) -> None:
         while True:
-            event_params = [self.queue.get()]
+            event_params = self._queue.get()
 
             try:
-                session.post(self.analytics_url, json=event_params)
-            except Exception as ex:
-                LOG.debug(f"Error sending metrics request: {str(ex)}")
+                self.send_event(event_params)
+            except Exception:
+                LOG.warning("Error sending metrics request", exc_info=True)
 
-            self.queue.task_done()
+            self._queue.task_done()

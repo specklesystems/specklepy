@@ -58,3 +58,8 @@ class UnsupportedException(SpeckleException):
 class SpeckleWarning(Warning):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
+
+
+class WorkspacePermissionException(SpeckleException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message=message)

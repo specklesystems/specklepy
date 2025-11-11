@@ -2,6 +2,7 @@ from .arc import Arc
 from .box import Box
 from .circle import Circle
 from .control_point import ControlPoint
+from .curve import Curve
 from .ellipse import Ellipse
 from .line import Line
 from .mesh import Mesh
@@ -10,6 +11,7 @@ from .point import Point
 from .point_cloud import PointCloud
 from .polycurve import Polycurve
 from .polyline import Polyline
+from .region import Region
 from .spiral import Spiral
 from .surface import Surface
 from .vector import Vector
@@ -22,6 +24,7 @@ __all__ = [
     "Plane",
     "Point",
     "Polyline",
+    "Region",
     "Vector",
     "Box",
     "Circle",
@@ -31,4 +34,5 @@ __all__ = [
     "Polycurve",
     "Spiral",
     "Surface",
+    "Curve",
 ]

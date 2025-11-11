@@ -1,0 +1,6 @@
+[tools]
+python = "3.13.7"
+
+[settings]
+experimental = true
+python.uv_venv_auto = true
