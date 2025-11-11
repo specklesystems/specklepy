@@ -1,16 +1,16 @@
 """"""
 
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
-from stringcase import camelcase
+from pydantic.alias_generators import to_camel
 
 
 class AutomateBase(BaseModel):
     """Use this class as a base model for automate related DTO."""
 
-    model_config = ConfigDict(alias_generator=camelcase, populate_by_name=True)
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
 
 class VersionCreationTriggerPayload(AutomateBase):
@@ -36,10 +36,10 @@ class AutomationRunData(BaseModel):
     automation_run_id: str
     function_run_id: str
 
-    triggers: List[VersionCreationTrigger]
+    triggers: list[VersionCreationTrigger]
 
     model_config = ConfigDict(
-        alias_generator=camelcase, populate_by_name=True, protected_namespaces=()
+        alias_generator=to_camel, populate_by_name=True, protected_namespaces=()
     )
 
 
@@ -49,10 +49,10 @@ class TestAutomationRunData(BaseModel):
     automation_run_id: str
     function_run_id: str
 
-    triggers: List[VersionCreationTrigger]
+    triggers: list[VersionCreationTrigger]
 
     model_config = ConfigDict(
-        alias_generator=camelcase, populate_by_name=True, protected_namespaces=()
+        alias_generator=to_camel, populate_by_name=True, protected_namespaces=()
     )
 
 
@@ -80,19 +80,20 @@ class ResultCase(AutomateBase):
 
     category: str
     level: ObjectResultLevel
-    object_ids: List[str]
-    message: Optional[str]
-    metadata: Optional[Dict[str, Any]]
-    visual_overrides: Optional[Dict[str, Any]]
+    object_app_ids: dict[str, str | None]
+    message: str | None
+    metadata: dict[str, Any] | None
+    visual_overrides: dict[str, Any] | None
 
 
 class AutomationResult(AutomateBase):
     """Schema accepted by the Speckle server as a result for an automation run."""
 
     elapsed: float = 0
-    result_view: Optional[str] = None
-    result_versions: List[str] = Field(default_factory=list)
-    blobs: List[str] = Field(default_factory=list)
+    result_view: str | None = None
+    result_versions: list[str] = Field(default_factory=list)
+    blobs: list[str] = Field(default_factory=list)
     run_status: AutomationStatus = AutomationStatus.RUNNING
-    status_message: Optional[str] = None
+    status_message: str | None = None
     object_results: list[ResultCase] = Field(default_factory=list)
+    version_result: dict[str, Any] | None = None

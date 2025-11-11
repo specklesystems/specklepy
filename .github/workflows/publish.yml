@@ -1,33 +1,55 @@
-# Publish a release to PyPI.
-name: "Publish to PyPI"
-
+name: "Publish Python Package"
 on:
-  workflow_run:
-    workflows: ["Specklepy test and build"]
-    branches: [v3-dev]
-    types:
-      - completed
+  push:
+    branches:
+      - "main"
+    tags:
+      - "3.*.*"
 
 jobs:
-  pypi-publish:
-    name: Upload to PyPI
+  test:
+    uses: "./.github/workflows/pr.yml"
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  publish-package:
+    name: "Build and Publish Python Package"
     runs-on: ubuntu-latest
+    needs: test
+
+    # set the environment based on what triggered the workflow
     environment:
-      name: testpypi
+      name: ${{ github.ref_type == 'tag' && 'pypi' || 'testpypi' }}
+
     permissions:
-      # For PyPI's trusted publishing.
       id-token: write
+
     steps:
       - name: "Install uv"
         uses: astral-sh/setup-uv@v5
-      - uses: actions/checkout@v4
+
+      - name: "Checkout code"
+        uses: actions/checkout@v4
         with:
-          # This is necessary so that we have the tags.
           fetch-depth: 0
-      - name: "Build artifacts"
+
+      - name: "Build package artifacts"
         run: uv build
-      - name: Publish to PyPi
+
+      # Logic for TestPyPI (on main branch push)
+      - name: "Publish to TestPyPI"
+        if: ${{ github.ref_type == 'branch' }}
         run: uv publish --index test
 
-      - name: Test package install
+      - name: "Verify TestPyPI package installation"
+        if: ${{ github.ref_type == 'branch' }}
         run: uv run --index test --with specklepy --no-project -- python -c "import specklepy"
+
+      # Logic for PyPI (on v3* tag creation)
+      - name: "Publish to PyPI"
+        if: ${{ github.ref_type == 'tag' }}
+        run: uv publish
+
+      - name: "Verify PyPI package installation"
+        if: ${{ github.ref_type == 'tag' }}
+        run: uv run --with specklepy --no-project -- python -c "import specklepy"

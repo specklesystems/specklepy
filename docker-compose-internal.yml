@@ -1,0 +1,118 @@
+name: "speckle-server"
+
+services:
+  ####
+  # Speckle Server dependencies
+  #######
+  postgres:
+    image: "postgres:16.4-alpine3.20@sha256:d898b0b78a2627cb4ee63464a14efc9d296884f1b28c841b0ab7d7c42f1fffdf"
+    restart: always
+    environment:
+      POSTGRES_DB: speckle
+      POSTGRES_USER: speckle
+      POSTGRES_PASSWORD: speckle
+    volumes:
+      - ./.volumes/postgres-data:/var/lib/postgresql/data/
+    healthcheck:
+      # the -U user has to match the POSTGRES_USER value
+      test: ["CMD-SHELL", "pg_isready -U speckle"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: "valkey/valkey:8.1-alpine@sha256:0d27f0bca0249f61d060029a6aaf2e16b2c417d68d02a508e1dfb763fa2948b4"
+    restart: always
+    volumes:
+      - ./.volumes/redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  minio:
+    image: "minio/minio:RELEASE.2023-10-25T06-33-25Z"
+    command: server /data --console-address ":9001"
+    restart: always
+    volumes:
+      - ./.volumes/minio-data:/data
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -o /dev/null http://127.0.0.1:9000/minio/index.html",
+        ]
+      interval: 5s
+      timeout: 30s
+      retries: 30
+      start_period: 10s
+
+  speckle-server:
+    image: ghcr.io/specklesystems/speckle-server:latest
+    restart: always
+    healthcheck:
+      test:
+        - CMD
+        - /nodejs/bin/node
+        - -e
+        - "try { require('node:http').request({headers: {'Content-Type': 'application/json'}, port:3000, hostname:'127.0.0.1', path:'/readiness', method: 'GET', timeout: 2000 }, (res) => { body = ''; res.on('data', (chunk) => {body += chunk;}); res.on('end', () => {process.exit(Number(res.statusCode != 200 || body.toLowerCase().includes('error')));}); }).end(); } catch { process.exit(1); }"
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    ports:
+      - "0.0.0.0:3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      # TODO: Change this to the URL of the speckle server, as accessed from the network
+      CANONICAL_URL: "http://127.0.0.1:8080"
+      SPECKLE_AUTOMATE_URL: "http://127.0.0.1:3030"
+      FRONTEND_ORIGIN: "http://127.0.0.1:8081"
+
+      # TODO: Change thvolumes:
+      REDIS_URL: "redis://redis"
+
+      S3_ENDPOINT: "http://minio:9000"
+      S3_PUBLIC_ENDPOINT: "http://127.0.0.1:9000"
+      S3_ACCESS_KEY: "minioadmin"
+      S3_SECRET_KEY: "minioadmin"
+      S3_BUCKET: "speckle-server"
+      S3_CREATE_BUCKET: "true"
+
+      FILE_SIZE_LIMIT_MB: 100
+      MAX_PROJECT_MODELS_PER_PAGE: 500
+
+      # TODO: Change this to a unique secret for this server
+      SESSION_SECRET: "TODO:ReplaceWithLongString"
+
+      STRATEGY_LOCAL: "true"
+
+      POSTGRES_URL: "postgres"
+      POSTGRES_USER: "speckle"
+      POSTGRES_PASSWORD: "speckle"
+      POSTGRES_DB: "speckle"
+      ENABLE_MP: "false"
+
+      LOG_PRETTY: "true"
+
+      FF_NEXT_GEN_FILE_IMPORTER_ENABLED: "true"
+      FF_LARGE_FILE_IMPORTS_ENABLED: "true"
+
+networks:
+  default:
+    name: speckle-server
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:

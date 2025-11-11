@@ -3,6 +3,7 @@ import contextlib
 from specklepy.api.credentials import Account
 from specklepy.api.resources import (
     ActiveUserResource,
+    FileImportResource,
     ModelResource,
     OtherUserResource,
     ProjectInviteResource,
@@ -10,6 +11,7 @@ from specklepy.api.resources import (
     ServerResource,
     SubscriptionResource,
     VersionResource,
+    WorkspaceResource,
 )
 from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.logging import metrics
@@ -106,6 +108,18 @@ class SpeckleClient(CoreSpeckleClient):
             server_version=server_version,
         )
         self.version = VersionResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.workspace = WorkspaceResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.file_import = FileImportResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

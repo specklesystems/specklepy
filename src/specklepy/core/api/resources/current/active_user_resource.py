@@ -2,12 +2,22 @@ from typing import List, Optional
 
 from gql import gql
 
-from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
+from specklepy.core.api.inputs.user_inputs import (
+    UserProjectsFilter,
+    UserUpdateInput,
+    UserWorkspacesFilter,
+)
 from specklepy.core.api.models import (
     PendingStreamCollaborator,
     Project,
     ResourceCollection,
     User,
+)
+from specklepy.core.api.models.current import (
+    LimitedWorkspace,
+    PermissionCheckResult,
+    ProjectWithPermissions,
+    Workspace,
 )
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
@@ -180,6 +190,216 @@ class ActiveUserResource(ResourceBase):
 
         response = self.make_request_and_parse_response(
             DataResponse[Optional[DataResponse[List[PendingStreamCollaborator]]]],
+            QUERY,
+            variables,
+        )
+
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
+
+        return response.data.data
+
+    def can_create_personal_projects(self) -> PermissionCheckResult:
+        QUERY = gql(
+            """
+            query CanCreatePersonalProject {
+              data:activeUser {
+                data:permissions {
+                  data:canCreatePersonalProject {
+                    authorized
+                    code
+                    message
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        response = self.make_request_and_parse_response(
+            DataResponse[Optional[DataResponse[DataResponse[PermissionCheckResult]]]],
+            QUERY,
+        )
+
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
+
+        return response.data.data.data
+
+    def get_workspaces(
+        self,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[UserWorkspacesFilter] = None,
+    ) -> ResourceCollection[Workspace]:
+        """
+        This feature is only available on Workspace enabled servers  (server versions
+        >=2.23.17) e.g. app.speckle.systems
+        """
+        QUERY = gql(
+            """
+            query ActiveUser($limit: Int!, $cursor: String, $filter: UserWorkspacesFilter) {
+              data:activeUser {
+                data:workspaces(limit: $limit, cursor: $cursor, filter: $filter) {
+                  cursor
+                  totalCount
+                  items {
+                    id
+                    name
+                    role
+                    slug
+                    logo
+                    createdAt
+                    updatedAt
+                    readOnly
+                    description
+                    creationState
+                    {
+                      completed
+                    }
+                    permissions {
+                      canCreateProject {
+                        authorized
+                        code
+                        message
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """  # noqa: E501
+        )
+
+        variables = {
+            "limit": limit,
+            "cursor": cursor,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
+        }
+
+        response = self.make_request_and_parse_response(
+            DataResponse[Optional[DataResponse[ResourceCollection[Workspace]]]],
+            QUERY,
+            variables,
+        )
+
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
+
+        return response.data.data
+
+    def get_active_workspace(self) -> Optional[LimitedWorkspace]:
+        """
+        This feature is only available on Workspace enabled servers  (server versions
+        >=2.23.17) e.g. app.speckle.systems
+        """
+        QUERY = gql(
+            """
+            query ActiveUser {
+              data:activeUser {
+                data:activeWorkspace {
+                  id
+                  name
+                  role
+                  slug
+                  logo
+                  description
+                }
+              }
+            }
+            """
+        )
+
+        response = self.make_request_and_parse_response(
+            DataResponse[Optional[DataResponse[Optional[LimitedWorkspace]]]],
+            QUERY,
+        )
+
+        if response.data is None:
+            raise GraphQLException(
+                "GraphQL response indicated that the ActiveUser could not be found"
+            )
+
+        return response.data.data
+
+    def get_projects_with_permissions(
+        self,
+        *,
+        limit: int = 25,
+        cursor: Optional[str] = None,
+        filter: Optional[UserProjectsFilter] = None,
+    ) -> ResourceCollection[ProjectWithPermissions]:
+        """
+        Gets the currently active user's projects with their permissions.
+        This is useful for checking what actions can be performed on each project.
+        """
+        QUERY = gql(
+            """
+          query User($limit : Int!, $cursor: String, $filter: UserProjectsFilter) {
+            data:activeUser {
+              data:projects(limit: $limit, cursor: $cursor, filter: $filter) {
+                totalCount
+                cursor
+                items {
+                    id
+                    name
+                    description
+                    visibility
+                    allowPublicComments
+                    role
+                    createdAt
+                    updatedAt
+                    sourceApps
+                    workspaceId
+                    permissions {
+                      canCreateModel {
+                        code
+                        authorized
+                        message
+                      }
+                      canDelete {
+                        code
+                        authorized
+                        message
+                      }
+                      canLoad {
+                        code
+                        authorized
+                        message
+                      }
+                      canPublish {
+                        code
+                        authorized
+                        message
+                      }
+                    }
+                }
+              }
+            }
+          }
+          """
+        )
+
+        variables = {
+            "limit": limit,
+            "cursor": cursor,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
+        }
+
+        response = self.make_request_and_parse_response(
+            DataResponse[
+                Optional[DataResponse[ResourceCollection[ProjectWithPermissions]]]
+            ],
             QUERY,
             variables,
         )

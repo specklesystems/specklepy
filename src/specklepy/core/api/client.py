@@ -11,6 +11,7 @@ from gql.transport.websockets import WebsocketsTransport
 from specklepy.core.api.credentials import Account
 from specklepy.core.api.resources import (
     ActiveUserResource,
+    FileImportResource,
     ModelResource,
     OtherUserResource,
     ProjectInviteResource,
@@ -18,6 +19,7 @@ from specklepy.core.api.resources import (
     ServerResource,
     SubscriptionResource,
     VersionResource,
+    WorkspaceResource,
 )
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
@@ -129,6 +131,19 @@ class SpeckleClient:
         self.account = Account.from_token(token, self.url)
         self._set_up_client()
 
+        userData = self.active_user.get()
+
+        # None if the token lacked the profile:read scope or if it was None
+        if userData:
+            self.account.userInfo.id = userData.id
+            self.account.userInfo.email = userData.email
+            self.account.userInfo.name = userData.name
+            self.account.userInfo.company = userData.company
+            self.account.userInfo.avatar = userData.avatar
+
+        self.account.serverInfo = self.server.get()
+        self.account.serverInfo.url = self.url
+
     def authenticate_with_account(self, account: Account) -> None:
         """Authenticate the client using an Account object
         The account is saved in the client object and a synchronous GraphQL
@@ -140,6 +155,21 @@ class SpeckleClient:
         """
         self.account = account
         self._set_up_client()
+
+        try:
+            _ = self.active_user.get()
+        except SpeckleException as ex:
+            if isinstance(ex.exception, TransportServerError):
+                if ex.exception.code == 403:
+                    warn(
+                        SpeckleWarning(
+                            "Possibly invalid token - could not authenticate "
+                            f"Speckle Client for server {self.url}"
+                        ),
+                        stacklevel=2,
+                    )
+                else:
+                    raise ex
 
     def _set_up_client(self) -> None:
         headers = {
@@ -159,21 +189,6 @@ class SpeckleClient:
         self.wsclient = Client(transport=wstransport)
 
         self._init_resources()
-
-        try:
-            _ = self.active_user.get()
-        except SpeckleException as ex:
-            if isinstance(ex.exception, TransportServerError):
-                if ex.exception.code == 403:
-                    warn(
-                        SpeckleWarning(
-                            "Possibly invalid token - could not authenticate "
-                            f"Speckle Client for server {self.url}"
-                        ),
-                        stacklevel=2,
-                    )
-                else:
-                    raise ex
 
     def execute_query(self, query: str) -> Dict:
         return self.httpclient.execute(query)
@@ -218,6 +233,18 @@ class SpeckleClient:
             server_version=server_version,
         )
         self.version = VersionResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.workspace = WorkspaceResource(
+            account=self.account,
+            basepath=self.url,
+            client=self.httpclient,
+            server_version=server_version,
+        )
+        self.file_import = FileImportResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

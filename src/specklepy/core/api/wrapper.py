@@ -1,8 +1,6 @@
 from urllib.parse import quote, unquote, urlparse
 from warnings import warn
 
-from gql import gql
-
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.credentials import (
     Account,
@@ -139,27 +137,11 @@ class StreamWrapper:
 
         if use_fe2 is True and self.branch_name is not None:
             self.model_id = self.branch_name
-            # get branch name
-            query = gql(
-                """
-                query Project($project_id: String!, $model_id: String!) {
-                    project(id: $project_id) {
-                        id
-                        model(id: $model_id) {
-                            name
-                        }
-                    }
-                }
-            """
-            )
-            self._client = self.get_client()
-            params = {"project_id": self.stream_id, "model_id": self.model_id}
-            project = self._client.httpclient.execute(query, params)
 
-            try:
-                self.branch_name = project["project"]["model"]["name"]
-            except KeyError as ke:
-                raise SpeckleException("Project model name is not found", ke) from ke
+            self._client = self.get_client()
+            model = self._client.model.get(self.model_id, self.stream_id)
+
+            self.branch_name = model.name
 
         if not self.stream_id:
             raise SpeckleException(
@@ -175,6 +157,10 @@ class StreamWrapper:
         """
         Gets an account object for this server from the local accounts db
         (added via Speckle Manager or a json file)
+
+        WARNING: this function will return ANY account for the server,
+          just because you pass a token in doesn't guarantee it will be used.
+          This whole class could do with a re-design...
         """
         if self._account and self._account.token:
             return self._account

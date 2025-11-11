@@ -1,4 +1,5 @@
 from specklepy.core.api.resources.current.active_user_resource import ActiveUserResource
+from specklepy.core.api.resources.current.file_import_resource import FileImportResource
 from specklepy.core.api.resources.current.model_resource import ModelResource
 from specklepy.core.api.resources.current.other_user_resource import OtherUserResource
 from specklepy.core.api.resources.current.project_invite_resource import (
@@ -10,8 +11,10 @@ from specklepy.core.api.resources.current.subscription_resource import (
     SubscriptionResource,
 )
 from specklepy.core.api.resources.current.version_resource import VersionResource
+from specklepy.core.api.resources.current.workspace_resource import WorkspaceResource
 
 __all__ = [
+    "FileImportResource",
     "ActiveUserResource",
     "ModelResource",
     "OtherUserResource",
@@ -20,4 +23,5 @@ __all__ = [
     "ServerResource",
     "SubscriptionResource",
     "VersionResource",
+    "WorkspaceResource",
 ]

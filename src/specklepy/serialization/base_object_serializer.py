@@ -199,8 +199,9 @@ class BaseObjectSerializer:
 
         # write detached or root objects to transports
         if detached and self.write_transports:
+            serialized_data = ujson.dumps(object_builder)
             for t in self.write_transports:
-                t.save_object(id=obj_id, serialized_object=ujson.dumps(object_builder))
+                t.save_object(id=obj_id, serialized_object=serialized_data)
 
         del self.lineage[-1]
 

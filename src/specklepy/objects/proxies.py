@@ -33,9 +33,9 @@ class InstanceProxy(
     IHasUnits,
     speckle_type="Speckle.Core.Models.Instances.InstanceProxy",
 ):
-    definition_id: str
+    definitionId: str
     transform: List[float]
-    max_depth: int
+    maxDepth: int
 
 
 @dataclass(kw_only=True)
@@ -45,8 +45,28 @@ class InstanceDefinitionProxy(
     detachable={"objects"},
 ):
     objects: List[str]
-    max_depth: int
+    maxDepth: int
     name: str
+
+
+@dataclass(kw_only=True)
+class LevelProxy(
+    Base,
+    speckle_type="Objects.Other.LevelProxy",
+    detachable={"objects"},
+):
+    """
+    used to store building storey to object relationships in root collections
+
+    Args:
+        objects (list): the list of application ids of objects in this building storey
+        value (DataObject): the building storey data object with all properties
+        applicationId (str): the GUID of the building storey
+    """
+
+    objects: List[str]
+    value: Base
+    applicationId: str
 
 
 @dataclass(kw_only=True)

@@ -1,5 +1,7 @@
 from specklepy.core.api.models.current import (
     AuthStrategy,
+    FileImport,
+    FileUploadUrl,
     LimitedUser,
     Model,
     ModelWithVersions,
@@ -8,6 +10,7 @@ from specklepy.core.api.models.current import (
     ProjectCollaborator,
     ProjectCommentCollection,
     ProjectWithModels,
+    ProjectWithPermissions,
     ProjectWithTeam,
     ResourceCollection,
     ServerConfiguration,
@@ -39,6 +42,7 @@ __all__ = [
     "ModelWithVersions",
     "Project",
     "ProjectWithModels",
+    "ProjectWithPermissions",
     "ProjectWithTeam",
     "ProjectCommentCollection",
     "UserSearchResultCollection",
@@ -46,4 +50,6 @@ __all__ = [
     "ProjectModelsUpdatedMessage",
     "ProjectUpdatedMessage",
     "ProjectVersionsUpdatedMessage",
+    "FileImport",
+    "FileUploadUrl",
 ]

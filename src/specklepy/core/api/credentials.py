@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
@@ -12,20 +12,20 @@ from specklepy.transports.sqlite import SQLiteTransport
 
 
 class UserInfo(BaseModel):
-    id: Optional[str] = None
-    name: Optional[str] = None
-    email: Optional[str] = None
-    company: Optional[str] = None
-    avatar: Optional[str] = None
+    id: str | None = None
+    name: str | None = None
+    email: str | None = None
+    company: str | None = None
+    avatar: str | None = None
 
 
 class Account(BaseModel):
     isDefault: bool = False
-    token: Optional[str] = None
-    refreshToken: Optional[str] = None
+    token: str | None = None
+    refreshToken: str | None = None
     serverInfo: ServerInfo = Field(default_factory=ServerInfo)
     userInfo: UserInfo = Field(default_factory=UserInfo)
-    id: Optional[str] = None
+    id: str | None = None
 
     def __repr__(self) -> str:
         return (
@@ -37,13 +37,13 @@ class Account(BaseModel):
         return self.__repr__()
 
     @classmethod
-    def from_token(cls, token: str, server_url: str = None):
+    def from_token(cls, token: str, server_url: str | None = None):
         acct = cls(token=token)
         acct.serverInfo.url = server_url
         return acct
 
 
-def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
+def get_local_accounts(base_path: str | None = None) -> List[Account]:
     """Gets all the accounts present in this environment
 
     Arguments:
@@ -93,7 +93,7 @@ def get_local_accounts(base_path: Optional[str] = None) -> List[Account]:
     return accounts
 
 
-def get_default_account(base_path: Optional[str] = None) -> Optional[Account]:
+def get_default_account(base_path: str | None = None) -> Account | None:
     """
     Gets this environment's default account if any. If there is no default,
     the first found will be returned and set as default.
@@ -116,7 +116,7 @@ def get_default_account(base_path: Optional[str] = None) -> Optional[Account]:
     return default
 
 
-def get_account_from_token(token: str, server_url: str = None) -> Account:
+def get_account_from_token(token: str, server_url: str | None = None) -> Account:
     """Gets the local account for the token if it exists
     Arguments:
         token {str} -- the api token
