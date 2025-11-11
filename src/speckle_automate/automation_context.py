@@ -19,8 +19,12 @@ from speckle_automate.schema import (
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.model_inputs import CreateModelInput
-from specklepy.core.api.inputs.version_inputs import CreateVersionInput
+from specklepy.core.api.inputs.version_inputs import (
+    CreateVersionInput,
+    MarkReceivedVersionInput,
+)
 from specklepy.core.api.models.current import Model, Version
+from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.transports.memory import MemoryTransport
@@ -66,6 +70,7 @@ class AutomationContext:
             if isinstance(automation_run_data, AutomationRunData)
             else AutomationRunData.model_validate_json(automation_run_data)
         )
+        metrics.set_host_app("automate")
         speckle_client = SpeckleClient(
             automation_run_data.speckle_server_url,
             automation_run_data.speckle_server_url.startswith("https"),
@@ -100,6 +105,7 @@ class AutomationContext:
         """Receive the Speckle project version that triggered this automation run."""
         # TODO: this is a quick hack to keep implementation consistency.
         # Move to proper receive many versions
+        project_id = self.automation_run_data.project_id
         version_id = self.automation_run_data.triggers[0].payload.version_id
         try:
             version = self.speckle_client.version.get(
@@ -109,7 +115,7 @@ class AutomationContext:
             raise ValueError(
                 f"""Could not receive specified version.
                 Is your environment configured correctly?
-                project_id: {self.automation_run_data.project_id}
+                project_id: {project_id}
                 model_id: {self.automation_run_data.triggers[0].payload.model_id}
                 version_id: {self.automation_run_data.triggers[0].payload.version_id}
                 """
@@ -123,6 +129,13 @@ class AutomationContext:
 
         base = operations.receive(
             version.referenced_object, self._server_transport, self._memory_transport
+        )
+        self.speckle_client.version.received(
+            MarkReceivedVersionInput(
+                version_id=version_id,
+                project_id=project_id,
+                source_application="automate_function",
+            )
         )
         # self._closure_tree = base["__closure"]
         print(
