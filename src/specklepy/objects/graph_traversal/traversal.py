@@ -24,7 +24,7 @@ class ITraversalRule(Protocol):
 @define(slots=True, frozen=True)
 class DefaultRule:
     def should_return(self) -> bool:
-        pass
+        return False
 
     def get_members_to_traverse(self, _) -> Set[str]:
         return set()
