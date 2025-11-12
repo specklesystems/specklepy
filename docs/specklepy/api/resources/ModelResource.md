@@ -1,0 +1,1 @@
+::: specklepy.api.resources.ModelResource
