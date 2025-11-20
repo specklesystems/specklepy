@@ -36,6 +36,10 @@ dev = [
     "types-deprecated>=1.2.15.20241117",
     "types-requests>=2.32.0.20241016",
     "types-ujson>=5.10.0.20240515",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.5",
+    "mkdocstrings>=0.28.1",
+    "mkdocstrings-python>=1.15.0",
 ]
 
 [project.urls]
