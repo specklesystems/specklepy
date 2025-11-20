@@ -1,5 +1,5 @@
 [build]
-  command = "pip install -r requirements-docs.txt && mkdocs build"
+  command = "pip install uv && uv sync --group docs && uv run mkdocs build"
   publish = "site"
 
 [build.environment]

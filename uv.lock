@@ -2218,10 +2218,6 @@ dev = [
     { name = "devtools" },
     { name = "hatch" },
     { name = "hatch-vcs" },
-    { name = "mkdocs" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings" },
-    { name = "mkdocstrings-python" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -2231,6 +2227,12 @@ dev = [
     { name = "types-deprecated" },
     { name = "types-requests" },
     { name = "types-ujson" },
+]
+docs = [
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
+    { name = "mkdocstrings" },
+    { name = "mkdocstrings-python" },
 ]
 
 [package.metadata]
@@ -2253,10 +2255,6 @@ dev = [
     { name = "devtools", specifier = ">=0.12.2" },
     { name = "hatch", specifier = ">=1.14.0" },
     { name = "hatch-vcs", specifier = ">=0.4.0" },
-    { name = "mkdocs", specifier = ">=1.6.1" },
-    { name = "mkdocs-material", specifier = ">=9.6.5" },
-    { name = "mkdocstrings", specifier = ">=0.28.1" },
-    { name = "mkdocstrings-python", specifier = ">=1.15.0" },
     { name = "pre-commit", specifier = ">=4.0.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
@@ -2266,6 +2264,12 @@ dev = [
     { name = "types-deprecated", specifier = ">=1.2.15.20241117" },
     { name = "types-requests", specifier = ">=2.32.0.20241016" },
     { name = "types-ujson", specifier = ">=5.10.0.20240515" },
+]
+docs = [
+    { name = "mkdocs", specifier = ">=1.6.1" },
+    { name = "mkdocs-material", specifier = ">=9.6.5" },
+    { name = "mkdocstrings", specifier = ">=0.28.1" },
+    { name = "mkdocstrings-python", specifier = ">=1.15.0" },
 ]
 
 [[package]]
