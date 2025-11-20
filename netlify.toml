@@ -1,5 +1,9 @@
 [build]
-  command = "pip install uv && uv sync --group docs && uv run mkdocs build"
+  command = """
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ~/.cargo/bin/uv sync --group docs
+    ~/.cargo/bin/uv run mkdocs build
+  """
   publish = "site"
 
 [build.environment]
