@@ -1,12 +1,3 @@
 [build]
-  command = """
-    curl -LsSf https://astral.sh/uv/install.sh | sh &&
-    export PATH=\"$HOME/.local/bin:$PATH\" &&
-    uv sync &&
-    uv run mkdocs build
-  """
+  command = """mise i && mise run build_docs"""
   publish = "site"
-
-[build.environment]
-  PYTHON_VERSION = "3.11"
-  DISABLE_MISE = "1"
