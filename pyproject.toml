@@ -21,6 +21,13 @@ dependencies = [
 [project.optional-dependencies]
 speckleifc = ["ifcopenshell>=0.8.3.post2"]
 
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.5",
+    "mkdocstrings>=0.28.1",
+    "mkdocstrings-python>=1.15.0",
+]
+
 [dependency-groups]
 dev = [
     "commitizen>=4.1.0",

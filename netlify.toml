@@ -5,13 +5,12 @@
 
     echo '--- updating PATH ---'
     export PATH=\"$HOME/.local/bin:$PATH\"
-    which uv || echo 'uv not found in PATH'
     uv --version
 
-    echo '--- uv sync (docs group) ---'
-    uv sync --group docs
+    echo '--- syncing dependencies (docs extras) ---'
+    uv sync --extra docs
 
-    echo '--- mkdocs build ---'
+    echo '--- building docs ---'
     uv run mkdocs build
   """
   publish = "site"

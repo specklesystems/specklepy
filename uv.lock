@@ -2208,6 +2208,12 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+docs = [
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
+    { name = "mkdocstrings" },
+    { name = "mkdocstrings-python" },
+]
 speckleifc = [
     { name = "ifcopenshell" },
 ]
@@ -2243,11 +2249,15 @@ requires-dist = [
     { name = "gql", extras = ["requests", "websockets"], specifier = ">=3.5.0,<4.0.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "ifcopenshell", marker = "extra == 'speckleifc'", specifier = ">=0.8.3.post2" },
+    { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6.1" },
+    { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.6.5" },
+    { name = "mkdocstrings", marker = "extra == 'docs'", specifier = ">=0.28.1" },
+    { name = "mkdocstrings-python", marker = "extra == 'docs'", specifier = ">=1.15.0" },
     { name = "pydantic", specifier = ">=2.10.5" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
     { name = "ujson", specifier = ">=5.10.0" },
 ]
-provides-extras = ["speckleifc"]
+provides-extras = ["docs", "speckleifc"]
 
 [package.metadata.requires-dev]
 dev = [
