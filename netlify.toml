@@ -9,3 +9,4 @@
 
 [build.environment]
   PYTHON_VERSION = "3.11"
+  DISABLE_MISE = "1"
