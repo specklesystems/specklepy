@@ -1,8 +1,8 @@
 [build]
   command = """
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    export PATH=\"$HOME/.local/bin:$PATH\"
-    uv sync --group docs
+    curl -LsSf https://astral.sh/uv/install.sh | sh &&
+    export PATH=\"$HOME/.local/bin:$PATH\" &&
+    uv sync --group docs &&
     uv run mkdocs build
   """
   publish = "site"
