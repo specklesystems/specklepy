@@ -1,16 +1,8 @@
 [build]
   command = """
-    echo '--- installing uv ---'
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-
-    echo '--- updating PATH ---'
-    export PATH=\"$HOME/.local/bin:$PATH\"
-    uv --version
-
-    echo '--- syncing dependencies (docs extras) ---'
-    uv sync --extra docs
-
-    echo '--- building docs ---'
+    curl -LsSf https://astral.sh/uv/install.sh | sh &&
+    export PATH=\"$HOME/.local/bin:$PATH\" &&
+    uv sync &&
     uv run mkdocs build
   """
   publish = "site"
