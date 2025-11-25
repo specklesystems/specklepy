@@ -1,0 +1,3 @@
+[build]
+  command = "mise run build_docs"
+  publish = "site"

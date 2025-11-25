@@ -1,0 +1,130 @@
+site_name: specklepy Docs
+theme:
+  name: material
+  font:
+    text: Inter
+  favicon: assets/speckle_logo.png
+  logo: assets/speckle_logo.png
+  features:
+    - navigation.tabs
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: white
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: black
+      logo: assets/logo_white.png
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+extra_css:
+- stylesheets/extra.css
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            parameter_headings: false
+            members_order: source
+            separate_signature: true
+            filters: ["!^_"] #Ignore _ prefixed properties
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            show_if_no_docstring: true
+            show_labels: true
+            show_source: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            show_bases: false
+            heading_level: 3
+
+          inventories:
+            - url: https://docs.python.org/3/objects.inv
+              domains: [py, std]
+
+nav:
+  - Home: index.md
+  - specklepy SDK:
+    - API:
+      - Client: specklepy/api/client.md
+      - Credentials: specklepy/api/credentials.md
+      - Operations: specklepy/api/operations.md
+      - Resources:
+        - ActiveUserResource: specklepy/api/resources/ActiveUserResource.md
+        - FileImportResource: specklepy/api/resources/FileImportResource.md
+        - ModelResource: specklepy/api/resources/ModelResource.md
+        - OtherUserResource: specklepy/api/resources/OtherUserResource.md
+        - ProjectInviteResource: specklepy/api/resources/ProjectInviteResource.md
+        - ProjectResource: specklepy/api/resources/ProjectResource.md
+        - ServerResource: specklepy/api/resources/ServerResource.md
+        - SubscriptionResource: specklepy/api/resources/SubscriptionResource.md
+        - VersionResource: specklepy/api/resources/VersionResource.md
+        - WorkspaceResource: specklepy/api/resources/WorkspaceResource.md
+    - Objects:
+      - Base: specklepy/objects/base.md
+      - Data Objects: specklepy/objects/data_objects.md
+      - Geometry:
+        - Arc: specklepy/objects/geometry/Arc.md
+        - Box: specklepy/objects/geometry/Box.md
+        - Circle: specklepy/objects/geometry/Circle.md
+        - ControlPoint: specklepy/objects/geometry/ControlPoint.md
+        - Curve: specklepy/objects/geometry/Curve.md
+        - Ellipse: specklepy/objects/geometry/Ellipse.md
+        - Line: specklepy/objects/geometry/Line.md
+        - Mesh: specklepy/objects/geometry/Mesh.md
+        - Plane: specklepy/objects/geometry/Plane.md
+        - Point: specklepy/objects/geometry/Point.md
+        - PointCloud: specklepy/objects/geometry/PointCloud.md
+        - Polycurve: specklepy/objects/geometry/Polycurve.md
+        - Polyline: specklepy/objects/geometry/Polyline.md
+        - Spiral: specklepy/objects/geometry/Spiral.md
+        - Surface: specklepy/objects/geometry/Surface.md
+        - Vector: specklepy/objects/geometry/Vector.md
+      - Primitives:
+        - Interval: specklepy/objects/primitives/interval.md
+      - Other:
+        - RenderMaterial: specklepy/objects/other/render_material.md
+        - Collection: specklepy/objects/other/collection.md
+      - Proxies:
+        - ColorProxy: specklepy/objects/proxies/ColorProxy.md
+        - GroupProxy: specklepy/objects/proxies/GroupProxy.md
+        - InstanceProxy: specklepy/objects/proxies/InstanceProxy.md
+        - InstanceDefinitionProxy: specklepy/objects/proxies/InstanceDefinitionProxy.md
+        - LevelProxy: specklepy/objects/proxies/LevelProxy.md
+        - RenderMaterialProxy: specklepy/objects/proxies/RenderMaterialProxy.md
+      - Graph Traversal: specklepy/objects/graph_traversal/traversal.md
+    - Transports: specklepy/transports/transports.md
+    - Serialization: specklepy/serialization/serializer.md
+    - Core API:
+      - Models: specklepy/core/api/models/models.md
+      - Inputs: specklepy/core/api/inputs/inputs.md
+      - Enums: specklepy/core/api/enums.md
+    - Logging:
+      - Exceptions: specklepy/logging/exceptions.md
+  - Speckle Automate:
+    - AutomationContext: speckle_automate/automation_context.md
+    - Runner: speckle_automate/runner.md
+    - Schema: speckle_automate/schema.md

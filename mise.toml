@@ -1,6 +1,20 @@
 [tools]
 python = "3.13.7"
+uv = "0.9.11"
 
 [settings]
 experimental = true
 python.uv_venv_auto = true
+
+
+[tasks.install]
+run= "uv sync --all-groups"
+
+
+[tasks.install_docs]
+run= "uv sync --group docs"
+
+[tasks.build_docs]
+description = "Build static docs "
+run = "uv run mkdocs build"
+depends = ['install_docs']

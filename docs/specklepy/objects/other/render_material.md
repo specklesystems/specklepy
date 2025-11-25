@@ -1,0 +1,1 @@
+::: specklepy.objects.other.RenderMaterial

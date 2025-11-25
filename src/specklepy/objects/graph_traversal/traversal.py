@@ -23,6 +23,9 @@ class ITraversalRule(Protocol):
 @final
 @define(slots=True, frozen=True)
 class DefaultRule:
+    def should_return(self) -> bool:
+        return False
+
     def get_members_to_traverse(self, _) -> Set[str]:
         return set()
 
@@ -46,6 +49,15 @@ class TraversalContext:
 @define(slots=True, frozen=True)
 class GraphTraversal:
     _rules: List[ITraversalRule]
+
+    def _get_active_rule(self, o: Base) -> Optional[ITraversalRule]:
+        for rule in self._rules:
+            if rule.does_rule_hold(o):
+                return rule
+        return None
+
+    def _get_active_rule_or_default_rule(self, o: Base) -> ITraversalRule:
+        return self._get_active_rule(o) or _default_rule
 
     def traverse(self, root: Base) -> Iterator[TraversalContext]:
         stack: List[TraversalContext] = []
@@ -109,15 +121,6 @@ class GraphTraversal:
             for obj in value.values():
                 for o in GraphTraversal.traverse_member(obj):
                     yield o
-
-    def _get_active_rule_or_default_rule(self, o: Base) -> ITraversalRule:
-        return self._get_active_rule(o) or _default_rule
-
-    def _get_active_rule(self, o: Base) -> Optional[ITraversalRule]:
-        for rule in self._rules:
-            if rule.does_rule_hold(o):
-                return rule
-        return None
 
 
 @final
