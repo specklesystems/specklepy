@@ -16,7 +16,7 @@ NAME = "workspace"
 
 
 class WorkspaceResource(ResourceBase):
-    """API Access class for models"""
+    """API Access class for workspaces"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(

@@ -16,7 +16,7 @@ from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
 
-NAME = "subscribe"
+NAME = "subscription"
 
 TEventArgs = TypeVar("TEventArgs", bound=BaseModel)
 

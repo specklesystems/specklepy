@@ -15,7 +15,7 @@ from specklepy.logging import metrics
 
 
 class FileImportResource(CoreResource):
-    """API Access class for projects"""
+    """API Access class for file imports"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(

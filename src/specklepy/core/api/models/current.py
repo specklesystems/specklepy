@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Generic, List, TypeVar
 
+from uv import Any
+
 from specklepy.core.api.enums import ProjectVisibility
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 from specklepy.logging.exceptions import WorkspacePermissionException
@@ -244,3 +246,24 @@ class FileImport(GraphQLBaseModel):
 class FileUploadUrl(GraphQLBaseModel):
     url: str
     file_id: str
+
+
+class Ingestion:
+    created_at: str
+    error_reason: str
+    error_stacktrace: str
+    file_name: str
+    id: str
+    max_idle_timeout_minutes: int
+    model_id: str
+    performance_data: dict[str, Any]
+    progress: str
+    progress_message: str | None
+    project_id: str
+    source_application: str
+    source_application_version: str
+    source_file_data: dict[str, Any]
+    status: str
+    updated_at: str
+    version_id: str
+    user: LimitedUser

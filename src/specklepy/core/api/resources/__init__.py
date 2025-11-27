@@ -1,5 +1,6 @@
 from specklepy.core.api.resources.current.active_user_resource import ActiveUserResource
 from specklepy.core.api.resources.current.file_import_resource import FileImportResource
+from specklepy.core.api.resources.current.ingestion_resource import IngestionResource
 from specklepy.core.api.resources.current.model_resource import ModelResource
 from specklepy.core.api.resources.current.other_user_resource import OtherUserResource
 from specklepy.core.api.resources.current.project_invite_resource import (
@@ -24,4 +25,6 @@ __all__ = [
     "SubscriptionResource",
     "VersionResource",
     "WorkspaceResource",
+    "FileImportResource",
+    "IngestionResource",
 ]
