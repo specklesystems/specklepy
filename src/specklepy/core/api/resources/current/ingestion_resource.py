@@ -4,16 +4,14 @@ from gql import Client, gql
 
 from specklepy.api.credentials import Account
 from specklepy.core.api.inputs.ingestion_inputs import (
-    CancelRequestInput,
-    IngestCreateInput,
-    IngestErrorInput,
-    IngestFinishInput,
-    IngestUpdateInput,
+    ModelIngestionCancelledInput,
+    ModelIngestionCreateInput,
+    ModelIngestionFailedInput,
+    ModelIngestionSuccessInput,
+    ModelIngestionUpdateInput,
 )
 from specklepy.core.api.models.current import (
-    Ingestion,
-    ResourceCollection,
-    Version,
+    ModelIngestion,
 )
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
@@ -39,221 +37,139 @@ class IngestionResource(ResourceBase):
             server_version=server_version,
         )
 
-    def get_ingestions(
-        self, model_id: str, project_id: str
-    ) -> ResourceCollection[Ingestion]:
+    def create(self, input: ModelIngestionCreateInput) -> ModelIngestion:
         QUERY = gql(
             """
-            query GetIngest($modelId: String!, $projectId: String!) {
-              data:project(id: $projectId) {
-                data:model(id: $modelId) {
-                  data:ingests {
-                    cursor
-                    items {
-                      createdAt
-                      errorReason
-                      errorStacktrace
-                      fileName
-                      id
-                      maxIdleTimeoutMinutes
-                      modelId
-                      performanceData
-                      progress
-                      progressMessage
-                      projectId
-                      sourceApplication
-                      sourceApplicationVersion
-                      sourceFileData
-                      status
-                      updatedAt
-                      versionId
-                      user {
-                        avatar
-                        bio
-                        company
-                        id
-                        name
-                        role
-                        verified
+            mutation IngestionCreate($input: ModelIngestionCreateInput!) {
+              data: projectMutations {
+                data: modelIngestionMutations {
+                  data: create(input: $input) {
+                    id
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+            }
+           """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
+        ).data.data.data
+
+    def update_progress(self, input: ModelIngestionUpdateInput) -> ModelIngestion:
+        QUERY = gql(
+            """
+            mutation IngestionUpdateProgress(
+              $input: ModelIngestionUpdateInput!
+            ) {
+              data: projectMutations {
+                data: modelIngestionMutations {
+                  data: updateProgress(input: $input) {
+                    id
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+            }
+           """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
+        ).data.data.data
+
+    def complete(self, input: ModelIngestionSuccessInput) -> str:
+        QUERY = gql(
+            """
+            mutation IngestionComplete($input: ModelIngestionSuccessInput!) {
+              data: projectMutations {
+                data: modelIngestionMutations {
+                  data: completeWithVersion(input: $input) {
+                    data:statusData {
+                      ... on ModelIngestionSuccessStatus {
+                        versionId
                       }
                     }
                   }
                 }
               }
             }
-            """
-        )
-
-        variables = {
-            "modelId": model_id,
-            "projectId": project_id,
-        }
-
-        return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[ResourceCollection[Ingestion]]]],
-            QUERY,
-            variables,
-        ).data.data.data
-
-    def update(self, input: IngestUpdateInput) -> bool:
-        QUERY = gql(
-            """
-            mutation IngestUpdate($projectId: ID!, $input: IngestUpdateInput!) {
-              data: projectMutations {
-                data: ingestMutations(projectId: $projectId) {
-                  data: update(input: $input)
-                }
-              }
-            }
-            """
+           """
         )
 
         variables = {
             "input": input.model_dump(warnings="error", by_alias=True),
-            "projectId": input.project_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[bool]]],
+            DataResponse[DataResponse[DataResponse[DataResponse[str]]]],
             QUERY,
             variables,
-        ).data.data.data
+        ).data.data.data.data
 
-    def create(self, input: IngestCreateInput) -> Ingestion:
+    def fail_with_error(self, input: ModelIngestionFailedInput) -> ModelIngestion:
         QUERY = gql(
             """
-            mutation IngestCreate($projectId: ID!, $input: IngestCreateInput!) {
+            mutation IngestionFailWithError($input: ModelIngestionFailedInput!) {
               data: projectMutations {
-                data:ingestMutations(projectId: $projectId) {
-                  data:create(input: $input)  {
-                    createdAt
-                    errorReason
-                    errorStacktrace
-                    fileName
+                data: IngestionFailWithError {
+                  data: failWithError(input: $input) {
                     id
-                    maxIdleTimeoutMinutes
-                    modelId
-                    performanceData
-                    progress
-                    progressMessage
-                    projectId
-                    sourceApplication
-                    sourceApplicationVersion
-                    sourceFileData
-                    status
+                    createdAt
                     updatedAt
-                    versionId
-                    user {
-                      avatar
-                      bio
-                      company
-                      id
-                      name
-                      role
-                      verified
-                    }
                   }
                 }
               }
             }
-            """
+           """
         )
 
         variables = {
             "input": input.model_dump(warnings="error", by_alias=True),
-            "projectId": input.project_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[Ingestion]]],
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]],
             QUERY,
             variables,
         ).data.data.data
 
-    def end(self, input: IngestFinishInput) -> Version:
+    def fail_with_cancelled(
+        self, input: ModelIngestionCancelledInput
+    ) -> ModelIngestion:
         QUERY = gql(
             """
-            mutation IngestEnd($projectId: ID!, $input: IngestFinishInput!) {
+            mutation IngestionFailWithCancel($input: ModelIngestionCancelledInput!) {
               data: projectMutations {
-                data:ingestMutations(projectId: $projectId) {
-                  data:end(input: $input) {
+                data: modelIngestionMutations {
+                  data: failWithCancel(input: $input) {
                     id
-                    referencedObject
-                    message
-                    sourceApplication
                     createdAt
-                    previewUrl
-                    authorUser {
-                      id
-                      name
-                      bio
-                      company
-                      verified
-                      role
-                      avatar
-                    }
+                    updatedAt
                   }
                 }
               }
             }
-            """
+           """
         )
 
         variables = {
             "input": input.model_dump(warnings="error", by_alias=True),
-            "projectId": input.project_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[Version]]],
-            QUERY,
-            variables,
-        ).data.data.data
-
-    def error(self, input: IngestErrorInput) -> bool:
-        QUERY = gql(
-            """
-            mutation IngestError($projectId: ID!, $input: IngestErrorInput!) {
-              data: projectMutations {
-                data:ingestMutations(projectId: $projectId) {
-                  data:error(input: $input)
-                }
-              }
-            }
-            """
-        )
-
-        variables = {
-            "input": input.model_dump(warnings="error", by_alias=True),
-            "projectId": input.project_id,
-        }
-
-        return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[bool]]],
-            QUERY,
-            variables,
-        ).data.data.data
-
-    def cancel(self, input: CancelRequestInput) -> bool:
-        QUERY = gql(
-            """
-            mutation IngestCancel($projectId: ID!, $input: CancelRequestInput!) {
-              data:projectMutations {
-                data:ingestMutations(projectId: $projectId) {
-                  data:cancel(input: $input)
-                }
-              }
-            }
-            """
-        )
-
-        variables = {
-            "input": input.model_dump(warnings="error", by_alias=True),
-            "projectId": input.project_id,
-        }
-
-        return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[bool]]],
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]],
             QUERY,
             variables,
         ).data.data.data

@@ -1,39 +1,53 @@
-from typing import Any
-
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 
 
-class IngestCreateInput(GraphQLBaseModel):
-    file_name: str
-    max_idle_timeout_minutes: int | None
+class SourceDataInput(GraphQLBaseModel):
+    source_application_slug: str
+    source_application_version: str
+    file_name: str | None
+    file_size_bytes: int | None
+
+
+class ModelIngestionCreateInput(GraphQLBaseModel):
     model_id: str
     project_id: str
-    source_application: str
-    source_application_version: str
-    source_file_data: dict[str, Any]
+    progress_message: str
+    source_data: SourceDataInput
 
 
-class IngestFinishInput(GraphQLBaseModel):
-    id: str
-    message: str | None
-    object_id: str
+class ModelIngestionUpdateInput(GraphQLBaseModel):
+    ingestion_id: str
     project_id: str
-
-
-class IngestErrorInput(GraphQLBaseModel):
-    id: str
-    error_reason: str | None
-    error_stacktrace: str
-    project_id: str
-
-
-class CancelRequestInput(GraphQLBaseModel):
-    id: str
-    project_id: str
-
-
-class IngestUpdateInput(GraphQLBaseModel):
-    id: str
     progress: float | None
     progress_message: str
+
+
+class ModelIngestionSuccessInput(GraphQLBaseModel):
+    ingestion_id: str
     project_id: str
+    root_object_id: str
+
+
+class ModelIngestionFailedInput(GraphQLBaseModel):
+    ingestion_id: str
+    project_id: str
+    error_reason: str
+    error_stack_trace: str | None
+
+    @staticmethod
+    def from_exception(
+        ingestion_id: str, project_id: str, exception: Exception, message: str | None
+    ) -> "ModelIngestionFailedInput":
+        """test"""
+        return ModelIngestionFailedInput(
+            ingestion_id=ingestion_id,
+            project_id=project_id,
+            error_reason=message if message else str(exception),
+            error_stack_trace=str(exception),
+        )
+
+
+class ModelIngestionCancelledInput(GraphQLBaseModel):
+    ingestion_id: str
+    project_id: str
+    cancellation_message: str

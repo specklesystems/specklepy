@@ -1,14 +1,12 @@
 from specklepy.core.api.inputs.ingestion_inputs import (
-    CancelRequestInput,
-    IngestCreateInput,
-    IngestErrorInput,
-    IngestFinishInput,
-    IngestUpdateInput,
+    ModelIngestionCancelledInput,
+    ModelIngestionCreateInput,
+    ModelIngestionFailedInput,
+    ModelIngestionSuccessInput,
+    ModelIngestionUpdateInput,
 )
 from specklepy.core.api.models.current import (
-    Ingestion,
-    ResourceCollection,
-    Version,
+    ModelIngestion,
 )
 from specklepy.core.api.resources import (
     IngestionResource as CoreResource,
@@ -22,28 +20,24 @@ class IngestionResource(CoreResource):
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(account, basepath, client, server_version)
 
-    def get_ingestions(
-        self, model_id: str, project_id: str
-    ) -> ResourceCollection[Ingestion]:
-        metrics.track(metrics.SDK, self.account, {"name": "Ingestion Get Ingestions"})
-        return super().get_ingestions(model_id, project_id)
-
-    def update(self, input: IngestUpdateInput) -> bool:
-        metrics.track(metrics.SDK, self.account, {"name": "Ingestion Update"})
-        return super().update(input)
-
-    def create(self, input: IngestCreateInput) -> Ingestion:
+    def create(self, input: ModelIngestionCreateInput) -> ModelIngestion:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Create"})
         return super().create(input)
 
-    def end(self, input: IngestFinishInput) -> Version:
+    def update_progress(self, input: ModelIngestionUpdateInput) -> ModelIngestion:
+        metrics.track(metrics.SDK, self.account, {"name": "Ingestion Update"})
+        return super().update_progress(input)
+
+    def complete_successfully(self, input: ModelIngestionSuccessInput) -> str:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion End"})
-        return super().end(input)
+        return super().complete(input)
 
-    def error(self, input: IngestErrorInput) -> bool:
+    def complete_failed(self, input: ModelIngestionFailedInput) -> ModelIngestion:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Error"})
-        return super().error(input)
+        return super().fail_with_error(input)
 
-    def cancel(self, input: CancelRequestInput) -> bool:
+    def fail_with_cancelled(
+        self, input: ModelIngestionCancelledInput
+    ) -> ModelIngestion:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Cancel"})
-        return super().cancel(input)
+        return super().fail_with_cancelled(input)
