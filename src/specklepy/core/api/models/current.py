@@ -250,4 +250,3 @@ class ModelIngestion(GraphQLBaseModel):
     id: str
     created_at: datetime
     updated_at: datetime
-    # user: LimitedUser  # IPOC: check with gergo

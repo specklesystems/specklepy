@@ -210,14 +210,14 @@ class SubscriptionResource(ResourceBase):
     ) -> None:
         QUERY = gql(
             """
-            subscription($projectId: ID!){
-              data:projectModelIngestionCancellationRequested(projectId: $projectId) {
+            subscription IngestionCancellationRequested($projectId: ID!, $ingestionId: ID!){
+              data:projectModelIngestionCancellationRequested(projectId: $projectId, ingestionId: $ingestionId) {
                 id
                 createdAt
                 updatedAt
               }
             }
-            """
+            """  # noqa: E501
         )
 
         variables = {"projectId": projectId}

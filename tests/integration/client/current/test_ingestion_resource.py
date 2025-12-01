@@ -1,7 +1,7 @@
 import pytest
 
 from specklepy.api import operations
-from specklepy.api.client import SpeckleClient  # todo: change to non-core
+from specklepy.api.client import SpeckleClient
 from specklepy.core.api.inputs.ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
@@ -63,7 +63,7 @@ class TestIngestionResource:
     ):
         input = ModelIngestionFailedInput(
             ingestion_id=ingestion.id,
-            project_id=project.id,  # TODO: Check with Gergo
+            project_id=project.id,
             error_reason="Failed to integration test an error",
             error_stack_trace="over here in test_error",
         )
