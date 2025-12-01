@@ -7,6 +7,7 @@ from specklepy.core.api.inputs.ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
     ModelIngestionFailedInput,
+    ModelIngestionRequestCancellationInput,
     ModelIngestionSuccessInput,
     ModelIngestionUpdateInput,
 )
@@ -90,6 +91,19 @@ class IngestionResource(ResourceBase):
         ).data.data.data
 
     def complete(self, input: ModelIngestionSuccessInput) -> str:
+        """
+        Request that the server completes the ingestion by creating a version
+        If successful, the job will be in a terminal "successful" state.
+
+        For failed Ingestions, use `fail_with_error` instead
+        For user cancellation, use `fail_with_cancelled` instead
+
+        Arguments:
+            input {ModelIngestionSuccessInput} -- input variable
+
+        Returns:
+            str -- the id of the version that was just created to complete the ingestion
+        """
         QUERY = gql(
             """
             mutation IngestionComplete($input: ModelIngestionSuccessInput!) {
@@ -119,6 +133,10 @@ class IngestionResource(ResourceBase):
         ).data.data.data.data
 
     def fail_with_error(self, input: ModelIngestionFailedInput) -> ModelIngestion:
+        """
+        Fail the job with an error.
+        For user cancellation, use `fail_with_cancelled` instead
+        """
         QUERY = gql(
             """
             mutation IngestionFailWithError($input: ModelIngestionFailedInput!) {
@@ -145,9 +163,12 @@ class IngestionResource(ResourceBase):
             variables,
         ).data.data.data
 
-    def fail_with_cancelled(
-        self, input: ModelIngestionCancelledInput
-    ) -> ModelIngestion:
+    def fail_with_cancel(self, input: ModelIngestionCancelledInput) -> ModelIngestion:
+        """
+        Fail the job with a `cancelled` status.
+        This should only done if the user has explicitly requested cancellation
+        Other forms of cancellation see `fail_with_error`
+        """
         QUERY = gql(
             """
             mutation IngestionFailWithCancel($input: ModelIngestionCancelledInput!) {
@@ -162,6 +183,44 @@ class IngestionResource(ResourceBase):
               }
             }
            """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]],
+            QUERY,
+            variables,
+        ).data.data.data
+
+    def request_cancellation(
+        self, input: ModelIngestionRequestCancellationInput
+    ) -> ModelIngestion:
+        """
+        Request that the ingestion is cancelled.
+
+        Note it's up to the client to observe this cancellation request
+        (via `subscription.project_model_ingestion_cancellation_requested`)
+        and report it as cancelled via `ingestion.fail_with_cancelled`.
+
+        See "cooperative cancellation pattern"
+        """
+        QUERY = gql(
+            """
+            mutation IngestionRequestCancellation($input: ModelIngestionRequestCancellationInput!) {
+              data: projectMutations {
+                data: modelIngestionMutations {
+                  data: requestCancellation (input: $input) {
+                    id
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+            }
+           """  # noqa: E501
         )
 
         variables = {

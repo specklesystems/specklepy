@@ -11,6 +11,11 @@ from specklepy.core.api.enums import (
     ProjectVersionsUpdatedMessageType,
     UserProjectsUpdatedMessageType,
 )
+from specklepy.core.api.inputs.ingestion_inputs import (
+    ModelIngestionCreateInput,
+    ModelIngestionRequestCancellationInput,
+    SourceDataInput,
+)
 from specklepy.core.api.inputs.model_inputs import CreateModelInput
 from specklepy.core.api.inputs.project_inputs import (
     ProjectCreateInput,
@@ -25,6 +30,7 @@ from specklepy.core.api.models import (
     UserProjectsUpdatedMessage,
     Version,
 )
+from specklepy.core.api.models.current import ModelIngestion
 from tests.integration.conftest import create_client, create_version
 
 # WSL is slow AF, so for local runs, we're being extra generous
@@ -59,6 +65,28 @@ class TestSubscriptionResource:
         )
         return model1
 
+    @pytest.fixture
+    def test_model_ingestion(
+        self,
+        subscription_client: SpeckleClient,
+        test_project: Project,
+        test_model: Model,
+    ) -> ModelIngestion:
+        project = subscription_client.ingestion.create(
+            ModelIngestionCreateInput(
+                project_id=test_project.id,
+                model_id=test_model.id,
+                progress_message="",
+                source_data=SourceDataInput(
+                    source_application_slug="pytest",
+                    source_application_version="0.0.0",
+                    file_name=None,
+                    file_size_bytes=None,
+                ),
+            )
+        )
+        return project
+
     @pytest.mark.asyncio
     async def test_user_projects_updated(
         self,
@@ -66,8 +94,6 @@ class TestSubscriptionResource:
     ) -> None:
         loop = asyncio.get_running_loop()
         future: asyncio.Future[UserProjectsUpdatedMessage] = loop.create_future()
-
-        task = None
 
         def callback(d: UserProjectsUpdatedMessage):
             nonlocal future
@@ -97,7 +123,6 @@ class TestSubscriptionResource:
     ) -> None:
         loop = asyncio.get_running_loop()
         future: asyncio.Future[ProjectModelsUpdatedMessage] = loop.create_future()
-        task = None
 
         def callback(d: ProjectModelsUpdatedMessage):
             nonlocal future
@@ -131,7 +156,6 @@ class TestSubscriptionResource:
     ) -> None:
         loop = asyncio.get_running_loop()
         future: asyncio.Future[ProjectUpdatedMessage] = loop.create_future()
-        task = None
 
         def callback(d: ProjectUpdatedMessage):
             nonlocal future
@@ -167,8 +191,6 @@ class TestSubscriptionResource:
         loop = asyncio.get_running_loop()
         future: asyncio.Future[ProjectVersionsUpdatedMessage] = loop.create_future()
 
-        task = None
-
         def callback(d: ProjectVersionsUpdatedMessage):
             nonlocal future
             future.set_result(d)
@@ -182,6 +204,46 @@ class TestSubscriptionResource:
         await asyncio.sleep(SETUP_TIME_SECONDS)  # Give time to subscription to be setup
 
         created = create_version(subscription_client, test_project.id, test_model.id)
+
+        message = await asyncio.wait_for(future, timeout=MAX_WAIT_TIME_SECONDS)
+
+        assert isinstance(message, ProjectVersionsUpdatedMessage)
+        assert message.id == created.id
+        assert message.type == ProjectVersionsUpdatedMessageType.CREATED
+        assert isinstance(message.version, Version)
+        task.cancel()
+        await task
+
+    @pytest.mark.asyncio
+    async def test_project_model_ingestion_cancellation(
+        self,
+        subscription_client: SpeckleClient,
+        test_project: Project,
+        test_ingestion: Model,
+    ) -> None:
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[ModelIngestion] = loop.create_future()
+
+        def callback(d: ModelIngestion):
+            nonlocal future
+            future.set_result(d)
+
+        task = asyncio.create_task(
+            subscription_client.subscription.project_model_ingestion_cancellation_requested(
+                callback, test_project.id
+            )
+        )
+
+        await asyncio.sleep(SETUP_TIME_SECONDS)  # Give time to subscription to be setup
+
+        cancellation_request = ModelIngestionRequestCancellationInput(
+            ingestion_id=test_ingestion.id,
+            project_id=test_project.id,
+            cancellation_message="Please cancel",
+        )
+        created = subscription_client.ingestion.request_cancellation(
+            cancellation_request
+        )
 
         message = await asyncio.wait_for(future, timeout=MAX_WAIT_TIME_SECONDS)
 

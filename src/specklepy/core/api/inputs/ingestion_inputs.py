@@ -51,3 +51,9 @@ class ModelIngestionCancelledInput(GraphQLBaseModel):
     ingestion_id: str
     project_id: str
     cancellation_message: str
+
+
+class ModelIngestionRequestCancellationInput(GraphQLBaseModel):
+    ingestion_id: str
+    project_id: str
+    cancellation_message: str

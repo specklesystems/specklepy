@@ -36,8 +36,6 @@ class IngestionResource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Error"})
         return super().fail_with_error(input)
 
-    def fail_with_cancelled(
-        self, input: ModelIngestionCancelledInput
-    ) -> ModelIngestion:
+    def fail_with_cancel(self, input: ModelIngestionCancelledInput) -> ModelIngestion:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Cancel"})
-        return super().fail_with_cancelled(input)
+        return super().fail_with_cancel(input)

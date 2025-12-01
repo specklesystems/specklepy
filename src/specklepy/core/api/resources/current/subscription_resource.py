@@ -12,6 +12,7 @@ from specklepy.core.api.models import (
     ProjectVersionsUpdatedMessage,
     UserProjectsUpdatedMessage,
 )
+from specklepy.core.api.models.current import ModelIngestion
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
@@ -197,6 +198,32 @@ class SubscriptionResource(ResourceBase):
 
         await self.subscribe_2(
             DataResponse[ProjectVersionsUpdatedMessage],
+            QUERY,
+            variables,
+            callback=lambda d: callback(d.data),
+        )
+
+    async def project_model_ingestion_cancellation_requested(
+        self,
+        callback: Callable[[ModelIngestion], None],
+        projectId: str,
+    ) -> None:
+        QUERY = gql(
+            """
+            subscription($projectId: ID!){
+              data:projectModelIngestionCancellationRequested(projectId: $projectId) {
+                id
+                createdAt
+                updatedAt
+              }
+            }
+            """
+        )
+
+        variables = {"projectId": projectId}
+
+        await self.subscribe_2(
+            DataResponse[ModelIngestion],
             QUERY,
             variables,
             callback=lambda d: callback(d.data),
