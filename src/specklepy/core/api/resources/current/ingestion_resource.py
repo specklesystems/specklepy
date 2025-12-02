@@ -246,6 +246,8 @@ class IngestionResource(ResourceBase):
                     id
                     createdAt
                     updatedAt
+                    modelId
+                    cancellationRequested
                     statusData {
                       ... on HasModelIngestionStatus {
                         status
