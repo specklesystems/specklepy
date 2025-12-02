@@ -38,6 +38,43 @@ class IngestionResource(ResourceBase):
             server_version=server_version,
         )
 
+    def get_ingestion(self, project_id: str, model_id: str) -> ModelIngestion:
+        QUERY = gql(
+            """
+            query Query($projectId: String!, $modelId: String!) {
+              data:project(id: $projectId) {
+                data:model(id: $modelId) {
+                  data:ingestion {
+                    id
+                    createdAt
+                    modelId
+                    cancellationRequested
+                    statusData {
+                      ... on HasModelIngestionStatus {
+                        status
+                      }
+                      ... on HasProgressMessage {
+                        progressMessage
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """  # noqa: E501
+        )
+
+        variables = {
+            "projectId": project_id,
+            "modelId": model_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]],
+            QUERY,
+            variables,
+        ).data.data.data
+
     def create(self, input: ModelIngestionCreateInput) -> ModelIngestion:
         QUERY = gql(
             """
@@ -48,6 +85,16 @@ class IngestionResource(ResourceBase):
                     id
                     createdAt
                     updatedAt
+                    modelId
+                    cancellationRequested
+                    statusData {
+                      ... on HasModelIngestionStatus {
+                        status
+                      }
+                      ... on HasProgressMessage {
+                        progressMessage
+                      }
+                    }
                   }
                 }
               }
@@ -75,6 +122,16 @@ class IngestionResource(ResourceBase):
                     id
                     createdAt
                     updatedAt
+                    modelId
+                    cancellationRequested
+                    statusData {
+                      ... on HasModelIngestionStatus {
+                        status
+                      }
+                      ... on HasProgressMessage {
+                        progressMessage
+                      }
+                    }
                   }
                 }
               }
@@ -112,7 +169,7 @@ class IngestionResource(ResourceBase):
                   data: completeWithVersion(input: $input) {
                     data:statusData {
                       ... on ModelIngestionSuccessStatus {
-                        versionId
+                        data:versionId
                       }
                     }
                   }
@@ -127,30 +184,40 @@ class IngestionResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[DataResponse[str]]]],
+            DataResponse[DataResponse[DataResponse[DataResponse[DataResponse[str]]]]],
             QUERY,
             variables,
-        ).data.data.data.data
+        ).data.data.data.data.data
 
     def fail_with_error(self, input: ModelIngestionFailedInput) -> ModelIngestion:
         """
         Fail the job with an error.
-        For user cancellation, use `fail_with_cancelled` instead
+        For user requested cancellation, use `fail_with_cancelled` instead
         """
         QUERY = gql(
             """
             mutation IngestionFailWithError($input: ModelIngestionFailedInput!) {
               data: projectMutations {
-                data: IngestionFailWithError {
+                data: modelIngestionMutations {
                   data: failWithError(input: $input) {
                     id
                     createdAt
                     updatedAt
+                    modelId
+                    cancellationRequested
+                    statusData {
+                      ... on HasModelIngestionStatus {
+                        status
+                      }
+                      ... on HasProgressMessage {
+                        progressMessage
+                      }
+                    }
                   }
                 }
               }
             }
-           """
+            """
         )
 
         variables = {
@@ -165,9 +232,10 @@ class IngestionResource(ResourceBase):
 
     def fail_with_cancel(self, input: ModelIngestionCancelledInput) -> ModelIngestion:
         """
-        Fail the job with a `cancelled` status.
-        This should only done if the user has explicitly requested cancellation
-        Other forms of cancellation see `fail_with_error`
+        Fail the ingestion with a `cancelled` status.
+        This should only be done if the user has explicitly requested cancellation
+        Other forms of cancellation use `fail_with_error`
+        The ingestion should then enter a terminal "canceled" state
         """
         QUERY = gql(
             """
@@ -178,11 +246,19 @@ class IngestionResource(ResourceBase):
                     id
                     createdAt
                     updatedAt
+                    statusData {
+                      ... on HasModelIngestionStatus {
+                        status
+                      }
+                      ... on HasProgressMessage {
+                        progressMessage
+                      }
+                    }
                   }
                 }
               }
             }
-           """
+            """
         )
 
         variables = {
@@ -199,11 +275,13 @@ class IngestionResource(ResourceBase):
         self, input: ModelIngestionRequestCancellationInput
     ) -> ModelIngestion:
         """
-        Request that the ingestion is cancelled.
+        Request that the ingestion is canceled.
 
-        Note it's up to the client to observe this cancellation request
-        (via `subscription.project_model_ingestion_cancellation_requested`)
-        and report it as cancelled via `ingestion.fail_with_cancelled`.
+        Note: simply calling this mutation does not imediatly cancel,
+        it doesn't even guarantee it will be canceled at all.
+        It's up to the client to observe this cancellation request
+        via `subscription.project_model_ingestion_cancellation_requested`
+        and report it as cancelled (via `ingestion.fail_with_cancel`
 
         See "cooperative cancellation pattern"
         """
@@ -216,11 +294,21 @@ class IngestionResource(ResourceBase):
                     id
                     createdAt
                     updatedAt
+                    modelId
+                    cancellationRequested
+                    statusData {
+                      ... on HasModelIngestionStatus {
+                        status
+                      }
+                      ... on HasProgressMessage {
+                        progressMessage
+                      }
+                    }
                   }
                 }
               }
             }
-           """  # noqa: E501
+            """  # noqa: E501
         )
 
         variables = {

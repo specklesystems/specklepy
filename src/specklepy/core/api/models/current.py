@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Generic, List, TypeVar
 
-from specklepy.core.api.enums import ProjectVisibility
+from specklepy.core.api.enums import ModelIngestionStatus, ProjectVisibility
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 from specklepy.logging.exceptions import WorkspacePermissionException
 
@@ -246,7 +246,15 @@ class FileUploadUrl(GraphQLBaseModel):
     file_id: str
 
 
+class ModelIngestionStatusData(GraphQLBaseModel):
+    status: ModelIngestionStatus
+    progress_message: str | None = None
+
+
 class ModelIngestion(GraphQLBaseModel):
     id: str
     created_at: datetime
     updated_at: datetime
+    cancellation_requested: bool
+    model_id: str
+    status_data: ModelIngestionStatusData

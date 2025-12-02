@@ -1,3 +1,4 @@
+from specklepy.core.api.enums import ProjectModelIngestionUpdatedMessageType
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 
 
@@ -32,7 +33,7 @@ class ModelIngestionFailedInput(GraphQLBaseModel):
     ingestion_id: str
     project_id: str
     error_reason: str
-    error_stack_trace: str | None
+    error_stacktrace: str | None
 
     @staticmethod
     def from_exception(
@@ -43,7 +44,7 @@ class ModelIngestionFailedInput(GraphQLBaseModel):
             ingestion_id=ingestion_id,
             project_id=project_id,
             error_reason=message if message else str(exception),
-            error_stack_trace=str(exception),
+            error_stacktrace=str(exception),
         )
 
 
@@ -57,3 +58,18 @@ class ModelIngestionRequestCancellationInput(GraphQLBaseModel):
     ingestion_id: str
     project_id: str
     cancellation_message: str
+
+
+class ModelIngestionReference(GraphQLBaseModel):
+    """
+    `@oneOf` i.e. server expects **either** `ingestion_id` or `model_id`, but not both.
+    """
+
+    ingestion_id: str | None
+    model_id: str | None
+
+
+class ProjectModelIngestionSubscriptionInput(GraphQLBaseModel):
+    project_id: str
+    ingestion_reference: ModelIngestionReference
+    message_type: ProjectModelIngestionUpdatedMessageType

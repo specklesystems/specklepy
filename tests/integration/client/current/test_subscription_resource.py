@@ -6,6 +6,8 @@ import pytest
 
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.enums import (
+    ModelIngestionStatus,
+    ProjectModelIngestionUpdatedMessageType,
     ProjectModelsUpdatedMessageType,
     ProjectUpdatedMessageType,
     ProjectVersionsUpdatedMessageType,
@@ -31,6 +33,9 @@ from specklepy.core.api.models import (
     Version,
 )
 from specklepy.core.api.models.current import ModelIngestion
+from specklepy.core.api.models.subscription_messages import (
+    ProjectModelIngestionUpdatedMessage,
+)
 from tests.integration.conftest import create_client, create_version
 
 # WSL is slow AF, so for local runs, we're being extra generous
@@ -219,37 +224,48 @@ class TestSubscriptionResource:
         self,
         subscription_client: SpeckleClient,
         test_project: Project,
-        test_ingestion: Model,
+        test_model_ingestion: ModelIngestion,
     ) -> None:
-        loop = asyncio.get_running_loop()
-        future: asyncio.Future[ModelIngestion] = loop.create_future()
+        assert not test_model_ingestion.cancellation_requested
 
-        def callback(d: ModelIngestion):
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[ProjectModelIngestionUpdatedMessage] = (
+            loop.create_future()
+        )
+
+        def callback(d: ProjectModelIngestionUpdatedMessage):
             nonlocal future
             future.set_result(d)
 
         task = asyncio.create_task(
             subscription_client.subscription.project_model_ingestion_cancellation_requested(
-                callback, test_project.id
+                callback, test_project.id, ingestion_id=test_model_ingestion.id
             )
         )
 
         await asyncio.sleep(SETUP_TIME_SECONDS)  # Give time to subscription to be setup
 
         cancellation_request = ModelIngestionRequestCancellationInput(
-            ingestion_id=test_ingestion.id,
+            ingestion_id=test_model_ingestion.id,
             project_id=test_project.id,
             cancellation_message="Please cancel",
         )
         created = subscription_client.ingestion.request_cancellation(
             cancellation_request
         )
+        assert created.id == test_model_ingestion.id
+        assert created.cancellation_requested
+        assert created.status_data.status == ModelIngestionStatus.PROCESSING
 
         message = await asyncio.wait_for(future, timeout=MAX_WAIT_TIME_SECONDS)
 
-        assert isinstance(message, ProjectVersionsUpdatedMessage)
-        assert message.id == created.id
-        assert message.type == ProjectVersionsUpdatedMessageType.CREATED
-        assert isinstance(message.version, Version)
+        assert isinstance(message, ProjectModelIngestionUpdatedMessage)
+        assert message.model_ingestion == created.id
+        assert message.model_ingestion.cancellation_requested
+        assert (
+            message.type
+            == ProjectModelIngestionUpdatedMessageType.CANCELLATION_REQUESTED
+        )
+        assert created.status_data.status == ModelIngestionStatus.PROCESSING
         task.cancel()
         await task
