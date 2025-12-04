@@ -2,6 +2,8 @@ from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
     ModelIngestionFailedInput,
+    ModelIngestionRequeueInput,
+    ModelIngestionStartProcessingInput,
     ModelIngestionSuccessInput,
     ModelIngestionUpdateInput,
 )
@@ -27,6 +29,16 @@ class ModelIngestionResource(CoreResource):
     def update_progress(self, input: ModelIngestionUpdateInput) -> ModelIngestion:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Update"})
         return super().update_progress(input)
+
+    def start_processing(
+        self, input: ModelIngestionStartProcessingInput
+    ) -> ModelIngestion:
+        metrics.track(metrics.SDK, self.account, {"name": "Ingestion Start Processing"})
+        return super().start_processing(input)
+
+    def requeue(self, input: ModelIngestionRequeueInput) -> ModelIngestion:
+        metrics.track(metrics.SDK, self.account, {"name": "Ingestion Update"})
+        return super().requeue(input)
 
     def complete_successfully(self, input: ModelIngestionSuccessInput) -> str:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion End"})

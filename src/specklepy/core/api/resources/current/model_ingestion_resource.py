@@ -8,6 +8,8 @@ from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionCreateInput,
     ModelIngestionFailedInput,
     ModelIngestionRequestCancellationInput,
+    ModelIngestionRequeueInput,
+    ModelIngestionStartProcessingInput,
     ModelIngestionSuccessInput,
     ModelIngestionUpdateInput,
 )
@@ -100,6 +102,78 @@ class ModelIngestionResource(ResourceBase):
               }
             }
            """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
+        ).data.data.data
+
+    def start_processing(
+        self, input: ModelIngestionStartProcessingInput
+    ) -> ModelIngestion:
+        QUERY = gql(
+            """
+            mutation IngestionStartProcessing($input: ModelIngestionStartProcessingInput!) {
+              data: projectMutations {
+                data: modelIngestionMutations {
+                  data: startProcessing(input: $input) {
+                    id
+                    createdAt
+                    updatedAt
+                    modelId
+                    cancellationRequested
+                    statusData {
+                      ... on HasModelIngestionStatus {
+                        status
+                      }
+                      ... on HasProgressMessage {
+                        progressMessage
+                      }
+                    }
+                  }
+                }
+              }
+            }
+           """  # noqa: E501
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
+        ).data.data.data
+
+    def requeue(self, input: ModelIngestionRequeueInput) -> ModelIngestion:
+        QUERY = gql(
+            """
+            mutation IngestionRequeue($input: ModelIngestionRequeueInput!) {
+              data: projectMutations {
+                data: modelIngestionMutations {
+                  data: requeue(input: $input) {
+                    id
+                    createdAt
+                    updatedAt
+                    modelId
+                    cancellationRequested
+                    statusData {
+                      ... on HasModelIngestionStatus {
+                        status
+                      }
+                      ... on HasProgressMessage {
+                        progressMessage
+                      }
+                    }
+                  }
+                }
+              }
+            }
+           """  # noqa: E501
         )
 
         variables = {
@@ -279,7 +353,7 @@ class ModelIngestionResource(ResourceBase):
         """
         Request that the ingestion is canceled.
 
-        Note: simply calling this mutation does not imediatly cancel,
+        Note: simply calling this mutation does not immediately cancel,
         it doesn't even guarantee it will be canceled at all.
         It's up to the client to observe this cancellation request
         via `subscription.project_model_ingestion_cancellation_requested`

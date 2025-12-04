@@ -1,9 +1,16 @@
+import importlib.metadata
 import time
+from pathlib import Path
 
 from speckleifc.ifc_geometry_processing import open_ifc
 from speckleifc.importer import ImportJob
 from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.inputs.version_inputs import CreateVersionInput
+from specklepy.core.api.inputs.model_ingestion_inputs import (
+    ModelIngestionStartProcessingInput,
+    ModelIngestionSuccessInput,
+    ModelIngestionUpdateInput,
+    SourceDataInput,
+)
 from specklepy.core.api.models.current import Project, Version
 from specklepy.core.api.operations import send
 from specklepy.logging import metrics
@@ -14,11 +21,27 @@ def open_and_convert_file(
     file_path: str,
     project: Project,
     version_message: str | None,
-    model_id: str,
+    model_ingestion_id: str,
     client: SpeckleClient,
 ) -> Version:
     start = time.time()
     very_start = start
+    path = Path(file_path)
+
+    specklepy_version = importlib.metadata.version("specklepy")
+    client.model_ingestion.start_processing(
+        ModelIngestionStartProcessingInput(
+            project_id=project.id,
+            ingestion_id=model_ingestion_id,
+            progress_message="Importing IFC file",
+            source_data=SourceDataInput(
+                file_name=path.name,
+                file_size_bytes=path.stat().st_size,
+                source_application_slug="fileimports-ifc",
+                source_application_version=specklepy_version,
+            ),
+        )
+    )
 
     account = client.account
     server_url = account.serverInfo.url
@@ -27,6 +50,14 @@ def open_and_convert_file(
 
     ifc_file = open_ifc(file_path)  # pyright: ignore[reportUnknownVariableType]
 
+    client.model_ingestion.update_progress(
+        ModelIngestionUpdateInput(
+            project_id=project.id,
+            ingestion_id=model_ingestion_id,
+            progress_message="File validated, converting",
+            progress=None,
+        )
+    )
     import_job = ImportJob(ifc_file)  # pyright: ignore[reportUnknownArgumentType]
     data = import_job.convert()
 
@@ -34,19 +65,30 @@ def open_and_convert_file(
 
     start = time.time()
 
+    client.model_ingestion.update_progress(
+        ModelIngestionUpdateInput(
+            project_id=project.id,
+            ingestion_id=model_ingestion_id,
+            progress_message="Conversion complete, sending",
+            progress=None,
+        )
+    )
     root_id = send(data, transports=[remote_transport], use_default_cache=False)
     print(f"Sending to speckle complete after: {(time.time() - start) * 1000}ms")
 
     start = time.time()
 
-    create_version = CreateVersionInput(
-        object_id=root_id,
-        model_id=model_id,
-        project_id=project.id,
-        message=version_message,
-        source_application="ifc",
+    version_id = client.model_ingestion.complete(
+        ModelIngestionSuccessInput(
+            project_id=project.id,
+            ingestion_id=model_ingestion_id,
+            root_object_id=root_id,
+        )
     )
-    version = client.version.create(create_version)
+
+    # needed to query version until ingestion api expands to serve it
+    version = client.version.get(version_id, project.id)
+
     end = time.time()
     print(f"Version committed after: {(end - start) * 1000}ms")
 

@@ -16,6 +16,19 @@ class ModelIngestionCreateInput(GraphQLBaseModel):
     source_data: SourceDataInput
 
 
+class ModelIngestionStartProcessingInput(GraphQLBaseModel):
+    ingestion_id: str
+    project_id: str
+    progress_message: str
+    source_data: SourceDataInput
+
+
+class ModelIngestionRequeueInput(GraphQLBaseModel):
+    ingestion_id: str
+    project_id: str
+    progress_message: str
+
+
 class ModelIngestionUpdateInput(GraphQLBaseModel):
     ingestion_id: str
     project_id: str

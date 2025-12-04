@@ -9,6 +9,8 @@ from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
     ModelIngestionFailedInput,
+    ModelIngestionRequeueInput,
+    ModelIngestionStartProcessingInput,
     ModelIngestionSuccessInput,
     ModelIngestionUpdateInput,
     SourceDataInput,
@@ -80,6 +82,70 @@ class TestIngestionResource:
     def test_update_progress(
         self, client: SpeckleClient, ingestion: ModelIngestion, project: Project
     ):
+        def update(progress: float | None, message: str):
+            input = ModelIngestionUpdateInput(
+                ingestion_id=ingestion.id,
+                project_id=project.id,
+                progress=progress,
+                progress_message=message,
+            )
+            res = client.model_ingestion.update_progress(input)
+
+            assert isinstance(res, ModelIngestion)
+            assert res.status_data.progress_message == message
+            assert not res.cancellation_requested
+            assert res.status_data.status == ModelIngestionStatus.PROCESSING
+
+        update(None, "None")
+        update(0.1, "0.1")
+        update(0.5, "Whoa-oh! We're half way there!")
+        update(1, "Finished")
+        update(0.2, "Back to processing again")
+
+    def test_start_processing_and_requeue(
+        self, client: SpeckleClient, ingestion: ModelIngestion, project: Project
+    ):
+        # just setting the baseline state
+        assert ingestion.status_data.status == ModelIngestionStatus.PROCESSING
+
+        def requeue(message: str):
+            input = ModelIngestionRequeueInput(
+                project_id=project.id,
+                ingestion_id=ingestion.id,
+                progress_message=message,
+            )
+
+            res = client.model_ingestion.requeue(input)
+
+            assert isinstance(res, ModelIngestion)
+            assert res.status_data.progress_message == message
+            assert not res.cancellation_requested
+            assert res.status_data.status == ModelIngestionStatus.QUEUED
+
+        def start_processing(message: str):
+            input = ModelIngestionStartProcessingInput(
+                ingestion_id=ingestion.id,
+                project_id=project.id,
+                progress_message=message,
+                source_data=SourceDataInput(
+                    source_application_slug="test",
+                    source_application_version="test",
+                    file_name="test",
+                    file_size_bytes=1,
+                ),
+            )
+            res = client.model_ingestion.start_processing(input)
+
+            assert isinstance(res, ModelIngestion)
+            assert res.status_data.progress_message == message
+            assert not res.cancellation_requested
+            assert res.status_data.status == ModelIngestionStatus.PROCESSING
+
+        requeue("put it back in there")
+        start_processing("go for it")
+        requeue("and again")
+        start_processing("run forest run")
+
         def update(progress: float | None, message: str):
             input = ModelIngestionUpdateInput(
                 ingestion_id=ingestion.id,
