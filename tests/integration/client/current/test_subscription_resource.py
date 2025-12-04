@@ -13,10 +13,12 @@ from specklepy.core.api.enums import (
     ProjectVersionsUpdatedMessageType,
     UserProjectsUpdatedMessageType,
 )
-from specklepy.core.api.inputs.ingestion_inputs import (
+from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionCreateInput,
+    ModelIngestionReference,
     ModelIngestionRequestCancellationInput,
     ModelIngestionUpdateInput,
+    ProjectModelIngestionSubscriptionInput,
     SourceDataInput,
 )
 from specklepy.core.api.inputs.model_inputs import CreateModelInput
@@ -37,11 +39,11 @@ from specklepy.core.api.models.current import ModelIngestion
 from specklepy.core.api.models.subscription_messages import (
     ProjectModelIngestionUpdatedMessage,
 )
-from tests.integration.conftest import create_client, create_version
+from tests.integration.conftest import create_client, create_version, is_public
 
 # WSL is slow AF, so for local runs, we're being extra generous
 # For CI runs on linux,m a much smaller wait time is acceptable
-SETUP_TIME_SECONDS = 0.5 if platform == "linux" else 4
+SETUP_TIME_SECONDS = 1 if platform == "linux" else 4
 MAX_WAIT_TIME_SECONDS = 0.75 if platform == "linux" else 5
 
 
@@ -78,7 +80,7 @@ class TestSubscriptionResource:
         test_project: Project,
         test_model: Model,
     ) -> ModelIngestion:
-        project = subscription_client.ingestion.create(
+        project = subscription_client.model_ingestion.create(
             ModelIngestionCreateInput(
                 project_id=test_project.id,
                 model_id=test_model.id,
@@ -221,6 +223,9 @@ class TestSubscriptionResource:
         await task
 
     @pytest.mark.asyncio
+    @pytest.mark.skipif(
+        is_public(), reason="The public API does not support these tests"
+    )
     async def test_project_model_ingestion_cancellation(
         self,
         subscription_client: SpeckleClient,
@@ -251,7 +256,7 @@ class TestSubscriptionResource:
             project_id=test_project.id,
             cancellation_message="Please cancel",
         )
-        created = subscription_client.ingestion.request_cancellation(
+        created = subscription_client.model_ingestion.request_cancellation(
             cancellation_request
         )
         assert created.id == test_model_ingestion.id
@@ -272,6 +277,9 @@ class TestSubscriptionResource:
         await task
 
     @pytest.mark.asyncio
+    @pytest.mark.skipif(
+        is_public(), reason="The public API does not support these tests"
+    )
     async def test_project_model_ingestion_cancellation_isnt_triggered_by_updates(
         self,
         subscription_client: SpeckleClient,
@@ -303,20 +311,79 @@ class TestSubscriptionResource:
             progress=None,
             progress_message="this is just an ordinary update",
         )
-        created = subscription_client.ingestion.update_progress(cancellation_request)
+        created = subscription_client.model_ingestion.update_progress(
+            cancellation_request
+        )
         assert created.id == test_model_ingestion.id
-        assert created.cancellation_requested
+        assert not created.cancellation_requested
+        assert created.status_data.status == ModelIngestionStatus.PROCESSING
+
+        await asyncio.sleep(MAX_WAIT_TIME_SECONDS)
+
+        assert (
+            not future.done()
+        )  # make sure the sub did not call back and resolve the future
+
+        task.cancel()
+        await task
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(
+        is_public(), reason="The public API does not support these tests"
+    )
+    async def test_project_model_ingestion_updates(
+        self,
+        subscription_client: SpeckleClient,
+        test_project: Project,
+        test_model_ingestion: ModelIngestion,
+    ) -> None:
+        assert not test_model_ingestion.cancellation_requested
+
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[ProjectModelIngestionUpdatedMessage] = (
+            loop.create_future()
+        )
+
+        def callback(d: ProjectModelIngestionUpdatedMessage):
+            nonlocal future
+            future.set_result(d)
+
+        task = asyncio.create_task(
+            subscription_client.subscription.project_model_ingestion_updated(
+                callback,
+                input=ProjectModelIngestionSubscriptionInput(
+                    project_id=test_project.id,
+                    ingestion_reference=ModelIngestionReference(
+                        ingestion_id=test_model_ingestion.id, model_id=None
+                    ),
+                ),
+                # ingestion_id=test_model_ingestion.id,
+            )
+        )
+
+        await asyncio.sleep(SETUP_TIME_SECONDS)  # Give time to subscription to be setup
+
+        progress_message = "this is just an ordinary update"
+        cancellation_request = ModelIngestionUpdateInput(
+            ingestion_id=test_model_ingestion.id,
+            project_id=test_project.id,
+            progress=None,
+            progress_message=progress_message,
+        )
+        created = subscription_client.model_ingestion.update_progress(
+            cancellation_request
+        )
+        assert created.id == test_model_ingestion.id
+        assert not created.cancellation_requested
         assert created.status_data.status == ModelIngestionStatus.PROCESSING
 
         message = await asyncio.wait_for(future, timeout=MAX_WAIT_TIME_SECONDS)
 
         assert isinstance(message, ProjectModelIngestionUpdatedMessage)
         assert message.model_ingestion.id == created.id
-        assert message.model_ingestion.cancellation_requested
-        assert (
-            message.type
-            == ProjectModelIngestionUpdatedMessageType.CANCELLATION_REQUESTED
-        )
+        assert not message.model_ingestion.cancellation_requested
+        assert message.type == ProjectModelIngestionUpdatedMessageType.UPDATED
+        assert message.model_ingestion.status_data.progress_message == progress_message
         assert created.status_data.status == ModelIngestionStatus.PROCESSING
         task.cancel()
         await task

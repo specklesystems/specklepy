@@ -5,7 +5,7 @@ import pytest
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
 from specklepy.core.api.enums import ModelIngestionStatus
-from specklepy.core.api.inputs.ingestion_inputs import (
+from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
     ModelIngestionFailedInput,
@@ -26,9 +26,11 @@ from specklepy.core.api.models.current import (
 from specklepy.logging.exceptions import GraphQLException
 from specklepy.objects.base import Base
 from specklepy.transports.server.server import ServerTransport
+from tests.integration.conftest import is_public
 
 
 @pytest.mark.run()
+@pytest.mark.skipif(is_public(), reason="The public API does not support these tests")
 class TestIngestionResource:
     @pytest.fixture
     def project(self, client: SpeckleClient):
@@ -60,7 +62,7 @@ class TestIngestionResource:
             ),
         )
 
-        ingestion = client.ingestion.create(input)
+        ingestion = client.model_ingestion.create(input)
         assert isinstance(ingestion, ModelIngestion)
         assert isinstance(ingestion.id, str)
         assert isinstance(ingestion.created_at, datetime)
@@ -85,7 +87,7 @@ class TestIngestionResource:
                 progress=progress,
                 progress_message=message,
             )
-            res = client.ingestion.update_progress(input)
+            res = client.model_ingestion.update_progress(input)
 
             assert isinstance(res, ModelIngestion)
             assert res.status_data.progress_message == message
@@ -108,7 +110,7 @@ class TestIngestionResource:
             error_stacktrace="over here in test_error",
         )
 
-        res = client.ingestion.fail_with_error(input)
+        res = client.model_ingestion.fail_with_error(input)
 
         assert isinstance(res, ModelIngestion)
         assert res.status_data.progress_message is None
@@ -132,7 +134,7 @@ class TestIngestionResource:
             project_id=project.id,
         )
 
-        res = client.ingestion.complete(input)
+        res = client.model_ingestion.complete(input)
 
         assert isinstance(res, str)
         version = client.version.get(res, project.id)
@@ -150,25 +152,17 @@ class TestIngestionResource:
             project_id=project.id,
             cancellation_message="This was cancelled for testing purposes",
         )
-        res = client.ingestion.fail_with_cancel(input)
+        res = client.model_ingestion.fail_with_cancel(input)
         assert isinstance(res, ModelIngestion)
         assert res.status_data.progress_message is None
-        assert res.cancellation_requested
+        assert not res.cancellation_requested
         assert res.status_data.status == ModelIngestionStatus.CANCELLED
 
         # Cancel again, should be idempotent
-        res = client.ingestion.fail_with_cancel(input)
+        res = client.model_ingestion.fail_with_cancel(input)
         assert res.status_data.progress_message is None
-        assert res.cancellation_requested
+        assert not res.cancellation_requested
         assert res.status_data.status == ModelIngestionStatus.CANCELLED
-
-        # trying to fail for a second time should throw
-        # with pytest.raises(GraphQLException):
-        #     _ = client.ingestion.fail_with_cancel(input)
-
-        # # as should trying to complete afterwards
-        # with pytest.raises(GraphQLException):
-        #     self.test_complete(client, ingestion, project)
 
     def test_error_non_existent_ingestion(
         self, client: SpeckleClient, project: Project
@@ -180,7 +174,7 @@ class TestIngestionResource:
             error_stacktrace="over here in test_error",
         )
         with pytest.raises(GraphQLException):
-            _ = client.ingestion.fail_with_error(input)
+            _ = client.model_ingestion.fail_with_error(input)
 
     def test_complete_failed_non_existent_ingestion(
         self, client: SpeckleClient, project: Project
@@ -192,7 +186,7 @@ class TestIngestionResource:
             error_stacktrace="over here in test_error",
         )
         with pytest.raises(GraphQLException):
-            _ = client.ingestion.fail_with_error(input)
+            _ = client.model_ingestion.fail_with_error(input)
 
     def test_complete_non_existent_root_object(
         self, client: SpeckleClient, ingestion: ModelIngestion, project: Project
@@ -203,4 +197,4 @@ class TestIngestionResource:
             project_id=project.id,
         )
         with pytest.raises(GraphQLException):
-            _ = client.ingestion.complete(input)
+            _ = client.model_ingestion.complete(input)

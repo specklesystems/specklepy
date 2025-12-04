@@ -72,4 +72,4 @@ class ModelIngestionReference(GraphQLBaseModel):
 class ProjectModelIngestionSubscriptionInput(GraphQLBaseModel):
     project_id: str
     ingestion_reference: ModelIngestionReference
-    message_type: ProjectModelIngestionUpdatedMessageType
+    message_type: ProjectModelIngestionUpdatedMessageType | None = None

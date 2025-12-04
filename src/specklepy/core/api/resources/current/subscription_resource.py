@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from typing_extensions import TypeVar
 
 from specklepy.core.api.enums import ProjectModelIngestionUpdatedMessageType
-from specklepy.core.api.inputs.ingestion_inputs import (
+from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionReference,
     ProjectModelIngestionSubscriptionInput,
 )

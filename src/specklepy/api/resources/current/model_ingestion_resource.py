@@ -1,4 +1,4 @@
-from specklepy.core.api.inputs.ingestion_inputs import (
+from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
     ModelIngestionFailedInput,
@@ -9,13 +9,13 @@ from specklepy.core.api.models.current import (
     ModelIngestion,
 )
 from specklepy.core.api.resources import (
-    IngestionResource as CoreResource,
+    ModelIngestionResource as CoreResource,
 )
 from specklepy.logging import metrics
 
 
-class IngestionResource(CoreResource):
-    """API Access class for ingestionns"""
+class ModelIngestionResource(CoreResource):
+    """API Access class for model ingestion"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(account, basepath, client, server_version)

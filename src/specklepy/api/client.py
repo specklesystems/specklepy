@@ -4,7 +4,7 @@ from specklepy.api.credentials import Account
 from specklepy.api.resources import (
     ActiveUserResource,
     FileImportResource,
-    IngestionResource,
+    ModelIngestionResource,
     ModelResource,
     OtherUserResource,
     ProjectInviteResource,
@@ -120,7 +120,7 @@ class SpeckleClient(CoreSpeckleClient):
             client=self.httpclient,
             server_version=server_version,
         )
-        self.ingestion = IngestionResource(
+        self.model_ingestion = ModelIngestionResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,

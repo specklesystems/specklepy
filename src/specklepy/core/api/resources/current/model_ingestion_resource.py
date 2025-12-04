@@ -3,7 +3,7 @@ from typing import Any, Optional, Tuple
 from gql import Client, gql
 
 from specklepy.api.credentials import Account
-from specklepy.core.api.inputs.ingestion_inputs import (
+from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
     ModelIngestionFailedInput,
@@ -20,8 +20,8 @@ from specklepy.core.api.responses import DataResponse
 NAME = "ingestion"
 
 
-class IngestionResource(ResourceBase):
-    """API Access class for ingestionns"""
+class ModelIngestionResource(ResourceBase):
+    """API Access class for model ingestion"""
 
     def __init__(
         self,
