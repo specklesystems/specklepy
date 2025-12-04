@@ -260,7 +260,7 @@ class TestSubscriptionResource:
         message = await asyncio.wait_for(future, timeout=MAX_WAIT_TIME_SECONDS)
 
         assert isinstance(message, ProjectModelIngestionUpdatedMessage)
-        assert message.model_ingestion == created.id
+        assert message.model_ingestion.id == created.id
         assert message.model_ingestion.cancellation_requested
         assert (
             message.type
