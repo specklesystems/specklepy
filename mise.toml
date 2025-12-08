@@ -8,7 +8,7 @@ python.uv_venv_auto = true
 
 
 [tasks.install]
-run= "uv sync --all-groups"
+run= "uv sync --all-extras --all-groups"
 
 
 [tasks.install_docs]
@@ -18,3 +18,10 @@ run= "uv sync --group docs"
 description = "Build static docs "
 run = "uv run mkdocs build"
 depends = ['install_docs']
+
+[tasks.test]
+run = "uv run pytest"
+
+
+[env]
+IS_PUBLIC = "false"

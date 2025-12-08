@@ -6,17 +6,25 @@ from graphql import DocumentNode
 from pydantic import BaseModel
 from typing_extensions import TypeVar
 
+from specklepy.core.api.enums import ProjectModelIngestionUpdatedMessageType
+from specklepy.core.api.inputs.model_ingestion_inputs import (
+    ModelIngestionReference,
+    ProjectModelIngestionSubscriptionInput,
+)
 from specklepy.core.api.models import (
     ProjectModelsUpdatedMessage,
     ProjectUpdatedMessage,
     ProjectVersionsUpdatedMessage,
     UserProjectsUpdatedMessage,
 )
+from specklepy.core.api.models.subscription_messages import (
+    ProjectModelIngestionUpdatedMessage,
+)
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
 
-NAME = "subscribe"
+NAME = "subscription"
 
 TEventArgs = TypeVar("TEventArgs", bound=BaseModel)
 
@@ -200,6 +208,66 @@ class SubscriptionResource(ResourceBase):
             QUERY,
             variables,
             callback=lambda d: callback(d.data),
+        )
+
+    async def project_model_ingestion_updated(
+        self,
+        callback: Callable[[ProjectModelIngestionUpdatedMessage], None],
+        input: ProjectModelIngestionSubscriptionInput,
+    ) -> None:
+        QUERY = gql(
+            """
+            subscription IngestionUpdated($input: ProjectModelIngestionSubscriptionInput!) {
+              data: projectModelIngestionUpdated(input: $input) {
+                modelIngestion {
+                  id
+                  createdAt
+                  updatedAt
+                  modelId
+                  cancellationRequested
+                  statusData {
+                    ... on HasModelIngestionStatus {
+                      status
+                    }
+                    ... on HasProgressMessage {
+                      progressMessage
+                    }
+                  }
+                }
+                type
+              }
+            }
+            """  # noqa: E501
+        )
+
+        variables = {
+            "input": input.model_dump(
+                warnings="error", by_alias=True, exclude_none=True
+            ),
+        }
+
+        await self.subscribe_2(
+            DataResponse[ProjectModelIngestionUpdatedMessage],
+            QUERY,
+            variables,
+            callback=lambda d: callback(d.data),
+        )
+
+    async def project_model_ingestion_cancellation_requested(
+        self,
+        callback: Callable[[ProjectModelIngestionUpdatedMessage], None],
+        project_id: str,
+        ingestion_id: str,
+    ) -> None:
+        await self.project_model_ingestion_updated(
+            callback,
+            ProjectModelIngestionSubscriptionInput(
+                project_id=project_id,
+                ingestion_reference=ModelIngestionReference(
+                    ingestion_id=ingestion_id, model_id=None
+                ),
+                message_type=ProjectModelIngestionUpdatedMessageType.CANCELLATION_REQUESTED,
+            ),
         )
 
     @check_wsclient

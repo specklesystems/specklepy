@@ -30,3 +30,18 @@ class ProjectVersionsUpdatedMessageType(str, Enum):
     CREATED = "CREATED"
     DELETED = "DELETED"
     UPDATED = "UPDATED"
+
+
+class ProjectModelIngestionUpdatedMessageType(str, Enum):
+    CANCELLATION_REQUESTED = "cancellationRequested"
+    CREATED = "created"
+    DELETED = "deleted"
+    UPDATED = "updated"
+
+
+class ModelIngestionStatus(str, Enum):
+    CANCELLED = "cancelled"
+    FAILED = "failed"
+    PROCESSING = "processing"
+    QUEUED = "queued"
+    SUCCESS = "success"
