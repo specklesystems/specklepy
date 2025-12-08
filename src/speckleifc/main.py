@@ -87,7 +87,7 @@ def open_and_convert_file(
                 project_id=project.id,
                 ingestion_id=model_ingestion_id,
                 root_object_id=root_id,
-                version_message=version_message,
+                # version_message=version_message,
             )
         )
 
