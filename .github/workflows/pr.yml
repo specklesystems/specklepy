@@ -59,6 +59,8 @@ jobs:
   test-public: # Run integration tests against the public server image
     name: Test (public)
     runs-on: ubuntu-latest
+    env:
+      IS_PUBLIC: "true"
     strategy:
       matrix:
         python-version:
