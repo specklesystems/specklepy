@@ -27,7 +27,7 @@ metrics.disable()
 
 @pytest.fixture(scope="session")
 def host() -> str:
-    return "localhost:8080"
+    return "localhost"
 
 
 def is_public() -> bool:
