@@ -122,8 +122,8 @@ class TestSubscriptionResource:
         assert message.id == created.id
         assert message.type == UserProjectsUpdatedMessageType.ADDED
         assert isinstance(message.project, Project)
-        task.cancel()
-        await task
+        if not task.cancel():
+            await task
 
     @pytest.mark.asyncio
     async def test_project_models_updated(
@@ -155,8 +155,9 @@ class TestSubscriptionResource:
         assert message.id == created.id
         assert message.type == ProjectModelsUpdatedMessageType.CREATED
         assert isinstance(message.model, Model)
-        task.cancel()
-        await task
+
+        if not task.cancel():
+            await task
 
     @pytest.mark.asyncio
     async def test_project_updated(
@@ -186,8 +187,8 @@ class TestSubscriptionResource:
         assert message.id == created.id
         assert message.type == ProjectUpdatedMessageType.UPDATED
         assert isinstance(message.project, Project)
-        task.cancel()
-        await task
+        if not task.cancel():
+            await task
 
     @pytest.mark.asyncio
     async def test_project_versions_updated(
@@ -219,8 +220,8 @@ class TestSubscriptionResource:
         assert message.id == created.id
         assert message.type == ProjectVersionsUpdatedMessageType.CREATED
         assert isinstance(message.version, Version)
-        task.cancel()
-        await task
+        if not task.cancel():
+            await task
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(
@@ -273,8 +274,8 @@ class TestSubscriptionResource:
             == ProjectModelIngestionUpdatedMessageType.CANCELLATION_REQUESTED
         )
         assert created.status_data.status == ModelIngestionStatus.PROCESSING
-        task.cancel()
-        await task
+        if not task.cancel():
+            await task
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(
@@ -324,8 +325,8 @@ class TestSubscriptionResource:
             not future.done()
         )  # make sure the sub did not call back and resolve the future
 
-        task.cancel()
-        await task
+        if not task.cancel():
+            await task
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(
@@ -385,5 +386,5 @@ class TestSubscriptionResource:
         assert message.type == ProjectModelIngestionUpdatedMessageType.UPDATED
         assert message.model_ingestion.status_data.progress_message == progress_message
         assert created.status_data.status == ModelIngestionStatus.PROCESSING
-        task.cancel()
-        await task
+        if not task.cancel():
+            await task
