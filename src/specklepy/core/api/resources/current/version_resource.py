@@ -14,7 +14,7 @@ from specklepy.core.api.models import ResourceCollection, Version
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 
-NAME = "model"
+NAME = "version"
 
 
 class VersionResource(ResourceBase):

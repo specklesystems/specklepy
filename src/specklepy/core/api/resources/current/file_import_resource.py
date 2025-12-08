@@ -16,13 +16,15 @@ from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
 
+NAME = "file_import"
+
 
 class UploadFileResponse(GraphQLBaseModel):
     etag: str
 
 
 class FileImportResource(ResourceBase):
-    """API Access class for project invites"""
+    """API Access class for file imports"""
 
     def __init__(
         self,
@@ -36,7 +38,7 @@ class FileImportResource(ResourceBase):
             basepath=basepath,
             client=client,
             server_version=server_version,
-            name="file-import",
+            name=NAME,
         )
 
     def finish_file_import_job(self, input: FinishFileImportInput) -> bool:

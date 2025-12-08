@@ -18,7 +18,7 @@ def cmd_line_import() -> None:
     parser.add_argument("output_path")
     parser.add_argument("project_id")
     parser.add_argument("version_message")
-    parser.add_argument("model_id")
+    parser.add_argument("model_ingestion_id")
     # parser.add_argument("model_name")
     # parser.add_argument("region_name")
 
@@ -32,6 +32,8 @@ def cmd_line_import() -> None:
         "ifc",
     )
 
+    client: SpeckleClient | None = None
+
     try:
         client = SpeckleClient(SERVER_URL, use_ssl=not SERVER_URL.startswith("http://"))
         client.authenticate_with_token(TOKEN)
@@ -41,13 +43,14 @@ def cmd_line_import() -> None:
             args.file_path,
             project,
             args.version_message,
-            args.model_id,
+            args.model_ingestion_id,
             client,
         )
         with open(args.output_path, "w") as f:
             json.dump({"success": True, "commitId": version.id}, f)
     except Exception as e:
-        error_msg = f"IFC Importer failed with exception:\n{traceback.format_exc()}"
+        stack_trace = traceback.format_exc()
+        error_msg = f"IFC Importer failed with exception:\n{stack_trace}"
         print(error_msg)
 
         # Write error result

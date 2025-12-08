@@ -1,3 +1,4 @@
+import os
 import random
 import uuid
 from typing import Dict
@@ -27,6 +28,10 @@ metrics.disable()
 @pytest.fixture(scope="session")
 def host() -> str:
     return "localhost:3000"
+
+
+def is_public() -> bool:
+    return os.getenv("IS_PUBLIC", "false").lower() == "true"
 
 
 def seed_user(host: str) -> Dict[str, str]:
