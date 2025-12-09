@@ -74,6 +74,10 @@ def test_metrics_errors(httpserver: HTTPServer):
 
 
 class ScopedMetricsWrapper:
+    """
+    Scoped setup and tear down for enabling metrics tracking
+    """
+
     tracker: metrics.MetricsTracker
 
     def __init__(self, metrics_url: str):
@@ -81,7 +85,6 @@ class ScopedMetricsWrapper:
         self.tracker.analytics_url = metrics_url
 
     def __enter__(self):
-        # Setup
         metrics.enable()
 
     def __exit__(self, exc_type, exc_value, traceback):
