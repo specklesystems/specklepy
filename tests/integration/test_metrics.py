@@ -34,7 +34,7 @@ def handler(extra_check: Callable[[Any], bool]) -> Callable[[Request], Response]
 
 
 def test_metrics_track(httpserver: HTTPServer, client: SpeckleClient):
-    with ScopedMetricsWrapper(httpserver.url_for(PATH)) as _:
+    with ScopedMetricsSetup(httpserver.url_for(PATH)) as _:
         # Test No email
         httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
             handler(lambda payload: "email" not in payload["properties"])
@@ -62,7 +62,7 @@ def test_metrics_track(httpserver: HTTPServer, client: SpeckleClient):
 
 
 def test_metrics_errors(httpserver: HTTPServer):
-    with ScopedMetricsWrapper(httpserver.url_for(PATH)) as _:
+    with ScopedMetricsSetup(httpserver.url_for(PATH)) as _:
         httpserver.expect_oneshot_request(PATH, "post").respond_with_data("", 400)
 
         # Expect send_sync == true to mean mean it will raise
@@ -73,7 +73,7 @@ def test_metrics_errors(httpserver: HTTPServer):
         metrics.track("SDK Action")
 
 
-class ScopedMetricsWrapper:
+class ScopedMetricsSetup:
     """
     Scoped setup and tear down for enabling metrics tracking
     """
