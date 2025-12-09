@@ -23,7 +23,6 @@ from specklepy.transports.server import ServerTransport
 def open_and_convert_file(
     file_path: str,
     project: Project,
-    version_message: str | None,
     model_ingestion_id: str,
     client: SpeckleClient,
 ) -> Version:
@@ -41,7 +40,7 @@ def open_and_convert_file(
                 source_data=SourceDataInput(
                     file_name=path.name,
                     file_size_bytes=path.stat().st_size,
-                    source_application_slug="fileimports-ifc",
+                    source_application_slug=metrics.HOST_APP,
                     source_application_version=specklepy_version,
                 ),
             )
@@ -58,7 +57,7 @@ def open_and_convert_file(
             ModelIngestionUpdateInput(
                 project_id=project.id,
                 ingestion_id=model_ingestion_id,
-                progress_message="File validated, converting",
+                progress_message="Converting file",
                 progress=None,
             )
         )
@@ -73,7 +72,7 @@ def open_and_convert_file(
             ModelIngestionUpdateInput(
                 project_id=project.id,
                 ingestion_id=model_ingestion_id,
-                progress_message="Conversion complete, sending",
+                progress_message="Uploading objects",
                 progress=None,
             )
         )
@@ -103,7 +102,14 @@ def open_and_convert_file(
         custom_properties = {"ui": "dui3", "actionSource": "import"}
         if project.workspace_id:
             custom_properties["workspace_id"] = project.workspace_id
-            metrics.track(metrics.SEND, account, custom_properties, send_sync=True)
+
+        metrics.track(
+            metrics.SEND,
+            account,
+            custom_properties,
+            send_sync=True,
+            track_email=True,
+        )
 
         return version
     except Exception as e:
