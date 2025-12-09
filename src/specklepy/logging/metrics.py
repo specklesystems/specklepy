@@ -23,7 +23,7 @@ HOST_APP_VERSION = f"python {'.'.join(map(str, sys.version_info[:2]))}"
 PLATFORMS = {"win32": "Windows", "cygwin": "Windows", "darwin": "Mac OS X"}
 
 LOG = logging.getLogger(__name__)
-METRICS_TRACKER = None
+METRICS_TRACKER: "MetricsTracker | None" = None
 
 # actions
 SDK = "SDK Action"
@@ -92,11 +92,11 @@ def track(
         event_params["properties"].update(custom_props)
 
     if track_email:
-        event_params["email"] = tracker.last_email
+        event_params["properties"]["email"] = tracker.last_email
 
     try:
         specklepy_version = importlib.metadata.version("specklepy")
-        event_params["core_version"] = specklepy_version
+        event_params["properties"]["core_version"] = specklepy_version
     except importlib.metadata.PackageNotFoundError:
         if send_sync:
             raise
@@ -164,7 +164,8 @@ class MetricsTracker(metaclass=Singleton):
             return
         self.last_server = self.hash(server)
 
-    def hash(self, value: str) -> str:
+    @staticmethod
+    def hash(value: str) -> str:
         inputList = value.lower().split("://")
         input = inputList[len(inputList) - 1].split("/")[0].split("?")[0]
         return hashlib.md5(input.encode("utf-8")).hexdigest().upper()
