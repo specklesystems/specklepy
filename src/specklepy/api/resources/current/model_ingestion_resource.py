@@ -40,11 +40,11 @@ class ModelIngestionResource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Update"})
         return super().requeue(input)
 
-    def complete_successfully(self, input: ModelIngestionSuccessInput) -> str:
+    def complete(self, input: ModelIngestionSuccessInput) -> str:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion End"})
         return super().complete(input)
 
-    def complete_failed(self, input: ModelIngestionFailedInput) -> ModelIngestion:
+    def fail_with_error(self, input: ModelIngestionFailedInput) -> ModelIngestion:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Error"})
         return super().fail_with_error(input)
 
