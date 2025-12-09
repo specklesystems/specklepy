@@ -57,7 +57,7 @@ def open_and_convert_file(
             ModelIngestionUpdateInput(
                 project_id=project.id,
                 ingestion_id=model_ingestion_id,
-                progress_message="File validated, converting",
+                progress_message="Converting file",
                 progress=None,
             )
         )
@@ -72,7 +72,7 @@ def open_and_convert_file(
             ModelIngestionUpdateInput(
                 project_id=project.id,
                 ingestion_id=model_ingestion_id,
-                progress_message="Conversion complete, sending",
+                progress_message="Uploading objects",
                 progress=None,
             )
         )

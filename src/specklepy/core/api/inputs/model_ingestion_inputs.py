@@ -48,18 +48,6 @@ class ModelIngestionFailedInput(GraphQLBaseModel):
     error_reason: str
     error_stacktrace: str | None
 
-    @staticmethod
-    def from_exception(
-        ingestion_id: str, project_id: str, exception: Exception, message: str | None
-    ) -> "ModelIngestionFailedInput":
-        """test"""
-        return ModelIngestionFailedInput(
-            ingestion_id=ingestion_id,
-            project_id=project_id,
-            error_reason=message if message else str(exception),
-            error_stacktrace=str(exception),
-        )
-
 
 class ModelIngestionCancelledInput(GraphQLBaseModel):
     ingestion_id: str
