@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 from gql import Client, gql
 
@@ -30,7 +30,7 @@ class ModelIngestionResource(ResourceBase):
         account: Account,
         basepath: str,
         client: Client,
-        server_version: Optional[Tuple[Any, ...]],
+        server_version: Tuple[Any, ...] | None,
     ) -> None:
         super().__init__(
             account=account,
@@ -40,24 +40,23 @@ class ModelIngestionResource(ResourceBase):
             server_version=server_version,
         )
 
-    def get_ingestion(self, project_id: str, model_id: str) -> ModelIngestion:
+    def get_ingestion(self, project_id: str, model_ingestion_id: str) -> ModelIngestion:
         QUERY = gql(
             """
-            query Query($projectId: String!, $modelId: String!) {
+            query Query($projectId: String!, $modelIngestionId: ID!) {
               data:project(id: $projectId) {
-                data:model(id: $modelId) {
-                  data:ingestion {
-                    id
-                    createdAt
-                    modelId
-                    cancellationRequested
-                    statusData {
-                      ... on HasModelIngestionStatus {
-                        status
-                      }
-                      ... on HasProgressMessage {
-                        progressMessage
-                      }
+                data:ingestion(id: $modelIngestionId) {
+                  id
+                  createdAt
+                  updatedAt
+                  modelId
+                  cancellationRequested
+                  statusData {
+                    ... on HasModelIngestionStatus {
+                      status
+                    }
+                    ... on HasProgressMessage {
+                      progressMessage
                     }
                   }
                 }
@@ -68,14 +67,14 @@ class ModelIngestionResource(ResourceBase):
 
         variables = {
             "projectId": project_id,
-            "modelId": model_id,
+            "modelIngestionId": model_ingestion_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[ModelIngestion]]],
+            DataResponse[DataResponse[ModelIngestion]],
             QUERY,
             variables,
-        ).data.data.data
+        ).data.data
 
     def create(self, input: ModelIngestionCreateInput) -> ModelIngestion:
         QUERY = gql(
