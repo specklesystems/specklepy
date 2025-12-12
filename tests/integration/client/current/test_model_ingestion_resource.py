@@ -207,7 +207,7 @@ class TestIngestionResource:
             ingestion_id=ingestion.id,
             root_object_id=object_id,
             project_id=project.id,
-            # version_message=None,
+            version_message=None,
         )
 
         res = client.model_ingestion.complete(input)
@@ -271,7 +271,7 @@ class TestIngestionResource:
             ingestion_id=ingestion.id,
             root_object_id="asdfasdfasdfasfd",
             project_id=project.id,
-            # version_message=None,
+            version_message=None,
         )
         with pytest.raises(GraphQLException):
             _ = client.model_ingestion.complete(input)
