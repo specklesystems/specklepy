@@ -51,4 +51,10 @@ def open_ifc(file_path: str) -> file:
 
 
 def create_geometry_iterator(ifc_file: file | sqlite) -> iterator:
-    return iterator(_create_iterator_settings(), ifc_file, multiprocessing.cpu_count())
+    GEOMETRY_LIBRARY = "hybrid-opencascade-cgal"  # First OCC then fallback to CGAL
+    return iterator(
+        _create_iterator_settings(),
+        ifc_file,
+        multiprocessing.cpu_count(),
+        geometry_library=GEOMETRY_LIBRARY,  # type: ignore
+    )

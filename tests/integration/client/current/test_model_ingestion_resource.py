@@ -79,6 +79,15 @@ class TestIngestionResource:
 
         return ingestion
 
+    def test_get_ingestion(
+        self, client: SpeckleClient, project: Project, ingestion: ModelIngestion
+    ):
+        queried_ingestion = client.model_ingestion.get_ingestion(
+            project.id, ingestion.id
+        )
+        assert queried_ingestion.id == ingestion.id
+        assert queried_ingestion.status_data.status == ingestion.status_data.status
+
     def test_update_progress(
         self, client: SpeckleClient, ingestion: ModelIngestion, project: Project
     ):

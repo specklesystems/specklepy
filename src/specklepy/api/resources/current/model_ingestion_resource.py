@@ -26,6 +26,10 @@ class ModelIngestionResource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Create"})
         return super().create(input)
 
+    def get_ingestion(self, project_id: str, model_ingestion_id: str) -> ModelIngestion:
+        metrics.track(metrics.SDK, self.account, {"name": "Ingestion Get"})
+        return super().get_ingestion(project_id, model_ingestion_id)
+
     def update_progress(self, input: ModelIngestionUpdateInput) -> ModelIngestion:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Update"})
         return super().update_progress(input)
