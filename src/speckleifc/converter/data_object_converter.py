@@ -24,7 +24,7 @@ def data_object_to_speckle(
     if parent_element and hasattr(parent_element, 'GlobalId'):
         # Collections are: IfcProject and IfcSpatialStructureElement types
         if not parent_element.is_a("IfcProject") and not parent_element.is_a("IfcSpatialStructureElement"):
-            properties["parentId"] = parent_element.GlobalId
+            properties["parentApplicationId"] = parent_element.GlobalId
 
     # Add building storey information if available and not a building storey itself
     if current_storey and not step_element.is_a("IfcBuildingStorey"):
