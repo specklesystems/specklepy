@@ -20,10 +20,14 @@ def data_object_to_speckle(
     properties = extract_properties(step_element)
 
     # Add parent ID only if element's parent is also a DataObject (not a Collection)
-    if parent_element and hasattr(parent_element, 'GlobalId'):
-        # Collections are: IfcProject and IfcSpatialStructureElement types
-        if not parent_element.is_a("IfcProject") and not parent_element.is_a("IfcSpatialStructureElement"):
-            properties["parentApplicationId"] = parent_element.GlobalId
+    # Collections are: IfcProject and IfcSpatialStructureElement types
+    if (
+        parent_element
+        and hasattr(parent_element, "GlobalId")
+        and not parent_element.is_a("IfcProject")
+        and not parent_element.is_a("IfcSpatialStructureElement")
+    ):
+        properties["parentApplicationId"] = parent_element.GlobalId
 
     # Add building storey information if available and not a building storey itself
     if current_storey and not step_element.is_a("IfcBuildingStorey"):

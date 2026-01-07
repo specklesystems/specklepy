@@ -44,7 +44,11 @@ class ImportJob:
     _display_value_cache: dict[int, list[Base]] = field(default_factory=dict)
     """Maps an instance step ID to a list of instances"""
 
-    def convert_element(self, step_element: entity_instance, parent_element: entity_instance | None = None) -> Base:
+    def convert_element(
+        self,
+        step_element: entity_instance,
+        parent_element: entity_instance | None = None,
+    ) -> Base:
         try:
             return self._convert_element(step_element, parent_element)
         except SpeckleException:
@@ -54,7 +58,11 @@ class ImportJob:
                 f"Failed to convert {step_element.is_a()} #{step_element.id()}"
             ) from ex
 
-    def _convert_element(self, step_element: entity_instance, parent_element: entity_instance | None = None) -> Base:
+    def _convert_element(
+        self,
+        step_element: entity_instance,
+        parent_element: entity_instance | None = None,
+    ) -> Base:
         # Track current storey context and store for level proxies
         previous_storey_data_object = self._current_storey_data_object
         if step_element.is_a("IfcBuildingStorey"):
@@ -86,7 +94,11 @@ class ImportJob:
             )
         else:
             result = data_object_to_speckle(
-                display_value, step_element, children, current_storey_name, parent_element
+                display_value,
+                step_element,
+                children,
+                current_storey_name,
+                parent_element,
             )
             # Associate non-spatial elements with current storey for level proxies
             if self._current_storey_data_object is not None and result.applicationId:
