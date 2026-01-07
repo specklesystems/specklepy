@@ -1,7 +1,6 @@
 from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
-from ifcopenshell.util.element import get_parent
 
 from speckleifc.property_extraction import extract_properties
 from specklepy.objects.base import Base
@@ -13,6 +12,7 @@ def data_object_to_speckle(
     step_element: entity_instance,
     children: list[Base],
     current_storey: str | None = None,
+    parent_element: entity_instance | None = None,
 ) -> DataObject:
     guid = cast(str, step_element.GlobalId)
     name = cast(str, step_element.Name or guid)
@@ -20,7 +20,6 @@ def data_object_to_speckle(
     properties = extract_properties(step_element)
 
     # Add parent ID only if element's parent is also a DataObject (not a Collection)
-    parent_element = get_parent(step_element)
     if parent_element and hasattr(parent_element, 'GlobalId'):
         # Collections are: IfcProject and IfcSpatialStructureElement types
         if not parent_element.is_a("IfcProject") and not parent_element.is_a("IfcSpatialStructureElement"):
