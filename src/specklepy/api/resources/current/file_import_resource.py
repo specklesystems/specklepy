@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from deprecated import deprecated
 from typing_extensions import override
 
 from specklepy.core.api.inputs import (
@@ -10,7 +11,10 @@ from specklepy.core.api.inputs import (
 from specklepy.core.api.models import FileImport, FileUploadUrl
 from specklepy.core.api.models.current import ResourceCollection
 from specklepy.core.api.resources import FileImportResource as CoreResource
-from specklepy.core.api.resources.current.file_import_resource import UploadFileResponse
+from specklepy.core.api.resources.current.file_import_resource import (
+    FILE_UPLOAD_DEPRECATION_WARNING,
+    UploadFileResponse,
+)
 from specklepy.logging import metrics
 
 
@@ -24,11 +28,6 @@ class FileImportResource(CoreResource):
             client=client,
             server_version=server_version,
         )
-
-    @override
-    def start_file_import(self, input: StartFileImportInput) -> FileImport:
-        metrics.track(metrics.SDK, self.account, {"name": "File Import Start"})
-        return super().start_file_import(input)
 
     @override
     def generate_upload_url(self, input: GenerateFileUploadUrlInput) -> FileUploadUrl:
@@ -61,6 +60,13 @@ class FileImportResource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "File Import Download File"})
         return super().download_file(project_id, file_id, target_file)
 
+    @deprecated(**FILE_UPLOAD_DEPRECATION_WARNING)
+    @override
+    def start_file_import(self, input: StartFileImportInput) -> FileImport:
+        metrics.track(metrics.SDK, self.account, {"name": "File Import Start"})
+        return super().start_file_import(input)
+
+    @deprecated(**FILE_UPLOAD_DEPRECATION_WARNING)
     @override
     def finish_file_import_job(self, input: FinishFileImportInput) -> bool:
         """
@@ -72,6 +78,7 @@ class FileImportResource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "File Import Finish Job"})
         return super().finish_file_import_job(input)
 
+    @deprecated(**FILE_UPLOAD_DEPRECATION_WARNING)
     @override
     def get_model_file_import_jobs(
         self,

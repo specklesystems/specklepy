@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from deprecated import deprecated
 from gql import Client, gql
 
 from specklepy.core.api.credentials import Account
@@ -23,6 +24,16 @@ class UploadFileResponse(GraphQLBaseModel):
     etag: str
 
 
+FILE_UPLOAD_DEPRECATION_WARNING: dict[str, Any] = {
+    "version": "3.2.4",
+    "reason": (
+        "Part of the old API surface"
+        "and will be removed in the future. Use the new ingestion API instead."
+        "Field will be deleted on June 1st, 2026"
+    ),
+}
+
+
 class FileImportResource(ResourceBase):
     """API Access class for file imports"""
 
@@ -40,59 +51,6 @@ class FileImportResource(ResourceBase):
             server_version=server_version,
             name=NAME,
         )
-
-    def finish_file_import_job(self, input: FinishFileImportInput) -> bool:
-        """
-        This is mostly an internal api, that marks a file import job finished.
-
-        Only use this if you are writing a file importer, that is responsible for
-        processing file import jobs.
-        """
-        QUERY = gql(
-            """
-                mutation FinishFileImport($input: FinishFileImportInput!) {
-                    data:fileUploadMutations {
-                        data:finishFileImport(input: $input)
-                    }
-                }
-            """
-        )
-
-        variables = {
-            "input": input.model_dump(warnings="error", by_alias=True),
-        }
-
-        return self.make_request_and_parse_response(
-            DataResponse[DataResponse[bool]], QUERY, variables
-        ).data.data
-
-    def start_file_import(self, input: StartFileImportInput) -> FileImport:
-        QUERY = gql(
-            """
-            mutation StartFileImport($input: StartFileImportInput!) {
-                data:fileUploadMutations {
-                    data:startFileImport(input: $input) {
-                        id
-                        projectId
-                        convertedVersionId
-                        userId
-                        convertedStatus
-                        convertedMessage
-                        modelId
-                        updatedAt
-                    }
-                }
-            }
-        """
-        )
-
-        variables = {
-            "input": input.model_dump(warnings="error", by_alias=True),
-        }
-
-        return self.make_request_and_parse_response(
-            DataResponse[DataResponse[FileImport]], QUERY, variables
-        ).data.data
 
     def generate_upload_url(self, input: GenerateFileUploadUrlInput) -> FileUploadUrl:
         """
@@ -161,6 +119,62 @@ class FileImportResource(ResourceBase):
                     _ = f.write(chunk)
         return target_file
 
+    @deprecated(**FILE_UPLOAD_DEPRECATION_WARNING)
+    def start_file_import(self, input: StartFileImportInput) -> FileImport:
+        QUERY = gql(
+            """
+            mutation StartFileImport($input: StartFileImportInput!) {
+                data:fileUploadMutations {
+                    data:startFileImport(input: $input) {
+                        id
+                        projectId
+                        convertedVersionId
+                        userId
+                        convertedStatus
+                        convertedMessage
+                        modelId
+                        updatedAt
+                    }
+                }
+            }
+        """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[FileImport]], QUERY, variables
+        ).data.data
+
+    @deprecated(**FILE_UPLOAD_DEPRECATION_WARNING)
+    def finish_file_import_job(self, input: FinishFileImportInput) -> bool:
+        """
+        This is mostly an internal api, that marks a file import job finished.
+
+        Only use this if you are writing a file importer, that is responsible for
+        processing file import jobs.
+        """
+        QUERY = gql(
+            """
+                mutation FinishFileImport($input: FinishFileImportInput!) {
+                    data:fileUploadMutations {
+                        data:finishFileImport(input: $input)
+                    }
+                }
+            """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[bool]], QUERY, variables
+        ).data.data
+
+    @deprecated(**FILE_UPLOAD_DEPRECATION_WARNING)
     def get_model_file_import_jobs(
         self,
         *,
