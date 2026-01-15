@@ -105,7 +105,7 @@ class PendingStreamCollaborator(GraphQLBaseModel):
     project_name: str
     title: str
     role: str
-    invited_by: LimitedUser
+    invited_by: LimitedUser | None = None
     user: LimitedUser | None = None
     token: str | None
 
