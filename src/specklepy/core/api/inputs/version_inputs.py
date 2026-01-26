@@ -34,4 +34,5 @@ class MarkReceivedVersionInput(GraphQLBaseModel):
     version_id: str
     project_id: str
     source_application: str
+    """IMPORTANT: this is meant to be the slug of the application that has done the receiving, not to be confused with `Version.sourceApplication`"""
     message: Optional[str] = None
