@@ -26,13 +26,6 @@ class TestModelResource:
     @pytest.fixture()
     def test_project(self, client: SpeckleClient) -> Project:
         project = client.project.create(
-            ProjectCreateInput(name="Test project", description="", visibility=None)
-        )
-        return project
-
-    @pytest.fixture()
-    def test_public_project(self, client: SpeckleClient) -> Project:
-        project = client.project.create(
             ProjectCreateInput(
                 name="Test project", description="", visibility=ProjectVisibility.PUBLIC
             )
