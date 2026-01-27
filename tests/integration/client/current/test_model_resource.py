@@ -154,7 +154,7 @@ class TestModelResource:
         with pytest.raises(GraphQLException):
             client.model.delete(delete_data)
 
-    def test_project_get_permissions(
+    def test_model_get_permissions(
         self,
         client: SpeckleClient,
         second_client: SpeckleClient,
@@ -167,7 +167,8 @@ class TestModelResource:
         assert result.can_update.authorized is True
         assert result.can_create_version.authorized is True
         assert result.can_delete.authorized is True
-        guest = second_client.project.get_permissions(test_project.id)
+
+        guest = second_client.model.get_permissions(test_project.id, test_model.id)
 
         assert isinstance(guest, ModelPermissionChecks)
         assert guest.can_update.authorized is False

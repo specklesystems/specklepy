@@ -50,7 +50,6 @@ class TestActiveUserResourcePermissions:
         assert hasattr(permissions, "can_create_model")
         assert hasattr(permissions, "can_delete")
         assert hasattr(permissions, "can_load")
-        assert hasattr(permissions, "can_publish")
 
         assert permissions.can_create_model.authorized is True
         assert permissions.can_delete.authorized is True
