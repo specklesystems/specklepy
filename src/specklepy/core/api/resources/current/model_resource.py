@@ -10,6 +10,7 @@ from specklepy.core.api.inputs.model_inputs import (
 )
 from specklepy.core.api.inputs.project_inputs import ProjectModelsFilter
 from specklepy.core.api.models import Model, ModelWithVersions, ResourceCollection
+from specklepy.core.api.models.current import ModelPermissionChecks
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
 
@@ -299,3 +300,40 @@ class ModelResource(ResourceBase):
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[Model]], QUERY, variables
         ).data.data
+
+    def get_permissions(self, project_id: str, model_id: str) -> ModelPermissionChecks:
+        QUERY = gql(
+            """
+            query ModelPermissions($projectId: String!, $modelId: String!) {
+              data:project(id: $projectId) {
+                data:model(id: $modelId) {
+                  data:permissions {
+                    canUpdate {
+                      authorized
+                      code
+                      message
+                    }
+                    canDelete {
+                      authorized
+                      code
+                      message
+                    }
+                    canCreateVersion {
+                      authorized
+                      code
+                      message
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        variables = {"projectId": project_id, "modelId": model_id}
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ModelPermissionChecks]]],
+            QUERY,
+            variables,
+        ).data.data.data
