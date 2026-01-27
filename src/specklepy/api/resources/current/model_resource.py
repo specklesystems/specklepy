@@ -8,6 +8,7 @@ from specklepy.core.api.inputs.model_inputs import (
 )
 from specklepy.core.api.inputs.project_inputs import ProjectModelsFilter
 from specklepy.core.api.models import Model, ModelWithVersions, ResourceCollection
+from specklepy.core.api.models.current import ModelPermissionChecks
 from specklepy.core.api.resources import ModelResource as CoreResource
 from specklepy.logging import metrics
 
@@ -72,3 +73,7 @@ class ModelResource(CoreResource):
     def update(self, input: UpdateModelInput) -> Model:
         metrics.track(metrics.SDK, self.account, {"name": "Model Update"})
         return super().update(input)
+
+    def get_permissions(self, model_id: str, project_id: str) -> ModelPermissionChecks:
+        metrics.track(metrics.SDK, self.account, {"name": "Model Get Permissions"})
+        return super().get_permissions(model_id, project_id)
