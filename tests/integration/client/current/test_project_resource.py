@@ -19,6 +19,17 @@ class TestProjectResource:
             ProjectCreateInput(
                 name="test project123",
                 description="desc",
+                visibility=ProjectVisibility.PRIVATE,
+            )
+        )
+        return project
+
+    @pytest.fixture()
+    def test_public_project(self, client: SpeckleClient) -> Project:
+        project = client.project.create(
+            ProjectCreateInput(
+                name="test project123",
+                description="desc",
                 visibility=ProjectVisibility.PUBLIC,
             )
         )
@@ -67,16 +78,27 @@ class TestProjectResource:
         assert result.created_at == test_project.created_at
 
     def test_project_get_permissions(
-        self, client: SpeckleClient, second_client: SpeckleClient, test_project: Project
+        self,
+        client: SpeckleClient,
+        second_client: SpeckleClient,
+        test_project: Project,
+        test_public_project: Project,
     ):
-        result = client.project.get_permissions(test_project.id)
+        result_private = client.project.get_permissions(test_project.id)
+
+        assert isinstance(result_private, ProjectPermissionChecks)
+        assert result_private.can_create_model.authorized is True
+        assert result_private.can_delete.authorized is True
+        assert result_private.can_load.authorized is True
+
+        result = client.project.get_permissions(test_public_project.id)
 
         assert isinstance(result, ProjectPermissionChecks)
         assert result.can_create_model.authorized is True
         assert result.can_delete.authorized is True
         assert result.can_load.authorized is True
 
-        guest = second_client.project.get_permissions(test_project.id)
+        guest = second_client.project.get_permissions(test_public_project.id)
 
         assert isinstance(result, ProjectPermissionChecks)
         assert guest.can_create_model.authorized is False
