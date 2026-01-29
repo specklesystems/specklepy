@@ -33,6 +33,7 @@ def host() -> str:
 def is_public() -> bool:
     return os.getenv("IS_PUBLIC", "false").lower() == "true"
 
+
 def is_internal() -> bool:
     return not is_public()
 
