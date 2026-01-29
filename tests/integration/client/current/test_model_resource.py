@@ -192,7 +192,7 @@ class TestModelResource:
         assert result.authorized is True
 
     @pytest.mark.skipif(
-        not is_internal(),
+        is_internal(),
         reason="API only available on server versions 3.0.11 or greater",
     )
     def test_can_create_model_ingestion_public_server(
