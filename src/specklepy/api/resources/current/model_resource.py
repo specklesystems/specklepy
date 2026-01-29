@@ -8,7 +8,10 @@ from specklepy.core.api.inputs.model_inputs import (
 )
 from specklepy.core.api.inputs.project_inputs import ProjectModelsFilter
 from specklepy.core.api.models import Model, ModelWithVersions, ResourceCollection
-from specklepy.core.api.models.current import ModelPermissionChecks
+from specklepy.core.api.models.current import (
+    ModelPermissionChecks,
+    PermissionCheckResult,
+)
 from specklepy.core.api.resources import ModelResource as CoreResource
 from specklepy.logging import metrics
 
@@ -77,3 +80,13 @@ class ModelResource(CoreResource):
     def get_permissions(self, model_id: str, project_id: str) -> ModelPermissionChecks:
         metrics.track(metrics.SDK, self.account, {"name": "Model Get Permissions"})
         return super().get_permissions(model_id, project_id)
+
+    def can_create_model_ingestion(
+        self, model_id: str, project_id: str
+    ) -> PermissionCheckResult:
+        metrics.track(
+            metrics.SDK,
+            self.account,
+            {"name": "Model Get Permissions canCreateIngestion"},
+        )
+        return super().can_create_model_ingestion(model_id, project_id)

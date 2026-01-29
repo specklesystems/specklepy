@@ -14,11 +14,13 @@ from specklepy.core.api.inputs.project_inputs import (
 from specklepy.core.api.models.current import (
     Model,
     ModelPermissionChecks,
+    PermissionCheckResult,
     Project,
     ProjectWithModels,
     ResourceCollection,
 )
 from specklepy.logging.exceptions import GraphQLException
+from tests.integration.conftest import is_internal, is_public
 
 
 @pytest.mark.run()
@@ -174,3 +176,31 @@ class TestModelResource:
         assert guest.can_update.authorized is False
         assert guest.can_create_version.authorized is False
         assert guest.can_delete.authorized is False
+
+    @pytest.mark.skipif(
+        is_public(), reason="API only available on server versions 3.0.11 or greater"
+    )
+    def test_can_create_model_ingestion_internal_server(
+        self,
+        client: SpeckleClient,
+        test_project: Project,
+        test_model: Model,
+    ):
+        result = client.model.can_create_model_ingestion(test_project.id, test_model.id)
+
+        assert isinstance(result, PermissionCheckResult)
+        assert result.authorized is True
+
+    @pytest.mark.skipif(
+        is_internal(),
+        reason="API only available on server versions 3.0.11 or greater",
+    )
+    def test_can_create_model_ingestion_public_server(
+        self,
+        client: SpeckleClient,
+        test_project: Project,
+        test_model: Model,
+    ):
+        with pytest.raises(GraphQLException) as ex:
+            _ = client.model.can_create_model_ingestion(test_project.id, test_model.id)
+        assert "GRAPHQL_VALIDATION_FAILED" in str(ex.value)
