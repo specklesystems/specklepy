@@ -24,6 +24,17 @@ class TestProjectResource:
         )
         return project
 
+    @pytest.fixture()
+    def test_public_project(self, client: SpeckleClient) -> Project:
+        project = client.project.create(
+            ProjectCreateInput(
+                name="test project123",
+                description="desc",
+                visibility=ProjectVisibility.PUBLIC,
+            )
+        )
+        return project
+
     @pytest.mark.parametrize(
         "name, description, visibility",
         [
@@ -50,7 +61,7 @@ class TestProjectResource:
         assert result.id is not None
         assert result.name == name
         assert result.description == (description or "")
-        # we've disabled creation of public projects for now, they fall back to unlisted
+        # we've disabled creation of unlisted projects for now, they fall back to public
         if visibility == ProjectVisibility.UNLISTED:
             assert result.visibility == ProjectVisibility.PUBLIC
         else:
@@ -67,13 +78,32 @@ class TestProjectResource:
         assert result.created_at == test_project.created_at
 
     def test_project_get_permissions(
-        self, client: SpeckleClient, test_project: Project
+        self,
+        client: SpeckleClient,
+        second_client: SpeckleClient,
+        test_project: Project,
+        test_public_project: Project,
     ):
-        result = client.project.get_permissions(test_project.id)
+        result_private = client.project.get_permissions(test_project.id)
+
+        assert isinstance(result_private, ProjectPermissionChecks)
+        assert result_private.can_create_model.authorized is True
+        assert result_private.can_delete.authorized is True
+        assert result_private.can_load.authorized is True
+
+        result = client.project.get_permissions(test_public_project.id)
 
         assert isinstance(result, ProjectPermissionChecks)
         assert result.can_create_model.authorized is True
         assert result.can_delete.authorized is True
+        assert result.can_load.authorized is True
+
+        guest = second_client.project.get_permissions(test_public_project.id)
+
+        assert isinstance(result, ProjectPermissionChecks)
+        assert guest.can_create_model.authorized is False
+        assert guest.can_delete.authorized is False
+        assert guest.can_load.authorized is False
 
     def test_project_update(self, client: SpeckleClient, test_project: Project):
         new_name = "MY new name"

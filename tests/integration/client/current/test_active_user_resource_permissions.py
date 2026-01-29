@@ -50,12 +50,10 @@ class TestActiveUserResourcePermissions:
         assert hasattr(permissions, "can_create_model")
         assert hasattr(permissions, "can_delete")
         assert hasattr(permissions, "can_load")
-        assert hasattr(permissions, "can_publish")
 
         assert permissions.can_create_model.authorized is True
         assert permissions.can_delete.authorized is True
         assert permissions.can_load.authorized is True
-        assert permissions.can_publish.authorized is True
 
     def test_active_user_get_projects_with_permissions_with_filter(
         self, client: SpeckleClient, test_project: Project

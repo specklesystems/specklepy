@@ -7,6 +7,7 @@ class ProjectVisibility(str, Enum):
     PRIVATE = "PRIVATE"
     PUBLIC = "PUBLIC"
     UNLISTED = "UNLISTED"
+    """Deprecated, use PUBLIC instead"""
     WORKSPACE = "WORKSPACE"
 
 
