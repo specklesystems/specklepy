@@ -493,29 +493,28 @@ class AutomationContext:
         Args:
             level: Result level.
             category (str): A short tag for the event type.
-            affected_objects (Union[Base, List[Base]]): A single object or a list of
-                objects that are causing the info case.
+            affected_objects (Union[Base, List[Base]]): A single object, a list of
+                objects, or an empty list. When empty, a result case is still
+                appended with no object IDs (e.g. for skipped rules or version-level
+                messages).
             message (Optional[str]): Optional message.
             metadata: User provided metadata key value pairs
             visual_overrides: Case specific 3D visual overrides.
         """
         if isinstance(affected_objects, list):
-            if len(affected_objects) < 1:
-                raise ValueError(
-                    f"Need atleast one object to report a(n) {level.value.upper()}"
-                )
             object_list = affected_objects
         else:
             object_list = [affected_objects]
 
         ids: Dict[str, Optional[str]] = {}
+        # When objects are provided, each must have an id (empty list is allowed for version-level/skipped results).
         for o in object_list:
-            # validate that the Base.id is not None. If its a None, throw an Exception
-            if not o.id:
+            if not getattr(o, "id", None):
                 raise Exception(
                     f"You can only attach {level} results to objects with an id."
                 )
-            ids[o.id] = o.applicationId
+            ids[o.id] = getattr(o, "applicationId", None)
+
         print(
             f"Created new {level.value.upper()}"
             f" category: {category} caused by: {message}"
