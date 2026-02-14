@@ -34,6 +34,10 @@ def is_public() -> bool:
     return os.getenv("IS_PUBLIC", "false").lower() == "true"
 
 
+def is_internal() -> bool:
+    return not is_public()
+
+
 def seed_user(host: str) -> Dict[str, str]:
     seed = uuid.uuid4().hex
     user_dict = {

@@ -44,9 +44,13 @@ class ImportJob:
     _display_value_cache: dict[int, list[Base]] = field(default_factory=dict)
     """Maps an instance step ID to a list of instances"""
 
-    def convert_element(self, step_element: entity_instance) -> Base:
+    def convert_element(
+        self,
+        step_element: entity_instance,
+        parent_element: entity_instance | None = None,
+    ) -> Base:
         try:
-            return self._convert_element(step_element)
+            return self._convert_element(step_element, parent_element)
         except SpeckleException:
             raise
         except Exception as ex:
@@ -54,14 +58,18 @@ class ImportJob:
                 f"Failed to convert {step_element.is_a()} #{step_element.id()}"
             ) from ex
 
-    def _convert_element(self, step_element: entity_instance) -> Base:
+    def _convert_element(
+        self,
+        step_element: entity_instance,
+        parent_element: entity_instance | None = None,
+    ) -> Base:
         # Track current storey context and store for level proxies
         previous_storey_data_object = self._current_storey_data_object
         if step_element.is_a("IfcBuildingStorey"):
             # Convert the building storey to a DataObject for the level proxy
             storey_display_value = self._display_value_cache.get(step_element.id(), [])
             self._current_storey_data_object = data_object_to_speckle(
-                storey_display_value, step_element, []
+                storey_display_value, step_element, [], parent_element=None
             )
 
         children = self._convert_children(step_element)
@@ -86,7 +94,11 @@ class ImportJob:
             )
         else:
             result = data_object_to_speckle(
-                display_value, step_element, children, current_storey_name
+                display_value,
+                step_element,
+                children,
+                current_storey_name,
+                parent_element,
             )
             # Associate non-spatial elements with current storey for level proxies
             if self._current_storey_data_object is not None and result.applicationId:
@@ -100,7 +112,7 @@ class ImportJob:
 
     def _convert_children(self, step_element: entity_instance) -> list[Base]:
         return [
-            self.convert_element(i)
+            self.convert_element(i, parent_element=step_element)
             for i in get_children(step_element)
             if self._should_convert(i)
         ]

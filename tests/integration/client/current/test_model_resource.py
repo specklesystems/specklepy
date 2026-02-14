@@ -1,6 +1,7 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
+from specklepy.core.api.enums import ProjectVisibility
 from specklepy.core.api.inputs.model_inputs import (
     CreateModelInput,
     DeleteModelInput,
@@ -12,11 +13,14 @@ from specklepy.core.api.inputs.project_inputs import (
 )
 from specklepy.core.api.models.current import (
     Model,
+    ModelPermissionChecks,
+    PermissionCheckResult,
     Project,
     ProjectWithModels,
     ResourceCollection,
 )
 from specklepy.logging.exceptions import GraphQLException
+from tests.integration.conftest import is_internal, is_public
 
 
 @pytest.mark.run()
@@ -24,7 +28,9 @@ class TestModelResource:
     @pytest.fixture()
     def test_project(self, client: SpeckleClient) -> Project:
         project = client.project.create(
-            ProjectCreateInput(name="Test project", description="", visibility=None)
+            ProjectCreateInput(
+                name="Test project", description="", visibility=ProjectVisibility.PUBLIC
+            )
         )
         return project
 
@@ -149,3 +155,52 @@ class TestModelResource:
 
         with pytest.raises(GraphQLException):
             client.model.delete(delete_data)
+
+    def test_model_get_permissions(
+        self,
+        client: SpeckleClient,
+        second_client: SpeckleClient,
+        test_project: Project,
+        test_model: Model,
+    ):
+        result = client.model.get_permissions(test_project.id, test_model.id)
+
+        assert isinstance(result, ModelPermissionChecks)
+        assert result.can_update.authorized is True
+        assert result.can_create_version.authorized is True
+        assert result.can_delete.authorized is True
+
+        guest = second_client.model.get_permissions(test_project.id, test_model.id)
+
+        assert isinstance(guest, ModelPermissionChecks)
+        assert guest.can_update.authorized is False
+        assert guest.can_create_version.authorized is False
+        assert guest.can_delete.authorized is False
+
+    @pytest.mark.skipif(
+        is_public(), reason="API only available on server versions 3.0.11 or greater"
+    )
+    def test_can_create_model_ingestion_internal_server(
+        self,
+        client: SpeckleClient,
+        test_project: Project,
+        test_model: Model,
+    ):
+        result = client.model.can_create_model_ingestion(test_project.id, test_model.id)
+
+        assert isinstance(result, PermissionCheckResult)
+        assert result.authorized is True
+
+    @pytest.mark.skipif(
+        is_internal(),
+        reason="API only available on server versions 3.0.11 or greater",
+    )
+    def test_can_create_model_ingestion_public_server(
+        self,
+        client: SpeckleClient,
+        test_project: Project,
+        test_model: Model,
+    ):
+        with pytest.raises(GraphQLException) as ex:
+            _ = client.model.can_create_model_ingestion(test_project.id, test_model.id)
+        assert "GRAPHQL_VALIDATION_FAILED" in str(ex.value)

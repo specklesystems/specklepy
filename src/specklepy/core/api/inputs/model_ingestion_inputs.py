@@ -40,6 +40,7 @@ class ModelIngestionSuccessInput(GraphQLBaseModel):
     ingestion_id: str
     project_id: str
     root_object_id: str
+    version_message: str | None
 
 
 class ModelIngestionFailedInput(GraphQLBaseModel):

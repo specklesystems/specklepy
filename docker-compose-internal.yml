@@ -97,10 +97,7 @@ services:
 
       STRATEGY_LOCAL: "true"
 
-      POSTGRES_URL: "postgres"
-      POSTGRES_USER: "speckle"
-      POSTGRES_PASSWORD: "speckle"
-      POSTGRES_DB: "speckle"
+      POSTGRES_URL: 'postgres://speckle:speckle@postgres:5432/speckle'
       ENABLE_MP: "false"
 
       LOG_PRETTY: "true"

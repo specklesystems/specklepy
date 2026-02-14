@@ -105,7 +105,7 @@ class PendingStreamCollaborator(GraphQLBaseModel):
     project_name: str
     title: str
     role: str
-    invited_by: LimitedUser
+    invited_by: LimitedUser | None = None
     user: LimitedUser | None = None
     token: str | None
 
@@ -137,6 +137,12 @@ class Version(GraphQLBaseModel):
     source_application: str | None
 
 
+class ModelPermissionChecks(GraphQLBaseModel):
+    can_update: "PermissionCheckResult"
+    can_delete: "PermissionCheckResult"
+    can_create_version: "PermissionCheckResult"
+
+
 class Model(GraphQLBaseModel):
     author: LimitedUser | None
     created_at: datetime
@@ -156,7 +162,6 @@ class ProjectPermissionChecks(GraphQLBaseModel):
     can_create_model: "PermissionCheckResult"
     can_delete: "PermissionCheckResult"
     can_load: "PermissionCheckResult"
-    can_publish: "PermissionCheckResult"
 
 
 class Project(GraphQLBaseModel):

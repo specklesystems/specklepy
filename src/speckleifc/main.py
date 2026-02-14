@@ -23,6 +23,7 @@ from specklepy.transports.server import ServerTransport
 def open_and_convert_file(
     file_path: str,
     project: Project,
+    version_message: str,
     model_ingestion_id: str,
     client: SpeckleClient,
 ) -> Version:
@@ -86,7 +87,7 @@ def open_and_convert_file(
                 project_id=project.id,
                 ingestion_id=model_ingestion_id,
                 root_object_id=root_id,
-                # version_message=version_message,
+                version_message=version_message,
             )
         )
 
