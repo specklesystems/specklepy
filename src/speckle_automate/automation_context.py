@@ -507,7 +507,8 @@ class AutomationContext:
             object_list = [affected_objects]
 
         ids: Dict[str, Optional[str]] = {}
-        # When objects are provided, each must have an id (empty list is allowed for version-level/skipped results).
+        # When objects are provided, each must have an id (empty list allowed for
+        # version-level/skipped results).
         for o in object_list:
             if not getattr(o, "id", None):
                 raise Exception(
