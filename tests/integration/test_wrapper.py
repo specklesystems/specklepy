@@ -160,7 +160,7 @@ def test_parse_model():
         "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d"
     )
 
-    assert wrap.branch_name == "building wrapper"
+    assert wrap.branch_name == "speckle tower revit 2025"
     assert wrap.type == "branch"
 
 
@@ -212,7 +212,7 @@ def test_to_string():
         "https://app.speckle.systems/projects/843d07eb10/models/4e7345c838",
         "https://app.speckle.systems/projects/843d07eb10/models/4e7345c838@c42d5cbac1",
         "https://app.speckle.systems/projects/843d07eb10/models/4e7345c838%40c42d5cbac1",
-        "https://app.speckle.systems/projects/24c3741255/models/b48d1b10f5a732f4ca4144286391282c",
+        "https://app.speckle.systems/projects/843d07eb10/models/9b5e57dca804a923a8d42d55dcc0191a",
     ]
     for url in urls:
         wrap = StreamWrapper(url)
