@@ -157,10 +157,10 @@ def test_parse_project():
 
 def test_parse_model():
     wrap = StreamWrapper(
-        "https://latest.speckle.systems/projects/843d07eb10/models/d9eb4918c8"
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d"
     )
 
-    assert wrap.branch_name == "building wrapper"
+    assert wrap.branch_name == "speckle tower revit 2025"
     assert wrap.type == "branch"
 
 
@@ -191,10 +191,10 @@ def test_parse_object_fe2():
 
 def test_parse_version():
     wrap = StreamWrapper(
-        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838@c42d5cbac1"
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d@7199443eff"
     )
     wrap_quoted = StreamWrapper(
-        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838%40c42d5cbac1"
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d%407199443eff"
     )
     assert wrap.type == "commit"
     assert wrap_quoted.type == "commit"
@@ -208,11 +208,11 @@ def test_to_string():
         "https://testing.speckle.dev/streams/0c6ad366c4/globals/abd3787893",
         "https://testing.speckle.dev/streams/4c3ce1459c/commits/8b9b831792",
         "https://testing.speckle.dev/streams/a75ab4f10f/objects/5530363e6d51c904903dafc3ea1d2ec6",
-        "https://latest.speckle.systems/projects/843d07eb10",
-        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838",
-        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838@c42d5cbac1",
-        "https://latest.speckle.systems/projects/843d07eb10/models/4e7345c838%40c42d5cbac1",
-        "https://latest.speckle.systems/projects/24c3741255/models/b48d1b10f5a732f4ca4144286391282c",
+        "https://app.speckle.systems/projects/8be1007be1",
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d",
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d@7199443eff",
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d%407199443eff",
+        "https://app.speckle.systems/projects/8be1007be1/models/9b5e57dca804a923a8d42d55dcc0191a",
     ]
     for url in urls:
         wrap = StreamWrapper(url)
