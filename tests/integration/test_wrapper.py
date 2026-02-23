@@ -202,12 +202,12 @@ def test_parse_version():
 
 def test_to_string():
     urls = [
-        # "https://testing.speckle.dev/streams/a75ab4f10f",
-        # "https://testing.speckle.dev/streams/4c3ce1459c/branches/%F0%9F%8D%95%E2%AC%85%F0%9F%8C%9F%20you%20wat%3F",
-        # "https://testing.speckle.dev/streams/0c6ad366c4/globals",
-        # "https://testing.speckle.dev/streams/0c6ad366c4/globals/abd3787893",
-        # "https://testing.speckle.dev/streams/4c3ce1459c/commits/8b9b831792",
-        # "https://testing.speckle.dev/streams/a75ab4f10f/objects/5530363e6d51c904903dafc3ea1d2ec6",
+        "https://testing.speckle.dev/streams/a75ab4f10f",
+        "https://testing.speckle.dev/streams/4c3ce1459c/branches/%F0%9F%8D%95%E2%AC%85%F0%9F%8C%9F%20you%20wat%3F",
+        "https://testing.speckle.dev/streams/0c6ad366c4/globals",
+        "https://testing.speckle.dev/streams/0c6ad366c4/globals/abd3787893",
+        "https://testing.speckle.dev/streams/4c3ce1459c/commits/8b9b831792",
+        "https://testing.speckle.dev/streams/a75ab4f10f/objects/5530363e6d51c904903dafc3ea1d2ec6",
         "https://app.speckle.systems/projects/8be1007be1",
         "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d",
         "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d@7199443eff",
