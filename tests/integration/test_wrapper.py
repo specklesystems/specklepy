@@ -208,11 +208,11 @@ def test_to_string():
         # "https://testing.speckle.dev/streams/0c6ad366c4/globals/abd3787893",
         # "https://testing.speckle.dev/streams/4c3ce1459c/commits/8b9b831792",
         # "https://testing.speckle.dev/streams/a75ab4f10f/objects/5530363e6d51c904903dafc3ea1d2ec6",
-        "https://app.speckle.systems/projects/843d07eb10",
-        "https://app.speckle.systems/projects/843d07eb10/models/4e7345c838",
-        "https://app.speckle.systems/projects/843d07eb10/models/4e7345c838@c42d5cbac1",
-        "https://app.speckle.systems/projects/843d07eb10/models/4e7345c838%40c42d5cbac1",
-        "https://app.speckle.systems/projects/843d07eb10/models/9b5e57dca804a923a8d42d55dcc0191a",
+        "https://app.speckle.systems/projects/8be1007be1",
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d",
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d@7199443eff",
+        "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d%407199443eff",
+        "https://app.speckle.systems/projects/8be1007be1/models/9b5e57dca804a923a8d42d55dcc0191a",
     ]
     for url in urls:
         wrap = StreamWrapper(url)
