@@ -97,6 +97,33 @@ class AutomationContext:
         """Get the current status message."""
         return self._automation_result.status_message
 
+    @property
+    def workspace_id(self) -> Optional[str]:
+        """Get the workspace id for the current automation run, if available."""
+        return self.automation_run_data.workspace_id
+
+    def resolve_workspace_id(self) -> Optional[str]:
+        """Return workspace id from run data or project lookup fallback."""
+        workspace_id = self.workspace_id
+        if workspace_id and workspace_id.strip():
+            return workspace_id.strip()
+
+        project_id = self.automation_run_data.project_id
+        if not project_id:
+            return None
+
+        try:
+            project = self.speckle_client.project.get(project_id)
+        except SpeckleException:
+            return None
+
+        workspace_id = getattr(project, "workspace_id", None)
+        if isinstance(workspace_id, str) and workspace_id.strip():
+            resolved_workspace_id = workspace_id.strip()
+            self.automation_run_data.workspace_id = resolved_workspace_id
+            return resolved_workspace_id
+        return None
+
     def elapsed(self) -> float:
         """Return the elapsed time in seconds since the initialization time."""
         return time.perf_counter() - self._init_time
