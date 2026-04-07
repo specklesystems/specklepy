@@ -49,6 +49,7 @@ class TestAutomationRunData(BaseModel):
 
     automation_run_id: str
     function_run_id: str
+    workspace_id: Optional[str] = None
 
     triggers: list[VersionCreationTrigger]
 

@@ -68,6 +68,7 @@ def create_test_automation_run(
                     createTestAutomationRun(automationId: $automationId) {
                         automationRunId
                         functionRunId
+                        workspaceId
                         triggers {
                             payload {
                                 modelId
@@ -119,6 +120,7 @@ def create_test_automation_run_data(
 
     return AutomationRunData(
         project_id=test_automation_environment.project_id,
+        workspace_id=test_automation_run_data.workspace_id,
         speckle_server_url=test_automation_environment.server_url,
         automation_id=test_automation_environment.automation_id,
         automation_run_id=test_automation_run_data.automation_run_id,
