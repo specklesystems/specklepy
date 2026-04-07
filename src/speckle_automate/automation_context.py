@@ -114,7 +114,7 @@ class AutomationContext:
 
         try:
             project = self.speckle_client.project.get(project_id)
-        except SpeckleException:
+        except Exception:
             return None
 
         workspace_id = getattr(project, "workspace_id", None)
