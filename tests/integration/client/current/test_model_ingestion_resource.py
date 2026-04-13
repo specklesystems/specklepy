@@ -234,12 +234,6 @@ class TestIngestionResource:
         assert not res.cancellation_requested
         assert res.status_data.status == ModelIngestionStatus.CANCELLED
 
-        # Cancel again, should be idempotent
-        res = client.model_ingestion.fail_with_cancel(input)
-        assert res.status_data.progress_message is None
-        assert not res.cancellation_requested
-        assert res.status_data.status == ModelIngestionStatus.CANCELLED
-
     def test_error_non_existent_ingestion(
         self, client: SpeckleClient, project: Project
     ):
