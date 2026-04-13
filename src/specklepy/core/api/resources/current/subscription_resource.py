@@ -224,6 +224,8 @@ class SubscriptionResource(ResourceBase):
                   createdAt
                   updatedAt
                   modelId
+                  projectId
+                  userId
                   cancellationRequested
                   statusData {
                     ... on HasModelIngestionStatus {
@@ -231,6 +233,10 @@ class SubscriptionResource(ResourceBase):
                     }
                     ... on HasProgressMessage {
                       progressMessage
+                    }
+                    ... on ModelIngestionSuccessStatus
+                    {
+                        versionId
                     }
                   }
                 }

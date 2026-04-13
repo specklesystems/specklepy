@@ -50,6 +50,8 @@ class ModelIngestionResource(ResourceBase):
                   createdAt
                   updatedAt
                   modelId
+                  projectId
+                  userId
                   cancellationRequested
                   statusData {
                     ... on HasModelIngestionStatus {
@@ -57,6 +59,10 @@ class ModelIngestionResource(ResourceBase):
                     }
                     ... on HasProgressMessage {
                       progressMessage
+                    }
+                    ... on ModelIngestionSuccessStatus
+                    {
+                      versionId
                     }
                   }
                 }
@@ -87,6 +93,8 @@ class ModelIngestionResource(ResourceBase):
                     createdAt
                     updatedAt
                     modelId
+                    projectId
+                    userId
                     cancellationRequested
                     statusData {
                       ... on HasModelIngestionStatus {
@@ -124,6 +132,8 @@ class ModelIngestionResource(ResourceBase):
                     createdAt
                     updatedAt
                     modelId
+                    projectId
+                    userId
                     cancellationRequested
                     statusData {
                       ... on HasModelIngestionStatus {
@@ -159,6 +169,8 @@ class ModelIngestionResource(ResourceBase):
                     createdAt
                     updatedAt
                     modelId
+                    projectId
+                    userId
                     cancellationRequested
                     statusData {
                       ... on HasModelIngestionStatus {
@@ -196,6 +208,8 @@ class ModelIngestionResource(ResourceBase):
                     createdAt
                     updatedAt
                     modelId
+                    projectId
+                    userId
                     cancellationRequested
                     statusData {
                       ... on HasModelIngestionStatus {
@@ -277,6 +291,8 @@ class ModelIngestionResource(ResourceBase):
                     createdAt
                     updatedAt
                     modelId
+                    projectId
+                    userId
                     cancellationRequested
                     statusData {
                       ... on HasModelIngestionStatus {
@@ -320,6 +336,8 @@ class ModelIngestionResource(ResourceBase):
                     createdAt
                     updatedAt
                     modelId
+                    projectId
+                    userId
                     cancellationRequested
                     statusData {
                       ... on HasModelIngestionStatus {
@@ -370,6 +388,8 @@ class ModelIngestionResource(ResourceBase):
                     createdAt
                     updatedAt
                     modelId
+                    projectId
+                    userId
                     cancellationRequested
                     statusData {
                       ... on HasModelIngestionStatus {

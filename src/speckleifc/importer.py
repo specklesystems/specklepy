@@ -22,11 +22,14 @@ from specklepy.objects import Base
 from specklepy.objects.data_objects import DataObject
 from specklepy.objects.models.collections.collection import Collection
 from specklepy.objects.proxies import InstanceProxy
+from specklepy.progress.ingestion_progress import IngestionProgressManager
 
 
 @dataclass
 class ImportJob:
     ifc_file: file
+
+    progress: IngestionProgressManager
 
     _render_material_manager: RenderMaterialProxyManager = field(
         default_factory=lambda: RenderMaterialProxyManager()
@@ -39,6 +42,7 @@ class ImportJob:
     )
     geometries_count: int = 0
     geometries_used: int = 0
+    elements_converted: int = 0
     _current_storey_data_object: DataObject | None = field(default=None, init=False)
 
     _display_value_cache: dict[int, list[Base]] = field(default_factory=dict)
@@ -108,6 +112,12 @@ class ImportJob:
 
         # Restore previous storey context
         self._current_storey_data_object = previous_storey_data_object
+
+        if self.progress.should_report_progress():
+            self.progress.report(
+                f"Converted {self.elements_converted:,} elements", None
+            )
+
         return result
 
     def _convert_children(self, step_element: entity_instance) -> list[Base]:
@@ -145,7 +155,10 @@ class ImportJob:
         iterator = create_geometry_iterator(self.ifc_file)
         if not iterator.initialize():
             raise SpeckleException("Failed to find any geometry in file")
+
+        self.progress.report("Converted 0 geometries", None)
         self.geometries_count = 0
+
         while True:
             shape = cast(TriangulationElement, iterator.get())
             self.geometries_count += 1
@@ -157,6 +170,11 @@ class ImportJob:
                 raise SpeckleException(
                     f"Failed to convert geometry with id: {id}"
                 ) from ex
+
+            if self.progress.should_report_progress():
+                self.progress.report(
+                    f"Converted {self.geometries_count:,} geometries", None
+                )
             if not iterator.next():
                 break
 
@@ -196,6 +214,8 @@ class ImportJob:
         if len(projects) != 1:
             raise SpeckleException("Expected exactly one IfcProject in file")
         project = projects[0]
+
+        self.progress.report("Converted 0 elements", None)
 
         tree = self.convert_element(project)
         if not isinstance(tree, Collection):

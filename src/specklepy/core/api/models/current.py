@@ -254,12 +254,15 @@ class FileUploadUrl(GraphQLBaseModel):
 class ModelIngestionStatusData(GraphQLBaseModel):
     status: ModelIngestionStatus
     progress_message: str | None = None
+    version_id: str | None = None
 
 
 class ModelIngestion(GraphQLBaseModel):
     id: str
     created_at: datetime
     updated_at: datetime
-    cancellation_requested: bool
     model_id: str
+    project_id: str
+    user_id: str
+    cancellation_requested: bool
     status_data: ModelIngestionStatusData
