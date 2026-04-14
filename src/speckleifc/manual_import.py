@@ -48,4 +48,4 @@ if __name__ == "__main__":
     start = time.time()
 
     _manual_import()
-    print(f"Total time (including cleanup): {(time.time() - start) * 1000}ms")
+    print(f"Total time (including cleanup): {(time.time() - start):.3f}s")

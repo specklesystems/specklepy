@@ -65,13 +65,17 @@ def open_and_convert_file(
         import_job = ImportJob(ifc_file, progress)  # pyright: ignore[reportUnknownArgumentType]
         data = import_job.convert()
 
-        print(f"File conversion complete after {(time.time() - start) * 1000:,}ms")
+        print(
+            f"File conversion complete after {(time.time() - start):.3f}s"  # noqa: E501
+        )
 
         start = time.time()
 
         progress.report("Uploading objects", None)
         root_id = send(data, transports=[remote_transport], use_default_cache=False)
-        print(f"Sending to speckle complete after: {(time.time() - start) * 1000:,}ms")
+        print(
+            f"Sending to speckle complete after: {(time.time() - start):.3f}s"  # noqa: E501
+        )
 
         start = time.time()
 
@@ -88,9 +92,9 @@ def open_and_convert_file(
         version = client.version.get(version_id, project.id)
 
         end = time.time()
-        print(f"Version committed after: {(end - start) * 1000:,}ms")
+        print(f"Version committed after: {(end - start):.3f}s")
 
-        print(f"Total time (to commit): {(end - very_start) * 1000:,}ms")
+        print(f"Total time (to commit): {(end - very_start):.3f}s")
         del ifc_file
 
         custom_properties = {"ui": "dui3", "actionSource": "import"}

@@ -112,7 +112,7 @@ class ImportJob:
 
         # Restore previous storey context
         self._current_storey_data_object = previous_storey_data_object
-
+        self.elements_converted += 1
         if self.progress.should_report_progress():
             self.progress.report(
                 f"Converted {self.elements_converted:,} elements", None
@@ -142,12 +142,16 @@ class ImportJob:
     def convert(self) -> Base:
         start = time.time()
         self.pre_process_geometry()
-        print(f"Geometry conversion complete after {(time.time() - start) * 1000}ms")
+        print(
+            f"Geometry conversion complete after {(time.time() - start):.3f}s"  # noqa: E501
+        )
         print(f"Created {self.geometries_count} geometries")
 
         start = time.time()
         root = self._convert_project_tree()
-        print(f"Object tree conversion complete after {(time.time() - start) * 1000}ms")
+        print(
+            f"Object tree conversion complete after {(time.time() - start):.3f}s"  # noqa: E501
+        )
         print(f"Used {self.geometries_used} geometries")
         return root
 
