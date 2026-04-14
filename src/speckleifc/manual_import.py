@@ -36,6 +36,7 @@ def _manual_import() -> None:
                 file_name=None,
                 file_size_bytes=None,
             ),
+            max_idle_timeout_seconds=2700,  # 45mins
         )
     )
     project = client.project.get(PROJECT_ID)
