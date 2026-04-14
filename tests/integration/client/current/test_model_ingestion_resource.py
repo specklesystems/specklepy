@@ -217,7 +217,7 @@ class TestIngestionResource:
         )
 
         version_id = client.model_ingestion.complete(input)
-        res = client.model_ingestion.get_ingestion(ingestion.id, project.id)
+        res = client.model_ingestion.get_ingestion(project.id, ingestion.id)
 
         assert isinstance(version_id, str)
         version = client.version.get(version_id, project.id)
