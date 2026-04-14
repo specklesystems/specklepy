@@ -156,7 +156,7 @@ class ImportJob:
         if not iterator.initialize():
             raise SpeckleException("Failed to find any geometry in file")
 
-        self.progress.report("Converted 0 geometries", None)
+        self.progress.report("Converting geometries", None)
         self.geometries_count = 0
 
         while True:
@@ -215,7 +215,7 @@ class ImportJob:
             raise SpeckleException("Expected exactly one IfcProject in file")
         project = projects[0]
 
-        self.progress.report("Converted 0 elements", None)
+        self.progress.report("Converting elements", None)
 
         tree = self.convert_element(project)
         if not isinstance(tree, Collection):

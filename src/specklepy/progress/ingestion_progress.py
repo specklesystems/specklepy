@@ -47,7 +47,8 @@ class IngestionProgressManager:
         Reports a progress update
         """
         self._last_updated_at = monotonic()
-        print(f"Progress update: {progress_message} {progress}")
+        formatted_progress = f"{progress:.0%}" if progress else ""
+        print(f"Progress update: {progress_message} {formatted_progress}")
 
         return self.speckle_client.model_ingestion.update_progress(
             ModelIngestionUpdateInput(

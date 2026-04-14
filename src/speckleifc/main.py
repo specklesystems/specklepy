@@ -28,7 +28,7 @@ PROGRESS_INTERVAL_SECONDS = 10
 def open_and_convert_file(
     file_path: str,
     project: Project,
-    version_message: str,
+    version_message: str | None,
     model_ingestion_id: str,
     client: SpeckleClient,
 ) -> Version:
