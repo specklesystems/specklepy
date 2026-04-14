@@ -31,13 +31,13 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
 @pytest.mark.parametrize(
     "input_type, value, is_valid, return_value",
     [
-        (str, 10, True, "10"),
+        (str, 10, False, 10),
         (str, "foo_bar", True, "foo_bar"),
         (
             str,
             {"foo": "bar"},
-            True,
-            "{'foo': 'bar'}",
+            False,
+            {"foo": "bar"},
         ),
         (float, 1, True, 1),
         # why are we allowing this??? We're lying to our users and ourselves too.
@@ -85,9 +85,8 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
         (Dict[int, Base], {1: test_base}, True, {1: test_base}),
         (Tuple[int, str, str], (1, "foo", "bar"), True, (1, "foo", "bar")),
         (Tuple, (1, "foo", "bar"), True, (1, "foo", "bar")),
-        # given our current rules, this is the reality. Its just sad...
-        (Tuple[str, str, str], (1, "foo", "bar"), True, ("1", "foo", "bar")),
-        (Tuple[str, Optional[str], str], (1, None, "bar"), True, ("1", None, "bar")),
+        (Tuple[str, str, str], (1, "foo", "bar"), False, (1, "foo", "bar")),
+        (Tuple[str, Optional[str], str], (1, None, "bar"), False, (1, None, "bar")),
         (Set[bool], set([1, 2]), False, set([1, 2])),
         (Set[int], set([1, 2]), True, set([1, 2])),
         (Set[int], set([None, 2]), True, set([None, 2])),

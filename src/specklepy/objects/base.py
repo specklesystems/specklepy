@@ -1,7 +1,7 @@
-import contextlib
 from dataclasses import dataclass, field
 from enum import Enum
 from inspect import isclass
+from types import UnionType
 from typing import (
     Any,
     ClassVar,
@@ -222,23 +222,20 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
         if value in t._value2member_map_:
             return True, t(value)
 
-    if getattr(t, "__module__", None) == "typing":
-        if isinstance(t, ForwardRef):
-            return True, value
+    if isinstance(t, ForwardRef):
+        return True, value
 
+    if getattr(t, "__module__", None) in ["typing", "types"]:
         origin = get_origin(t)
         args = get_args(t)
 
-        # below is what in nicer for >= py38
-        # origin = get_origin(t)
-
         # recursive validation for Unions on both types preferring the fist type
-        # if origin is Union or isinstance(t, UnionType):
-        #     for arg_t in args:
-        #         ok, v = _validate_type(arg_t, value)
-        #         if ok:
-        #             return True, v
-        #     return False, value
+        if origin is Union or isinstance(t, UnionType):
+            for arg_t in args:
+                ok, v = _validate_type(arg_t, value)
+                if ok:
+                    return True, v
+            return False, value
         if origin is dict:
             if not isinstance(value, dict):
                 return False, value
@@ -311,13 +308,16 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
     if isinstance(value, t):
         return True, value
 
-    with contextlib.suppress(ValueError, TypeError):
-        if t is float and value is not None:
-            return True, float(value)
-        # TODO: dafuq, i had to add this not list check
-        # but it would also fail for objects and other complex values
-        if t is str and value and not isinstance(value, list):
-            return True, str(value)
+    if t is float and type(value) is int:
+        return True, float(value)
+
+    # with contextlib.suppress(ValueError, TypeError):
+    #     if t is float and value is not None:
+    #         return True, float(value)
+    #     # TODO: dafuq, i had to add this not list check
+    #     # but it would also fail for objects and other complex values
+    #     if t is str and value and not isinstance(value, list):
+    #         return True, str(value)
 
     return False, value
 

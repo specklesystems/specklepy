@@ -143,7 +143,7 @@ def test_type_checking() -> None:
     order = FrozenYoghurt()
 
     order.servings = 2
-    order.price = "7"  # type: ignore - it will get converted
+    order.price = 7
     order.customer = "izzy"
     order.dietary = DietaryRestrictions.VEGAN
     order.tag = "preorder"
