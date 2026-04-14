@@ -42,13 +42,14 @@ class IngestionProgressManager:
 
         self._last_updated_at = 0.0
 
-    def report(self, progress_message: str, progress: float | None):
+    def report(self, progress_message: str, progress: float | None) -> ModelIngestion:
         """
         Reports a progress update
         """
         self._last_updated_at = monotonic()
+        print(f"Progress update: {progress_message} {progress}")
 
-        self.speckle_client.model_ingestion.update_progress(
+        return self.speckle_client.model_ingestion.update_progress(
             ModelIngestionUpdateInput(
                 ingestion_id=self.ingestion.id,
                 project_id=self.ingestion.project_id,
@@ -56,8 +57,6 @@ class IngestionProgressManager:
                 progress=progress,
             )
         )
-
-        print(f"Progress update: {progress_message} {progress}")
 
     def should_report_progress(self) -> bool:
         """
