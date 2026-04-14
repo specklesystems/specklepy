@@ -150,7 +150,7 @@ class ImportJob:
         start = time.time()
         root = self._convert_project_tree()
         print(
-            f"Object tree conversion complete after {(time.time() - start):.3f}s"  # noqa: E501
+            f"Element tree conversion complete after {(time.time() - start):.3f}s"  # noqa: E501
         )
         print(f"Used {self.geometries_used} geometries")
         return root
