@@ -19,7 +19,7 @@ from tests.integration.conftest import is_public
 @pytest.mark.skipif(
     is_public(), reason="The public API does not support model ingestion api"
 )
-class TestIngestionResource:
+class TestIngestionProgressManager:
     @pytest.fixture
     def project(self, client: SpeckleClient) -> Project:
         return client.project.create(
@@ -35,7 +35,7 @@ class TestIngestionResource:
         )
 
     @pytest.fixture
-    def ingestion(
+    def model_ingestion(
         self, client: SpeckleClient, model: Model, project: Project
     ) -> ModelIngestion:
         input = ModelIngestionCreateInput(
