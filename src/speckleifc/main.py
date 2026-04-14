@@ -17,6 +17,7 @@ from specklepy.core.api.models.current import Project, Version
 from specklepy.core.api.operations import send
 from specklepy.logging import metrics
 from specklepy.progress.ingestion_progress import IngestionProgressManager
+from specklepy.progress.progress_transport import ProgressTransport
 from specklepy.transports.server import ServerTransport
 
 # Since progress messages are currently blocking (no async), we're being extra coarse
@@ -58,6 +59,9 @@ def open_and_convert_file(
         server_url = account.serverInfo.url
         assert server_url
         remote_transport = ServerTransport(project.id, account=account)
+        progress_transport = ProgressTransport(
+            progress,
+        )
 
         progress.report("Opening file", None)
         ifc_file = open_ifc(file_path)  # pyright: ignore[reportUnknownVariableType]
@@ -72,7 +76,11 @@ def open_and_convert_file(
         start = time.time()
 
         progress.report("Uploading objects", None)
-        root_id = send(data, transports=[remote_transport], use_default_cache=False)
+        root_id = send(
+            data,
+            transports=[remote_transport, progress_transport],
+            use_default_cache=False,
+        )
         print(
             f"Sending to speckle complete after: {(time.time() - start):.3f}s"  # noqa: E501
         )
