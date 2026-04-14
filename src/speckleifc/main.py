@@ -11,19 +11,25 @@ from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionFailedInput,
     ModelIngestionStartProcessingInput,
     ModelIngestionSuccessInput,
-    ModelIngestionUpdateInput,
     SourceDataInput,
 )
 from specklepy.core.api.models.current import Project, Version
 from specklepy.core.api.operations import send
 from specklepy.logging import metrics
+from specklepy.progress.ingestion_progress import IngestionProgressManager
+from specklepy.progress.progress_transport import ProgressTransport
 from specklepy.transports.server import ServerTransport
+
+# Since progress messages are currently blocking (no async), we're being extra coarse
+# with progress updates to ensure we're not waisting time sending updates.
+# We could maybe go a little lower, but for now I'm not risking degrading performance
+PROGRESS_INTERVAL_SECONDS = 10
 
 
 def open_and_convert_file(
     file_path: str,
     project: Project,
-    version_message: str,
+    version_message: str | None,
     model_ingestion_id: str,
     client: SpeckleClient,
 ) -> Version:
@@ -33,7 +39,7 @@ def open_and_convert_file(
         path = Path(file_path)
 
         specklepy_version = importlib.metadata.version("specklepy")
-        client.model_ingestion.start_processing(
+        ingestion = client.model_ingestion.start_processing(
             ModelIngestionStartProcessingInput(
                 project_id=project.id,
                 ingestion_id=model_ingestion_id,
@@ -46,39 +52,38 @@ def open_and_convert_file(
                 ),
             )
         )
-
+        progress = IngestionProgressManager(
+            client, ingestion, PROGRESS_INTERVAL_SECONDS
+        )
         account = client.account
         server_url = account.serverInfo.url
         assert server_url
         remote_transport = ServerTransport(project.id, account=account)
+        progress_transport = ProgressTransport(
+            progress,
+        )
 
+        progress.report("Opening file", None)
         ifc_file = open_ifc(file_path)  # pyright: ignore[reportUnknownVariableType]
 
-        client.model_ingestion.update_progress(
-            ModelIngestionUpdateInput(
-                project_id=project.id,
-                ingestion_id=model_ingestion_id,
-                progress_message="Converting file",
-                progress=None,
-            )
-        )
-        import_job = ImportJob(ifc_file)  # pyright: ignore[reportUnknownArgumentType]
+        import_job = ImportJob(ifc_file, progress)  # pyright: ignore[reportUnknownArgumentType]
         data = import_job.convert()
 
-        print(f"File conversion complete after {(time.time() - start) * 1000}ms")
+        print(
+            f"File conversion complete after {(time.time() - start):.3f}s"  # noqa: E501
+        )
 
         start = time.time()
 
-        client.model_ingestion.update_progress(
-            ModelIngestionUpdateInput(
-                project_id=project.id,
-                ingestion_id=model_ingestion_id,
-                progress_message="Uploading objects",
-                progress=None,
-            )
+        progress.report("Uploading objects", None)
+        root_id = send(
+            data,
+            transports=[remote_transport, progress_transport],
+            use_default_cache=False,
         )
-        root_id = send(data, transports=[remote_transport], use_default_cache=False)
-        print(f"Sending to speckle complete after: {(time.time() - start) * 1000}ms")
+        print(
+            f"Sending to speckle complete after: {(time.time() - start):.3f}s"  # noqa: E501
+        )
 
         start = time.time()
 
@@ -95,9 +100,9 @@ def open_and_convert_file(
         version = client.version.get(version_id, project.id)
 
         end = time.time()
-        print(f"Version committed after: {(end - start) * 1000}ms")
+        print(f"Version committed after: {(end - start):.3f}s")
 
-        print(f"Total time (to commit): {(end - very_start) * 1000}ms")
+        print(f"Total time (to commit): {(end - very_start):.3f}s")
         del ifc_file
 
         custom_properties = {"ui": "dui3", "actionSource": "import"}

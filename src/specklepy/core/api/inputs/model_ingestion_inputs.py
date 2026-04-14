@@ -14,6 +14,7 @@ class ModelIngestionCreateInput(GraphQLBaseModel):
     project_id: str
     progress_message: str
     source_data: SourceDataInput
+    max_idle_timeout_seconds: int | None = None
 
 
 class ModelIngestionStartProcessingInput(GraphQLBaseModel):
