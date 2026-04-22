@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry.box import Box
@@ -29,7 +29,7 @@ class Curve(
     knots: List[float]
     closed: bool
     displayValue: Polyline
-    bbox: Optional[Box] = None
+    bbox: Box | None = None
 
     def __repr__(self) -> str:
         return (

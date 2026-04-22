@@ -1,5 +1,3 @@
-from typing import Optional
-
 from specklepy.core.api.enums import (
     ProjectModelIngestionUpdatedMessageType,
     ProjectModelsUpdatedMessageType,
@@ -14,26 +12,26 @@ from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 class UserProjectsUpdatedMessage(GraphQLBaseModel):
     id: str
     type: UserProjectsUpdatedMessageType
-    project: Optional[Project]
+    project: Project | None
 
 
 class ProjectModelsUpdatedMessage(GraphQLBaseModel):
     id: str
     type: ProjectModelsUpdatedMessageType
-    model: Optional[Model]
+    model: Model | None
 
 
 class ProjectUpdatedMessage(GraphQLBaseModel):
     id: str
     type: ProjectUpdatedMessageType
-    project: Optional[Project]
+    project: Project | None
 
 
 class ProjectVersionsUpdatedMessage(GraphQLBaseModel):
     id: str
     type: ProjectVersionsUpdatedMessageType
     model_id: str
-    version: Optional[Version]
+    version: Version | None
 
 
 class ProjectModelIngestionUpdatedMessage(GraphQLBaseModel):

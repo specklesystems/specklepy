@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Collection, Dict, Generic, Iterable, Optional, Tuple, TypeVar
+from typing import Any, Collection, Dict, Generic, Iterable, Tuple, TypeVar
 
 from attrs import define
 
@@ -8,7 +8,7 @@ from specklepy.objects.base import Base
 ROOT: str = "__Root"
 
 T = TypeVar("T")
-PARENT_INFO = Tuple[Optional[str], str]
+PARENT_INFO = Tuple[str | None, str]
 
 
 @define(slots=True)
@@ -27,9 +27,7 @@ class CommitObjectBuilder(ABC, Generic[T]):
     def build_commit_object(self, root_commit_object: Base) -> None:
         self.apply_relationships(self.converted.values(), root_commit_object)
 
-    def set_relationship(
-        self, app_id: Optional[str], *parent_info: PARENT_INFO
-    ) -> None:
+    def set_relationship(self, app_id: str | None, *parent_info: PARENT_INFO) -> None:
         if not app_id:
             return
 
@@ -54,7 +52,7 @@ class CommitObjectBuilder(ABC, Generic[T]):
             if not parent_id:
                 continue
 
-            parent: Optional[Base]
+            parent: Base | None
             if parent_id == ROOT:
                 parent = root_commit_object
             else:
@@ -84,14 +82,12 @@ class CommitObjectBuilder(ABC, Generic[T]):
             )
 
 
-def get_detached_prop(speckle_object: Base, prop_name: str) -> Optional[Any]:
+def get_detached_prop(speckle_object: Base, prop_name: str) -> Any | None:
     detached_prop_name = get_detached_prop_name(speckle_object, prop_name)
     return getattr(speckle_object, detached_prop_name, None)
 
 
-def set_detached_prop(
-    speckle_object: Base, prop_name: str, value: Optional[Any]
-) -> None:
+def set_detached_prop(speckle_object: Base, prop_name: str, value: Any | None) -> None:
     detached_prop_name = get_detached_prop_name(speckle_object, prop_name)
     setattr(speckle_object, detached_prop_name, value)
 

@@ -19,7 +19,7 @@ class FakeIntEnum(IntEnum):
 
 
 class FakeBase(Base):
-    foo: Optional[str]
+    foo: str | None
 
     def __init__(self, foo: str) -> None:
         self.foo = foo
@@ -65,25 +65,25 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
         (FakeIntEnum, 123.0, False, 123.0),
         (Base, test_base, True, test_base),
         (Base, 123, False, 123),
-        (Optional[int], 1, True, 1),
+        (int | None, 1, True, 1),
         # this is just silly...
-        (Optional[int], [1, 2, 3], False, [1, 2, 3]),
-        (Optional[int], None, True, None),
-        (Optional[FakeEnum], None, True, None),
-        (Optional[FakeEnum], FakeEnum.bar, True, FakeEnum.bar),
-        (Optional[FakeEnum], FakeEnum.bar.value, True, FakeEnum.bar),
-        (Optional[FakeEnum], "baz", False, "baz"),
-        (Optional[Base], test_base, True, test_base),
-        (Optional[Base], None, True, None),
+        (int | None, [1, 2, 3], False, [1, 2, 3]),
+        (int | None, None, True, None),
+        (FakeEnum | None, None, True, None),
+        (FakeEnum | None, FakeEnum.bar, True, FakeEnum.bar),
+        (FakeEnum | None, FakeEnum.bar.value, True, FakeEnum.bar),
+        (FakeEnum | None, "baz", False, "baz"),
+        (Base | None, test_base, True, test_base),
+        (Base | None, None, True, None),
         (List[int], [1, 2], True, [1, 2]),
         (List[int], ["1", 2], False, ["1", 2]),
         # same as the dict typing below...
         (List[int], [None, 2], True, [None, 2]),
-        (List[Optional[int]], [None, 2], True, [None, 2]),
+        (List[int | None], [None, 2], True, [None, 2]),
         (List, ["foo", 2, "bar"], True, ["foo", 2, "bar"]),
         (Dict[str, int], {"foo": 1}, True, {"foo": 1}),
         (Dict, {"foo": 1}, True, {"foo": 1}),
-        (Dict[str, Optional[int]], {"foo": None}, True, {"foo": None}),
+        (Dict[str, int | None], {"foo": None}, True, {"foo": None}),
         # this case should be
         # (Dict[int, Base], {1: None}, False, {1: None}),
         # but type checking currently allows everything to be None
@@ -92,7 +92,7 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
         (Tuple[int, str, str], (1, "foo", "bar"), True, (1, "foo", "bar")),
         (Tuple, (1, "foo", "bar"), True, (1, "foo", "bar")),
         (Tuple[str, str, str], (1, "foo", "bar"), False, (1, "foo", "bar")),
-        (Tuple[str, Optional[str], str], (1, None, "bar"), False, (1, None, "bar")),
+        (Tuple[str, str | None, str], (1, None, "bar"), False, (1, None, "bar")),
         (Set[bool], set([1, 2]), False, set([1, 2])),
         (Set[int], set([1, 2]), True, set([1, 2])),
         (Set[int], set([None, 2]), True, set([None, 2])),
@@ -100,25 +100,30 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
         # easily produces false reports since we're only checking the type of the
         # first item
         # (Set[int], set(["None", 2]), False, set(["None", 2])),
-        (Set[Optional[int]], set([None, 2]), True, set([None, 2])),
-        (Optional[Union[List[int], List[FakeBase]]], None, True, None),
-        (Optional[Union[List[int], List[FakeBase]]], "foo", False, "foo"),
-        (Union[List[int], List[FakeBase], None], "foo", False, "foo"),
-        (Optional[Union[List[int], List[FakeBase]]], [1, 2, 3], True, [1, 2, 3]),
+        (Set[Optional[int]], set([None, 2]), True, set([None, 2])),  # noqa UP045
+        (Set[int | None], set([None, 2]), True, set([None, 2])),
+        (Optional[Union[List[int], List[FakeBase]]], None, True, None),  # noqa UP045
+        (List[int] | List[FakeBase] | None, None, True, None),
+        (Optional[Union[List[int], List[FakeBase]]], "foo", False, "foo"),  # noqa UP045
+        (List[int] | List[FakeBase] | None, "foo", False, "foo"),
+        (Union[List[int], List[FakeBase], None], "foo", False, "foo"),  # noqa UP045
+        (List[int] | List[FakeBase] | None, "foo", False, "foo"),
+        (Optional[Union[List[int], List[FakeBase]]], [1, 2, 3], True, [1, 2, 3]),  # noqa UP045
+        (List[int] | List[FakeBase], [1, 2, 3], True, [1, 2, 3]),
         (
-            Optional[Union[List[int], List[FakeBase]]],
+            List[int] | List[FakeBase] | None,
             fake_bases,
             True,
             fake_bases,
         ),
         (List["int"], [2, 3, 4], True, [2, 3, 4]),
         (
-            Union[float, Dict[str, float]],
+            float | Dict[str, float],
             {"foo": 1, "bar": 2},
             True,
             {"foo": 1.0, "bar": 2.0},
         ),
-        (Union[float, Dict[str, float]], {"foo": "bar"}, False, {"foo": "bar"}),
+        (float | Dict[str, float], {"foo": "bar"}, False, {"foo": "bar"}),
         (ForwardRef("str"), "bar_foo", True, "bar_foo"),
         # No type checking for forwards refs, this is less than ideal
         (ForwardRef("str"), 10, True, 10),

@@ -1,6 +1,6 @@
 import os
 import uuid
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 from urllib.parse import urlparse
 
 import pytest
@@ -11,7 +11,7 @@ from specklepy.core.helpers import speckle_path_provider
 
 
 def _create_account(
-    id: str, url: str, movedFrom: Optional[str], movedTo: Optional[str]
+    id: str, url: str, movedFrom: str | None, movedTo: str | None
 ) -> Account:
     return Account(
         id=uuid.uuid4().hex[:6].lower(),
