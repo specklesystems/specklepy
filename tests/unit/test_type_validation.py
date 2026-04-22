@@ -2,6 +2,7 @@ from enum import Enum, IntEnum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import pytest
+from annotationlib import ForwardRef
 
 from specklepy.objects.base import Base, _validate_type
 from specklepy.objects.primitive import Interval
@@ -28,6 +29,8 @@ class FakeBase(Base):
 fake_bases = [FakeBase("foo"), FakeBase("bar")]
 
 
+# This test documents the current behaviour
+# Some of the current behaviour not intended and/or not ideal
 @pytest.mark.parametrize(
     "input_type, value, is_valid, return_value",
     [
@@ -39,7 +42,11 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
             False,
             {"foo": "bar"},
         ),
-        (float, 1, True, 1),
+        # questionable
+        (float, 1, True, 1.0),
+        (float, -123, True, -123.0),
+        (float, 1.0, True, 1.0),
+        (float, 321.321, True, 321.321),
         # why are we allowing this??? We're lying to our users and ourselves too.
         (str, None, True, None),
         (bool, None, True, None),
@@ -113,6 +120,9 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
             {"foo": 1.0, "bar": 2.0},
         ),
         (Union[float, Dict[str, float]], {"foo": "bar"}, False, {"foo": "bar"}),
+        (ForwardRef("str"), "bar_foo", True, "bar_foo"),
+        # No type checking for forwards refs, this is less than ideal
+        (ForwardRef("str"), 10, True, 10),
     ],
 )
 def test_validate_type(
