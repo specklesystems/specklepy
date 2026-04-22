@@ -1,8 +1,7 @@
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, ForwardRef, List, Optional, Set, Tuple, Union
 
 import pytest
-from annotationlib import ForwardRef
 
 from specklepy.objects.base import Base, _validate_type
 from specklepy.objects.primitive import Interval
