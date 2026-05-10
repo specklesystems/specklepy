@@ -35,7 +35,7 @@ def sample_text_all_properties(sample_point: Point, sample_plane: Plane) -> Text
         alignmentH=AlignmentHorizontal.Center,
         alignmentV=AlignmentVertical.Center,
         plane=sample_plane,
-        maxWidth=20,
+        maxWidth=20.0,
         units=Units.m,
     )
 
@@ -56,7 +56,7 @@ def test_text_creation_minimal(sample_point: Point):
 
 def test_text_creation_extended(sample_point: Point, sample_plane: Plane):
     text_value = "text"
-    max_width = 20
+    max_width = 20.0
 
     text_obj = Text(
         value=text_value,

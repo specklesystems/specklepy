@@ -1,5 +1,5 @@
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, ForwardRef, List, Optional, Set, Tuple, Union
 
 import pytest
 
@@ -28,18 +28,24 @@ class FakeBase(Base):
 fake_bases = [FakeBase("foo"), FakeBase("bar")]
 
 
+# This test documents the current behaviour
+# Some of the current behaviour not intended and/or not ideal
 @pytest.mark.parametrize(
     "input_type, value, is_valid, return_value",
     [
-        (str, 10, True, "10"),
+        (str, 10, False, 10),
         (str, "foo_bar", True, "foo_bar"),
         (
             str,
             {"foo": "bar"},
-            True,
-            "{'foo': 'bar'}",
+            False,
+            {"foo": "bar"},
         ),
-        (float, 1, True, 1),
+        # questionable
+        (float, 1, True, 1.0),
+        (float, -123, True, -123.0),
+        (float, 1.0, True, 1.0),
+        (float, 321.321, True, 321.321),
         # why are we allowing this??? We're lying to our users and ourselves too.
         (str, None, True, None),
         (bool, None, True, None),
@@ -85,9 +91,8 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
         (Dict[int, Base], {1: test_base}, True, {1: test_base}),
         (Tuple[int, str, str], (1, "foo", "bar"), True, (1, "foo", "bar")),
         (Tuple, (1, "foo", "bar"), True, (1, "foo", "bar")),
-        # given our current rules, this is the reality. Its just sad...
-        (Tuple[str, str, str], (1, "foo", "bar"), True, ("1", "foo", "bar")),
-        (Tuple[str, Optional[str], str], (1, None, "bar"), True, ("1", None, "bar")),
+        (Tuple[str, str, str], (1, "foo", "bar"), False, (1, "foo", "bar")),
+        (Tuple[str, Optional[str], str], (1, None, "bar"), False, (1, None, "bar")),
         (Set[bool], set([1, 2]), False, set([1, 2])),
         (Set[int], set([1, 2]), True, set([1, 2])),
         (Set[int], set([None, 2]), True, set([None, 2])),
@@ -114,6 +119,9 @@ fake_bases = [FakeBase("foo"), FakeBase("bar")]
             {"foo": 1.0, "bar": 2.0},
         ),
         (Union[float, Dict[str, float]], {"foo": "bar"}, False, {"foo": "bar"}),
+        (ForwardRef("str"), "bar_foo", True, "bar_foo"),
+        # No type checking for forwards refs, this is less than ideal
+        (ForwardRef("str"), 10, True, 10),
     ],
 )
 def test_validate_type(

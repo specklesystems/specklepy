@@ -61,4 +61,4 @@ def cmd_line_import() -> None:
 if __name__ == "__main__":
     start = time.time()
     cmd_line_import()
-    print(f"Total time (including cleanup): {(time.time() - start) * 1000}ms")
+    print(f"Total time (including cleanup): {(time.time() - start):.3f}s")

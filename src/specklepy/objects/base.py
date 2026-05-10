@@ -1,7 +1,7 @@
-import contextlib
 from dataclasses import dataclass, field
 from enum import Enum
 from inspect import isclass
+from types import UnionType
 from typing import (
     Any,
     ClassVar,
@@ -13,11 +13,13 @@ from typing import (
     Tuple,
     Type,
     Union,
+    get_origin,
     get_type_hints,
 )
 from warnings import warn
 
 from pydantic.alias_generators import to_pascal
+from typing_extensions import get_args
 
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.transports.memory import MemoryTransport
@@ -220,32 +222,28 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
         if value in t._value2member_map_:
             return True, t(value)
 
-    if getattr(t, "__module__", None) == "typing":
-        if isinstance(t, ForwardRef):
-            return True, value
+    if isinstance(t, ForwardRef):
+        return True, value
 
-        origin = t.__origin__
-        # below is what in nicer for >= py38
-        # origin = get_origin(t)
+    if getattr(t, "__module__", None) in ["typing", "types"]:
+        origin = get_origin(t)
+        args = get_args(t)
 
         # recursive validation for Unions on both types preferring the fist type
-        if origin is Union:
-            # below is what in nicer for >= py38
-            # t_1, t_2 = get_args(t)
-            args = t.__args__  # type: ignore
+        if origin is Union or isinstance(t, UnionType):
             for arg_t in args:
-                t_success, t_value = _validate_type(arg_t, value)
-                if t_success:
-                    return True, t_value
+                ok, v = _validate_type(arg_t, value)
+                if ok:
+                    return True, v
             return False, value
         if origin is dict:
             if not isinstance(value, dict):
                 return False, value
-            if value == {}:
+            if not value:
                 return True, value
-            if not getattr(t, "__args__", None):
+            if not args:
                 return True, value
-            t_key, t_value = t.__args__  # type: ignore
+            t_key, t_value = args
 
             if (
                 getattr(t_key, "__name__", None),
@@ -265,11 +263,11 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
         if origin is list:
             if not isinstance(value, list):
                 return False, value
-            if value == []:
+            if not value:
                 return True, value
-            if not hasattr(t, "__args__"):
+            if not args:
                 return True, value
-            t_items = t.__args__[0]  # type: ignore
+            t_items = args[0]
             if getattr(t_items, "__name__", None) == "T":
                 return True, value
             first_item_valid, _ = _validate_type(t_items, value[0])
@@ -280,10 +278,10 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
         if origin is tuple:
             if not isinstance(value, tuple):
                 return False, value
-            if not hasattr(t, "__args__"):
+            if not args:
                 return True, value
             args = t.__args__  # type: ignore
-            if args == tuple():
+            if not args:
                 return True, value
             # we're not checking for empty tuple, cause tuple lengths must match
             if len(args) != len(value):
@@ -299,7 +297,7 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
         if origin is set:
             if not isinstance(value, set):
                 return False, value
-            if not hasattr(t, "__args__"):
+            if not args:
                 return True, value
             t_items = t.__args__[0]  # type: ignore
             first_item_valid, _ = _validate_type(t_items, next(iter(value)))
@@ -310,13 +308,16 @@ def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
     if isinstance(value, t):
         return True, value
 
-    with contextlib.suppress(ValueError, TypeError):
-        if t is float and value is not None:
-            return True, float(value)
-        # TODO: dafuq, i had to add this not list check
-        # but it would also fail for objects and other complex values
-        if t is str and value and not isinstance(value, list):
-            return True, str(value)
+    if t is float and type(value) is int:
+        return True, float(value)
+
+    # with contextlib.suppress(ValueError, TypeError):
+    #     if t is float and value is not None:
+    #         return True, float(value)
+    #     # TODO: dafuq, i had to add this not list check
+    #     # but it would also fail for objects and other complex values
+    #     if t is str and value and not isinstance(value, list):
+    #         return True, str(value)
 
     return False, value
 
