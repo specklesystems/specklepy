@@ -65,7 +65,7 @@ services:
       - "0.0.0.0:3000:3000"
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_started
       redis:
         condition: service_healthy
       minio:
