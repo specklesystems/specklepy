@@ -43,7 +43,6 @@ jobs:
           password: ${{ github.token }}
 
       - name: Run Speckle Server
-        continue-on-error: true
         run: docker compose --file docker-compose-internal.yml up --detach --wait
 
       - name: Run tests
