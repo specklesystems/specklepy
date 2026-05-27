@@ -46,12 +46,6 @@ jobs:
         continue-on-error: true
         run: docker compose --file docker-compose-internal.yml up --detach --wait
 
-      - name: Dump logs on failure
-        run: |
-          docker compose ps
-          docker compose logs postgres
-          docker inspect speckle-server-postgres-1
-
       - name: Run tests
         run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
 
