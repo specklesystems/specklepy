@@ -16,6 +16,12 @@ services:
       - ./setup/db/10-docker_postgres_init.sql:/docker-entrypoint-initdb.d/10-docker_postgres_init.sql
       - ./setup/db/11-docker_postgres_authentik_init.sql:/docker-entrypoint-initdb.d/11-docker_postgres_authentik_init.sql
     command: postgres -c max_prepared_transactions=150
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U speckle -d speckle"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   redis:
     image: "valkey/valkey:8.1-alpine@sha256:0d27f0bca0249f61d060029a6aaf2e16b2c417d68d02a508e1dfb763fa2948b4"
@@ -65,17 +71,16 @@ services:
       - "0.0.0.0:3000:3000"
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_healthy
       minio:
         condition: service_healthy
     environment:
-      # TODO: Change this to the URL of the speckle server, as accessed from the network
-      CANONICAL_URL: "http://127.0.0.1:8080"
+      CANONICAL_URL: "http://127.0.0.1:3000"
       SPECKLE_AUTOMATE_URL: "http://127.0.0.1:3030"
       FRONTEND_ORIGIN: "http://127.0.0.1:8081"
-
+      BIND_ADDRESS: "0.0.0.0"
       # TODO: Change thvolumes:
       REDIS_URL: "redis://redis"
 
