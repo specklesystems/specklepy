@@ -16,12 +16,12 @@ services:
       - ./setup/db/10-docker_postgres_init.sql:/docker-entrypoint-initdb.d/10-docker_postgres_init.sql
       - ./setup/db/11-docker_postgres_authentik_init.sql:/docker-entrypoint-initdb.d/11-docker_postgres_authentik_init.sql
     command: postgres -c max_prepared_transactions=150
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready --host=localhost --username=speckle --dbname=speckle"]
-      interval: 10s
-      timeout: 10s
-      retries: 60
-      start_period: 30s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready --host=localhost --username=speckle --dbname=speckle"]
+    #   interval: 10s
+    #   timeout: 10s
+    #   retries: 60
+    #   start_period: 30s
 
   redis:
     image: "valkey/valkey:8.1-alpine@sha256:0d27f0bca0249f61d060029a6aaf2e16b2c417d68d02a508e1dfb763fa2948b4"
@@ -71,7 +71,7 @@ services:
       - "0.0.0.0:3000:3000"
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_started
       redis:
         condition: service_healthy
       minio:
