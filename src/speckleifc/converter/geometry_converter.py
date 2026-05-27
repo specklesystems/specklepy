@@ -85,7 +85,7 @@ def geometry_to_speckle(
 
 def _material_to_speckle(material: style) -> RenderMaterial:
     return RenderMaterial(
-        applicationId=material.calc_hash(),
+        applicationId=str(material.calc_hash()),
         name=material.name,
         diffuse=_color_to_argb(material.diffuse),
         opacity=1 - material.transparency if material.has_transparency() else 1,
