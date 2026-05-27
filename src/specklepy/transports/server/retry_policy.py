@@ -24,6 +24,7 @@ def setup_session(auth_token: str | None) -> requests.Session:
         status_forcelist=(500, 502, 503, 504, 520, 408, 429),
         allowed_methods=["HEAD", "GET", "OPTIONS", "POST", "PUT", "DELETE"],
         raise_on_status=False,
+        respect_retry_after_header=True,
     )
 
     adapter = HTTPAdapter(max_retries=retry_policy)
