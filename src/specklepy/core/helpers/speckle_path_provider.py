@@ -5,14 +5,13 @@ Provides uniform and consistent path helpers for `specklepy`
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 from specklepy.logging.exceptions import SpeckleException
 
 _user_data_env_var = "SPECKLE_USERDATA_PATH"
 
 
-def _path() -> Optional[Path]:
+def _path() -> Path | None:
     """Read the user data path override setting."""
     path_override = os.environ.get(_user_data_env_var)
     if path_override:
@@ -29,7 +28,7 @@ def override_application_name(application_name: str) -> None:
     _application_name = application_name
 
 
-def override_application_data_path(path: Optional[str]) -> None:
+def override_application_data_path(path: str | None) -> None:
     """
     Override the global Speckle application data path.
 
@@ -126,5 +125,5 @@ def accounts_folder_path() -> Path:
     return _ensure_folder_exists(user_speckle_folder_path(), _accounts_folder_name)
 
 
-def blob_storage_path(path: Optional[Path] = None) -> Path:
+def blob_storage_path(path: Path | None = None) -> Path:
     return _ensure_folder_exists(path or user_speckle_folder_path(), _blob_folder_name)

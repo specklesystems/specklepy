@@ -1,5 +1,3 @@
-from typing import Optional
-
 from gql import gql
 
 from specklepy.core.api.models import (
@@ -25,7 +23,7 @@ class OtherUserResource(ResourceBase):
         )
         self.schema = LimitedUser
 
-    def get(self, id: str) -> Optional[LimitedUser]:
+    def get(self, id: str) -> LimitedUser | None:
         """
         Gets the profile of another user.
 
@@ -54,7 +52,7 @@ class OtherUserResource(ResourceBase):
         variables = {"id": id}
 
         return self.make_request_and_parse_response(
-            DataResponse[Optional[LimitedUser]], QUERY, variables
+            DataResponse[LimitedUser | None], QUERY, variables
         ).data
 
     def user_search(
@@ -62,7 +60,7 @@ class OtherUserResource(ResourceBase):
         query: str,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
         archived: bool = False,
         emailOnly: bool = False,
     ) -> UserSearchResultCollection:

@@ -1,6 +1,6 @@
 from contextlib import ExitStack as does_not_raise
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import Dict, List
 
 import pytest
 
@@ -133,10 +133,10 @@ class FrozenYoghurt(Base):
     servings: int
     flavours: List[str]  # list item types won't be checked
     customer: str
-    add_ons: Optional[Dict[str, float]]  # dict item types won't be checked
+    add_ons: Dict[str, float] | None  # dict item types won't be checked
     price: float = 0.0
     dietary: DietaryRestrictions
-    tag: Union[int, str]
+    tag: int | str
 
 
 def test_type_checking() -> None:

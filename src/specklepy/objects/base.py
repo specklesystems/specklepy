@@ -8,7 +8,6 @@ from typing import (
     Dict,
     ForwardRef,
     List,
-    Optional,
     Set,
     Tuple,
     Type,
@@ -95,8 +94,8 @@ class _RegisteringBase:
     """
 
     speckle_type: ClassVar[str]
-    _speckle_type_override: ClassVar[Optional[str]] = None
-    _speckle_namespace: ClassVar[Optional[str]] = None
+    _speckle_type_override: ClassVar[str | None] = None
+    _speckle_namespace: ClassVar[str | None] = None
     _type_registry: ClassVar[Dict[str, Type["Base"]]] = {}
     _attr_types: ClassVar[Dict[str, Type]] = {}
     # dict of chunkable props and their max chunk size
@@ -106,7 +105,7 @@ class _RegisteringBase:
     _serialize_ignore: Set[str] = set()
 
     @classmethod
-    def get_registered_type(cls, speckle_type: str) -> Optional[Type["Base"]]:
+    def get_registered_type(cls, speckle_type: str) -> Type["Base"] | None:
         """Get the registered type from the protected mapping via the `speckle_type`"""
         for full_name in reversed(speckle_type.split(":")):
             maybe_type = cls._type_registry.get(full_name, None)
@@ -156,10 +155,10 @@ class _RegisteringBase:
 
     def __init_subclass__(
         cls,
-        speckle_type: Optional[str] = None,
-        chunkable: Optional[Dict[str, int]] = None,
-        detachable: Optional[Set[str]] = None,
-        serialize_ignore: Optional[Set[str]] = None,
+        speckle_type: str | None = None,
+        chunkable: Dict[str, int] | None = None,
+        detachable: Set[str] | None = None,
+        serialize_ignore: Set[str] | None = None,
         **kwargs: Dict[str, Any],
     ):
         """
@@ -203,7 +202,7 @@ class _RegisteringBase:
 # def _validate_type(t: type, value: T) -> Tuple[bool, T]:
 
 
-def _validate_type(t: Optional[type], value: Any) -> Tuple[bool, Any]:
+def _validate_type(t: type | None, value: Any) -> Tuple[bool, Any]:
     # this should be reworked. Its only ok to return null for Optionals...
     # if t is None and value is None:
     if value is None:
@@ -348,9 +347,9 @@ class Base(_RegisteringBase, speckle_type="Base"):
     ```
     """
 
-    id: Union[str, None] = None
+    id: str | None = None
     # totalChildrenCount: Union[int, None] = None
-    applicationId: Union[str, None] = None
+    applicationId: str | None = None
 
     def __repr__(self) -> str:
         return (

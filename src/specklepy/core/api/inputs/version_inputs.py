@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Sequence
 
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 
@@ -6,7 +6,7 @@ from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 class UpdateVersionInput(GraphQLBaseModel):
     version_id: str
     project_id: str
-    message: Optional[str]
+    message: str | None
 
 
 class MoveVersionsInput(GraphQLBaseModel):
@@ -24,10 +24,10 @@ class CreateVersionInput(GraphQLBaseModel):
     object_id: str
     model_id: str
     project_id: str
-    message: Optional[str] = None
-    source_application: Optional[str] = "py"
-    total_children_count: Optional[int] = None
-    parents: Optional[Sequence[str]] = None
+    message: str | None = None
+    source_application: str | None = "py"
+    total_children_count: int | None = None
+    parents: Sequence[str] | None = None
 
 
 class MarkReceivedVersionInput(GraphQLBaseModel):
@@ -38,4 +38,4 @@ class MarkReceivedVersionInput(GraphQLBaseModel):
     IMPORTANT: this is meant to be the slug of the application that has done the
     receiving, not to be confused with `Version.sourceApplication`
     """
-    message: Optional[str] = None
+    message: str | None = None

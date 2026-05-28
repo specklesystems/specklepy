@@ -3,7 +3,7 @@
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 import httpx
 from gql import gql
@@ -55,7 +55,7 @@ class AutomationContext:
 
     @classmethod
     def initialize(
-        cls, automation_run_data: Union[str, AutomationRunData], speckle_token: str
+        cls, automation_run_data: str | AutomationRunData, speckle_token: str
     ) -> "AutomationContext":
         """Bootstrap the AutomateSDK from raw data.
 
@@ -93,7 +93,7 @@ class AutomationContext:
         return self._automation_result.run_status
 
     @property
-    def status_message(self) -> Optional[str]:
+    def status_message(self) -> str | None:
         """Get the current status message."""
         return self._automation_result.status_message
 
@@ -145,7 +145,7 @@ class AutomationContext:
         return base
 
     def create_new_model_in_project(
-        self, model_name: str, model_description: Optional[str] = None
+        self, model_name: str, model_description: str | None = None
     ) -> Model:
         input = CreateModelInput(
             name=model_name,
@@ -206,13 +206,13 @@ class AutomationContext:
         return version
 
     @property
-    def context_view(self) -> Optional[str]:
+    def context_view(self) -> str | None:
         return self._automation_result.result_view
 
     def set_context_view(
         self,
         # f"{model_id}@{version_id} or {model_id} "
-        resource_ids: Optional[List[str]] = None,
+        resource_ids: List[str] | None = None,
         include_source_model_version: bool = True,
     ) -> None:
         link_resources = (
@@ -281,7 +281,7 @@ class AutomationContext:
         print(f"Reporting run status with content: {params}")
         self.speckle_client.httpclient.execute(query, params)
 
-    def store_file_result(self, file_path: Union[Path, str]) -> str:
+    def store_file_result(self, file_path: Path | str) -> str:
         """Save a file attached to the project of this automation."""
         path_obj = (
             Path(file_path).resolve() if isinstance(file_path, str) else file_path
@@ -375,10 +375,10 @@ class AutomationContext:
     def attach_error_to_objects(
         self,
         category: str,
-        affected_objects: Union[Base, List[Base]],
-        message: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        visual_overrides: Optional[Dict[str, Any]] = None,
+        affected_objects: Base | List[Base],
+        message: str | None = None,
+        metadata: Dict[str, Any] | None = None,
+        visual_overrides: Dict[str, Any] | None = None,
     ) -> None:
         """Add a new error case to the run results.
         Args:
@@ -401,10 +401,10 @@ class AutomationContext:
     def attach_warning_to_objects(
         self,
         category: str,
-        affected_objects: Union[Base, List[Base]],
-        message: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        visual_overrides: Optional[Dict[str, Any]] = None,
+        affected_objects: Base | List[Base],
+        message: str | None = None,
+        metadata: Dict[str, Any] | None = None,
+        visual_overrides: Dict[str, Any] | None = None,
     ) -> None:
         """Add a new warning case to the run results.
 
@@ -428,10 +428,10 @@ class AutomationContext:
     def attach_success_to_objects(
         self,
         category: str,
-        affected_objects: Union[Base, List[Base]],
-        message: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        visual_overrides: Optional[Dict[str, Any]] = None,
+        affected_objects: Base | List[Base],
+        message: str | None = None,
+        metadata: Dict[str, Any] | None = None,
+        visual_overrides: Dict[str, Any] | None = None,
     ) -> None:
         """Add a new success case to the run results.
 
@@ -455,10 +455,10 @@ class AutomationContext:
     def attach_info_to_objects(
         self,
         category: str,
-        affected_objects: Union[Base, List[Base]],
-        message: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        visual_overrides: Optional[Dict[str, Any]] = None,
+        affected_objects: Base | List[Base],
+        message: str | None = None,
+        metadata: Dict[str, Any] | None = None,
+        visual_overrides: Dict[str, Any] | None = None,
     ) -> None:
         """Add a new info case to the run results.
 
@@ -483,10 +483,10 @@ class AutomationContext:
         self,
         level: ObjectResultLevel,
         category: str,
-        affected_objects: Union[Base, List[Base]],
-        message: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        visual_overrides: Optional[Dict[str, Any]] = None,
+        affected_objects: Base | List[Base],
+        message: str | None = None,
+        metadata: Dict[str, Any] | None = None,
+        visual_overrides: Dict[str, Any] | None = None,
     ) -> None:
         """Add a new result case to the run results.
 
@@ -506,7 +506,7 @@ class AutomationContext:
         else:
             object_list = [affected_objects]
 
-        ids: Dict[str, Optional[str]] = {}
+        ids: Dict[str, str | None] = {}
         # When objects are provided, each must have an id (empty list allowed for
         # version-level/skipped results).
         for o in object_list:

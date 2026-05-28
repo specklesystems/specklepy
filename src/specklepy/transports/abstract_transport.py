@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 class AbstractTransport(ABC):
@@ -44,7 +44,7 @@ class AbstractTransport(ABC):
         pass
 
     @abstractmethod
-    def get_object(self, id: str) -> Optional[str]:
+    def get_object(self, id: str) -> str | None:
         """Gets an object. Returns `None` if the object is not found.
 
         Arguments:

@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 from gql import Client
 
@@ -20,7 +20,7 @@ class ProjectInviteResource(CoreResource):
         account: Account,
         basepath: str,
         client: Client,
-        server_version: Optional[Tuple[Any, ...]],
+        server_version: Tuple[Any, ...] | None,
     ) -> None:
         super().__init__(
             account=account,
@@ -40,8 +40,8 @@ class ProjectInviteResource(CoreResource):
         return super().use(input)
 
     def get(
-        self, project_id: str, token: Optional[str]
-    ) -> Optional[PendingStreamCollaborator]:
+        self, project_id: str, token: str | None
+    ) -> PendingStreamCollaborator | None:
         metrics.track(metrics.SDK, self.account, {"name": "Project Invite Get"})
         return super().get(project_id, token)
 
