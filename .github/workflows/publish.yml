@@ -17,6 +17,9 @@ jobs:
     uses: "./.github/workflows/pr.yml"
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    permissions:
+      contents: read
+      packages: read # required to pull docker images
 
   publish-package:
     name: "Build and Publish Python Package"

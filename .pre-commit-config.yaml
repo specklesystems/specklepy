@@ -35,6 +35,6 @@ repos:
     hooks:
       - id: zizmor
         name: GitHub Actions linter
-        language_version: python3.14
+        language_version: python3
         args:
           - --persona=auditor
