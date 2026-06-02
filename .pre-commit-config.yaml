@@ -21,11 +21,20 @@ repos:
       - id: commitizen-branch
         stages:
           - pre-push
-    rev: v3.13.0
+    rev: 953e1ba4599cc3143122ed5c3e8de3d6dfd5524d # pinned to v4.16.2
 
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # pinned to v6.0.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: '9257c6050c0261b8c57e712f632dc4a8010109a9' # pinned to 1.25.2
+    hooks:
+      - id: zizmor
+        name: GitHub Actions linter
+        language_version: python3
+        args:
+          - --persona=auditor
