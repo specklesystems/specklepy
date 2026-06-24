@@ -4,7 +4,7 @@ on:
     branches:
       - "main"
     tags:
-      - "3.*.*"
+      - "202*.*.*"
 
 permissions: {} # no permissions by default, override on a per-job basis
 
