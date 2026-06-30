@@ -33,6 +33,10 @@ class ImportJob:
 
     progress: IngestionProgressManager
 
+    emit_topology: bool = False
+    """Attach MEP topology (systemProxies + connectionProxies) to the root. Off by default
+    so the v1 output is unchanged; the 4.0 bundle path turns it on."""
+
     _render_material_manager: RenderMaterialProxyManager = field(
         default_factory=lambda: RenderMaterialProxyManager()
     )
@@ -241,15 +245,19 @@ class ImportJob:
             self._instance_proxy_manager.instance_definition_proxies.values()
         )
 
-        # Network topology: system membership + port-connectivity edges.
-        # Extracted directly from the IFC graph (global relationships, not
-        # per-element), so run once over the whole file here.
-        self._system_proxy_manager.extract(self.ifc_file)
-        self._connection_proxy_manager.extract(self.ifc_file)
-        tree["systemProxies"] = list(
-            self._system_proxy_manager.system_proxies.values()
-        )
-        tree["connectionProxies"] = self._connection_proxy_manager.connection_proxies
+        # Network topology: system membership + port-connectivity edges. Extracted
+        # directly from the IFC graph (global relationships, not per-element), so run
+        # once over the whole file here. Only for the 4.0 bundle path — leaving the v1
+        # output untouched (no systemProxies / connectionProxies keys).
+        if self.emit_topology:
+            self._system_proxy_manager.extract(self.ifc_file)
+            self._connection_proxy_manager.extract(self.ifc_file)
+            tree["systemProxies"] = list(
+                self._system_proxy_manager.system_proxies.values()
+            )
+            tree["connectionProxies"] = (
+                self._connection_proxy_manager.connection_proxies
+            )
         tree.elements.append(
             Collection(
                 name="definitionGeometry",

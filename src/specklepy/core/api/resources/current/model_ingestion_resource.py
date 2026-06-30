@@ -53,6 +53,7 @@ class ModelIngestionResource(ResourceBase):
                   projectId
                   userId
                   cancellationRequested
+                  versionId
                   statusData {
                     ... on HasModelIngestionStatus {
                       status
@@ -96,6 +97,7 @@ class ModelIngestionResource(ResourceBase):
                     projectId
                     userId
                     cancellationRequested
+                    versionId
                     statusData {
                       ... on HasModelIngestionStatus {
                         status
@@ -135,6 +137,7 @@ class ModelIngestionResource(ResourceBase):
                     projectId
                     userId
                     cancellationRequested
+                    versionId
                     statusData {
                       ... on HasModelIngestionStatus {
                         status
@@ -172,6 +175,7 @@ class ModelIngestionResource(ResourceBase):
                     projectId
                     userId
                     cancellationRequested
+                    versionId
                     statusData {
                       ... on HasModelIngestionStatus {
                         status
@@ -211,6 +215,7 @@ class ModelIngestionResource(ResourceBase):
                     projectId
                     userId
                     cancellationRequested
+                    versionId
                     statusData {
                       ... on HasModelIngestionStatus {
                         status
@@ -294,6 +299,7 @@ class ModelIngestionResource(ResourceBase):
                     projectId
                     userId
                     cancellationRequested
+                    versionId
                     statusData {
                       ... on HasModelIngestionStatus {
                         status
@@ -339,6 +345,7 @@ class ModelIngestionResource(ResourceBase):
                     projectId
                     userId
                     cancellationRequested
+                    versionId
                     statusData {
                       ... on HasModelIngestionStatus {
                         status
@@ -391,6 +398,7 @@ class ModelIngestionResource(ResourceBase):
                     projectId
                     userId
                     cancellationRequested
+                    versionId
                     statusData {
                       ... on HasModelIngestionStatus {
                         status

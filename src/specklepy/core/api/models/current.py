@@ -266,3 +266,6 @@ class ModelIngestion(GraphQLBaseModel):
     user_id: str
     cancellation_requested: bool
     status_data: ModelIngestionStatusData
+    # Server pre-allocated version id (top-level field, populated at creation). The 4.0
+    # artefact bundle is uploaded under it. Null until selected by the query.
+    version_id: str | None = None
