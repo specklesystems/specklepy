@@ -54,7 +54,8 @@ def test_pipeline_full_bundle(tmp_path):
 
     # geometry landed with SGEO content + sha256 id
     geo = con.execute(
-        f"SELECT geometryIndex, octet_length(content), type FROM {g}.geometries.parquet')"
+        f"SELECT geometryIndex, octet_length(content), type "
+        f"FROM {g}.geometries.parquet')"
     ).fetchall()
     assert geo == [(geo_k, geo[0][1], "mesh")]
     assert geo[0][1] >= 16  # at least the SGEO header

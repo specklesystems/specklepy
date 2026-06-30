@@ -56,8 +56,6 @@ class ConnectionProxyManager:
                     sourceFlowDirection=getattr(
                         rel.RelatingPort, "FlowDirection", None
                     ),
-                    targetFlowDirection=getattr(
-                        rel.RelatedPort, "FlowDirection", None
-                    ),
+                    targetFlowDirection=getattr(rel.RelatedPort, "FlowDirection", None),
                 )
             )

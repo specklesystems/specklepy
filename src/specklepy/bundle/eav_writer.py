@@ -3,15 +3,16 @@
 Port of the .NET ``EavWriter``. Passive columnar files, no WAL/checkpoint/index::
 
   {base}.eav.objects.parquet(object_index, application_id)      -- the K dictionary
-  {base}.eav.paths.parquet(path_index, path)                    -- shared path vocabulary
+  {base}.eav.paths.parquet(path_index, path)                    -- shared path vocab
   {base}.eav.eav.parquet(object_index, path_index, value_*)     -- INSTANCE-scoped rows
   {base}.eav.types.parquet(type_index, type_key)                -- type dictionary
-  {base}.eav.type_eav.parquet(type_index, path_index, value_*)  -- TYPE-scoped, once per type
+  {base}.eav.type_eav.parquet(type_index, path_index, value_*)  -- TYPE rows, per type
   {base}.eav.object_type.parquet(object_index, type_index)      -- the weak ref
 
-No manifest is written: consumers build their own ``read_parquet`` views (the read recipe
-lives in notes/topology-envelope-SOT.md §4/§6). Interning (applicationId/path/type_key ->
-dense int) and type dedup are unchanged. Not thread-safe: calls are sequential.
+No manifest is written: consumers build their own ``read_parquet`` views (the read
+recipe lives in notes/topology-envelope-SOT.md §4/§6). Interning
+(applicationId/path/type_key -> dense int) and type dedup are unchanged. Not
+thread-safe: calls are sequential.
 """
 
 from __future__ import annotations
@@ -62,7 +63,8 @@ class EavWriter:
             self._p("object_type.parquet"), schema_of(BY_TABLE["object_type"])
         )
 
-        # interning: applicationId / path / type_key -> dense sequential int (first-seen order).
+        # interning: applicationId / path / type_key -> dense sequential int
+        # (first-seen order).
         self._object_index: dict[str, int] = {}
         self._path_index: dict[str, int] = {}
         self._type_index: dict[str, int] = {}
@@ -70,11 +72,13 @@ class EavWriter:
 
     @property
     def eav_db_path(self) -> str:
-        """The directory holding this artefact's parquet tables (no single entry file)."""
+        """The directory holding this artefact's parquet tables (no single entry
+        file)."""
         return self.output_dir
 
     def get_or_add_object(self, application_id: str) -> int:
-        """Intern ``application_id`` to its dense object_index, writing the dict row on first sight.
+        """Intern ``application_id`` to its dense object_index, writing the dict row
+        on first sight.
 
         Public so the envelope path resolves the SAME K for an object's edges.
         """
@@ -107,7 +111,8 @@ class EavWriter:
         type_key: str,
         type_rows_factory: Callable[[], Iterable[EavRow]],
     ) -> None:
-        """Link an object to its type via ``object_type`` and write the type's params ONCE.
+        """Link an object to its type via ``object_type`` and write the type's params
+        ONCE.
 
         ``type_rows_factory`` is invoked only on the type's first sight (dedup).
         """

@@ -77,7 +77,8 @@ version = "2.9.2"
 tag_format = "$version"
 
 [tool.ruff]
-exclude = [".venv", "**/*.yml"]
+# bundle/spec is generated + vendored from speckle-bundle-spec — don't lint generated code.
+exclude = [".venv", "**/*.yml", "src/specklepy/bundle/spec"]
 
 [tool.ruff.lint]
 select = [

@@ -4,12 +4,12 @@ Port of the .NET ``EnvelopeWriter``. The table SHAPES and the self-describing ca
 (rel_types / node_kinds / meta) come from the generated ``speckle-bundle-spec`` — this
 writer never hand-declares them. ::
 
-  {base}.envelope.relations.parquet(rel, src, dst, ord)   -- typed edges; ns fixed by rel
+  {base}.envelope.relations.parquet(rel, src, dst, ord)  -- typed edges; ns per rel
   {base}.envelope.nodes.parquet(id, kind, name, def_ref,  -- shared value-entities;
-        transform, units, subtype, argb, opacity,            `subtype` is the CONTAINER
-        metalness, roughness, elevation)                     discriminator (Model/Collection/…)
-  {base}.envelope.{meta,rel_types,node_kinds}.parquet     -- self-describing catalog
-  {base}.envelope.scene_views.parquet(...)                -- producer-authored grouping; absent if none
+        transform, units, subtype, argb, opacity,         -- `subtype` is the CONTAINER
+        metalness, roughness, elevation)                  -- discriminator (Model/Coll)
+  {base}.envelope.{meta,rel_types,node_kinds}.parquet    -- self-describing catalog
+  {base}.envelope.scene_views.parquet(...)               -- producer grouping; omit if 0
 
 ``transform`` is 16 row-major doubles, comma-separated. Not thread-safe.
 """
@@ -42,7 +42,8 @@ class ProjectionSource(IntEnum):
 class SceneViewKey:
     """One ordered key of a SceneView projection.
 
-    For ``REL``, ``ref`` is a rel id as a string; for ``EAV`` it is a bare eav attr key.
+    For ``REL``, ``ref`` is a rel id as a string; for ``EAV`` it is a bare eav attr
+    key.
     Build via :meth:`rel` / :meth:`eav` so ``ref`` is encoded correctly.
     """
 
@@ -62,8 +63,8 @@ class SceneViewKey:
 class SceneView:
     """A producer-authored scene-explorer projection (SOT §8).
 
-    Exactly one view per artefact should be ``is_default``; ``keys`` are outermost-first.
-    Producers OMIT keys with no data.
+    Exactly one view per artefact should be ``is_default``; ``keys`` are
+    outermost-first. Producers OMIT keys with no data.
     """
 
     view: int
@@ -94,7 +95,8 @@ class EnvelopeWriter:
         return self.output_dir
 
     def add_relation(self, rel: int, src: int, dst: int, ord: int) -> None:
-        """Append one typed edge. ``src``/``dst`` are dense ids in the namespaces fixed by ``rel``."""
+        """Append one typed edge. ``src``/``dst`` are dense ids in the namespaces
+        fixed by ``rel``."""
         self._ensure_not_completed()
         self._relations.add_row(int(rel), src, dst, ord)
 
@@ -131,7 +133,8 @@ class EnvelopeWriter:
         )
 
     def add_scene_view(self, view: SceneView) -> None:
-        """Buffer a producer-authored projection; flushed to scene_views.parquet on complete()."""
+        """Buffer a producer-authored projection; flushed to scene_views.parquet on
+        complete()."""
         self._ensure_not_completed()
         self._scene_views.append(view)
 
@@ -143,8 +146,9 @@ class EnvelopeWriter:
         self._nodes.complete()
         self._write_scene_views()
 
-    # Self-describing catalog (SOT §6): rel/kind vocabulary + schema version, from the generated
-    # spec catalog (live + reserved rows; retired ids are absent and never reused). Tiny.
+    # Self-describing catalog (SOT §6): rel/kind vocabulary + schema version, from the
+    # generated spec catalog (live + reserved rows; retired ids are absent and never
+    # reused). Tiny.
     def _write_catalog(self) -> None:
         with ParquetTableWriter(
             self._p("meta.parquet"),

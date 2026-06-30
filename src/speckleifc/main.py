@@ -14,7 +14,7 @@ from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionSuccessInput,
     SourceDataInput,
 )
-from specklepy.core.api.models.current import ModelIngestion, Project, Version
+from specklepy.core.api.models.current import Project, Version
 from specklepy.core.api.operations import send
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
@@ -27,8 +27,8 @@ from specklepy.transports.server import ServerTransport
 # We could maybe go a little lower, but for now I'm not risking degrading performance
 PROGRESS_INTERVAL_SECONDS = 10
 
-# Opt in to the Speckle 4.0 artefact bundle (parquet eav + envelope + geometries, uploaded
-# via the v2 data endpoints) by setting SPECKLE_IFC_BUNDLE=1. Default is the v1
+# Opt in to the Speckle 4.0 artefact bundle (parquet eav + envelope + geometries,
+# uploaded via the v2 data endpoints) by setting SPECKLE_IFC_BUNDLE=1. Default is the v1
 # detached-object send, whose behaviour is unchanged. Only flip where the target server
 # exposes the v2 data endpoints AND the viewer reads bundles.
 _BUNDLE_ENV_VAR = "SPECKLE_IFC_BUNDLE"
@@ -76,8 +76,8 @@ def open_and_convert_file(
         progress.report("Opening file", None)
         ifc_file = open_ifc(file_path)  # pyright: ignore[reportUnknownVariableType]
 
-        # Topology (system membership + port connectivity) is attached only for the bundle
-        # path; the v1 output is left exactly as before.
+        # Topology (system membership + port connectivity) is attached only for the
+        # bundle path; the v1 output is left exactly as before.
         import_job = ImportJob(ifc_file, progress, emit_topology=bundle)  # pyright: ignore[reportUnknownArgumentType]
         data = import_job.convert()
 
@@ -89,7 +89,7 @@ def open_and_convert_file(
 
         if bundle:
             version = _upload_bundle(
-                client, project, account, model_ingestion_id, ingestion, data, progress
+                client, project, account, model_ingestion_id, data, progress
             )
         else:
             progress.report("Uploading objects", None)
@@ -152,12 +152,43 @@ def open_and_convert_file(
         raise e
 
 
+def _fetch_pre_allocated_version_id(
+    account, project_id: str, model_ingestion_id: str
+) -> str | None:
+    """Read the ingestion's pre-allocated ``versionId`` (a v2-only top-level field).
+
+    Done with a dedicated GraphQL query rather than the shared model_ingestion resource:
+    ``ModelIngestion.versionId`` only exists on servers with the v2 data endpoints, so
+    selecting it in the SDK's standard ingestion queries would break older servers.
+    Runs only on the bundle path (which targets a v2 server), so it is safe here.
+    """
+    import httpx
+
+    url = account.serverInfo.url.rstrip("/") + "/graphql"
+    headers = {"Authorization": f"Bearer {account.token}"} if account.token else {}
+    query = (
+        "query($p:String!,$i:ID!){ project(id:$p){ ingestion(id:$i){ versionId } } }"
+    )
+    resp = httpx.post(
+        url,
+        headers=headers,
+        json={"query": query, "variables": {"p": project_id, "i": model_ingestion_id}},
+        timeout=60,
+    )
+    body = resp.json()
+    if body.get("errors"):
+        raise SpeckleException(
+            f"Failed to fetch pre-allocated version id: {body['errors']}"
+        )
+    ingestion = ((body.get("data") or {}).get("project") or {}).get("ingestion") or {}
+    return ingestion.get("versionId")
+
+
 def _upload_bundle(
     client: SpeckleClient,
     project: Project,
     account,
     model_ingestion_id: str,
-    ingestion: ModelIngestion,
     data,
     progress: IngestionProgressManager,
 ) -> Version:
@@ -165,7 +196,8 @@ def _upload_bundle(
 
     Opt-in via SPECKLE_IFC_BUNDLE. Imports the bundle producer lazily so the default v1
     path never pulls pyarrow/duckdb (the ``specklepy[bundle]`` extra). The version is
-    created server-side by the v2 ``complete`` call (no v1 ``model_ingestion.complete``).
+    created server-side by the v2 ``complete`` call (no v1
+    ``model_ingestion.complete``).
     """
     # Lazy: keeps pyarrow/duckdb out of the import graph on the v1 path.
     import tempfile
@@ -173,7 +205,9 @@ def _upload_bundle(
     from speckleifc.bundle_exporter import IfcBundleExporter
     from specklepy.bundle.upload import ArtifactPipeline
 
-    version_id = ingestion.version_id
+    version_id = _fetch_pre_allocated_version_id(
+        account, project.id, model_ingestion_id
+    )
     if not version_id:
         raise SpeckleException(
             "Model ingestion returned no pre-allocated version id — the server must "

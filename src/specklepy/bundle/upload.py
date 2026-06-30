@@ -1,14 +1,15 @@
 """Speckle 4.0 artefact upload pipeline (server v2 data endpoints).
 
-Port of the .NET ``ArtifactPipeline``. Uploads a client-built artefact bundle (the parquet
-triple — geometries + eav.* + envelope.*) via the v2 endpoints: ``sign`` → presigned PUT
-per file → ``complete`` (which creates the version). Fully independent of the v1 send path.
+Port of the .NET ``ArtifactPipeline``. Uploads a client-built artefact bundle (the
+parquet triple — geometries + eav.* + envelope.*) via the v2 endpoints: ``sign`` →
+presigned PUT per file → ``complete`` (which creates the version). Fully independent
+of the v1 send path.
 
-The endpoints are **filename-keyed and count-agnostic**: ``sign`` takes the list of artefact
-basenames, the server presigns one PUT per name under ``versions/{versionId}/{name}``, and
-``complete`` verifies the etags and creates the commit with ``id = versionId``. The version
-id is **pre-allocated by the server at ingestion creation**, so artefact filenames can bake
-it in before any bytes exist.
+The endpoints are **filename-keyed and count-agnostic**: ``sign`` takes the list of
+artefact basenames, the server presigns one PUT per name under
+``versions/{versionId}/{name}``, and ``complete`` verifies the etags and creates the
+commit with ``id = versionId``. The version id is **pre-allocated by the server at
+ingestion creation**, so artefact filenames can bake it in before any bytes exist.
 """
 
 from __future__ import annotations
@@ -27,9 +28,10 @@ class ArtifactUploadError(Exception):
 
 
 def _parse_etag(response: httpx.Response) -> str:
-    # Return the ETag header VERBATIM — S3 wraps it in double quotes and the v2 complete
-    # endpoint compares the value against what S3 reports (quotes included). Stripping the
-    # quotes makes complete reject it ("Etag mismatch"). Matches .NET BlobApiHelpers.ParseEtagHeader.
+    # Return the ETag header VERBATIM — S3 wraps it in double quotes and the v2
+    # complete endpoint compares the value against what S3 reports (quotes included).
+    # Stripping the quotes makes complete reject it ("Etag mismatch"). Matches .NET
+    # BlobApiHelpers.ParseEtagHeader.
     etag = response.headers.get("etag")
     if not etag:
         raise ArtifactUploadError("S3 PUT response had no ETag header")
@@ -37,7 +39,7 @@ def _parse_etag(response: httpx.Response) -> str:
 
 
 class ArtifactPipeline:
-    """Uploads an already-built artefact bundle via the v2 sign → PUT → complete flow."""
+    """Uploads an already-built artefact bundle via v2 sign → PUT → complete flow."""
 
     def __init__(
         self,
@@ -65,7 +67,10 @@ class ArtifactPipeline:
         root_id: str,
         total_children_count: int,
     ) -> str:
-        """Upload a bundle (basename → local path) and complete the version. Returns the version id."""
+        """Upload a bundle (basename → local path) and complete the version.
+
+        Returns the version id.
+        """
         signed = self._sign(list(file_name_to_path.keys()))
         uploads = signed.get("uploads", {})
 
@@ -83,7 +88,7 @@ class ArtifactPipeline:
     def upload_dir(
         self, base_name: str, root_id: str, total_children_count: int
     ) -> str:
-        """Convenience: upload every ``{base_name}.*.parquet`` artefact in :attr:`output_dir`."""
+        """Upload every ``{base_name}.*.parquet`` artefact in :attr:`output_dir`."""
         files = {
             os.path.basename(p): p
             for p in sorted(
@@ -109,7 +114,10 @@ class ArtifactPipeline:
     # ── internals ──────────────────────────────────────────────────────────
 
     def _sign(self, files: list[str]) -> dict:
-        uri = f"projects/{self._project_id}/modelingestion/{self._ingestion_id}/uploads/sign"
+        uri = (
+            f"projects/{self._project_id}/modelingestion/{self._ingestion_id}"
+            "/uploads/sign"
+        )
         resp = self._speckle.post(uri, json={"files": files})
         self._ensure_success(resp, "artifacts sign")
         return resp.json()
@@ -126,7 +134,10 @@ class ArtifactPipeline:
     def _complete(
         self, etags: Mapping[str, str], root_id: str, total_children_count: int
     ) -> str:
-        uri = f"projects/{self._project_id}/modelingestion/{self._ingestion_id}/uploads/complete"
+        uri = (
+            f"projects/{self._project_id}/modelingestion/{self._ingestion_id}"
+            "/uploads/complete"
+        )
         resp = self._speckle.post(
             uri,
             json={
@@ -137,9 +148,10 @@ class ArtifactPipeline:
         )
         self._ensure_success(resp, "artifacts complete")
 
-        # The version id is pre-allocated (server-minted at ingestion creation) and is the commit
-        # PK the server just completed against — authoritative. If the server echoes a versionId it
-        # must match; a mismatch means we'd point at the wrong version, so fail loudly.
+        # The version id is pre-allocated (server-minted at ingestion creation) and is
+        # the commit PK the server just completed against — authoritative. If the server
+        # echoes a versionId it must match; a mismatch means we'd point at the wrong
+        # version, so fail loudly.
         echoed = None
         try:
             echoed = resp.json().get("versionId")
@@ -147,7 +159,8 @@ class ArtifactPipeline:
             echoed = None
         if echoed is not None and echoed != self.version_id:
             raise ArtifactUploadError(
-                f"Server completed version '{echoed}' but the pre-allocated id was '{self.version_id}'."
+                f"Server completed version '{echoed}' but the pre-allocated id was "
+                f"'{self.version_id}'."
             )
         return self.version_id
 

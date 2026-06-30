@@ -5,8 +5,9 @@ in first-seen order. The same key always maps to the same id — how a value ref
 from many edges (a shared material, a reused geometry) collapses to one ``K``.
 
 ``get_or_add`` returns ``(id, is_new)``; ``is_new`` is True only when the key was just
-minted, so callers write the backing row (dictionary entry, node, geometry blob) exactly
-once. Not thread-safe: the converter loop is sequential. Port of the .NET ``IdInterner``.
+minted, so callers write the backing row (dictionary entry, node, geometry blob)
+exactly once. Not thread-safe: the converter loop is sequential. Port of the .NET
+``IdInterner``.
 """
 
 from __future__ import annotations

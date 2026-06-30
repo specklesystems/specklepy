@@ -4,12 +4,12 @@ The IFC ``ImportJob.convert()`` returns a root ``Collection`` whose scene tree
 (collections + DataObjects + InstanceProxy displayValues) and attached proxy lists
 (instanceDefinitionProxies / renderMaterialProxies / levelProxies / systemProxies /
 connectionProxies) map directly onto the envelope graph. This module performs that
-mapping via :class:`~specklepy.bundle.pipeline.ObjectsArtifactPipeline` — no re-reading of
-the IFC file; everything comes from the already-converted ``Base`` tree.
+mapping via :class:`~specklepy.bundle.pipeline.ObjectsArtifactPipeline` — no
+re-reading of the IFC file; everything comes from the already-converted ``Base`` tree.
 
-Emission order matters: definitions (+ their geometries) and materials first, so the scene
-walk's instances and the material edges can reference the geometry/definition Ks already
-minted.
+Emission order matters: definitions (+ their geometries) and materials first, so the
+scene walk's instances and the material edges can reference the geometry/definition
+Ks already minted.
 """
 
 from __future__ import annotations
@@ -45,7 +45,10 @@ class IfcBundleExporter:
         self._has_levels = False
 
     def export(self, root: Collection) -> tuple[str, int]:
-        """Emit the whole bundle. Returns ``(root_id, object_count)`` for the uploader."""
+        """Emit the whole bundle.
+
+        Returns ``(root_id, object_count)`` for the uploader.
+        """
         mesh_by_id = self._index_definition_geometry(root)
 
         self._emit_definitions(root, mesh_by_id)
@@ -65,7 +68,8 @@ class IfcBundleExporter:
     # ── geometry / definitions ──────────────────────────────────────────────
 
     def _index_definition_geometry(self, root: Collection) -> dict[str, Mesh]:
-        """Build {mesh.applicationId -> Mesh} from the appended ``definitionGeometry`` collection."""
+        """Build {mesh.applicationId -> Mesh} from the appended
+        ``definitionGeometry`` collection."""
         index: dict[str, Mesh] = {}
         for el in _attr(root, "elements", []) or []:
             if isinstance(el, Collection) and _attr(el, "name") == _DEFINITION_GEOMETRY:
@@ -144,7 +148,8 @@ class IfcBundleExporter:
                 ],
             )
 
-            # membership: under a Collection -> IN_COLLECTION; under a DataObject -> SUBELEMENT.
+            # membership: under a Collection -> IN_COLLECTION; under a DataObject ->
+            # SUBELEMENT.
             if parent_object_k is not None:
                 self._pipeline.subelement(parent_object_k, obj_k, ord)
             elif parent_collection_k is not None:
@@ -211,10 +216,15 @@ class IfcBundleExporter:
                 continue
             name = _attr(proxy, "name")
             system_type = _attr(proxy, "systemType")
-            # Canonical container subtype stays "System" (cross-connector); the IFC system type
-            # (PredefinedType/ObjectType) rides on the display name so it isn't lost — but only when
-            # it adds information (some exports set ObjectType == Name, e.g. "S_PWC").
-            display = f"{name} ({system_type})" if system_type and system_type != name else name
+            # Canonical container subtype stays "System" (cross-connector); the IFC
+            # system type (PredefinedType/ObjectType) rides on the display name so it
+            # isn't lost — but only when it adds information (some exports set
+            # ObjectType == Name, e.g. "S_PWC").
+            display = (
+                f"{name} ({system_type})"
+                if system_type and system_type != name
+                else name
+            )
             sys_k = self._pipeline.add_container(system_id, display, None, "System")
             for member_id in _attr(proxy, "objects", []) or []:
                 obj_k = self._pipeline.intern_object(member_id)
@@ -231,8 +241,9 @@ class IfcBundleExporter:
             src_flow = _attr(proxy, "sourceFlowDirection")
             tgt_flow = _attr(proxy, "targetFlowDirection")
 
-            # Orient by FlowDirection: SOURCE->SINK is a directed edge (flip if reversed);
-            # anything else (SOURCEANDSINK / NOTDEFINED / missing) is undirected -> reciprocal pair.
+            # Orient by FlowDirection: SOURCE->SINK is a directed edge (flip if
+            # reversed); anything else (SOURCEANDSINK / NOTDEFINED / missing) is
+            # undirected -> reciprocal pair.
             if src_flow == "SOURCE" and tgt_flow == "SINK":
                 self._pipeline.connects_to(src_k, tgt_k)
             elif src_flow == "SINK" and tgt_flow == "SOURCE":

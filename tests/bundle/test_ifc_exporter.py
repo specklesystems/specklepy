@@ -1,6 +1,6 @@
-"""IfcBundleExporter on a synthetic converted tree — exercises the proxy→envelope mapping,
-especially the topology branches the real sample files don't cover (directed CONNECTS_TO,
-IN_SYSTEM)."""
+"""IfcBundleExporter on a synthetic converted tree — exercises the proxy→envelope
+mapping, especially the topology branches the real sample files don't cover
+(directed CONNECTS_TO, IN_SYSTEM)."""
 
 from __future__ import annotations
 
@@ -111,7 +111,8 @@ def test_exporter_maps_full_tree(tmp_path):
 
     def k_of(app_id):
         return con.execute(
-            f"SELECT object_index FROM {g}.eav.objects.parquet') WHERE application_id = ?",
+            f"SELECT object_index FROM {g}.eav.objects.parquet') "
+            "WHERE application_id = ?",
             [app_id],
         ).fetchone()[0]
 
@@ -137,7 +138,8 @@ def test_exporter_maps_full_tree(tmp_path):
 
     # system container: subtype canonical "System", IFC type folded into name
     sysrow = con.execute(
-        f"SELECT name, subtype FROM {g}.envelope.nodes.parquet') WHERE subtype = 'System'"
+        f"SELECT name, subtype FROM {g}.envelope.nodes.parquet') "
+        "WHERE subtype = 'System'"
     ).fetchone()
     assert sysrow[1] == "System"
     assert "AIRCONDITIONING" in sysrow[0]
@@ -160,7 +162,8 @@ def test_exporter_maps_full_tree(tmp_path):
     ).fetchone()[0]
     assert argb == 0xFFAABBCC - 0x1_0000_0000
 
-    # default scene view is Level (ON_LEVEL rel) > IFC class (ifcType eav), outermost-first
+    # default scene view is Level (ON_LEVEL rel) > IFC class (ifcType eav),
+    # outermost-first
     sv = con.execute(
         f"SELECT ord, source, ref FROM {g}.envelope.scene_views.parquet') "
         "WHERE is_default ORDER BY view, ord"

@@ -1,4 +1,5 @@
-"""Core bundle writer tests: write parquet, read it back with DuckDB, check spec conformance."""
+"""Core bundle writer tests: write parquet, read it back with DuckDB, check spec
+conformance."""
 
 from __future__ import annotations
 
@@ -51,7 +52,8 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
     # meta: schema version from the spec
     (ver,) = _q(
         con,
-        f"SELECT schema_version FROM read_parquet('{out}/{BASE}.envelope.meta.parquet')",
+        f"SELECT schema_version FROM "
+        f"read_parquet('{out}/{BASE}.envelope.meta.parquet')",
     )[0:1]
     assert ver[0] == SCHEMA_VERSION == 5
 
@@ -72,20 +74,23 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
     # node_kinds catalog: 6 live (COLLECTION retired/folded)
     n_kind = _q(
         con,
-        f"SELECT count(*) FROM read_parquet('{out}/{BASE}.envelope.node_kinds.parquet')",
+        f"SELECT count(*) FROM "
+        f"read_parquet('{out}/{BASE}.envelope.node_kinds.parquet')",
     )[0][0]
     assert n_kind == 6
 
     # nodes + relations content
     nodes = _q(
         con,
-        f"SELECT id, kind, name, subtype, elevation FROM read_parquet('{out}/{BASE}.envelope.nodes.parquet') ORDER BY id",
+        f"SELECT id, kind, name, subtype, elevation "
+        f"FROM read_parquet('{out}/{BASE}.envelope.nodes.parquet') ORDER BY id",
     )
     assert nodes[0][1] == int(NodeKind.CONTAINER) and nodes[0][3] == "Model"
     assert nodes[1][1] == int(NodeKind.LEVEL) and nodes[1][4] == 3.5
     rels = _q(
         con,
-        f"SELECT rel, src, dst FROM read_parquet('{out}/{BASE}.envelope.relations.parquet') ORDER BY rel",
+        f"SELECT rel, src, dst FROM "
+        f"read_parquet('{out}/{BASE}.envelope.relations.parquet') ORDER BY rel",
     )
     assert (int(Rel.ON_LEVEL), 0, 1) in rels and (int(Rel.IN_MODEL), 0, 0) in rels
 
@@ -106,7 +111,8 @@ def test_eav_writer_roundtrip(tmp_path):
     con = duckdb.connect()
     objs = _q(
         con,
-        f"SELECT object_index, application_id FROM read_parquet('{out}/{BASE}.eav.objects.parquet')",
+        f"SELECT object_index, application_id "
+        f"FROM read_parquet('{out}/{BASE}.eav.objects.parquet')",
     )
     assert objs == [(0, "guid-1")]
 
@@ -147,7 +153,8 @@ def test_geometries_writer_id_is_sha256_and_type_from_header(tmp_path):
     con = duckdb.connect()
     rows = _q(
         con,
-        f"SELECT geometryIndex, id, type FROM read_parquet('{out}/{BASE}.geometries.parquet')",
+        f"SELECT geometryIndex, id, type "
+        f"FROM read_parquet('{out}/{BASE}.geometries.parquet')",
     )
     assert len(rows) == 1
     assert rows[0][0] == 7
@@ -164,7 +171,8 @@ def test_geometries_writer_rejects_non_sgeo(tmp_path):
 
 def test_geometries_sharding(tmp_path):
     out = str(tmp_path)
-    # tiny cap forces a roll: each blob ~24 bytes, cap 30 -> shard 0 gets one, shard 1 next.
+    # tiny cap forces a roll: each blob ~24 bytes, cap 30 -> shard 0 gets one,
+    # shard 1 next.
     w = GeometriesParquetWriter(out, BASE, shard_cap_bytes=30)
     for i in range(3):
         w.add_geometry(i, _fake_sgeo(body=bytes([i]) * 8))

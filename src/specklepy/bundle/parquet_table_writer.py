@@ -38,7 +38,8 @@ _ARROW: dict[str, pa.DataType] = {
 
 
 def arrow_field(col: ColumnSpec) -> pa.Field:
-    """One pyarrow field from a generated column descriptor (name, type token, nullability)."""
+    """One pyarrow field from a generated column descriptor (name, type token,
+    nullability)."""
     try:
         dt = _ARROW[col.type]
     except KeyError as exc:  # pragma: no cover - guards a spec/codegen mismatch

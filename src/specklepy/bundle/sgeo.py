@@ -206,8 +206,9 @@ def _encode_mesh(m) -> bytes:
     body = bytearray()
     _u32(body, len(m.vertices) // 3)
     _u32(body, len(m.faces))
-    # Batched packs: one struct.pack per array (C-level) instead of one call per scalar —
-    # the per-double/-int loop was a hot spot on dense meshes. Byte layout is unchanged.
+    # Batched packs: one struct.pack per array (C-level) instead of one call per
+    # scalar — the per-double/-int loop was a hot spot on dense meshes. Byte layout
+    # is unchanged.
     _f64_array(body, m.vertices)
     _i32_array(body, m.faces)
     if has_normals:

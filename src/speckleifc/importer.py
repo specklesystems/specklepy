@@ -34,8 +34,8 @@ class ImportJob:
     progress: IngestionProgressManager
 
     emit_topology: bool = False
-    """Attach MEP topology (systemProxies + connectionProxies) to the root. Off by default
-    so the v1 output is unchanged; the 4.0 bundle path turns it on."""
+    """Attach MEP topology (systemProxies + connectionProxies) to the root. Off by
+    default so the v1 output is unchanged; the 4.0 bundle path turns it on."""
 
     _render_material_manager: RenderMaterialProxyManager = field(
         default_factory=lambda: RenderMaterialProxyManager()

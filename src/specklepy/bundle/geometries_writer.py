@@ -1,16 +1,19 @@
-"""Writes ``geometries.parquet`` — one row per geometry: (geometryIndex, content, id, type).
+"""Writes ``geometries.parquet`` — one row per geometry: (geometryIndex, content,
+id, type).
 
-Port of the .NET ``GeometriesParquetWriter``. ``geometryIndex`` is the dense geometry-K
-the envelope's DISPLAY/DEFINES/HAS_MATERIAL edges reference (pure int, no applicationId
-strings). ``id`` is the SHA256 of the blob, kept as a column for READ-TIME shape dedup
-(the consumer collapses identical shapes into one GPU buffer); we do NOT content-dedup at
-write time, so every per-mesh row stays addressable and its material bindable.
+Port of the .NET ``GeometriesParquetWriter``. ``geometryIndex`` is the dense
+geometry-K the envelope's DISPLAY/DEFINES/HAS_MATERIAL edges reference (pure int, no
+applicationId strings). ``id`` is the SHA256 of the blob, kept as a column for
+READ-TIME shape dedup (the consumer collapses identical shapes into one GPU buffer);
+we do NOT content-dedup at write time, so every per-mesh row stays addressable and
+its material bindable.
 
-Sharded: shard 0 keeps the canonical ``{base}.geometries.parquet`` name (a model that fits
-in one shard is byte-for-byte unchanged); overflow shards are ``{base}.geometries.{N}.parquet``
-(N=1,2,…). Consumers read the set via the glob ``{base}.geometries*.parquet``. The cap is on
-UNCOMPRESSED content bytes, so the on-disk (Zstd) shard is always smaller than the cap — this
-contract is shared verbatim with the native nwextract ``GeomSharder`` (C++).
+Sharded: shard 0 keeps the canonical ``{base}.geometries.parquet`` name (a model that
+fits in one shard is byte-for-byte unchanged); overflow shards are
+``{base}.geometries.{N}.parquet`` (N=1,2,…). Consumers read the set via the glob
+``{base}.geometries*.parquet``. The cap is on UNCOMPRESSED content bytes, so the
+on-disk (Zstd) shard is always smaller than the cap — this contract is shared verbatim
+with the native nwextract ``GeomSharder`` (C++).
 """
 
 from __future__ import annotations
@@ -25,10 +28,12 @@ import pyarrow.parquet as pq
 from specklepy.bundle.parquet_table_writer import schema_of
 from specklepy.bundle.spec import BY_TABLE
 
-# Flush (write a row group + free the buffer) once buffered blob bytes reach this budget.
+# Flush (write a row group + free the buffer) once buffered blob bytes reach this
+# budget.
 _DEFAULT_ROWGROUP_MB = 64
 _MAX_ROWS_PER_GROUP = 200_000  # safety cap for tiny-blob models
-# Roll to a new shard once the current shard's uncompressed content bytes would exceed this.
+# Roll to a new shard once the current shard's uncompressed content bytes would
+# exceed this.
 _DEFAULT_SHARD_MB = 1536  # 1.5 GiB uncompressed content per shard
 
 _SGEO_HEADER_SIZE = 16
@@ -92,13 +97,15 @@ class GeometriesParquetWriter:
         self._buffered_bytes = 0
 
         self.geometries_path = self._shard_path(0)
-        # a previous run may have produced MORE shards than this one will — clear the whole set.
+        # a previous run may have produced MORE shards than this one will — clear the
+        # whole set.
         self._delete_stale_shards()
         self._open_shard(0)
 
     @property
     def geometry_paths(self) -> list[str]:
-        """Every geometry shard file written, in order (shard 0 = ``geometries_path``)."""
+        """Every geometry shard file written, in order (shard 0 =
+        ``geometries_path``)."""
         return list(self._geometry_paths)
 
     def add_geometry(self, geometry_index: int, sgeo: bytes) -> None:
@@ -115,7 +122,8 @@ class GeometriesParquetWriter:
     def add_raw_geometry(
         self, geometry_index: int, content: bytes, type_label: str
     ) -> None:
-        """Add one RAW (non-SGEO) blob verbatim with an explicit ``type`` label (e.g. "3dm")."""
+        """Add one RAW (non-SGEO) blob verbatim with an explicit ``type`` label
+        (e.g. "3dm")."""
         self._add_row(geometry_index, content, type_label)
 
     def complete(self) -> None:

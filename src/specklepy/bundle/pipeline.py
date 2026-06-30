@@ -1,17 +1,18 @@
 """Speckle 4.0 bundle producer — the typed emit API a converter drives.
 
-Port of the .NET ``ObjectsArtifactPipeline``. PARQUET-ONLY: direct Zstd parquet, one file
-per table, no DuckDB. Owns the three per-namespace identity interners and exposes a typed
-emit API so the producer stays string-based while the artefacts store pure dense int32:
+Port of the .NET ``ObjectsArtifactPipeline``. PARQUET-ONLY: direct Zstd parquet,
+one file per table, no DuckDB. Owns the three per-namespace identity interners and
+exposes a typed emit API so the producer stays string-based while the artefacts
+store pure dense int32:
 
-* **object** namespace — interned by the eav writer (eav is the dictionary home); resolved
-  here via :meth:`intern_object`.
+* **object** namespace — interned by the eav writer (eav is the dictionary home);
+  resolved here via :meth:`intern_object`.
 * **geometry** namespace — :attr:`_geometry_interner`; one row per mesh.
-* **node** namespace — :attr:`_node_interner` (kind-prefixed keys); definitions / instances
-  / materials / colours / levels / containers.
+* **node** namespace — :attr:`_node_interner` (kind-prefixed keys); definitions /
+  instances / materials / colours / levels / containers.
 
-Producing the files is decoupled from uploading: write here (:meth:`complete`), then hand
-the output dir to the uploader (:mod:`specklepy.bundle.upload`).
+Producing the files is decoupled from uploading: write here (:meth:`complete`), then
+hand the output dir to the uploader (:mod:`specklepy.bundle.upload`).
 """
 
 from __future__ import annotations
@@ -32,16 +33,17 @@ from specklepy.bundle.spec import NodeKind, Rel
 
 
 def _format_transform(transform: Sequence[float]) -> str:
-    """16 row-major doubles as a comma-separated string (consumer parses back to f64)."""
+    """16 row-major doubles as a comma-separated string (consumer parses to f64)."""
     return ",".join(repr(float(d)) for d in transform)
 
 
 def _argb_int32(argb: int) -> int:
     """Reinterpret a packed ARGB colour as a signed int32 (the `argb` column type).
 
-    Producers often hold ARGB as an unsigned 32-bit int (0..2^32-1); the bundle stores the
-    SAME 32 bits as a signed int32 (matching the .NET ``int`` storage), so the high-alpha
-    bit becomes the sign. Identity for values already in signed range.
+    Producers often hold ARGB as an unsigned 32-bit int (0..2^32-1); the bundle
+    stores the SAME 32 bits as a signed int32 (matching the .NET ``int`` storage),
+    so the high-alpha bit becomes the sign. Identity for values already in signed
+    range.
     """
     argb &= 0xFFFFFFFF
     return argb - 0x1_0000_0000 if argb >= 0x8000_0000 else argb
@@ -63,8 +65,8 @@ class ObjectsArtifactPipeline:
             else set(DEFAULT_EXCLUDED_TOP_LEVEL)
         )
 
-        # per-namespace interners. The object namespace is owned by the eav writer (it writes
-        # the dictionary), so it is not duplicated here.
+        # per-namespace interners. The object namespace is owned by the eav writer
+        # (it writes the dictionary), so it is not duplicated here.
         self._geometry_interner = IdInterner()
         self._node_interner = IdInterner()
 
@@ -78,7 +80,7 @@ class ObjectsArtifactPipeline:
     # ── object namespace ────────────────────────────────────────────────────
 
     def intern_object(self, application_id: str) -> int:
-        """Resolve an object's dense K (interns its applicationId via the eav dictionary)."""
+        """Resolve an object's dense K (interns its applicationId via eav dict)."""
         return self._eav.get_or_add_object(application_id)
 
     def add_properties(
@@ -90,9 +92,9 @@ class ObjectsArtifactPipeline:
     ) -> None:
         """Flatten an object's property tree into ``eav`` keyed by ``application_id``.
 
-        When ``type_key`` is given and there are type-scoped Parameters, those are deduped
-        into ``type_eav`` (once per type) with an ``object_type`` weak ref; otherwise
-        everything flattens per-object.
+        When ``type_key`` is given and there are type-scoped Parameters, those are
+        deduped into ``type_eav`` (once per type) with an ``object_type`` weak ref;
+        otherwise everything flattens per-object.
         """
         split = _try_split_type_parameters(properties) if type_key is not None else None
         if split is None:
@@ -116,8 +118,9 @@ class ObjectsArtifactPipeline:
     # ── geometry namespace ──────────────────────────────────────────────────
 
     def add_geometry(self, mesh_application_id: str, geometry: Any) -> int:
-        """Intern a mesh's applicationId to a dense geometry K, encoding + storing its SGEO
-        blob on first sight. Returns the K (for DISPLAY/DEFINES/HAS_MATERIAL edges)."""
+        """Intern a mesh's applicationId to a dense geometry K, encoding + storing
+        its SGEO blob on first sight. Returns the K (for DISPLAY/DEFINES/HAS_MATERIAL
+        edges)."""
         k, is_new = self._geometry_interner.get_or_add(mesh_application_id)
         if is_new:
             self._geometries.add_geometry(k, sgeo.encode(geometry))
@@ -126,7 +129,7 @@ class ObjectsArtifactPipeline:
     def add_raw_geometry(
         self, geometry_application_id: str, content: bytes, type_label: str
     ) -> int:
-        """Intern + store RAW bytes verbatim (no SGEO encoding) with an explicit type label."""
+        """Intern + store RAW bytes verbatim (no SGEO encoding) with a type label."""
         k, is_new = self._geometry_interner.get_or_add(geometry_application_id)
         if is_new:
             self._geometries.add_raw_geometry(k, content, type_label)
@@ -165,7 +168,8 @@ class ObjectsArtifactPipeline:
         transform: Sequence[float],
         units: str | None,
     ) -> int:
-        """Intern an INSTANCE (placement) node — its transform (16 row-major doubles) + DEFINITION."""
+        """Intern an INSTANCE (placement) node — its transform (16 row-major
+        doubles) + DEFINITION."""
         k, is_new = self._node_interner.get_or_add("inst:" + placement_key)
         if is_new:
             self._envelope.add_node(
@@ -259,11 +263,12 @@ class ObjectsArtifactPipeline:
         parent_collection_k: int | None,
         subtype: str | None,
     ) -> int:
-        """Intern a scene-tree collection (layer / category / story) node, writing it once.
+        """Intern a scene-tree collection (layer / category / story) node, once.
 
-        v5: a collection is a CONTAINER whose ``subtype`` carries its tag; the IN_COLLECTION
-        rel marks the grouping axis. ``parent_collection_k`` is its parent collection node
-        (None = top-level) — the parent chain IS the source hierarchy.
+        v5: a collection is a CONTAINER whose ``subtype`` carries its tag; the
+        IN_COLLECTION rel marks the grouping axis. ``parent_collection_k`` is its
+        parent collection node (None = top-level) — the parent chain IS the source
+        hierarchy.
         """
         k, is_new = self._node_interner.get_or_add("coll:" + collection_key)
         if is_new:
@@ -290,11 +295,12 @@ class ObjectsArtifactPipeline:
         parent_container_k: int | None,
         subtype: str | None,
     ) -> int:
-        """Intern a CONTAINER (semantic-topology bucket: model / room / system / …) node, once.
+        """Intern a CONTAINER (semantic-topology bucket: model / room / system / …)
+        node, once.
 
-        Distinct from :meth:`add_collection` (the authored scene-tree). ``subtype`` is the
-        canonical axis tag (e.g. "Model", "System") — use the SAME tag across connectors for
-        the same concept.
+        Distinct from :meth:`add_collection` (the authored scene-tree). ``subtype`` is
+        the canonical axis tag (e.g. "Model", "System") — use the SAME tag across
+        connectors for the same concept.
         """
         k, is_new = self._node_interner.get_or_add("cont:" + container_key)
         if is_new:
@@ -321,7 +327,7 @@ class ObjectsArtifactPipeline:
         self._envelope.add_relation(Rel.DISPLAY, object_k, geometry_k, ord)
 
     def display_instance(self, object_k: int, instance_k: int, ord: int) -> None:
-        """object → node(INSTANCE): renderable via a placement (transform + definition)."""
+        """object → node(INSTANCE): renderable via a placement (transform + def)."""
         self._envelope.add_relation(Rel.DISPLAY_INSTANCE, object_k, instance_k, ord)
 
     def solid(self, object_k: int, geometry_k: int, ord: int) -> None:
@@ -339,7 +345,8 @@ class ObjectsArtifactPipeline:
         self._envelope.add_relation(Rel.DEFINES, definition_k, geometry_k, ord)
 
     def defines_instance(self, definition_k: int, instance_k: int, ord: int) -> None:
-        """node(DEFINITION) → node(nested INSTANCE): definition contains a nested block placement."""
+        """node(DEFINITION) → node(nested INSTANCE): definition contains a nested
+        block placement."""
         self._envelope.add_relation(Rel.DEFINES_INSTANCE, definition_k, instance_k, ord)
 
     def has_material(self, geometry_k: int, material_k: int) -> None:
@@ -359,7 +366,8 @@ class ObjectsArtifactPipeline:
         self._envelope.add_relation(Rel.IN_COLLECTION, object_k, collection_k, ord)
 
     def in_model(self, object_k: int, model_k: int, ord: int) -> None:
-        """object → node(CONTAINER, subtype "Model"): source-document / host / linked-model membership."""
+        """object → node(CONTAINER, subtype "Model"): source-document / host /
+        linked-model membership."""
         self._envelope.add_relation(Rel.IN_MODEL, object_k, model_k, ord)
 
     def in_room(self, object_k: int, room_k: int, ord: int) -> None:
@@ -367,10 +375,11 @@ class ObjectsArtifactPipeline:
         self._envelope.add_relation(Rel.IN_ROOM, object_k, room_k, ord)
 
     def in_system(self, object_k: int, system_k: int, ord: int) -> None:
-        """object → node(CONTAINER, subtype "System"): named logical engineering system membership.
+        """object → node(CONTAINER, subtype "System"): named logical engineering
+        system membership.
 
-        Also the v5 home of physically-connected NETWORKS (subtype "Network") — IN_NETWORK
-        was collapsed into IN_SYSTEM.
+        Also the v5 home of physically-connected NETWORKS (subtype "Network") —
+        IN_NETWORK was collapsed into IN_SYSTEM.
         """
         self._envelope.add_relation(Rel.IN_SYSTEM, object_k, system_k, ord)
 
@@ -379,8 +388,8 @@ class ObjectsArtifactPipeline:
     ) -> None:
         """object → object: physical flow connectivity, DIRECTED src→dst by flow.
 
-        A reciprocal pair (a→b AND b→a) encodes undirected / unknown flow. ``ord`` is the
-        scope tag (system-K, or 0 = unscoped).
+        A reciprocal pair (a→b AND b→a) encodes undirected / unknown flow. ``ord`` is
+        the scope tag (system-K, or 0 = unscoped).
         """
         self._envelope.add_relation(
             Rel.CONNECTS_TO, source_object_k, target_object_k, ord
@@ -395,7 +404,7 @@ class ObjectsArtifactPipeline:
     # ── lifecycle ───────────────────────────────────────────────────────────
 
     def complete(self) -> None:
-        """Flush + finalize every artefact. All parquet files are fully written on return."""
+        """Flush + finalize every artefact. All parquet files written on return."""
         self._geometries.complete()
         self._envelope.complete()
         self._eav.complete()
@@ -407,8 +416,9 @@ class ObjectsArtifactPipeline:
         self.complete()
 
 
-# Splits `properties.Parameters` into instance-scoped (kept on the object) and type-scoped
-# (Type + System Parameters, deduped per type). Returns None if there's nothing type-scoped.
+# Splits `properties.Parameters` into instance-scoped (kept on the object) and
+# type-scoped (Type + System Parameters, deduped per type). Returns None if there's
+# nothing type-scoped.
 def _try_split_type_parameters(
     properties: Mapping[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]] | None:
