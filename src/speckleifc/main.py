@@ -1,24 +1,24 @@
 import contextlib
 import importlib.metadata
-import tempfile
 import time
 import traceback
 from pathlib import Path
 
-from speckleifc.bundle_exporter import IfcBundleExporter
 from speckleifc.ifc_geometry_processing import open_ifc
 from speckleifc.importer import ImportJob
-from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionFailedInput,
     ModelIngestionStartProcessingInput,
+    ModelIngestionSuccessInput,
     SourceDataInput,
 )
 from specklepy.core.api.models.current import Project, Version
+from specklepy.core.api.operations import send
 from specklepy.logging import metrics
-from specklepy.logging.exceptions import SpeckleException
 from specklepy.progress.ingestion_progress import IngestionProgressManager
+from specklepy.progress.progress_transport import ProgressTransport
+from specklepy.transports.server import ServerTransport
 
 # Since progress messages are currently blocking (no async), we're being extra coarse
 # with progress updates to ensure we're not waisting time sending updates.
@@ -58,13 +58,10 @@ def open_and_convert_file(
         account = client.account
         server_url = account.serverInfo.url
         assert server_url
-        # The version id is pre-allocated by the server at ingestion creation; the 4.0
-        # artefact bundle is uploaded under it via the v2 data endpoints (see below).
-        version_id = ingestion.status_data.version_id
-        if not version_id:
-            raise SpeckleException(
-                "Ingestion did not return a pre-allocated version id"
-            )
+        remote_transport = ServerTransport(project.id, account=account)
+        progress_transport = ProgressTransport(
+            progress,
+        )
 
         progress.report("Opening file", None)
         ifc_file = open_ifc(file_path)  # pyright: ignore[reportUnknownVariableType]
@@ -78,27 +75,63 @@ def open_and_convert_file(
 
         start = time.time()
 
-        # Speckle 4.0: build the artefact bundle (eav + envelope + geometries parquet) from
-        # the converted tree, then upload it via the v2 data endpoints (sign -> PUT -> complete,
-        # which creates the version). Replaces the v1 detached-object send entirely.
-        progress.report("Writing bundle", None)
-        with tempfile.TemporaryDirectory(prefix="speckle-bundle-") as bundle_dir:
-            exporter = IfcBundleExporter(bundle_dir, version_id)
-            root_id, total_children_count = exporter.export(data)
-            print(
-                f"Bundle written after: {(time.time() - start):.3f}s"  # noqa: E501
-            )
+        # ──────────────────────────────────────────────────────────────────
+        # SPECKLE 4.0 BUNDLE PATH — DISABLED (default is the v1 send below).
+        #
+        # When ready, swap this in PLACE OF the v1 "Uploading objects" → version
+        # block below (or gate both on an env var, e.g.
+        #   if os.environ.get("SPECKLE_IFC_BUNDLE") == "1": <bundle> else <v1>).
+        # It builds the parquet artefact bundle from the converted tree and
+        # uploads it via the v2 data endpoints (sign → PUT → complete), instead
+        # of v1 detached objects. Kept off so this merge is purely additive —
+        # flip only once the importer's target server exposes the v2 endpoints
+        # AND the viewer reads bundles.
+        #
+        # Requires the `specklepy[bundle]` extra (pyarrow/duckdb) and imports:
+        #   import os, tempfile
+        #   from speckleifc.bundle_exporter import IfcBundleExporter
+        #   from specklepy.bundle.upload import ArtifactPipeline
+        #   from specklepy.logging.exceptions import SpeckleException
+        #
+        # GOTCHA — the pre-allocated version id is the TOP-LEVEL
+        # ModelIngestion.versionId GraphQL field. The SDK's model_ingestion
+        # resource does NOT select it today (ingestion.status_data.version_id is
+        # None), so fetch it via a direct GraphQL query (or extend the resource +
+        # ModelIngestion model) before enabling.
+        #
+        # version_id = ingestion.version_id  # once the resource selects it
+        # if not version_id:
+        #     raise SpeckleException("Ingestion has no pre-allocated version id")
+        # progress.report("Writing bundle", None)
+        # with tempfile.TemporaryDirectory(prefix="speckle-bundle-") as bdir:
+        #     root_id, child_count = IfcBundleExporter(bdir, version_id).export(data)
+        #     progress.report("Uploading bundle", None)
+        #     with ArtifactPipeline(
+        #         project.id, model_ingestion_id, version_id, account, bdir
+        #     ) as pipeline:
+        #         version_id = pipeline.upload_dir(version_id, root_id, child_count)
+        # version = client.version.get(version_id, project.id)
+        # ──────────────────────────────────────────────────────────────────
 
-            start = time.time()
-            progress.report("Uploading bundle", None)
-            with ArtifactPipeline(
-                project.id, model_ingestion_id, version_id, account, bundle_dir
-            ) as pipeline:
-                version_id = pipeline.upload_dir(
-                    version_id, root_id, total_children_count
-                )
+        progress.report("Uploading objects", None)
+        root_id = send(
+            data,
+            transports=[remote_transport, progress_transport],
+            use_default_cache=False,
+        )
         print(
-            f"Uploading bundle complete after: {(time.time() - start):.3f}s"  # noqa: E501
+            f"Sending to speckle complete after: {(time.time() - start):.3f}s"  # noqa: E501
+        )
+
+        start = time.time()
+
+        version_id = client.model_ingestion.complete(
+            ModelIngestionSuccessInput(
+                project_id=project.id,
+                ingestion_id=model_ingestion_id,
+                root_object_id=root_id,
+                version_message=version_message,
+            )
         )
 
         # needed to query version until ingestion api expands to serve it
