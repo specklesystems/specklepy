@@ -27,8 +27,13 @@ class ArtifactUploadError(Exception):
 
 
 def _parse_etag(response: httpx.Response) -> str:
-    etag = response.headers.get("etag", "")
-    return etag.strip().strip('"')
+    # Return the ETag header VERBATIM — S3 wraps it in double quotes and the v2 complete
+    # endpoint compares the value against what S3 reports (quotes included). Stripping the
+    # quotes makes complete reject it ("Etag mismatch"). Matches .NET BlobApiHelpers.ParseEtagHeader.
+    etag = response.headers.get("etag")
+    if not etag:
+        raise ArtifactUploadError("S3 PUT response had no ETag header")
+    return etag
 
 
 class ArtifactPipeline:
