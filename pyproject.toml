@@ -19,7 +19,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-speckleifc = ["ifcopenshell>=0.8.5"]
+# Speckle 4.0 bundle producer (eav + envelope + geometries parquet). pyarrow writes the
+# parquet tables; duckdb is used to read/validate them in tests and by consumers.
+bundle = ["pyarrow>=17.0.0", "duckdb>=1.1.0"]
+speckleifc = ["ifcopenshell>=0.8.5", "specklepy[bundle]"]
 
 [dependency-groups]
 

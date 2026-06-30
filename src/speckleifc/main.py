@@ -1,24 +1,24 @@
 import contextlib
 import importlib.metadata
+import tempfile
 import time
 import traceback
 from pathlib import Path
 
+from speckleifc.bundle_exporter import IfcBundleExporter
 from speckleifc.ifc_geometry_processing import open_ifc
 from speckleifc.importer import ImportJob
+from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionFailedInput,
     ModelIngestionStartProcessingInput,
-    ModelIngestionSuccessInput,
     SourceDataInput,
 )
 from specklepy.core.api.models.current import Project, Version
-from specklepy.core.api.operations import send
 from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.progress.ingestion_progress import IngestionProgressManager
-from specklepy.progress.progress_transport import ProgressTransport
-from specklepy.transports.server import ServerTransport
 
 # Since progress messages are currently blocking (no async), we're being extra coarse
 # with progress updates to ensure we're not waisting time sending updates.
@@ -58,10 +58,13 @@ def open_and_convert_file(
         account = client.account
         server_url = account.serverInfo.url
         assert server_url
-        remote_transport = ServerTransport(project.id, account=account)
-        progress_transport = ProgressTransport(
-            progress,
-        )
+        # The version id is pre-allocated by the server at ingestion creation; the 4.0
+        # artefact bundle is uploaded under it via the v2 data endpoints (see below).
+        version_id = ingestion.status_data.version_id
+        if not version_id:
+            raise SpeckleException(
+                "Ingestion did not return a pre-allocated version id"
+            )
 
         progress.report("Opening file", None)
         ifc_file = open_ifc(file_path)  # pyright: ignore[reportUnknownVariableType]
@@ -75,25 +78,27 @@ def open_and_convert_file(
 
         start = time.time()
 
-        progress.report("Uploading objects", None)
-        root_id = send(
-            data,
-            transports=[remote_transport, progress_transport],
-            use_default_cache=False,
-        )
-        print(
-            f"Sending to speckle complete after: {(time.time() - start):.3f}s"  # noqa: E501
-        )
-
-        start = time.time()
-
-        version_id = client.model_ingestion.complete(
-            ModelIngestionSuccessInput(
-                project_id=project.id,
-                ingestion_id=model_ingestion_id,
-                root_object_id=root_id,
-                version_message=version_message,
+        # Speckle 4.0: build the artefact bundle (eav + envelope + geometries parquet) from
+        # the converted tree, then upload it via the v2 data endpoints (sign -> PUT -> complete,
+        # which creates the version). Replaces the v1 detached-object send entirely.
+        progress.report("Writing bundle", None)
+        with tempfile.TemporaryDirectory(prefix="speckle-bundle-") as bundle_dir:
+            exporter = IfcBundleExporter(bundle_dir, version_id)
+            root_id, total_children_count = exporter.export(data)
+            print(
+                f"Bundle written after: {(time.time() - start):.3f}s"  # noqa: E501
             )
+
+            start = time.time()
+            progress.report("Uploading bundle", None)
+            with ArtifactPipeline(
+                project.id, model_ingestion_id, version_id, account, bundle_dir
+            ) as pipeline:
+                version_id = pipeline.upload_dir(
+                    version_id, root_id, total_children_count
+                )
+        print(
+            f"Uploading bundle complete after: {(time.time() - start):.3f}s"  # noqa: E501
         )
 
         # needed to query version until ingestion api expands to serve it
