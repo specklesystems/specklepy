@@ -159,3 +159,10 @@ def test_exporter_maps_full_tree(tmp_path):
         f"SELECT argb FROM {g}.envelope.nodes.parquet') WHERE kind = 3"
     ).fetchone()[0]
     assert argb == 0xFFAABBCC - 0x1_0000_0000
+
+    # default scene view is Level (ON_LEVEL rel) > IFC class (ifcType eav), outermost-first
+    sv = con.execute(
+        f"SELECT ord, source, ref FROM {g}.envelope.scene_views.parquet') "
+        "WHERE is_default ORDER BY view, ord"
+    ).fetchall()
+    assert sv == [(0, "rel", str(int(Rel.ON_LEVEL))), (1, "eav", "ifcType")]

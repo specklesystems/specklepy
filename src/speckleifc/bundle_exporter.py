@@ -16,7 +16,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from specklepy.bundle.envelope_writer import SceneView, SceneViewKey
 from specklepy.bundle.pipeline import ObjectsArtifactPipeline
+from specklepy.bundle.spec import Rel
 from specklepy.objects.base import Base
 from specklepy.objects.data_objects import DataObject
 from specklepy.objects.geometry import Mesh
@@ -40,6 +42,7 @@ class IfcBundleExporter:
         self._pipeline = ObjectsArtifactPipeline(output_dir, base_name)
         self._def_k_by_id: dict[str, int] = {}
         self._object_count = 0
+        self._has_levels = False
 
     def export(self, root: Collection) -> tuple[str, int]:
         """Emit the whole bundle. Returns ``(root_id, object_count)`` for the uploader."""
@@ -53,6 +56,7 @@ class IfcBundleExporter:
         self._emit_levels(root)
         self._emit_systems(root)
         self._emit_connections(root)
+        self._emit_default_scene_view()
 
         self._pipeline.complete()
         root_id = _attr(root, "applicationId") or "root"
@@ -182,6 +186,23 @@ class IfcBundleExporter:
             for member_id in _attr(proxy, "objects", []) or []:
                 obj_k = self._pipeline.intern_object(member_id)
                 self._pipeline.on_level(obj_k, lvl_k)
+                self._has_levels = True
+
+    def _emit_default_scene_view(self) -> None:
+        """Author the producer's default scene-explorer grouping: Level > IFC class.
+
+        Tier 1 walks the ON_LEVEL relation (group by storey); tier 2 groups by the
+        ``ifcType`` eav attribute (the IFC class). The consumer seeds its model-tree
+        grouping from this. The Level tier is omitted when the file has no storeys, so
+        the default degrades to grouping by class alone.
+        """
+        keys = []
+        if self._has_levels:
+            keys.append(SceneViewKey.rel(Rel.ON_LEVEL))
+        keys.append(SceneViewKey.eav("ifcType"))
+        self._pipeline.add_scene_view(
+            SceneView(view=0, name="Level / Class", is_default=True, keys=keys)
+        )
 
     def _emit_systems(self, root: Collection) -> None:
         for proxy in _attr(root, "systemProxies", []) or []:
