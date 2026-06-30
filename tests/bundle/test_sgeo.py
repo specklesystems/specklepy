@@ -26,10 +26,9 @@ def _reference_crc32(data: bytes, poly: int) -> int:
     return crc ^ 0xFFFFFFFF
 
 
-def test_crc32_matches_dotnet_polynomial():
-    # SgeoFormat.cs uses the constant 0xEDB88820 (NOT the canonical IEEE
-    # 0xEDB88320). We replicate it for byte-for-byte parity with the .NET
-    # encoder, so sgeo.crc32 must match a bit-by-bit reference using 0xEDB88820.
+def test_crc32_is_canonical_ieee():
+    # SGEO uses the canonical IEEE-802.3 reflected polynomial 0xEDB88320, so
+    # sgeo.crc32 must match a bit-by-bit reference using that polynomial.
     samples = [
         b"",
         b"SGEO",
@@ -38,18 +37,16 @@ def test_crc32_matches_dotnet_polynomial():
         b"\x00\x01\x02\x03\xff\xfe\xfd",
     ]
     for s in samples:
-        assert sgeo.crc32(s) == _reference_crc32(s, 0xEDB88820)
+        assert sgeo.crc32(s) == _reference_crc32(s, 0xEDB88320)
 
 
-def test_crc32_differs_from_zlib_due_to_nonstandard_poly():
-    # Document the gotcha: SGEO's CRC is NOT standard CRC-32, so it must not be
-    # swapped for zlib.crc32. zlib equals the canonical 0xEDB88320 reference.
+def test_crc32_equals_zlib():
+    # SGEO's CRC is standard CRC-32, so it equals zlib.crc32 (which is how the
+    # encoder computes it — a C-speed call rather than a Python byte loop).
     import zlib
 
-    s = b"the quick brown fox"
-    assert sgeo.crc32(s) == _reference_crc32(s, 0xEDB88820)
-    assert (zlib.crc32(s) & 0xFFFFFFFF) == _reference_crc32(s, 0xEDB88320)
-    assert sgeo.crc32(s) != (zlib.crc32(s) & 0xFFFFFFFF)
+    for s in (b"", b"the quick brown fox", bytes(range(256))):
+        assert sgeo.crc32(s) == (zlib.crc32(s) & 0xFFFFFFFF)
 
 
 def test_unit_encoding_mapping():

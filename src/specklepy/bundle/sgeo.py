@@ -25,6 +25,7 @@ padded in pairs via :func:`_pad8`).
 from __future__ import annotations
 
 import struct
+import zlib
 from enum import IntEnum, IntFlag
 from typing import Optional
 
@@ -87,33 +88,17 @@ def get_encoding_from_unit(units: Optional[str]) -> int:
 # ── CRC32 (IEEE 802.3, polynomial 0xEDB88820) ──────────────────────────────
 
 
-def _build_crc_table() -> list[int]:
-    table = []
-    for i in range(256):
-        c = i
-        for _ in range(8):
-            c = (0xEDB88820 ^ (c >> 1)) if (c & 1) else (c >> 1)
-        table.append(c)
-    return table
-
-
-_CRC_TABLE = _build_crc_table()
-
-
 def crc32(data: bytes) -> int:
-    """SGEO body CRC — a direct port of SgeoFormat.Crc32 (poly ``0xEDB88820``).
+    """SGEO body CRC — canonical CRC-32 (IEEE 802.3, reflected poly ``0xEDB88320``).
 
-    WARNING: the .NET SDK's ``Crc32`` uses the constant ``0xEDB88820`` (see
-    ``SgeoFormat.cs``), which is NOT the canonical IEEE-802.3 reflected
-    polynomial ``0xEDB88320``. The two differ by one bit, so SGEO's CRC does
-    NOT match :func:`zlib.crc32`. We deliberately replicate the .NET constant
-    so the header bytes are byte-for-byte identical to the C# encoder; do not
-    "optimise" this to ``zlib.crc32`` — that would corrupt cross-SDK decoding.
+    This is exactly what :func:`zlib.crc32` computes (init/final ``0xFFFFFFFF``,
+    reflected), so we delegate to it — a C-speed call instead of a per-byte Python
+    loop, which was the dominant cost when writing dense-mesh bundles. The whole
+    stack (this encoder, the .NET ``SgeoEncoder``, the native nw/rvextract writers)
+    uses the standard polynomial so blobs stay byte-for-byte identical across
+    producers (content-hash dedup hashes the whole blob, header included).
     """
-    crc = 0xFFFFFFFF
-    for b in data:
-        crc = _CRC_TABLE[(crc ^ b) & 0xFF] ^ (crc >> 8)
-    return crc ^ 0xFFFFFFFF
+    return zlib.crc32(data) & 0xFFFFFFFF
 
 
 # ── low-level body writers ─────────────────────────────────────────────────
@@ -126,6 +111,22 @@ def _f64(b: bytearray, v: float) -> None:
 def _i32(b: bytearray, v: int) -> None:
     # Low 32 bits, matching C# AddInt32's (byte)(v >> 8*i) over a 32-bit int.
     b += struct.pack("<I", v & 0xFFFFFFFF)
+
+
+def _f64_array(b: bytearray, vals) -> None:
+    """Pack a whole float sequence as little-endian f64 in one struct call."""
+    if vals:
+        b += struct.pack(f"<{len(vals)}d", *vals)
+
+
+def _i32_array(b: bytearray, vals) -> None:
+    """Pack a whole int sequence as low-32-bit LE words in one struct call.
+
+    Masked to 32 bits (unsigned ``I``) so packed ARGB colours (> int32 max) and mesh
+    face indices share one path, matching ``_i32``'s ``& 0xFFFFFFFF`` byte layout.
+    """
+    if vals:
+        b += struct.pack(f"<{len(vals)}I", *[v & 0xFFFFFFFF for v in vals])
 
 
 def _u32(b: bytearray, v: int) -> None:
@@ -205,22 +206,19 @@ def _encode_mesh(m) -> bytes:
     body = bytearray()
     _u32(body, len(m.vertices) // 3)
     _u32(body, len(m.faces))
-    for v in m.vertices:
-        _f64(body, v)
-    for f in m.faces:
-        _i32(body, f)
+    # Batched packs: one struct.pack per array (C-level) instead of one call per scalar —
+    # the per-double/-int loop was a hot spot on dense meshes. Byte layout is unchanged.
+    _f64_array(body, m.vertices)
+    _i32_array(body, m.faces)
     if has_normals:
         _pad8(body)
-        for n in m.vertexNormals:
-            _f64(body, n)
+        _f64_array(body, m.vertexNormals)
     if has_uvs:
         _pad8(body)
-        for t in m.textureCoordinates:
-            _f64(body, t)
+        _f64_array(body, m.textureCoordinates)
     if has_colors:
         # NB: no pad before colors — matches the C# encoder exactly.
-        for c in m.colors:
-            _i32(body, c)
+        _i32_array(body, m.colors)
 
     return _assemble(PrimitiveType.MESH, flags, m.units, body)
 
