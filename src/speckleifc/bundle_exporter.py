@@ -211,9 +211,10 @@ class IfcBundleExporter:
                 continue
             name = _attr(proxy, "name")
             system_type = _attr(proxy, "systemType")
-            # Canonical container subtype stays "System" (cross-connector); the IFC PredefinedType
-            # rides on the display name so it isn't lost.
-            display = f"{name} ({system_type})" if system_type else name
+            # Canonical container subtype stays "System" (cross-connector); the IFC system type
+            # (PredefinedType/ObjectType) rides on the display name so it isn't lost — but only when
+            # it adds information (some exports set ObjectType == Name, e.g. "S_PWC").
+            display = f"{name} ({system_type})" if system_type and system_type != name else name
             sys_k = self._pipeline.add_container(system_id, display, None, "System")
             for member_id in _attr(proxy, "objects", []) or []:
                 obj_k = self._pipeline.intern_object(member_id)
