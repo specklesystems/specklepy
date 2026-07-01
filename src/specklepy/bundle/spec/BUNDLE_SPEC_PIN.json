@@ -1,0 +1,7 @@
+{
+  "name": "@speckle/bundle-spec",
+  "version": "5.0.0",
+  "schemaVersion": 5,
+  "specHash": "sha256:c4acd8053990ba8dfb49f1e848a56fe1b5596d695190fffcfd3ed6abe5139fd7",
+  "note": "Provenance of the vendored bundle_spec.py + bundle_schemas.py. Enforced by speckle-bundle-spec `npm run verify-pin -- --python <this dir>` (CI drift guard). Re-vendor: copy generated/python/*.py from the matching bundle-spec version + update this file."
+}
