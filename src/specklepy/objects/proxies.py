@@ -31,7 +31,6 @@ class GroupProxy(
 class SystemProxy(
     Base,
     speckle_type="Speckle.Core.Models.Proxies.SystemProxy",
-    detachable={"objects"},
 ):
     """
     Stores logical system (e.g. MEP distribution system) membership in root

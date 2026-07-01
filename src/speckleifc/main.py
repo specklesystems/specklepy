@@ -1,12 +1,15 @@
 import contextlib
 import importlib.metadata
 import os
+import tempfile
 import time
 import traceback
 from pathlib import Path
 
+from speckleifc.bundle_exporter import IfcBundleExporter
 from speckleifc.ifc_geometry_processing import open_ifc
 from speckleifc.importer import ImportJob
+from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.core.api.client import SpeckleClient
 from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionFailedInput,
@@ -157,10 +160,16 @@ def _fetch_pre_allocated_version_id(
 ) -> str | None:
     """Read the ingestion's pre-allocated ``versionId`` (a v2-only top-level field).
 
-    Done with a dedicated GraphQL query rather than the shared model_ingestion resource:
-    ``ModelIngestion.versionId`` only exists on servers with the v2 data endpoints, so
-    selecting it in the SDK's standard ingestion queries would break older servers.
-    Runs only on the bundle path (which targets a v2 server), so it is safe here.
+    Uses the TOP-LEVEL ``ModelIngestion.versionId``, not the ``versionId`` under
+    ``statusData → ModelIngestionSuccessStatus``: that one is only populated once the
+    ingestion has SUCCEEDED, but we need the id up-front (to name/reference the version
+    before uploading), when the status is still PROCESSING and the success fragment is
+    null.
+
+    Done with a dedicated GraphQL query rather than the shared model_ingestion resource
+    because the top-level ``versionId`` field only exists on servers with the v2 data
+    endpoints — selecting it in the SDK's standard ingestion queries breaks older
+    servers. This runs only on the bundle path (a v2 server), so it is safe here.
     """
     import httpx
 
@@ -194,17 +203,9 @@ def _upload_bundle(
 ) -> Version:
     """Build the Speckle 4.0 artefact bundle and upload it via the v2 data endpoints.
 
-    Opt-in via SPECKLE_IFC_BUNDLE. Imports the bundle producer lazily so the default v1
-    path never pulls pyarrow/duckdb (the ``specklepy[bundle]`` extra). The version is
-    created server-side by the v2 ``complete`` call (no v1
-    ``model_ingestion.complete``).
+    Opt-in via SPECKLE_IFC_BUNDLE. The version is created server-side by the v2
+    ``complete`` call (no v1 ``model_ingestion.complete``).
     """
-    # Lazy: keeps pyarrow/duckdb out of the import graph on the v1 path.
-    import tempfile
-
-    from speckleifc.bundle_exporter import IfcBundleExporter
-    from specklepy.bundle.upload import ArtifactPipeline
-
     version_id = _fetch_pre_allocated_version_id(
         account, project.id, model_ingestion_id
     )
