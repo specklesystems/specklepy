@@ -136,7 +136,6 @@ def open_and_convert_file(
             account,
             custom_properties,
             send_sync=True,
-            track_email=True,
         )
 
         return version
