@@ -1,30 +1,69 @@
 from typing import Optional
 
-from specklepy.core.api.inputs.project_inputs import WorksaceProjectsFilter
-from specklepy.core.api.models.current import (
+from gql import gql
+
+from specklepy.api.inputs.project_inputs import WorksaceProjectsFilter
+from specklepy.api.models.current import (
     Project,
     ProjectWithPermissions,
     ResourceCollection,
     Workspace,
 )
-from specklepy.core.api.resources import WorkspaceResource as CoreResource
-from specklepy.logging import metrics
+from specklepy.api.resource import ResourceBase
+from specklepy.api.responses import DataResponse
+
+NAME = "workspace"
 
 
-class WorkspaceResource(CoreResource):
-    """API Access class for workspace"""
+class WorkspaceResource(ResourceBase):
+    """API Access class for workspaces"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,
             basepath=basepath,
             client=client,
+            name=NAME,
             server_version=server_version,
         )
 
     def get(self, workspace_id: str) -> Workspace:
-        metrics.track(metrics.SDK, self.account, {"name": "Workspace Get"})
-        return super().get(workspace_id)
+        QUERY = gql(
+            """
+            query WorkspaceGet($workspaceId: String!) {
+              data:workspace(id: $workspaceId) {
+                id
+                name
+                role
+                slug
+                logo
+                createdAt
+                updatedAt
+                readOnly
+                description
+                creationState
+                {
+                  completed
+                }
+                permissions {
+                  canCreateProject {
+                    authorized
+                    code
+                    message
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        variables = {
+            "workspaceId": workspace_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[Workspace], QUERY, variables
+        ).data
 
     def get_projects(
         self,
@@ -33,8 +72,43 @@ class WorkspaceResource(CoreResource):
         cursor: Optional[str] = None,
         filter: Optional[WorksaceProjectsFilter] = None,
     ) -> ResourceCollection[Project]:
-        metrics.track(metrics.SDK, self.account, {"name": "Workspace Get Projects"})
-        return super().get_projects(workspace_id, limit, cursor, filter)
+        QUERY = gql(
+            """
+            query Workspace($workspaceId: String!, $limit: Int!, $cursor: String, $filter: WorkspaceProjectsFilter) {
+              data:workspace(id: $workspaceId) {
+                data:projects(limit: $limit, cursor: $cursor, filter: $filter) {
+                  cursor
+                  items {
+                    allowPublicComments
+                    createdAt
+                    description
+                    id
+                    name
+                    role
+                    sourceApps
+                    updatedAt
+                    visibility
+                    workspaceId
+                  }
+                  totalCount
+                }
+              }
+            }
+            """  # noqa: E501
+        )
+
+        variables = {
+            "workspaceId": workspace_id,
+            "limit": limit,
+            "cursor": cursor,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[ResourceCollection[Project]]], QUERY, variables
+        ).data.data
 
     def get_projects_with_permissions(
         self,
@@ -43,11 +117,64 @@ class WorkspaceResource(CoreResource):
         cursor: Optional[str] = None,
         filter: Optional[WorksaceProjectsFilter] = None,
     ) -> ResourceCollection[ProjectWithPermissions]:
-        metrics.track(
-            metrics.SDK,
-            self.account,
-            {"name": "Workspace Get Projects With Permissions"},
+        QUERY = gql(
+            """
+            query Workspace($workspaceId: String!, $limit: Int!, $cursor: String, $filter: WorkspaceProjectsFilter) {
+              data:workspace(id: $workspaceId) {
+                data:projects(limit: $limit, cursor: $cursor, filter: $filter) {
+                  cursor
+                  items {
+                    allowPublicComments
+                    createdAt
+                    description
+                    id
+                    name
+                    role
+                    sourceApps
+                    updatedAt
+                    visibility
+                    workspaceId
+                    permissions {
+                      canCreateModel {
+                        code
+                        authorized
+                        message
+                      }
+                      canDelete {
+                        code
+                        authorized
+                        message
+                      }
+                      canLoad {
+                        code
+                        authorized
+                        message
+                      }
+                      canPublish {
+                        code
+                        authorized
+                        message
+                      }
+                    }
+                  }
+                  totalCount
+                }
+              }
+            }
+            """  # noqa: E501
         )
-        return super().get_projects_with_permissions(
-            workspace_id, limit, cursor, filter
-        )
+
+        variables = {
+            "workspaceId": workspace_id,
+            "limit": limit,
+            "cursor": cursor,
+            "filter": filter.model_dump(warnings="error", by_alias=True)
+            if filter
+            else None,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[ResourceCollection[ProjectWithPermissions]]],
+            QUERY,
+            variables,
+        ).data.data

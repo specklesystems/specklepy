@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 import pytest
 
-from specklepy.core.api.operations import deserialize, serialize
+from specklepy.api.operations import deserialize, serialize
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.geometry import Line, Point, Polycurve, Polyline
 from specklepy.objects.models.units import Units

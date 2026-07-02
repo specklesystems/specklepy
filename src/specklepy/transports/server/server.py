@@ -2,8 +2,8 @@ import json
 from typing import Dict, List, Optional
 from warnings import warn
 
-from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.credentials import Account, get_account_from_token
+from specklepy.api.client import SpeckleClient
+from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.transports.server.retry_policy import setup_session

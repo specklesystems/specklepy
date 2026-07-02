@@ -1,15 +1,15 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.inputs.model_inputs import CreateModelInput, ModelVersionsFilter
-from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.inputs.version_inputs import (
+from specklepy.api.inputs.model_inputs import CreateModelInput, ModelVersionsFilter
+from specklepy.api.inputs.project_inputs import ProjectCreateInput
+from specklepy.api.inputs.version_inputs import (
     DeleteVersionsInput,
     MarkReceivedVersionInput,
     MoveVersionsInput,
     UpdateVersionInput,
 )
-from specklepy.core.api.models import (
+from specklepy.api.models import (
     Model,
     ModelWithVersions,
     Project,

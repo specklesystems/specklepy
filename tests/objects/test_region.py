@@ -4,7 +4,7 @@
 
 import pytest
 
-from specklepy.core.api.operations import deserialize, serialize
+from specklepy.api.operations import deserialize, serialize
 from specklepy.objects.geometry.polyline import Polyline
 from specklepy.objects.geometry.region import Region
 from specklepy.objects.models.units import Units

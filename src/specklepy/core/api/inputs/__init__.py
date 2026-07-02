@@ -1,54 +1,10 @@
-from specklepy.core.api.inputs.file_import_inputs import (
-    FileImportErrorInput,
-    FileImportSuccessInput,
-    FinishFileImportInput,
-    GenerateFileUploadUrlInput,
-    StartFileImportInput,
-)
-from specklepy.core.api.inputs.model_inputs import (
-    CreateModelInput,
-    DeleteModelInput,
-    ModelVersionsFilter,
-    UpdateModelInput,
-)
-from specklepy.core.api.inputs.project_inputs import (
-    ProjectCreateInput,
-    ProjectInviteCreateInput,
-    ProjectInviteUseInput,
-    ProjectModelsFilter,
-    ProjectUpdateInput,
-    ProjectUpdateRoleInput,
-)
-from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
-from specklepy.core.api.inputs.version_inputs import (
-    CreateVersionInput,
-    DeleteVersionsInput,
-    MarkReceivedVersionInput,
-    MoveVersionsInput,
-    UpdateVersionInput,
-)
+from warnings import warn
 
-__all__ = [
-    "FileImportErrorInput",
-    "FileImportSuccessInput",
-    "FinishFileImportInput",
-    "StartFileImportInput",
-    "GenerateFileUploadUrlInput",
-    "CreateModelInput",
-    "DeleteModelInput",
-    "UpdateModelInput",
-    "ModelVersionsFilter",
-    "ProjectCreateInput",
-    "ProjectInviteCreateInput",
-    "ProjectInviteUseInput",
-    "ProjectModelsFilter",
-    "ProjectUpdateInput",
-    "ProjectUpdateRoleInput",
-    "UserProjectsFilter",
-    "UserUpdateInput",
-    "UpdateVersionInput",
-    "MoveVersionsInput",
-    "DeleteVersionsInput",
-    "CreateVersionInput",
-    "MarkReceivedVersionInput",
-]
+from specklepy.api.inputs import *  # noqa: F403
+from specklepy.logging.exceptions import SpeckleWarning
+
+warn(
+    "Imports from `specklepy.core.api.inputs` are now deprecated, import from `specklepy.api.inputs` instead",  # noqa: E501
+    SpeckleWarning,
+    stacklevel=2,
+)

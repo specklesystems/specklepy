@@ -2,12 +2,12 @@ import time
 
 from speckleifc.main import open_and_convert_file
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.credentials import get_accounts_for_server
+from specklepy.api.credentials import get_accounts_for_server
 from specklepy.logging import metrics
 
 
 def _manual_import() -> None:
-    from specklepy.core.api.inputs.model_ingestion_inputs import (
+    from specklepy.api.inputs.model_ingestion_inputs import (
         ModelIngestionCreateInput,
         SourceDataInput,
     )

@@ -1,6 +1,3 @@
-import contextlib
-import getpass
-import hashlib
 import importlib.metadata
 import logging
 import platform
@@ -8,10 +5,11 @@ import queue
 import sys
 import threading
 from typing import Any, Literal
+from urllib.parse import urlparse
 
 import requests
 
-from specklepy.core.api.credentials import Account
+from specklepy.api.credentials import Account
 
 """
 Lightweight usage telemetry to help us understand how to make a better Speckle.
@@ -26,11 +24,9 @@ LOG = logging.getLogger(__name__)
 METRICS_TRACKER: "MetricsTracker | None" = None
 
 # actions
-SDK = "SDK Action"
-CONNECTOR = "Connector Action"
 RECEIVE = "Receive"
 SEND = "Send"
-ACTIONS = Literal["SDK Action", "Connector Action", "Receive", "Send"]
+ACTIONS = Literal["Receive", "Send"]
 
 
 def disable():
@@ -51,16 +47,15 @@ def set_host_app(host_app: str, host_app_version: str | None = None):
 
 def track(
     action: ACTIONS,
-    account: Account | None = None,
+    account: Account,
     custom_props: dict | None = None,
     send_sync: bool = False,
-    track_email: bool = False,
 ):
     """
     :param action:
     :type action: ACTIONS
     :param account:
-    :type account: Account | None
+    :type account: Account
     :param custom_props:
     :type custom_props: dict | None
     :param send_sync: When `True`, the track event is executed synchronously,
@@ -68,40 +63,48 @@ def track(
            When `False`, the track it is deferred to a queue, and any exceptions will be
            swallowed and reported as warnings.
     :type send_sync: bool
-    :param track_email: When `True`, the users plain text email address will be included
-    :type track_email: bool
     """
     if not TRACK:
         return
+    serverUrl = urlparse(account.serverInfo.url)
 
-    tracker = initialise_tracker(account)
+    if serverUrl != urlparse("http://app.speckle.systems/"):
+        # Right now, we're keeping posthog only for app.speckle.systems users
+        return
 
-    event_params: dict[str, Any] = {
-        "event": action,
-        "properties": {
-            "distinct_id": tracker.last_user,
-            "server_id": tracker.last_server,
-            "token": tracker.analytics_token,
-            "hostApp": HOST_APP,
-            "hostAppVersion": HOST_APP_VERSION,
-            "$os": tracker.platform,
-            "type": "action",
-        },
-    }
-    if custom_props:
-        event_params["properties"].update(custom_props)
-
-    if track_email:
-        event_params["properties"]["email"] = tracker.last_email
-
+    tracker = _initialise_tracker()
+    specklepy_version: str | None = None
     try:
         specklepy_version = importlib.metadata.version("specklepy")
-        event_params["properties"]["core_version"] = specklepy_version
     except importlib.metadata.PackageNotFoundError:
         if send_sync:
             raise
         else:
             LOG.warning("Failed to read specklepy's version number", exc_info=True)
+
+    distinct_id = account.userInfo.id
+    event_params: dict[str, Any] = {
+        "api_key": tracker.analytics_token,
+        "distinct_id": distinct_id,
+        "event": action,
+        "properties": {
+            "$os": tracker.platform,
+            "$os_version": platform.version(),
+            "$lib": "specklepy",
+            "$lib_version": specklepy_version,
+            "$user_id": distinct_id,
+            "$host": serverUrl.hostname,
+            "hostAppSlug": HOST_APP,
+            "hostAppVersion": HOST_APP_VERSION,
+            "pythonImplementation": platform.python_implementation(),
+            "pythonVersion": platform.python_version(),
+            "osDescription": platform.platform(),
+            "email": account.userInfo.email,
+            "specklePyVersion": specklepy_version,
+        },
+    }
+    if custom_props:
+        event_params["properties"].update(custom_props)
 
     if send_sync:
         tracker.send_event(event_params)
@@ -109,14 +112,10 @@ def track(
         tracker.queue_event(event_params)
 
 
-def initialise_tracker(account: Account | None = None) -> "MetricsTracker":
+def _initialise_tracker() -> "MetricsTracker":
     global METRICS_TRACKER
     if not METRICS_TRACKER:
         METRICS_TRACKER = MetricsTracker()
-
-    if account:
-        METRICS_TRACKER.set_last_user_email(account.userInfo.email)
-        METRICS_TRACKER.set_last_server(account.serverInfo.url)
 
     return METRICS_TRACKER
 
@@ -131,11 +130,8 @@ class Singleton(type):
 
 
 class MetricsTracker(metaclass=Singleton):
-    analytics_url: str = "https://analytics.speckle.systems/track?ip=1"
-    analytics_token: str = "acd87c5a50b56df91a795e999812a3a4"
-    last_user: str = ""
-    last_email: str = ""
-    last_server: str | None = None
+    analytics_url: str = "https://eu.i.posthog.com/i/v0/e/"
+    analytics_token: str = "phc_7zaDwBgrBYb1yUe0Ff3Sn0DUibq0NoPNxYNC90M7cfg"
     platform: str
 
     _sending_thread: threading.Thread
@@ -148,27 +144,6 @@ class MetricsTracker(metaclass=Singleton):
         )
         self.platform = PLATFORMS.get(sys.platform, "linux")
         self._sending_thread.start()
-        with contextlib.suppress(Exception):
-            node, user = platform.node(), getpass.getuser()
-            if node and user:
-                self.last_user = f"@{self.hash(f'{node}-{user}')}"
-
-    def set_last_user_email(self, email: str | None) -> None:
-        if not email:
-            return
-        self.last_user = f"@{self.hash(email)}"
-        self.last_email = email
-
-    def set_last_server(self, server: str | None) -> None:
-        if not server:
-            return
-        self.last_server = self.hash(server)
-
-    @staticmethod
-    def hash(value: str) -> str:
-        inputList = value.lower().split("://")
-        input = inputList[len(inputList) - 1].split("/")[0].split("?")[0]
-        return hashlib.md5(input.encode("utf-8")).hexdigest().upper()
 
     def queue_event(self, event_params: dict[str, Any]) -> None:
         try:

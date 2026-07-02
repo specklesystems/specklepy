@@ -2,15 +2,15 @@ import time
 
 import pytest
 
-from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.inputs.model_ingestion_inputs import (
+from specklepy.api.client import SpeckleClient
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.inputs.model_ingestion_inputs import (
     ModelIngestionCreateInput,
     SourceDataInput,
 )
-from specklepy.core.api.inputs.model_inputs import CreateModelInput
-from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.models.current import Model, ModelIngestion, Project
+from specklepy.api.inputs.model_inputs import CreateModelInput
+from specklepy.api.inputs.project_inputs import ProjectCreateInput
+from specklepy.api.models.current import Model, ModelIngestion, Project
 from specklepy.progress.ingestion_progress import IngestionProgressManager
 from tests.integration.conftest import is_public
 

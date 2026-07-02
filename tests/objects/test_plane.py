@@ -2,7 +2,7 @@ from typing import Any, Tuple
 
 import pytest
 
-from specklepy.core.api.operations import deserialize, serialize
+from specklepy.api.operations import deserialize, serialize
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.geometry import Plane, Point, Spiral, Vector
 from specklepy.objects.models.units import Units

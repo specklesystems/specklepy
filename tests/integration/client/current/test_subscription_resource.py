@@ -5,7 +5,7 @@ from typing import Dict
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.enums import (
+from specklepy.api.enums import (
     ModelIngestionStatus,
     ProjectModelIngestionUpdatedMessageType,
     ProjectModelsUpdatedMessageType,
@@ -13,7 +13,7 @@ from specklepy.core.api.enums import (
     ProjectVersionsUpdatedMessageType,
     UserProjectsUpdatedMessageType,
 )
-from specklepy.core.api.inputs.model_ingestion_inputs import (
+from specklepy.api.inputs.model_ingestion_inputs import (
     ModelIngestionCreateInput,
     ModelIngestionReference,
     ModelIngestionRequestCancellationInput,
@@ -21,12 +21,12 @@ from specklepy.core.api.inputs.model_ingestion_inputs import (
     ProjectModelIngestionSubscriptionInput,
     SourceDataInput,
 )
-from specklepy.core.api.inputs.model_inputs import CreateModelInput
-from specklepy.core.api.inputs.project_inputs import (
+from specklepy.api.inputs.model_inputs import CreateModelInput
+from specklepy.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectUpdateInput,
 )
-from specklepy.core.api.models import (
+from specklepy.api.models import (
     Model,
     Project,
     ProjectModelsUpdatedMessage,
@@ -35,8 +35,8 @@ from specklepy.core.api.models import (
     UserProjectsUpdatedMessage,
     Version,
 )
-from specklepy.core.api.models.current import ModelIngestion
-from specklepy.core.api.models.subscription_messages import (
+from specklepy.api.models.current import ModelIngestion
+from specklepy.api.models.subscription_messages import (
     ProjectModelIngestionUpdatedMessage,
 )
 from tests.integration.conftest import create_client, create_version, is_public

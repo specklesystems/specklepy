@@ -1,41 +1,10 @@
-from typing import Optional, Sequence
+from warnings import warn
 
-from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.api.inputs.version_inputs import *  # noqa: F403
+from specklepy.logging.exceptions import SpeckleWarning
 
-
-class UpdateVersionInput(GraphQLBaseModel):
-    version_id: str
-    project_id: str
-    message: Optional[str]
-
-
-class MoveVersionsInput(GraphQLBaseModel):
-    target_model_name: str
-    version_ids: Sequence[str]
-    project_id: str
-
-
-class DeleteVersionsInput(GraphQLBaseModel):
-    version_ids: Sequence[str]
-    project_id: str
-
-
-class CreateVersionInput(GraphQLBaseModel):
-    object_id: str
-    model_id: str
-    project_id: str
-    message: Optional[str] = None
-    source_application: Optional[str] = "py"
-    total_children_count: Optional[int] = None
-    parents: Optional[Sequence[str]] = None
-
-
-class MarkReceivedVersionInput(GraphQLBaseModel):
-    version_id: str
-    project_id: str
-    source_application: str
-    """
-    IMPORTANT: this is meant to be the slug of the application that has done the
-    receiving, not to be confused with `Version.sourceApplication`
-    """
-    message: Optional[str] = None
+warn(
+    "Imports from `specklepy.core.api.inputs.version_inputs` are now deprecated, import from `specklepy.api.inputs.version_inputs` instead",  # noqa: E501
+    SpeckleWarning,
+    stacklevel=2,
+)

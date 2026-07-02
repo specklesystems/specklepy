@@ -1,0 +1,41 @@
+from typing import Optional
+
+from specklepy.api.enums import (
+    ProjectModelIngestionUpdatedMessageType,
+    ProjectModelsUpdatedMessageType,
+    ProjectUpdatedMessageType,
+    ProjectVersionsUpdatedMessageType,
+    UserProjectsUpdatedMessageType,
+)
+from specklepy.api.models.current import Model, ModelIngestion, Project, Version
+from specklepy.api.models.graphql_base_model import GraphQLBaseModel
+
+
+class UserProjectsUpdatedMessage(GraphQLBaseModel):
+    id: str
+    type: UserProjectsUpdatedMessageType
+    project: Optional[Project]
+
+
+class ProjectModelsUpdatedMessage(GraphQLBaseModel):
+    id: str
+    type: ProjectModelsUpdatedMessageType
+    model: Optional[Model]
+
+
+class ProjectUpdatedMessage(GraphQLBaseModel):
+    id: str
+    type: ProjectUpdatedMessageType
+    project: Optional[Project]
+
+
+class ProjectVersionsUpdatedMessage(GraphQLBaseModel):
+    id: str
+    type: ProjectVersionsUpdatedMessageType
+    model_id: str
+    version: Optional[Version]
+
+
+class ProjectModelIngestionUpdatedMessage(GraphQLBaseModel):
+    model_ingestion: ModelIngestion
+    type: ProjectModelIngestionUpdatedMessageType

@@ -9,16 +9,16 @@ from pathlib import Path
 from speckleifc.bundle_exporter import IfcBundleExporter
 from speckleifc.ifc_geometry_processing import open_ifc
 from speckleifc.importer import ImportJob
-from specklepy.bundle.upload import ArtifactPipeline
-from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.inputs.model_ingestion_inputs import (
+from specklepy.api.client import SpeckleClient
+from specklepy.api.inputs.model_ingestion_inputs import (
     ModelIngestionFailedInput,
     ModelIngestionStartProcessingInput,
     ModelIngestionSuccessInput,
     SourceDataInput,
 )
-from specklepy.core.api.models.current import Project, Version
-from specklepy.core.api.operations import send
+from specklepy.api.models.current import Project, Version
+from specklepy.api.operations import send
+from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.progress.ingestion_progress import IngestionProgressManager
@@ -136,7 +136,6 @@ def open_and_convert_file(
             account,
             custom_properties,
             send_sync=True,
-            track_email=True,
         )
 
         return version

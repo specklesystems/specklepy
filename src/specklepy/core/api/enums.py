@@ -1,48 +1,10 @@
-from enum import Enum
+from warnings import warn
 
+from specklepy.api.enums import *  # noqa: F403
+from specklepy.logging.exceptions import SpeckleWarning
 
-class ProjectVisibility(str, Enum):
-    """Supported project visibility types"""
-
-    PRIVATE = "PRIVATE"
-    PUBLIC = "PUBLIC"
-    UNLISTED = "UNLISTED"
-    """Deprecated, use PUBLIC instead"""
-    WORKSPACE = "WORKSPACE"
-
-
-class UserProjectsUpdatedMessageType(str, Enum):
-    ADDED = "ADDED"
-    REMOVED = "REMOVED"
-
-
-class ProjectModelsUpdatedMessageType(str, Enum):
-    CREATED = "CREATED"
-    DELETED = "DELETED"
-    UPDATED = "UPDATED"
-
-
-class ProjectUpdatedMessageType(str, Enum):
-    DELETED = "DELETED"
-    UPDATED = "UPDATED"
-
-
-class ProjectVersionsUpdatedMessageType(str, Enum):
-    CREATED = "CREATED"
-    DELETED = "DELETED"
-    UPDATED = "UPDATED"
-
-
-class ProjectModelIngestionUpdatedMessageType(str, Enum):
-    CANCELLATION_REQUESTED = "cancellationRequested"
-    CREATED = "created"
-    DELETED = "deleted"
-    UPDATED = "updated"
-
-
-class ModelIngestionStatus(str, Enum):
-    CANCELLED = "cancelled"
-    FAILED = "failed"
-    PROCESSING = "processing"
-    QUEUED = "queued"
-    SUCCESS = "success"
+warn(
+    "Imports from `specklepy.core.api.enums` are now deprecated, import from `specklepy.api.enums` instead",  # noqa: E501
+    SpeckleWarning,
+    stacklevel=2,
+)
