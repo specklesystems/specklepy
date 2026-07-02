@@ -111,7 +111,6 @@ def get_default_account(base_path: str | None = None) -> Account | None:
     if not default:
         default = accounts[0]
         default.isDefault = True
-    # metrics.initialise_tracker(default)
 
     return default
 

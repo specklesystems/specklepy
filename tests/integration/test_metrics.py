@@ -81,7 +81,7 @@ class ScopedMetricsSetup:
     tracker: metrics.MetricsTracker
 
     def __init__(self, metrics_url: str):
-        self.tracker = metrics.initialise_tracker()
+        self.tracker = metrics._initialise_tracker()
         self.tracker.analytics_url = metrics_url
 
     def __enter__(self):
