@@ -1,7 +1,7 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.models import User
+from specklepy.api.models import User
 
 
 @pytest.mark.run()

@@ -1,13 +1,13 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.inputs.project_inputs import (
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectUpdateInput,
 )
-from specklepy.core.api.models import Project
-from specklepy.core.api.models.current import ProjectPermissionChecks
+from specklepy.api.models import Project
+from specklepy.api.models.current import ProjectPermissionChecks
 from specklepy.logging.exceptions import GraphQLException
 
 

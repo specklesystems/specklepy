@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from os import getenv
 
 from speckleifc.main import open_and_convert_file
-from specklepy.core.api.client import SpeckleClient
+from specklepy.api.client import SpeckleClient
 from specklepy.logging import metrics
 
 

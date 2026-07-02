@@ -6,15 +6,15 @@ from pathlib import Path
 
 from speckleifc.ifc_geometry_processing import open_ifc
 from speckleifc.importer import ImportJob
-from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.inputs.model_ingestion_inputs import (
+from specklepy.api.client import SpeckleClient
+from specklepy.api.inputs.model_ingestion_inputs import (
     ModelIngestionFailedInput,
     ModelIngestionStartProcessingInput,
     ModelIngestionSuccessInput,
     SourceDataInput,
 )
-from specklepy.core.api.models.current import Project, Version
-from specklepy.core.api.operations import send
+from specklepy.api.models.current import Project, Version
+from specklepy.api.operations import send
 from specklepy.logging import metrics
 from specklepy.progress.ingestion_progress import IngestionProgressManager
 from specklepy.progress.progress_transport import ProgressTransport

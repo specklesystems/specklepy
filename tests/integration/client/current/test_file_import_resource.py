@@ -4,19 +4,19 @@ import pytest
 
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.inputs.file_import_inputs import (
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.inputs.file_import_inputs import (
     FileImportErrorInput,
     FileImportResult,
     FileImportSuccessInput,
     GenerateFileUploadUrlInput,
     StartFileImportInput,
 )
-from specklepy.core.api.inputs.model_inputs import CreateModelInput
-from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.inputs.version_inputs import CreateVersionInput
-from specklepy.core.api.models import Project
-from specklepy.core.api.models.current import FileUploadUrl
+from specklepy.api.inputs.model_inputs import CreateModelInput
+from specklepy.api.inputs.project_inputs import ProjectCreateInput
+from specklepy.api.inputs.version_inputs import CreateVersionInput
+from specklepy.api.models import Project
+from specklepy.api.models.current import FileUploadUrl
 from specklepy.core.helpers import crypto_random_string
 from specklepy.transports.server.server import ServerTransport
 from tests.integration.fakemesh import FakeMesh

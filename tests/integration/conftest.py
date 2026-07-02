@@ -7,14 +7,14 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 import requests
 
+from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api import operations
-from specklepy.core.api.credentials import Account, UserInfo
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.inputs.version_inputs import CreateVersionInput
-from specklepy.core.api.models import Version
-from specklepy.core.api.models.current import Project, ServerInfo
+from specklepy.api.credentials import Account, UserInfo
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.inputs.project_inputs import ProjectCreateInput
+from specklepy.api.inputs.version_inputs import CreateVersionInput
+from specklepy.api.models import Version
+from specklepy.api.models.current import Project, ServerInfo
 from specklepy.logging import metrics
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Point

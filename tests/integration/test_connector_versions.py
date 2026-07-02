@@ -1,7 +1,7 @@
 import pytest
 from httpx import HTTPStatusError
 
-from specklepy.core.api.connector_versions import (
+from specklepy.api.connector_versions import (
     ConnectorVersion,
     ConnectorVersions,
     get_connector_versions,

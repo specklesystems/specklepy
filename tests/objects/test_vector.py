@@ -1,6 +1,6 @@
 import pytest
 
-from specklepy.core.api.operations import deserialize, serialize
+from specklepy.api.operations import deserialize, serialize
 from specklepy.objects.geometry import Vector
 from specklepy.objects.models.units import Units
 
