@@ -39,7 +39,7 @@ def test_metrics_track(httpserver: HTTPServer, client: SpeckleClient):
         httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
             handler(lambda payload: "email" not in payload["properties"])
         )
-        metrics.track("SDK Action", client.account, None, True, False)
+        metrics.track("Send", client.account, None, True)
 
         # Test With email
         httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
@@ -48,7 +48,7 @@ def test_metrics_track(httpserver: HTTPServer, client: SpeckleClient):
                 == client.account.userInfo.email
             )
         )
-        metrics.track("SDK Action", client.account, None, True, True)
+        metrics.track("Send", client.account, None, True)
 
         # Test With custom value
         httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
@@ -56,21 +56,19 @@ def test_metrics_track(httpserver: HTTPServer, client: SpeckleClient):
                 lambda payload: payload["properties"]["myCustomProp"] == "myCustomValue"
             )
         )
-        metrics.track(
-            "SDK Action", client.account, {"myCustomProp": "myCustomValue"}, True, True
-        )
+        metrics.track("Send", client.account, {"myCustomProp": "myCustomValue"}, True)
 
 
-def test_metrics_errors(httpserver: HTTPServer):
+def test_metrics_errors(httpserver: HTTPServer, client: SpeckleClient):
     with ScopedMetricsSetup(httpserver.url_for(PATH)) as _:
         httpserver.expect_oneshot_request(PATH, "post").respond_with_data("", 400)
 
         # Expect send_sync == true to mean mean it will raise
         with pytest.raises(HTTPError):
-            metrics.track("SDK Action", send_sync=True)
+            metrics.track("Send", client.account, send_sync=True)
 
         # Expect send_sync == false to mean mean it won't
-        metrics.track("SDK Action")
+        metrics.track("Send", client.account)
 
 
 class ScopedMetricsSetup:
