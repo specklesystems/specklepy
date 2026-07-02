@@ -1,22 +1,26 @@
 from typing import Optional
 
-from specklepy.core.api.inputs.model_inputs import (
+from gql import gql
+
+from specklepy.api.inputs.model_inputs import (
     CreateModelInput,
     DeleteModelInput,
     ModelVersionsFilter,
     UpdateModelInput,
 )
-from specklepy.core.api.inputs.project_inputs import ProjectModelsFilter
-from specklepy.core.api.models import Model, ModelWithVersions, ResourceCollection
-from specklepy.core.api.models.current import (
+from specklepy.api.inputs.project_inputs import ProjectModelsFilter
+from specklepy.api.models import Model, ModelWithVersions, ResourceCollection
+from specklepy.api.models.current import (
     ModelPermissionChecks,
     PermissionCheckResult,
 )
-from specklepy.core.api.resources import ModelResource as CoreResource
-from specklepy.logging import metrics
+from specklepy.api.resource import ResourceBase
+from specklepy.api.responses import DataResponse
+
+NAME = "model"
 
 
-class ModelResource(CoreResource):
+class ModelResource(ResourceBase):
     """API Access class for models"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
@@ -24,12 +28,46 @@ class ModelResource(CoreResource):
             account=account,
             basepath=basepath,
             client=client,
+            name=NAME,
             server_version=server_version,
         )
 
     def get(self, model_id: str, project_id: str) -> Model:
-        metrics.track(metrics.SDK, self.account, {"name": "Model Get"})
-        return super().get(model_id, project_id)
+        QUERY = gql(
+            """
+            query ModelGet($modelId: String!, $projectId: String!) {
+              data:project(id: $projectId) {
+                data:model(id: $modelId) {
+                  id
+                  name
+                  previewUrl
+                  updatedAt
+                  description
+                  displayName
+                  createdAt
+                  author {
+                    avatar
+                    bio
+                    company
+                    id
+                    name
+                    role
+                    verified
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        variables = {
+            "modelId": model_id,
+            "projectId": project_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[Model]], QUERY, variables
+        ).data.data
 
     def get_with_versions(
         self,
@@ -40,14 +78,79 @@ class ModelResource(CoreResource):
         versions_cursor: Optional[str] = None,
         versions_filter: Optional[ModelVersionsFilter] = None,
     ) -> ModelWithVersions:
-        metrics.track(metrics.SDK, self.account, {"name": "Model Get With Versions"})
-        return super().get_with_versions(
-            model_id,
-            project_id,
-            versions_limit=versions_limit,
-            versions_cursor=versions_cursor,
-            versions_filter=versions_filter,
+        QUERY = gql(
+            """
+            query ModelGetWithVersions(
+              $modelId: String!,
+              $projectId: String!,
+              $versionsLimit: Int!,
+              $versionsCursor: String,
+              $versionsFilter: ModelVersionsFilter
+              ) {
+              data:project(id: $projectId) {
+                data:model(id: $modelId) {
+                  id
+                  name
+                  previewUrl
+                  updatedAt
+                  versions(
+                    limit: $versionsLimit,
+                    cursor: $versionsCursor,
+                    filter: $versionsFilter
+                    ) {
+                    items {
+                      id
+                      referencedObject
+                      message
+                      sourceApplication
+                      createdAt
+                      previewUrl
+                      authorUser {
+                        avatar
+                        id
+                        name
+                        bio
+                        company
+                        verified
+                        role
+                      }
+                    }
+                    totalCount
+                    cursor
+                  }
+                  description
+                  displayName
+                  createdAt
+                  author {
+                    avatar
+                    bio
+                    company
+                    id
+                    name
+                    role
+                    verified
+                  }
+                }
+              }
+            }
+            """
         )
+
+        variables = {
+            "projectId": project_id,
+            "modelId": model_id,
+            "versionsLimit": versions_limit,
+            "versionsCursor": versions_cursor,
+            "versionsFilter": (
+                versions_filter.model_dump(warnings="error", by_alias=True)
+                if versions_filter
+                else None
+            ),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[ModelWithVersions]], QUERY, variables
+        ).data.data
 
     def get_models(
         self,
@@ -57,36 +160,214 @@ class ModelResource(CoreResource):
         models_cursor: Optional[str] = None,
         models_filter: Optional[ProjectModelsFilter] = None,
     ) -> ResourceCollection[Model]:
-        metrics.track(metrics.SDK, self.account, {"name": "Model Get Models"})
-        return super().get_models(
-            project_id,
-            models_limit=models_limit,
-            models_cursor=models_cursor,
-            models_filter=models_filter,
+        QUERY = gql(
+            """
+            query ProjectGetWithModels(
+              $projectId: String!,
+              $modelsLimit: Int!,
+              $modelsCursor: String,
+              $modelsFilter: ProjectModelsFilter
+              ) {
+              data:project(id: $projectId) {
+                data:models(
+                  limit: $modelsLimit,
+                  cursor: $modelsCursor,
+                  filter: $modelsFilter
+                  ) {
+                  items {
+                    id
+                    name
+                    previewUrl
+                    updatedAt
+                    displayName
+                    description
+                    createdAt
+                    author {
+                      avatar
+                      bio
+                      company
+                      id
+                      name
+                      role
+                      verified
+                    }
+                  }
+                  totalCount
+                  cursor
+                }
+              }
+            }
+            """
         )
+
+        variables = {
+            "projectId": project_id,
+            "modelsLimit": models_limit,
+            "modelsCursor": models_cursor,
+            "modelsFilter": (
+                models_filter.model_dump(warnings="error", by_alias=True)
+                if models_filter
+                else None
+            ),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[ResourceCollection[Model]]], QUERY, variables
+        ).data.data
 
     def create(self, input: CreateModelInput) -> Model:
-        metrics.track(metrics.SDK, self.account, {"name": "Model Create"})
-        return super().create(input)
+        QUERY = gql(
+            """
+            mutation ModelCreate($input: CreateModelInput!) {
+              data:modelMutations {
+                data:create(input: $input) {
+                  id
+                  displayName
+                  name
+                  description
+                  createdAt
+                  updatedAt
+                  previewUrl
+                  author {
+                    avatar
+                    bio
+                    company
+                    id
+                    name
+                    role
+                    verified
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[Model]], QUERY, variables
+        ).data.data
 
     def delete(self, input: DeleteModelInput) -> bool:
-        metrics.track(metrics.SDK, self.account, {"name": "Model Delete"})
-        return super().delete(input)
+        QUERY = gql(
+            """
+            mutation ModelDelete($input: DeleteModelInput!) {
+              data:modelMutations {
+                data:delete(input: $input)
+              }
+            }
+            """
+        )
+
+        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[bool]], QUERY, variables
+        ).data.data
 
     def update(self, input: UpdateModelInput) -> Model:
-        metrics.track(metrics.SDK, self.account, {"name": "Model Update"})
-        return super().update(input)
+        QUERY = gql(
+            """
+            mutation ModelUpdate($input: UpdateModelInput!) {
+              data:modelMutations {
+                data:update(input: $input) {
+                  id
+                  name
+                  displayName
+                  description
+                  createdAt
+                  updatedAt
+                  previewUrl
+                  author {
+                    avatar
+                    bio
+                    company
+                    id
+                    name
+                    role
+                    verified
+                  }
+                }
+              }
+            }
+            """
+        )
 
-    def get_permissions(self, model_id: str, project_id: str) -> ModelPermissionChecks:
-        metrics.track(metrics.SDK, self.account, {"name": "Model Get Permissions"})
-        return super().get_permissions(model_id, project_id)
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[Model]], QUERY, variables
+        ).data.data
+
+    def get_permissions(self, project_id: str, model_id: str) -> ModelPermissionChecks:
+        QUERY = gql(
+            """
+            query ModelPermissions($projectId: String!, $modelId: String!) {
+              data:project(id: $projectId) {
+                data:model(id: $modelId) {
+                  data:permissions {
+                    canUpdate {
+                      authorized
+                      code
+                      message
+                    }
+                    canDelete {
+                      authorized
+                      code
+                      message
+                    }
+                    canCreateVersion {
+                      authorized
+                      code
+                      message
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        variables = {"projectId": project_id, "modelId": model_id}
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ModelPermissionChecks]]],
+            QUERY,
+            variables,
+        ).data.data.data
 
     def can_create_model_ingestion(
-        self, model_id: str, project_id: str
+        self, project_id: str, model_id: str
     ) -> PermissionCheckResult:
-        metrics.track(
-            metrics.SDK,
-            self.account,
-            {"name": "Model Get Permissions canCreateIngestion"},
+        QUERY = gql(
+            """
+            query ModelPermissions($projectId: String!, $modelId: String!) {
+              data:project(id: $projectId) {
+                data:model(id: $modelId) {
+                  data:permissions {
+                    data:canCreateIngestion {
+                      authorized
+                      code
+                      message
+                    }
+                  }
+                }
+              }
+            }
+            """
         )
-        return super().can_create_model_ingestion(model_id, project_id)
+
+        variables = {"projectId": project_id, "modelId": model_id}
+
+        return self.make_request_and_parse_response(
+            DataResponse[
+                DataResponse[DataResponse[DataResponse[PermissionCheckResult]]]
+            ],
+            QUERY,
+            variables,
+        ).data.data.data.data

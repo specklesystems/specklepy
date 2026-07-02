@@ -1,23 +1,27 @@
 from typing import Optional
 
-from specklepy.core.api.inputs.project_inputs import (
+from gql import gql
+
+from specklepy.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectModelsFilter,
     ProjectUpdateInput,
     ProjectUpdateRoleInput,
     WorkspaceProjectCreateInput,
 )
-from specklepy.core.api.models import (
+from specklepy.api.models import (
     Project,
     ProjectWithModels,
     ProjectWithTeam,
 )
-from specklepy.core.api.models.current import ProjectPermissionChecks
-from specklepy.core.api.resources import ProjectResource as CoreResource
-from specklepy.logging import metrics
+from specklepy.api.models.current import ProjectPermissionChecks
+from specklepy.api.resource import ResourceBase
+from specklepy.api.responses import DataResponse
+
+NAME = "project"
 
 
-class ProjectResource(CoreResource):
+class ProjectResource(ResourceBase):
     """API Access class for projects"""
 
     def __init__(self, account, basepath, client, server_version) -> None:
@@ -25,18 +29,77 @@ class ProjectResource(CoreResource):
             account=account,
             basepath=basepath,
             client=client,
+            name=NAME,
             server_version=server_version,
         )
 
     def get(self, project_id: str) -> Project:
-        metrics.track(metrics.SDK, self.account, {"name": "Project Get "})
-        return super().get(project_id)
+        QUERY = gql(
+            """
+            query Project($projectId: String!) {
+              data:project(id: $projectId) {
+                allowPublicComments
+                createdAt
+                description
+                id
+                name
+                role
+                sourceApps
+                updatedAt
+                visibility
+                workspaceId
+              }
+            }
+            """
+        )
+
+        variables = {
+            "projectId": project_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[Project], QUERY, variables
+        ).data
 
     def get_permissions(self, project_id: str) -> ProjectPermissionChecks:
-        metrics.track(
-            metrics.SDK, self.account, {"name": "Project Project Permissions "}
+        QUERY = gql(
+            """
+            query Project($projectId: String!) {
+              data:project(id: $projectId) {
+                data:permissions {
+                  canCreateModel {
+                    authorized
+                    code
+                    message
+                  }
+                  canDelete {
+                    authorized
+                    code
+                    message
+                  }
+                  canLoad {
+                    authorized
+                    code
+                    message
+                  }
+                  canPublish {
+                    authorized
+                    code
+                    message
+                  }
+                }
+              }
+            }
+            """
         )
-        return super().get_permissions(project_id)
+
+        variables = {
+            "projectId": project_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[ProjectPermissionChecks]], QUERY, variables
+        ).data.data
 
     def get_with_models(
         self,
@@ -46,34 +109,330 @@ class ProjectResource(CoreResource):
         models_cursor: Optional[str] = None,
         models_filter: Optional[ProjectModelsFilter] = None,
     ) -> ProjectWithModels:
-        metrics.track(metrics.SDK, self.account, {"name": "Project Get With Models"})
-        return super().get_with_models(
-            project_id,
-            models_limit=models_limit,
-            models_cursor=models_cursor,
-            models_filter=models_filter,
+        QUERY = gql(
+            """
+            query ProjectGetWithModels(
+              $projectId: String!,
+              $modelsLimit: Int!,
+              $modelsCursor: String,
+              $modelsFilter: ProjectModelsFilter
+              ) {
+              data:project(id: $projectId) {
+                id
+                name
+                description
+                visibility
+                allowPublicComments
+                role
+                createdAt
+                updatedAt
+                sourceApps
+                workspaceId
+                models(
+                  limit: $modelsLimit,
+                  cursor: $modelsCursor,
+                  filter: $modelsFilter
+                  ) {
+                  items {
+                    id
+                    name
+                    previewUrl
+                    updatedAt
+                    displayName
+                    description
+                    createdAt
+                    author {
+                      avatar
+                      bio
+                      company
+                      id
+                      name
+                      role
+                      verified
+                    }
+                  }
+                  cursor
+                  totalCount
+                }
+              }
+            }
+            """
         )
 
+        variables = {
+            "projectId": project_id,
+            "modelsLimit": models_limit,
+            "modelsCursor": models_cursor,
+            "modelsFilter": (
+                models_filter.model_dump(warnings="error", by_alias=True)
+                if models_filter
+                else None
+            ),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[ProjectWithModels], QUERY, variables
+        ).data
+
     def get_with_team(self, project_id: str) -> ProjectWithTeam:
-        metrics.track(metrics.SDK, self.account, {"name": "Project Get With Team"})
-        return super().get_with_team(project_id)
+        QUERY = gql(
+            """
+            query ProjectGetWithTeam($projectId: String!) {
+              data:project(id: $projectId) {
+                id
+                name
+                description
+                visibility
+                allowPublicComments
+                role
+                createdAt
+                updatedAt
+                workspaceId
+                sourceApps
+                team {
+                  id
+                  role
+                  user {
+                    id
+                    name
+                    bio
+                    company
+                    avatar
+                    verified
+                    role
+                  }
+                }
+                invitedTeam {
+                  id
+                  inviteId
+                  projectId
+                  projectName
+                  title
+                  role
+                  token
+                  user {
+                    id
+                    name
+                    bio
+                    company
+                    avatar
+                    verified
+                    role
+                  }
+                  invitedBy {
+                    id
+                    name
+                    bio
+                    company
+                    avatar
+                    verified
+                    role
+                  }
+                }
+                workspaceId
+              }
+            }
+            """
+        )
+
+        variables = {
+            "projectId": project_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[ProjectWithTeam], QUERY, variables
+        ).data
 
     def create(self, input: ProjectCreateInput) -> Project:
-        metrics.track(metrics.SDK, self.account, {"name": "Project Create"})
-        return super().create(input)
+        """
+        Creates a non-workspace project (aka Personal Project)
+
+        see client.active_user.can_create_personal_projects to see if the user has
+        permission
+        """
+        QUERY = gql(
+            """
+            mutation ProjectCreate($input: ProjectCreateInput) {
+              data:projectMutations {
+                data:create(input: $input) {
+                  id
+                  name
+                  description
+                  visibility
+                  allowPublicComments
+                  role
+                  createdAt
+                  updatedAt
+                  sourceApps
+                  workspaceId
+                }
+              }
+            }
+            """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[Project]], QUERY, variables
+        ).data.data
 
     def create_in_workspace(self, input: WorkspaceProjectCreateInput) -> Project:
-        metrics.track(metrics.SDK, self.account, {"name": "Workspace Project Create"})
-        return super().create_in_workspace(input)
+        """
+        Creates a workspace project
+        This feature is only supported by Workspace Enabled Servers
+        (e.g. app.speckle.systems)
+
+        see `workspace.permissions.can_create_project` to see if the user has permission
+        """
+        QUERY = gql(
+            """
+          mutation WorkspaceProjectCreate($input: WorkspaceProjectCreateInput!) {
+            data:workspaceMutations {
+              data:projects {
+                data:create(input: $input) {
+                  id
+                  name
+                  description
+                  visibility
+                  allowPublicComments
+                  role
+                  createdAt
+                  updatedAt
+                  sourceApps
+                  workspaceId
+                }
+              }
+            }
+          }
+          """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[Project]]], QUERY, variables
+        ).data.data.data
 
     def update(self, input: ProjectUpdateInput) -> Project:
-        metrics.track(metrics.SDK, self.account, {"name": "Project Update"})
-        return super().update(input)
+        QUERY = gql(
+            """
+            mutation ProjectUpdate($input: ProjectUpdateInput!) {
+              data:projectMutations{
+                data:update(update: $input) {
+                  allowPublicComments
+                  createdAt
+                  description
+                  id
+                  name
+                  role
+                  sourceApps
+                  updatedAt
+                  visibility
+                  workspaceId
+                }
+              }
+            }
+            """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[Project]], QUERY, variables
+        ).data.data
 
     def delete(self, project_id: str) -> bool:
-        metrics.track(metrics.SDK, self.account, {"name": "Project Delete"})
-        return super().delete(project_id)
+        QUERY = gql(
+            """
+            mutation ProjectDelete($projectId: String!) {
+              data:projectMutations {
+                data:delete(id: $projectId)
+              }
+            }
+            """
+        )
+
+        variables = {
+            "projectId": project_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[bool]], QUERY, variables
+        ).data.data
 
     def update_role(self, input: ProjectUpdateRoleInput) -> ProjectWithTeam:
-        metrics.track(metrics.SDK, self.account, {"name": "Project Update Role"})
-        return super().update_role(input)
+        QUERY = gql(
+            """
+            mutation ProjectUpdateRole($input: ProjectUpdateRoleInput!) {
+              data:projectMutations {
+                data:updateRole(input: $input) {
+                  id
+                  name
+                  description
+                  visibility
+                  allowPublicComments
+                  role
+                  createdAt
+                  updatedAt
+                  sourceApps
+                  workspaceId
+                  team {
+                    id
+                    role
+                    user {
+                      id
+                      name
+                      bio
+                      company
+                      avatar
+                      verified
+                      role
+                    }
+                  }
+                  invitedTeam {
+                    id
+                    inviteId
+                    projectId
+                    projectName
+                    title
+                    role
+                    token
+                    user {
+                      id
+                      name
+                      bio
+                      company
+                      avatar
+                      verified
+                      role
+                    }
+                    invitedBy {
+                      id
+                      name
+                      bio
+                      company
+                      avatar
+                      verified
+                      role
+                    }
+                  }
+                }
+              }
+            }
+            """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[ProjectWithTeam]], QUERY, variables
+        ).data.data

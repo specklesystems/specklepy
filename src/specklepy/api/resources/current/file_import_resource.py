@@ -1,36 +1,99 @@
 from pathlib import Path
+from typing import Any
 
-from typing_extensions import override
+import httpx
+from gql import Client, gql
 
-from specklepy.core.api.inputs import (
+from specklepy.api.credentials import Account
+from specklepy.api.inputs.file_import_inputs import (
     FinishFileImportInput,
     GenerateFileUploadUrlInput,
     StartFileImportInput,
 )
-from specklepy.core.api.models import FileImport, FileUploadUrl
-from specklepy.core.api.models.current import ResourceCollection
-from specklepy.core.api.resources import FileImportResource as CoreResource
-from specklepy.core.api.resources.current.file_import_resource import UploadFileResponse
-from specklepy.logging import metrics
+from specklepy.api.models import FileImport, FileUploadUrl, ResourceCollection
+from specklepy.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.api.resource import ResourceBase
+from specklepy.api.responses import DataResponse
+from specklepy.logging.exceptions import SpeckleException
+
+NAME = "file_import"
 
 
-class FileImportResource(CoreResource):
+class UploadFileResponse(GraphQLBaseModel):
+    etag: str
+
+
+class FileImportResource(ResourceBase):
     """API Access class for file imports"""
 
-    def __init__(self, account, basepath, client, server_version) -> None:
+    def __init__(
+        self,
+        account: Account,
+        basepath: str,
+        client: Client,
+        server_version: tuple[Any, ...] | None,  # pyright: ignore[reportExplicitAny]
+    ) -> None:
         super().__init__(
             account=account,
             basepath=basepath,
             client=client,
             server_version=server_version,
+            name=NAME,
         )
 
-    @override
-    def start_file_import(self, input: StartFileImportInput) -> FileImport:
-        metrics.track(metrics.SDK, self.account, {"name": "File Import Start"})
-        return super().start_file_import(input)
+    def finish_file_import_job(self, input: FinishFileImportInput) -> bool:
+        """
+        This is mostly an internal api, that marks a file import job finished.
 
-    @override
+        Only use this if you are writing a file importer, that is responsible for
+        processing file import jobs.
+        """
+        QUERY = gql(
+            """
+                mutation FinishFileImport($input: FinishFileImportInput!) {
+                    data:fileUploadMutations {
+                        data:finishFileImport(input: $input)
+                    }
+                }
+            """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[bool]], QUERY, variables
+        ).data.data
+
+    def start_file_import(self, input: StartFileImportInput) -> FileImport:
+        QUERY = gql(
+            """
+            mutation StartFileImport($input: StartFileImportInput!) {
+                data:fileUploadMutations {
+                    data:startFileImport(input: $input) {
+                        id
+                        projectId
+                        convertedVersionId
+                        userId
+                        convertedStatus
+                        convertedMessage
+                        modelId
+                        updatedAt
+                    }
+                }
+            }
+        """
+        )
+
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[FileImport]], QUERY, variables
+        ).data.data
+
     def generate_upload_url(self, input: GenerateFileUploadUrlInput) -> FileUploadUrl:
         """
         Get a file upload url from the Speckle server.
@@ -39,12 +102,27 @@ class FileImportResource(CoreResource):
         which can be used as a short term authenticated route,
         to put a file to the server.
         """
-        metrics.track(
-            metrics.SDK, self.account, {"name": "File Import Generate Upload Url"}
+        QUERY = gql(
+            """
+            mutation GenerateUploadUrl($input: GenerateFileUploadUrlInput!) {
+                data:fileUploadMutations {
+                    data:generateUploadUrl(input: $input) {
+                        fileId
+                        url
+                    }
+                }
+            }
+        """
         )
-        return super().generate_upload_url(input)
 
-    @override
+        variables = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[FileUploadUrl]], QUERY, variables
+        ).data.data
+
     def upload_file(self, file: Path, url: str) -> UploadFileResponse:
         """
         Uploads a file to the given S3 url.
@@ -52,27 +130,37 @@ class FileImportResource(CoreResource):
         This method should be used together with the generate_upload_url method,
         which generates a pre-signed S3 url, that can be used to upload the file to.
         """
-        metrics.track(metrics.SDK, self.account, {"name": "File Import Upload File"})
-        return super().upload_file(file, url)
+        with open(file, "rb") as content:
+            response = httpx.put(
+                url,
+                content=content,  # Pass file object directly for streaming
+                headers={
+                    "Content-Type": "application/octet-stream",
+                    "Content-Length": str(file.stat().st_size),
+                },
+            ).raise_for_status()
+            etag = response.headers.get("ETag", None)  # pyright: ignore[reportAny]
+            if not etag:
+                raise SpeckleException(
+                    "Response does not have an ETag attached to it,"
+                    + " cannot use this as an upload"
+                )
+            return UploadFileResponse(etag=str(etag))  # pyright: ignore[reportAny]
 
-    @override
     def download_file(self, project_id: str, file_id: str, target_file: Path) -> Path:
         """Download a file blob attached to the project, to the target path."""
-        metrics.track(metrics.SDK, self.account, {"name": "File Import Download File"})
-        return super().download_file(project_id, file_id, target_file)
+        if not target_file.parent.exists():
+            target_file.parent.mkdir(parents=True)
+        url = f"{self.basepath}/api/stream/{project_id}/blob/{file_id}"
+        with httpx.stream(
+            "GET", url, headers={"Authorization": f"Bearer {self.account.token}"}
+        ) as response:
+            _ = response.raise_for_status()
+            with target_file.open("wb") as f:
+                for chunk in response.iter_bytes(chunk_size=8192):
+                    _ = f.write(chunk)
+        return target_file
 
-    @override
-    def finish_file_import_job(self, input: FinishFileImportInput) -> bool:
-        """
-        This is mostly an internal api, that marks a file import job finished.
-
-        Only use this if you are writing a file importer, that is responsible for
-        processing file import jobs.
-        """
-        metrics.track(metrics.SDK, self.account, {"name": "File Import Finish Job"})
-        return super().finish_file_import_job(input)
-
-    @override
     def get_model_file_import_jobs(
         self,
         *,
@@ -81,7 +169,46 @@ class FileImportResource(CoreResource):
         limit: int = 25,
         cursor: str | None = None,
     ) -> ResourceCollection[FileImport]:
-        metrics.track(metrics.SDK, self.account, {"name": "File Import Get Model Jobs"})
-        return super().get_model_file_import_jobs(
-            project_id=project_id, model_id=model_id, limit=limit, cursor=cursor
+        QUERY = gql(
+            """
+            query ModelFileImportJobs(
+                $projectId: String!,
+                $modelId: String!,
+                $input: GetModelUploadsInput
+            ) {
+              data:project(id: $projectId) {
+                data:model(id: $modelId) {
+                    data:uploads(input: $input) {
+                        totalCount
+                        cursor
+                        items {
+                            id
+                            projectId
+                            convertedVersionId
+                            userId
+                            convertedStatus
+                            convertedMessage
+                            modelId
+                            updatedAt
+                        }
+                    }
+                }
+              }
+            }
+            """
         )
+
+        variables = {
+            "projectId": project_id,
+            "modelId": model_id,
+            "input": {
+                "limit": limit,
+                "cursor": cursor,
+            },
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[ResourceCollection[FileImport]]]],
+            QUERY,
+            variables,
+        ).data.data.data

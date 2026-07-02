@@ -1,17 +1,17 @@
-from specklepy.core.api.inputs.file_import_inputs import (
+from specklepy.api.inputs.file_import_inputs import (
     FileImportErrorInput,
     FileImportSuccessInput,
     FinishFileImportInput,
     GenerateFileUploadUrlInput,
     StartFileImportInput,
 )
-from specklepy.core.api.inputs.model_inputs import (
+from specklepy.api.inputs.model_inputs import (
     CreateModelInput,
     DeleteModelInput,
     ModelVersionsFilter,
     UpdateModelInput,
 )
-from specklepy.core.api.inputs.project_inputs import (
+from specklepy.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectInviteCreateInput,
     ProjectInviteUseInput,
@@ -19,8 +19,8 @@ from specklepy.core.api.inputs.project_inputs import (
     ProjectUpdateInput,
     ProjectUpdateRoleInput,
 )
-from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
-from specklepy.core.api.inputs.version_inputs import (
+from specklepy.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
+from specklepy.api.inputs.version_inputs import (
     CreateVersionInput,
     DeleteVersionsInput,
     MarkReceivedVersionInput,

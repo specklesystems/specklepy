@@ -1,34 +1,61 @@
 from typing import Optional
 
-from specklepy.core.api.models import (
+from gql import gql
+
+from specklepy.api.models import (
     LimitedUser,
     UserSearchResultCollection,
 )
-from specklepy.core.api.resources import OtherUserResource as CoreResource
-from specklepy.logging import metrics
+from specklepy.api.resource import ResourceBase
+from specklepy.api.responses import DataResponse
+
+NAME = "other_user"
 
 
-class OtherUserResource(CoreResource):
-    """
-    Provides API access to other users' profiles and activities on the platform.
-    This class enables fetching limited information about users,
-    searching for users by name or email,
-    and accessing user activity logs with appropriate privacy
-    and access control measures in place.
-    """
+class OtherUserResource(ResourceBase):
+    """API Access class for other users, that are not the currently active user."""
 
     def __init__(self, account, basepath, client, server_version) -> None:
         super().__init__(
             account=account,
             basepath=basepath,
             client=client,
-            server_version=(server_version,),
+            name=NAME,
+            server_version=server_version,
         )
         self.schema = LimitedUser
 
     def get(self, id: str) -> Optional[LimitedUser]:
-        metrics.track(metrics.SDK, self.account, {"name": "Other User Get"})
-        return super().get(id)
+        """
+        Gets the profile of another user.
+
+        Arguments:
+            id {str} -- the user id
+
+        Returns:
+            LimitedUser -- the retrieved profile of another user
+        """
+        QUERY = gql(
+            """
+          query LimitedUser($id: String!) {
+            data:otherUser(id: $id){
+              id
+              name
+              bio
+              company
+              avatar
+              verified
+              role
+            }
+          }
+          """
+        )
+
+        variables = {"id": id}
+
+        return self.make_request_and_parse_response(
+            DataResponse[Optional[LimitedUser]], QUERY, variables
+        ).data
 
     def user_search(
         self,
@@ -39,7 +66,59 @@ class OtherUserResource(CoreResource):
         archived: bool = False,
         emailOnly: bool = False,
     ) -> UserSearchResultCollection:
-        metrics.track(metrics.SDK, self.account, {"name": "Other User Search"})
-        return super().user_search(
-            query, limit=limit, cursor=cursor, archived=archived, emailOnly=emailOnly
+        """
+        Searches for a user on the server, by name or email.
+        The search query must be at least
+        3 characters long
+
+        Arguments:
+            search_query {str} -- a string to search for
+            limit {int} -- the maximum number of results to return
+            cursor {Optional[str]} --
+            archived {bool} --
+            emailOnly {bool} --
+        Returns:
+            ResourceCollection[LimitedUser] -- User objects that match the search query
+        """
+
+        QUERY = gql(
+            """
+            query UserSearch(
+                $query: String!,
+                $limit: Int!,
+                $cursor: String,
+                $archived: Boolean,
+                $emailOnly: Boolean
+            ) {
+              data:userSearch(
+                query: $query,
+                limit: $limit,
+                cursor: $cursor,
+                archived: $archived,
+                emailOnly: $emailOnly
+                ) {
+                cursor
+                items {
+                 id
+                 name
+                 bio
+                 company
+                 avatar
+                 verified
+                 role
+               }
+             }
+            }
+            """
         )
+        variables = {
+            "query": query,
+            "limit": limit,
+            "cursor": cursor,
+            "archived": archived,
+            "emailOnly": emailOnly,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[UserSearchResultCollection], QUERY, variables
+        ).data

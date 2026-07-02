@@ -1,4 +1,12 @@
 import contextlib
+import re
+from typing import Dict
+from warnings import warn
+
+from gql import Client
+from gql.transport.exceptions import TransportServerError
+from gql.transport.requests import RequestsHTTPTransport
+from gql.transport.websockets import WebsocketsTransport
 
 from specklepy.api.credentials import Account
 from specklepy.api.resources import (
@@ -14,11 +22,11 @@ from specklepy.api.resources import (
     VersionResource,
     WorkspaceResource,
 )
-from specklepy.core.api.client import SpeckleClient as CoreSpeckleClient
 from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 
 
-class SpeckleClient(CoreSpeckleClient):
+class SpeckleClient:
     """
     The `SpeckleClient` is your entry point for interacting with
     your Speckle Server's GraphQL API.
@@ -31,7 +39,7 @@ class SpeckleClient(CoreSpeckleClient):
 
     ```py
     from specklepy.api.client import SpeckleClient
-    from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
+    from specklepy.api.inputs.project_inputs import ProjectCreateInput
     from specklepy.api.credentials import get_default_account
 
     # initialise the client
@@ -60,13 +68,131 @@ class SpeckleClient(CoreSpeckleClient):
         host: str = DEFAULT_HOST,
         use_ssl: bool = USE_SSL,
         verify_certificate: bool = True,
+        connection_retries: int = 3,
+        connection_timeout: int = 10,
     ) -> None:
-        super().__init__(
-            host=host,
-            use_ssl=use_ssl,
-            verify_certificate=verify_certificate,
-        )
+        ws_protocol = "ws"
+        http_protocol = "http"
+
+        if use_ssl:
+            ws_protocol = "wss"
+            http_protocol = "https"
+
+        # sanitise host input by removing protocol and trailing slash
+        host = re.sub(r"((^\w+:|^)\/\/)|(\/$)", "", host)
+
+        self.url = f"{http_protocol}://{host}"
+        self.graphql = f"{self.url}/graphql"
+        self.ws_url = f"{ws_protocol}://{host}/graphql"
         self.account = Account()
+        self.verify_certificate = verify_certificate
+        self.connection_retries = connection_retries
+        self.connection_timeout = connection_timeout
+
+        self.httpclient = Client(
+            transport=RequestsHTTPTransport(
+                url=self.graphql,
+                verify=self.verify_certificate,
+                retries=self.connection_retries,
+                timeout=self.connection_timeout,
+            )
+        )
+        self.wsclient = None
+
+        self._init_resources()
+
+        # ? Check compatibility with the server
+        # - i think we can skip this at this point? save a request
+        # try:
+        #     server_info = self.server.get()
+        #     if isinstance(server_info, Exception):
+        #         raise server_info
+        #     if not isinstance(server_info, ServerInfo):
+        #         raise Exception("Couldn't get ServerInfo")
+        # except Exception as ex:
+        #     raise SpeckleException(
+        #         f"{self.url} is not a compatible Speckle Server", ex
+        #     ) from ex
+
+    def __repr__(self):
+        return (
+            f"SpeckleClient( server: {self.url}, authenticated:"
+            f" {self.account.token is not None} )"
+        )
+
+    def authenticate_with_token(self, token: str) -> None:
+        """
+        Authenticate the client using a personal access token.
+        The token is saved in the client object and a synchronous GraphQL
+        entrypoint is created
+
+        Arguments:
+            token {str} -- an api token
+        """
+        self.account = Account.from_token(token, self.url)
+        self._set_up_client()
+
+        userData = self.active_user.get()
+
+        # None if the token lacked the profile:read scope or if it was None
+        if userData:
+            self.account.userInfo.id = userData.id
+            self.account.userInfo.email = userData.email
+            self.account.userInfo.name = userData.name
+            self.account.userInfo.company = userData.company
+            self.account.userInfo.avatar = userData.avatar
+
+        self.account.serverInfo = self.server.get()
+        self.account.serverInfo.url = self.url
+
+    def authenticate_with_account(self, account: Account) -> None:
+        """Authenticate the client using an Account object
+        The account is saved in the client object and a synchronous GraphQL
+        entrypoint is created
+
+        Arguments:
+            account {Account} -- the account object which can be found with
+            `get_default_account` or `get_local_accounts`
+        """
+        self.account = account
+        self._set_up_client()
+
+        try:
+            _ = self.active_user.get()
+        except SpeckleException as ex:
+            if isinstance(ex.exception, TransportServerError):
+                if ex.exception.code == 403:
+                    warn(
+                        SpeckleWarning(
+                            "Possibly invalid token - could not authenticate "
+                            f"Speckle Client for server {self.url}"
+                        ),
+                        stacklevel=2,
+                    )
+                else:
+                    raise ex
+
+    def _set_up_client(self) -> None:
+        headers = {
+            "Authorization": f"Bearer {self.account.token}",
+            "Content-Type": "application/json",
+            "apollographql-client-name": metrics.HOST_APP,
+            "apollographql-client-version": metrics.HOST_APP_VERSION,
+        }
+        httptransport = RequestsHTTPTransport(
+            url=self.graphql, headers=headers, verify=self.verify_certificate, retries=3
+        )
+        wstransport = WebsocketsTransport(
+            url=self.ws_url,
+            init_payload={"Authorization": f"Bearer {self.account.token}"},
+        )
+        self.httpclient = Client(transport=httptransport)
+        self.wsclient = Client(transport=wstransport)
+
+        self._init_resources()
+
+    def execute_query(self, query: str) -> Dict:
+        return self.httpclient.execute(query)
 
     def _init_resources(self) -> None:
         self.server = ServerResource(
@@ -74,7 +200,6 @@ class SpeckleClient(CoreSpeckleClient):
         )
 
         server_version = None
-
         with contextlib.suppress(Exception):
             server_version = self.server.version()
 
@@ -120,13 +245,13 @@ class SpeckleClient(CoreSpeckleClient):
             client=self.httpclient,
             server_version=server_version,
         )
-        self.model_ingestion = ModelIngestionResource(
+        self.file_import = FileImportResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,
             server_version=server_version,
         )
-        self.file_import = FileImportResource(
+        self.model_ingestion = ModelIngestionResource(
             account=self.account,
             basepath=self.url,
             client=self.httpclient,
@@ -136,33 +261,4 @@ class SpeckleClient(CoreSpeckleClient):
             account=self.account,
             basepath=self.ws_url,
             client=self.wsclient,
-            # todo: why doesn't this take a server version
         )
-
-    def authenticate_with_token(self, token: str) -> None:
-        """
-        Authenticate the client using a personal access token.
-        The token is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            token {str} -- an api token
-        """
-        metrics.track(
-            metrics.SDK, self.account, {"name": "Client Authenticate With Token"}
-        )
-        return super().authenticate_with_token(token)
-
-    def authenticate_with_account(self, account: Account) -> None:
-        """Authenticate the client using an Account object
-        The account is saved in the client object and a synchronous GraphQL
-        entrypoint is created
-
-        Arguments:
-            account {Account} -- the account object which can be found with
-            `get_default_account` or `get_local_accounts`
-        """
-        metrics.track(
-            metrics.SDK, self.account, {"name": "Client Authenticate With Account"}
-        )
-        return super().authenticate_with_account(account)

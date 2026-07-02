@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Generic, List, TypeVar
 
-from specklepy.core.api.enums import ModelIngestionStatus, ProjectVisibility
-from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.api.enums import ModelIngestionStatus, ProjectVisibility
+from specklepy.api.models.graphql_base_model import GraphQLBaseModel
 from specklepy.logging.exceptions import WorkspacePermissionException
 
 T = TypeVar("T")

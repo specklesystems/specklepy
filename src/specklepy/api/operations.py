@@ -1,12 +1,11 @@
 from typing import List, Optional
 
-from specklepy.core.api.operations import deserialize as core_deserialize
-from specklepy.core.api.operations import receive as _untracked_receive
-from specklepy.core.api.operations import send as core_send
-from specklepy.core.api.operations import serialize as core_serialize
-from specklepy.logging import metrics
+# from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
+from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.abstract_transport import AbstractTransport
+from specklepy.transports.sqlite import SQLiteTransport
 
 
 def send(
@@ -25,12 +24,29 @@ def send(
     Returns:
         str -- the object id of the sent object
     """
-    if transports is None:
-        metrics.track(metrics.SEND)
-    else:
-        metrics.track(metrics.SEND, getattr(transports[0], "account", None))
 
-    return core_send(base, transports, use_default_cache)
+    if not transports and not use_default_cache:
+        raise SpeckleException(
+            message=(
+                "You need to provide at least one transport: cannot send with an empty"
+                " transport list and no default cache"
+            )
+        )
+
+    if isinstance(transports, AbstractTransport):
+        transports = [transports]
+
+    if transports is None:
+        transports = []
+
+    if use_default_cache:
+        transports.insert(0, SQLiteTransport())
+
+    serializer = BaseObjectSerializer(write_transports=transports)
+
+    obj_hash, _ = serializer.write_json(base=base)
+
+    return obj_hash
 
 
 def receive(
@@ -49,8 +65,30 @@ def receive(
     Returns:
         Base -- the base object
     """
-    metrics.track(metrics.RECEIVE, getattr(remote_transport, "account", None))
-    return _untracked_receive(obj_id, remote_transport, local_transport)
+    if not local_transport:
+        local_transport = SQLiteTransport()
+
+    serializer = BaseObjectSerializer(read_transport=local_transport)
+
+    # try local transport first. if the parent is there, we assume all the children
+    # are there and continue with deserialization using the local transport
+    obj_string = local_transport.get_object(obj_id)
+    if obj_string:
+        return serializer.read_json(obj_string=obj_string)
+
+    if not remote_transport:
+        raise SpeckleException(
+            message=(
+                "Could not find the specified object using the local transport, and you"
+                " didn't provide a fallback remote from which to pull it."
+            )
+        )
+
+    obj_string = remote_transport.copy_object_and_children(
+        id=obj_id, target_transport=local_transport
+    )
+
+    return serializer.read_json(obj_string=obj_string)
 
 
 def serialize(
@@ -71,8 +109,9 @@ def serialize(
     """
     if not write_transports:
         write_transports = []
-    metrics.track(metrics.SDK, custom_props={"name": "Serialize"})
-    return core_serialize(base, write_transports)
+    serializer = BaseObjectSerializer(write_transports=write_transports)
+
+    return serializer.write_json(base)[1]
 
 
 def deserialize(
@@ -94,8 +133,12 @@ def deserialize(
     Returns:
         Base -- the deserialized object
     """
-    metrics.track(metrics.SDK, custom_props={"name": "Deserialize"})
-    return core_deserialize(obj_string, read_transport)
+    if not read_transport:
+        read_transport = SQLiteTransport()
+
+    serializer = BaseObjectSerializer(read_transport=read_transport)
+
+    return serializer.read_json(obj_string=obj_string)
 
 
 __all__ = ["receive", "send", "serialize", "deserialize"]

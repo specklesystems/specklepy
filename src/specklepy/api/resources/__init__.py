@@ -10,7 +10,9 @@ from specklepy.api.resources.current.project_invite_resource import (
 )
 from specklepy.api.resources.current.project_resource import ProjectResource
 from specklepy.api.resources.current.server_resource import ServerResource
-from specklepy.api.resources.current.subscription_resource import SubscriptionResource
+from specklepy.api.resources.current.subscription_resource import (
+    SubscriptionResource,
+)
 from specklepy.api.resources.current.version_resource import VersionResource
 from specklepy.api.resources.current.workspace_resource import WorkspaceResource
 

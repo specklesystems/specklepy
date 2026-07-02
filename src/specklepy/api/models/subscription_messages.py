@@ -1,14 +1,14 @@
 from typing import Optional
 
-from specklepy.core.api.enums import (
+from specklepy.api.enums import (
     ProjectModelIngestionUpdatedMessageType,
     ProjectModelsUpdatedMessageType,
     ProjectUpdatedMessageType,
     ProjectVersionsUpdatedMessageType,
     UserProjectsUpdatedMessageType,
 )
-from specklepy.core.api.models.current import Model, ModelIngestion, Project, Version
-from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.api.models.current import Model, ModelIngestion, Project, Version
+from specklepy.api.models.graphql_base_model import GraphQLBaseModel
 
 
 class UserProjectsUpdatedMessage(GraphQLBaseModel):

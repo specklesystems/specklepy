@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.api.models.graphql_base_model import GraphQLBaseModel
 
 
 class GenerateFileUploadUrlInput(GraphQLBaseModel):

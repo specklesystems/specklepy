@@ -1,7 +1,7 @@
 from typing import Optional, Sequence
 
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.models.graphql_base_model import GraphQLBaseModel
 
 
 class ProjectCreateInput(GraphQLBaseModel):
