@@ -1,5 +1,3 @@
-from typing import Optional
-
 from gql import gql
 
 from specklepy.core.api.inputs.project_inputs import (
@@ -106,8 +104,8 @@ class ProjectResource(ResourceBase):
         project_id: str,
         *,
         models_limit: int = 25,
-        models_cursor: Optional[str] = None,
-        models_filter: Optional[ProjectModelsFilter] = None,
+        models_cursor: str | None = None,
+        models_filter: ProjectModelsFilter | None = None,
     ) -> ProjectWithModels:
         QUERY = gql(
             """

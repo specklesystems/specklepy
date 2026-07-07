@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IHasUnits
@@ -14,7 +14,7 @@ class ColorProxy(
 ):
     objects: List[str]
     value: int
-    name: Optional[str]
+    name: str | None
 
 
 @dataclass(kw_only=True)

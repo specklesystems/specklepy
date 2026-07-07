@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Optional
+from typing import Dict, List
 from warnings import warn
 
 from specklepy.core.api.client import SpeckleClient
@@ -54,10 +54,10 @@ class ServerTransport(AbstractTransport):
     def __init__(
         self,
         stream_id: str,
-        client: Optional[SpeckleClient] = None,
-        account: Optional[Account] = None,
-        token: Optional[str] = None,
-        url: Optional[str] = None,
+        client: SpeckleClient | None = None,
+        account: Account | None = None,
+        token: str | None = None,
+        url: str | None = None,
         name: str = "RemoteTransport",
     ) -> None:
         super().__init__()

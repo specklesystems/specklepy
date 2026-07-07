@@ -1,5 +1,3 @@
-from typing import Optional
-
 from specklepy.core.api.inputs.model_inputs import (
     CreateModelInput,
     DeleteModelInput,
@@ -37,8 +35,8 @@ class ModelResource(CoreResource):
         project_id: str,
         *,
         versions_limit: int = 25,
-        versions_cursor: Optional[str] = None,
-        versions_filter: Optional[ModelVersionsFilter] = None,
+        versions_cursor: str | None = None,
+        versions_filter: ModelVersionsFilter | None = None,
     ) -> ModelWithVersions:
         metrics.track(metrics.SDK, self.account, {"name": "Model Get With Versions"})
         return super().get_with_versions(
@@ -54,8 +52,8 @@ class ModelResource(CoreResource):
         project_id: str,
         *,
         models_limit: int = 25,
-        models_cursor: Optional[str] = None,
-        models_filter: Optional[ProjectModelsFilter] = None,
+        models_cursor: str | None = None,
+        models_filter: ProjectModelsFilter | None = None,
     ) -> ResourceCollection[Model]:
         metrics.track(metrics.SDK, self.account, {"name": "Model Get Models"})
         return super().get_models(

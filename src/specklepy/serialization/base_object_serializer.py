@@ -2,7 +2,7 @@ import hashlib
 import re
 import warnings
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 from uuid import uuid4
 from warnings import warn
 
@@ -48,8 +48,8 @@ class BaseObjectSerializer:
 
     def __init__(
         self,
-        write_transports: Optional[List[AbstractTransport]] = None,
-        read_transport: Optional[AbstractTransport] = None,
+        write_transports: List[AbstractTransport] | None = None,
+        read_transport: AbstractTransport | None = None,
     ) -> None:
         self.write_transports = write_transports or []
         self.read_transport = read_transport
