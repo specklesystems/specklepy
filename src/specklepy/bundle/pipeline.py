@@ -195,14 +195,19 @@ class ObjectsArtifactPipeline:
         opacity: float,
         metalness: float,
         roughness: float,
+        name: str | None = None,
     ) -> int:
-        """Intern a MATERIAL value-node (inline render value), writing it once."""
+        """Intern a MATERIAL value-node (inline render value), writing it once.
+
+        ``name`` is the source material's display name; without it, materials
+        that share the same render values are indistinguishable to consumers.
+        """
         k, is_new = self._node_interner.get_or_add("mat:" + material_key)
         if is_new:
             self._envelope.add_node(
                 k,
                 NodeKind.MATERIAL,
-                None,
+                name,
                 None,
                 None,
                 None,

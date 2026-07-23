@@ -41,7 +41,8 @@ def test_pipeline_full_bundle(tmp_path):
         p.display_instance(obj_k, inst_k, 0)
 
         mat_k = p.add_material(
-            "mat-1", argb=-1, opacity=1.0, metalness=0.0, roughness=0.5
+            "mat-1", argb=-1, opacity=1.0, metalness=0.0, roughness=0.5,
+            name="Concrete",
         )
         p.has_material(geo_k, mat_k)
 
@@ -95,3 +96,10 @@ def test_pipeline_full_bundle(tmp_path):
         f"SELECT subtype, name FROM {g}.envelope.nodes.parquet') WHERE id = {sys_k}"
     ).fetchone()
     assert sub == ("System", "Hot Water")
+
+    # the material node retains the source material's display name
+    mat = con.execute(
+        f"SELECT name, argb, roughness FROM {g}.envelope.nodes.parquet') "
+        f"WHERE id = {mat_k}"
+    ).fetchone()
+    assert mat == ("Concrete", -1, 0.5)
