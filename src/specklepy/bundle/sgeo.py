@@ -1,4 +1,4 @@
-"""SGEO v1 geometry encoder — a byte-for-byte port of the .NET ``SgeoEncoder``.
+"""SGEO v1 geometry codec — a byte-for-byte port of the .NET ``SgeoEncoder``.
 
 SGEO is Speckle's binary geometry-family format: one opaque blob per geometry
 buffer, a fixed 16-byte little-endian header followed by a per-primitive body.
@@ -20,14 +20,21 @@ Header (16 bytes, little-endian)::
 Conventions: little-endian throughout; f64 = IEEE-754 double; the body starts
 8-byte aligned at 0x10 and every f64 array stays 8-aligned (u32 scalars are
 padded in pairs via :func:`_pad8`).
+
+:func:`encode` writes blobs; :func:`decode` / :func:`decode_mesh` read them back
+for the receive side of the artefact path. Decoding currently covers MESH only.
 """
 
 from __future__ import annotations
 
 import struct
 import zlib
+from dataclasses import dataclass
 from enum import IntEnum, IntFlag
-from typing import Optional
+from typing import TYPE_CHECKING, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from specklepy.objects.base import Base
 
 MAGIC = b"SGEO"
 VERSION_1 = 1
@@ -466,3 +473,239 @@ def try_get_primitive_type(geometry) -> Optional[int]:
     """Return the SGEO primitive type code if encodable, else ``None``."""
     primitive = _PRIMITIVE_TYPES.get(type(geometry).__name__)
     return int(primitive) if primitive is not None else None
+
+
+# ── decoding ───────────────────────────────────────────────────────────────
+#
+# The receive side of the artefact path: connectors that load a 4.0 bundle read
+# geometry blobs back out of the geometries table. Only MESH is implemented so
+# far — the other primitives raise :class:`SgeoDecodeError` rather than
+# silently returning nothing, so a caller can tell "not supported yet" from
+# "no geometry".
+#
+# Two levels, deliberately: :func:`decode_mesh` returns a plain
+# :class:`DecodedMesh` of raw arrays for consumers that bake straight into a
+# host application (no Base allocation per mesh, which dominates on dense
+# scenes), and :func:`decode` wraps that into a real ``Mesh`` for consumers
+# that want the object model.
+
+
+class SgeoDecodeError(ValueError):
+    """A blob is not valid SGEO v1, or holds a primitive we cannot decode yet."""
+
+
+_UNIT_DECODING = {code: unit for unit, code in _UNIT_ENCODING.items()}
+
+
+def get_unit_from_encoding(code: int) -> Optional[str]:
+    """Inverse of :func:`get_encoding_from_unit`; ``None`` for the 0 sentinel.
+
+    Not round-trip-exact by construction: the encoder maps every unrecognised
+    unit string to 0, so 0 decodes to ``None`` rather than to whatever the
+    producer originally had.
+    """
+    return _UNIT_DECODING.get(code)
+
+
+@dataclass(frozen=True)
+class SgeoHeader:
+    """The fixed 16-byte SGEO header, parsed."""
+
+    version: int
+    primitive_type: int
+    flags: Flags
+    units_code: int
+    crc: int
+
+    @property
+    def units(self) -> Optional[str]:
+        return get_unit_from_encoding(self.units_code)
+
+    @property
+    def primitive(self) -> Optional[PrimitiveType]:
+        """The primitive as an enum member, or ``None`` for an unknown code."""
+        try:
+            return PrimitiveType(self.primitive_type)
+        except ValueError:
+            return None
+
+
+@dataclass
+class DecodedMesh:
+    """A mesh's raw SGEO arrays, in Speckle's flat layout.
+
+    ``faces`` is the flat ``[n, i0..in-1, n, i0..]`` face list, matching
+    ``Mesh.faces``; ``vertices``/``vertexNormals`` are flat xyz triples and
+    ``textureCoordinates`` flat uv pairs.
+    """
+
+    vertices: List[float]
+    faces: List[int]
+    vertex_normals: List[float]
+    texture_coordinates: List[float]
+    colors: List[int]
+    units: Optional[str]
+
+
+def decode_header(blob: bytes) -> SgeoHeader:
+    """Parse the 16-byte header without touching the body.
+
+    Lets a caller dispatch on primitive type (or skip a blob it cannot handle)
+    before paying for a full decode.
+    """
+    if len(blob) < HEADER_SIZE:
+        raise SgeoDecodeError(
+            f"SGEO blob is {len(blob)} bytes, shorter than the "
+            f"{HEADER_SIZE}-byte header."
+        )
+    if blob[0:4] != MAGIC:
+        raise SgeoDecodeError(f"Bad SGEO magic {blob[0:4]!r}, expected {MAGIC!r}.")
+    version = blob[4]
+    if version != VERSION_1:
+        raise SgeoDecodeError(
+            f"Unsupported SGEO version {version}, expected {VERSION_1}."
+        )
+    flags_raw, units_code, _reserved, crc = struct.unpack_from("<HHHI", blob, 6)
+    return SgeoHeader(
+        version=version,
+        primitive_type=blob[5],
+        flags=Flags(flags_raw),
+        units_code=units_code,
+        crc=crc,
+    )
+
+
+def verify_crc(blob: bytes) -> None:
+    """Raise when the stored CRC does not match the body bytes.
+
+    Cheap (one zlib call), and the only integrity check the format carries — a
+    truncated download otherwise surfaces as garbage coordinates rather than an
+    error.
+    """
+    header = decode_header(blob)
+    actual = crc32(blob[HEADER_SIZE:])
+    if actual != header.crc:
+        raise SgeoDecodeError(
+            f"SGEO CRC mismatch: header says {header.crc:#010x}, "
+            f"body hashes to {actual:#010x}."
+        )
+
+
+def decode_mesh(blob: bytes, *, verify: bool = True) -> DecodedMesh:
+    """Decode a MESH blob into its raw arrays.
+
+    Mirrors :func:`_encode_mesh` byte for byte, including its two asymmetric
+    alignment rules: normals and UVs are each preceded by a pad to the next
+    8-byte boundary, colours are **not**.
+
+    Only ``vertex_count`` and ``face_count`` are stored, so the optional array
+    lengths are derived from the vertex count (3 per vertex for normals, 2 for
+    UVs, 1 for colours) — the format has no room for anything else.
+    """
+    header = decode_header(blob)
+    if header.primitive_type != PrimitiveType.MESH:
+        primitive = header.primitive
+        name = primitive.name if primitive else f"code {header.primitive_type}"
+        raise SgeoDecodeError(f"Expected a MESH blob, got {name}.")
+    if verify:
+        verify_crc(blob)
+
+    body = memoryview(blob)[HEADER_SIZE:]
+    vertex_count, face_count = struct.unpack_from("<II", body, 0)
+
+    offset = 8
+    vertices, offset = _read_f64_array(body, offset, vertex_count * 3, "vertices")
+    faces, offset = _read_i32_array(body, offset, face_count, "faces")
+
+    normals: List[float] = []
+    if header.flags & Flags.HAS_NORMALS:
+        offset = _align8(offset)
+        normals, offset = _read_f64_array(body, offset, vertex_count * 3, "normals")
+
+    uvs: List[float] = []
+    if header.flags & Flags.HAS_UVS:
+        offset = _align8(offset)
+        uvs, offset = _read_f64_array(body, offset, vertex_count * 2, "UVs")
+
+    colors: List[int] = []
+    if header.flags & Flags.HAS_COLORS:
+        # No pad before colours — mirrors the encoder's documented asymmetry.
+        colors, offset = _read_i32_array(body, offset, vertex_count, "colors")
+
+    return DecodedMesh(
+        vertices=vertices,
+        faces=faces,
+        vertex_normals=normals,
+        texture_coordinates=uvs,
+        colors=colors,
+        units=header.units,
+    )
+
+
+def decode(blob: bytes, *, verify: bool = True) -> Base:
+    """Decode an SGEO v1 blob into the Speckle object it was encoded from.
+
+    The inverse of :func:`encode`. Only MESH is supported so far; every other
+    primitive raises :class:`SgeoDecodeError`.
+    """
+    header = decode_header(blob)
+    if header.primitive_type != PrimitiveType.MESH:
+        primitive = header.primitive
+        name = primitive.name if primitive else f"code {header.primitive_type}"
+        raise SgeoDecodeError(f"No SGEO decoder for primitive {name} yet.")
+
+    from specklepy.objects.geometry.mesh import Mesh
+
+    mesh = decode_mesh(blob, verify=verify)
+    return Mesh(
+        vertices=mesh.vertices,
+        faces=mesh.faces,
+        vertexNormals=mesh.vertex_normals,
+        textureCoordinates=mesh.texture_coordinates,
+        colors=mesh.colors,
+        units=mesh.units,
+    )
+
+
+# ── low-level body readers ─────────────────────────────────────────────────
+
+
+def _align8(offset: int) -> int:
+    """Skip to the next 8-byte boundary — the read side of :func:`_pad8`."""
+    return offset + (-offset % 8)
+
+
+def _ensure_available(body: memoryview, offset: int, size: int, label: str) -> None:
+    if offset + size > len(body):
+        raise SgeoDecodeError(
+            f"SGEO body truncated reading {label}: need {size} bytes at offset "
+            f"{offset}, only {max(0, len(body) - offset)} remain."
+        )
+
+
+def _read_f64_array(
+    body: memoryview, offset: int, count: int, label: str
+) -> Tuple[List[float], int]:
+    if count == 0:
+        return [], offset
+    size = count * 8
+    _ensure_available(body, offset, size, label)
+    values = list(struct.unpack_from(f"<{count}d", body, offset))
+    return values, offset + size
+
+
+def _read_i32_array(
+    body: memoryview, offset: int, count: int, label: str
+) -> Tuple[List[int], int]:
+    """Read ``count`` signed 32-bit words.
+
+    Signed on the way out even though the encoder packs unsigned: ``Mesh.colors``
+    holds signed ARGB ints, and face indices never exceed int32 anyway, so
+    signed is the layout that round-trips.
+    """
+    if count == 0:
+        return [], offset
+    size = count * 4
+    _ensure_available(body, offset, size, label)
+    values = list(struct.unpack_from(f"<{count}i", body, offset))
+    return values, offset + size

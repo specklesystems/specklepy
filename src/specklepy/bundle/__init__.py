@@ -6,6 +6,10 @@ parquet schemas are sourced from the generated, vendored
 repo). The typed producer API is
 :class:`~specklepy.bundle.pipeline.ObjectsArtifactPipeline`; upload via
 :class:`~specklepy.bundle.upload.ArtifactPipeline`.
+
+Geometry blobs are encoded and decoded by :mod:`specklepy.bundle.sgeo`
+(``sgeo.encode`` / ``sgeo.decode``), which receivers use to read a downloaded
+bundle back. Decoding covers MESH so far.
 """
 
 from specklepy.bundle.pipeline import ObjectsArtifactPipeline

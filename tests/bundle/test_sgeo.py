@@ -199,3 +199,143 @@ def test_pad8_alignment_when_faces_misaligned():
 def test_encode_unknown_raises():
     with pytest.raises(ValueError):
         sgeo.encode(object())
+
+
+# ── decoding ───────────────────────────────────────────────────────────────
+
+
+def test_decode_header_roundtrips_metadata():
+    header = sgeo.decode_header(sgeo.encode(_make_mesh(units="mm")))
+    assert header.version == sgeo.VERSION_1
+    assert header.primitive is sgeo.PrimitiveType.MESH
+    assert header.units_code == 1
+    assert header.units == "mm"
+    assert header.flags == sgeo.Flags.NONE
+
+
+def test_get_unit_from_encoding_inverts_the_encoder():
+    for unit in ("mm", "cm", "m", "km", "in", "ft", "yd", "mi"):
+        assert sgeo.get_unit_from_encoding(sgeo.get_encoding_from_unit(unit)) == unit
+    # 0 is the catch-all the encoder maps every unrecognised string to, so it
+    # cannot decode back to a specific unit.
+    assert sgeo.get_unit_from_encoding(0) is None
+
+
+def test_decode_mesh_roundtrip_minimal():
+    mesh = _make_mesh()
+    decoded = sgeo.decode_mesh(sgeo.encode(mesh))
+    assert decoded.vertices == mesh.vertices
+    assert decoded.faces == mesh.faces
+    assert decoded.units == "m"
+    assert decoded.vertex_normals == []
+    assert decoded.texture_coordinates == []
+    assert decoded.colors == []
+
+
+def test_decode_mesh_roundtrip_normals_and_colors():
+    # The aligned case: 3 vertices + 4 faces leaves the body 8-aligned, so the
+    # pad before normals is a no-op and colours follow with no pad at all.
+    colors = [-1, -16711936, 255]
+    mesh = _make_mesh(vertexNormals=[0.0, 0.0, 1.0] * 3, colors=colors)
+    decoded = sgeo.decode_mesh(sgeo.encode(mesh))
+    assert decoded.vertex_normals == [0.0, 0.0, 1.0] * 3
+    # signed on the way out, matching Mesh.colors' signed ARGB ints
+    assert decoded.colors == colors
+
+
+def test_decode_mesh_roundtrip_skips_pad_before_normals():
+    # 5 face ints leave the body at 4 mod 8, so the decoder must skip the same
+    # 4 pad bytes the encoder wrote or every normal reads shifted.
+    mesh = _make_mesh(
+        faces=[4, 0, 1, 2, 3],
+        vertexNormals=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
+    )
+    decoded = sgeo.decode_mesh(sgeo.encode(mesh))
+    assert decoded.faces == [4, 0, 1, 2, 3]
+    assert decoded.vertex_normals == [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+
+
+def test_decode_mesh_roundtrip_all_optional_arrays():
+    mesh = _make_mesh(
+        faces=[4, 0, 1, 2, 3],
+        vertexNormals=[1.0] * 9,
+        textureCoordinates=[0.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+        colors=[7, 8, 9],
+    )
+    decoded = sgeo.decode_mesh(sgeo.encode(mesh))
+    assert decoded.vertex_normals == [1.0] * 9
+    assert decoded.texture_coordinates == [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    assert decoded.colors == [7, 8, 9]
+
+
+def test_decode_mesh_roundtrip_uvs_without_normals():
+    # UVs carry their own pad, independent of whether normals were written.
+    mesh = _make_mesh(
+        faces=[4, 0, 1, 2, 3], textureCoordinates=[0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    )
+    decoded = sgeo.decode_mesh(sgeo.encode(mesh))
+    assert decoded.texture_coordinates == [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    assert decoded.vertex_normals == []
+
+
+def test_decode_returns_a_mesh():
+    decoded = sgeo.decode(sgeo.encode(_make_mesh(units="ft")))
+    assert isinstance(decoded, Mesh)
+    assert decoded.units == "ft"
+    assert decoded.faces == [3, 0, 1, 2]
+    assert decoded.vertices == [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+
+
+def test_decode_rejects_corrupt_body():
+    blob = bytearray(sgeo.encode(_make_mesh()))
+    blob[sgeo.HEADER_SIZE + 8] ^= 0xFF  # flip a bit inside the first vertex
+    with pytest.raises(sgeo.SgeoDecodeError, match="CRC mismatch"):
+        sgeo.decode_mesh(bytes(blob))
+
+
+def test_decode_skips_crc_when_asked():
+    blob = bytearray(sgeo.encode(_make_mesh()))
+    blob[sgeo.HEADER_SIZE + 8] ^= 0xFF
+    # verify=False is for callers that already checksummed the transport
+    sgeo.decode_mesh(bytes(blob), verify=False)
+
+
+def test_decode_rejects_bad_magic():
+    with pytest.raises(sgeo.SgeoDecodeError, match="magic"):
+        sgeo.decode_header(b"NOPE" + bytes(12))
+
+
+def test_decode_rejects_short_blob():
+    with pytest.raises(sgeo.SgeoDecodeError, match="shorter than"):
+        sgeo.decode_header(b"SGEO")
+
+
+def test_decode_rejects_unsupported_version():
+    blob = bytearray(sgeo.encode(_make_mesh()))
+    blob[4] = 2
+    with pytest.raises(sgeo.SgeoDecodeError, match="version"):
+        sgeo.decode_header(bytes(blob))
+
+
+def test_decode_rejects_truncated_body():
+    blob = sgeo.encode(_make_mesh())
+    with pytest.raises(sgeo.SgeoDecodeError, match="truncated"):
+        # verify=False so we hit the length check, not the CRC
+        sgeo.decode_mesh(blob[:-8], verify=False)
+
+
+def test_decode_non_mesh_primitive_is_explicit():
+    # Not-yet-implemented must be distinguishable from no-geometry, so the
+    # other primitives raise rather than returning None.
+    from specklepy.objects.geometry.line import Line
+    from specklepy.objects.geometry.point import Point
+
+    line = Line(
+        start=Point(x=0, y=0, z=0, units="m"),
+        end=Point(x=1, y=1, z=1, units="m"),
+        units="m",
+    )
+    with pytest.raises(sgeo.SgeoDecodeError, match="LINE"):
+        sgeo.decode(sgeo.encode(line))
+    with pytest.raises(sgeo.SgeoDecodeError, match="LINE"):
+        sgeo.decode_mesh(sgeo.encode(line))
