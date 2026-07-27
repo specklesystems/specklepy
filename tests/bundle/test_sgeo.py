@@ -324,18 +324,285 @@ def test_decode_rejects_truncated_body():
         sgeo.decode_mesh(blob[:-8], verify=False)
 
 
-def test_decode_non_mesh_primitive_is_explicit():
-    # Not-yet-implemented must be distinguishable from no-geometry, so the
-    # other primitives raise rather than returning None.
-    from specklepy.objects.geometry.line import Line
+def test_decode_mesh_rejects_a_non_mesh_primitive():
+    # decode_mesh is the raw fast path and is MESH-only; decode() handles the
+    # rest. Feeding it a curve must say so rather than misreading the body.
+    with pytest.raises(sgeo.SgeoDecodeError, match="LINE"):
+        sgeo.decode_mesh(sgeo.encode(_line()))
+
+
+def test_decode_rejects_unknown_primitive_code():
+    blob = bytearray(sgeo.encode(_make_mesh()))
+    blob[5] = 99
+    # the CRC is still valid, so this is purely the primitive check
+    with pytest.raises(sgeo.SgeoDecodeError, match="Unknown SGEO primitive"):
+        sgeo.decode(bytes(blob))
+
+
+# ── per-primitive round trips ──────────────────────────────────────────────
+
+
+def _p(x, y, z):
     from specklepy.objects.geometry.point import Point
 
-    line = Line(
-        start=Point(x=0, y=0, z=0, units="m"),
-        end=Point(x=1, y=1, z=1, units="m"),
+    return Point(x=x, y=y, z=z, units="m")
+
+
+def _v(x, y, z):
+    from specklepy.objects.geometry.vector import Vector
+
+    return Vector(x=x, y=y, z=z, units="m")
+
+
+def _plane():
+    from specklepy.objects.geometry.plane import Plane
+
+    return Plane(
+        origin=_p(1, 2, 3),
+        normal=_v(0, 0, 1),
+        xdir=_v(1, 0, 0),
+        ydir=_v(0, 1, 0),
         units="m",
     )
-    with pytest.raises(sgeo.SgeoDecodeError, match="LINE"):
-        sgeo.decode(sgeo.encode(line))
-    with pytest.raises(sgeo.SgeoDecodeError, match="LINE"):
-        sgeo.decode_mesh(sgeo.encode(line))
+
+
+def _interval(start, end):
+    from specklepy.objects.primitive import Interval
+
+    return Interval(start=start, end=end)
+
+
+def _line():
+    from specklepy.objects.geometry.line import Line
+
+    line = Line(start=_p(0, 0, 0), end=_p(1, 2, 3), units="m")
+    line.domain = _interval(0.0, 3.7)
+    return line
+
+
+def _polyline(values, closed=False):
+    from specklepy.objects.geometry.polyline import Polyline
+
+    polyline = Polyline(value=values, units="m")
+    polyline["closed"] = closed
+    return polyline
+
+
+def test_decode_line_roundtrip():
+    decoded = sgeo.decode(sgeo.encode(_line()))
+    assert (decoded.start.x, decoded.start.y, decoded.start.z) == (0, 0, 0)
+    assert (decoded.end.x, decoded.end.y, decoded.end.z) == (1, 2, 3)
+    assert (decoded.domain.start, decoded.domain.end) == (0.0, 3.7)
+    assert decoded.units == "m"
+
+
+def test_decode_polyline_roundtrip():
+    source = _polyline([0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 0.0, 0.0], closed=True)
+    decoded = sgeo.decode(sgeo.encode(source))
+    assert decoded.value == source.value
+    # Polyline has no `closed` field, so the flag comes back as a dynamic member
+    assert decoded["closed"] is True
+
+
+def _curve(rational=True, closed=False):
+    from specklepy.objects.geometry.curve import Curve
+
+    display = _polyline([0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 2.0, 0.0, 0.0], closed=closed)
+    curve = Curve(
+        degree=3,
+        periodic=False,
+        rational=rational,
+        points=[0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 2.0, 0.0, 0.0, 3.0, 1.0, 0.0],
+        weights=[1.0, 0.5, 0.5, 1.0] if rational else [],
+        knots=[0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+        closed=closed,
+        displayValue=display,
+        units="m",
+        bbox=None,
+    )
+    curve.domain = _interval(0.0, 9.0)
+    return curve
+
+
+def test_decode_curve_roundtrip():
+    source = _curve()
+    decoded = sgeo.decode(sgeo.encode(source))
+    assert decoded.degree == 3
+    assert decoded.rational is True
+    assert decoded.points == source.points
+    assert decoded.weights == source.weights
+    assert decoded.knots == source.knots
+    assert (decoded.domain.start, decoded.domain.end) == (0.0, 9.0)
+    # the leading render polyline, whose trailing pad the analytical block
+    # depends on for its alignment
+    assert decoded.displayValue.value == source.displayValue.value
+
+
+def test_decode_curve_without_weights():
+    # weights are on the wire only when RATIONAL is set, and their count is
+    # derived from the control-point count rather than stored
+    decoded = sgeo.decode(sgeo.encode(_curve(rational=False)))
+    assert decoded.rational is False
+    assert decoded.weights == []
+    assert decoded.knots == [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+
+
+def test_decode_curve_closed_flag_follows_the_display_polyline():
+    # The encoder derives CLOSED from displayValue, not from Curve.closed, so
+    # that is what a decode can recover.
+    decoded = sgeo.decode(sgeo.encode(_curve(closed=True)))
+    assert decoded.closed is True
+    assert decoded.displayValue["closed"] is True
+
+
+def test_decode_arc_roundtrip():
+    from specklepy.objects.geometry.arc import Arc
+
+    arc = Arc(
+        plane=_plane(),
+        startPoint=_p(1, 0, 0),
+        midPoint=_p(0, 1, 0),
+        endPoint=_p(-1, 0, 0),
+        units="m",
+    )
+    arc.domain = _interval(0.0, 3.14)
+    decoded = sgeo.decode(sgeo.encode(arc))
+    assert (decoded.midPoint.x, decoded.midPoint.y) == (0, 1)
+    assert (decoded.endPoint.x, decoded.endPoint.y) == (-1, 0)
+    assert (decoded.plane.origin.x, decoded.plane.xdir.x) == (1, 1)
+    assert decoded.domain.end == 3.14
+
+
+def test_decode_circle_recovers_centre_from_the_plane():
+    from specklepy.objects.geometry.circle import Circle
+
+    circle = Circle(plane=_plane(), center=_p(1, 2, 3), radius=5.0, units="m")
+    circle.domain = _interval(0.0, 6.28)
+    decoded = sgeo.decode(sgeo.encode(circle))
+    assert decoded.radius == 5.0
+    # `center` is never written; it is the plane origin by construction, which
+    # here happens to be the same point the source carried
+    assert (decoded.center.x, decoded.center.y, decoded.center.z) == (1, 2, 3)
+
+
+def test_decode_single_point_roundtrip():
+    from specklepy.objects.geometry.point import Point
+
+    decoded = sgeo.decode(sgeo.encode(_p(4, 5, 6)))
+    assert isinstance(decoded, Point)
+    assert (decoded.x, decoded.y, decoded.z) == (4, 5, 6)
+
+
+def test_decode_pointcloud_roundtrip():
+    from specklepy.objects.geometry.point_cloud import PointCloud
+
+    cloud = PointCloud(points=[_p(0, 0, 0), _p(1, 1, 1), _p(2, 2, 2)], units="m")
+    cloud["colors"] = [-1, 255, -16711936]
+    cloud["sizes"] = [1.0, 2.0, 3.0]
+    decoded = sgeo.decode(sgeo.encode(cloud))
+    assert isinstance(decoded, PointCloud)
+    assert [p.x for p in decoded.points] == [0, 1, 2]
+    assert decoded["colors"] == [-1, 255, -16711936]
+    assert decoded["sizes"] == [1.0, 2.0, 3.0]
+
+
+def test_decode_one_point_cloud_comes_back_as_a_point():
+    # A lone Point and a 1-point PointCloud with no extras encode identically,
+    # so the distinction is genuinely unrecoverable. Point is the chosen reading.
+    from specklepy.objects.geometry.point import Point
+    from specklepy.objects.geometry.point_cloud import PointCloud
+
+    cloud = PointCloud(points=[_p(7, 8, 9)], units="m")
+    assert isinstance(sgeo.decode(sgeo.encode(cloud)), Point)
+    # two points is unambiguous
+    two = PointCloud(points=[_p(7, 8, 9), _p(1, 0, 0)], units="m")
+    assert isinstance(sgeo.decode(sgeo.encode(two)), PointCloud)
+
+
+def test_decode_ellipse_roundtrip():
+    from specklepy.objects.geometry.ellipse import Ellipse
+
+    ellipse = Ellipse(plane=_plane(), first_radius=3.0, second_radius=1.5, units="m")
+    ellipse.domain = _interval(0.0, 6.28)
+    decoded = sgeo.decode(sgeo.encode(ellipse))
+    assert (decoded.first_radius, decoded.second_radius) == (3.0, 1.5)
+    assert "trimDomain" not in decoded.get_dynamic_member_names()
+
+
+def test_decode_ellipse_with_trim_domain():
+    from specklepy.objects.geometry.ellipse import Ellipse
+
+    ellipse = Ellipse(plane=_plane(), first_radius=3.0, second_radius=1.5, units="m")
+    ellipse.domain = _interval(0.0, 6.28)
+    ellipse["trimDomain"] = _interval(1.0, 2.0)
+    decoded = sgeo.decode(sgeo.encode(ellipse))
+    assert (decoded["trimDomain"].start, decoded["trimDomain"].end) == (1.0, 2.0)
+
+
+def test_decode_spiral_roundtrip():
+    from specklepy.objects.geometry.spiral import Spiral
+
+    spiral = Spiral(
+        start_point=_p(0, 0, 0),
+        end_point=_p(0, 0, 10),
+        plane=_plane(),
+        turns=3.0,
+        pitch=1.2,
+        pitch_axis=_v(0, 0, 1),
+        units="m",
+    )
+    spiral.domain = _interval(0.0, 1.0)
+    spiral["spiralType"] = 2
+    spiral["displayValue"] = _polyline([0.0, 0.0, 0.0, 1.0, 0.0, 0.0])
+    decoded = sgeo.decode(sgeo.encode(spiral))
+    assert decoded.turns == 3.0
+    assert decoded.pitch == 1.2
+    assert decoded.pitch_axis.z == 1
+    assert decoded["spiralType"] == 2
+    assert decoded["displayValue"].value == [0.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+
+
+def test_decode_box_roundtrip():
+    from specklepy.objects.geometry.box import Box
+
+    box = Box(
+        basePlane=_plane(),
+        xSize=_interval(0.0, 1.0),
+        ySize=_interval(0.0, 2.0),
+        zSize=_interval(-1.0, 3.0),
+        units="m",
+    )
+    decoded = sgeo.decode(sgeo.encode(box))
+    assert (decoded.xSize.end, decoded.ySize.end) == (1.0, 2.0)
+    assert (decoded.zSize.start, decoded.zSize.end) == (-1.0, 3.0)
+    assert decoded.basePlane.origin.y == 2
+
+
+def test_decode_polycurve_roundtrip():
+    from specklepy.objects.geometry.arc import Arc
+    from specklepy.objects.geometry.polycurve import Polycurve
+
+    arc = Arc(
+        plane=_plane(),
+        startPoint=_p(1, 0, 0),
+        midPoint=_p(0, 1, 0),
+        endPoint=_p(-1, 0, 0),
+        units="m",
+    )
+    arc.domain = _interval(0.0, 3.14)
+    source = Polycurve(segments=[_line(), arc], units="m")
+    decoded = sgeo.decode(sgeo.encode(source))
+    assert len(decoded.segments) == 2
+    # each segment is a whole nested SGEO blob, 8-aligned after its length
+    assert (decoded.segments[0].end.x, decoded.segments[0].end.z) == (1, 3)
+    assert isinstance(decoded.segments[1], Arc)
+    assert decoded.segments[1].endPoint.x == -1
+
+
+def test_decode_polycurve_nests():
+    from specklepy.objects.geometry.polycurve import Polycurve
+
+    inner = Polycurve(segments=[_line()], units="m")
+    decoded = sgeo.decode(sgeo.encode(Polycurve(segments=[inner, _line()], units="m")))
+    assert len(decoded.segments) == 2
+    assert len(decoded.segments[0].segments) == 1
