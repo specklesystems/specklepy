@@ -481,10 +481,10 @@ def try_get_primitive_type(geometry) -> Optional[int]:
 # ── decoding ───────────────────────────────────────────────────────────────
 #
 # The receive side of the artefact path: connectors that load a 4.0 bundle read
-# geometry blobs back out of the geometries table. Only MESH is implemented so
-# far — the other primitives raise :class:`SgeoDecodeError` rather than
-# silently returning nothing, so a caller can tell "not supported yet" from
-# "no geometry".
+# geometry blobs back out of the geometries table. Every primitive the encoder
+# emits can be decoded; unknown or corrupt blobs raise :class:`SgeoDecodeError`
+# rather than silently returning nothing, so a caller can tell "not supported"
+# from "no geometry".
 #
 # Two levels, deliberately: :func:`decode_mesh` returns a plain
 # :class:`DecodedMesh` of raw arrays for consumers that bake straight into a

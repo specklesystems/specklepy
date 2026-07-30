@@ -9,7 +9,7 @@ repo). The typed producer API is
 
 Geometry blobs are encoded and decoded by :mod:`specklepy.bundle.sgeo`
 (``sgeo.encode`` / ``sgeo.decode``), which receivers use to read a downloaded
-bundle back. Decoding covers MESH so far.
+bundle back. Decoding covers every primitive the encoder emits.
 """
 
 from specklepy.bundle.pipeline import ObjectsArtifactPipeline
