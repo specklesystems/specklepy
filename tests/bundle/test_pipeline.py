@@ -41,7 +41,11 @@ def test_pipeline_full_bundle(tmp_path):
         p.display_instance(obj_k, inst_k, 0)
 
         mat_k = p.add_material(
-            "mat-1", argb=-1, opacity=1.0, metalness=0.0, roughness=0.5,
+            "mat-1",
+            argb=-1,
+            opacity=1.0,
+            metalness=0.0,
+            roughness=0.5,
             name="Concrete",
         )
         p.has_material(geo_k, mat_k)
