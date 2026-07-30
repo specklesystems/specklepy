@@ -720,8 +720,10 @@ def _decode_polycurve(header: SgeoHeader, r: _Reader) -> Base:
     for _ in range(count):
         length = r.u32()
         r.u32()  # reserved
-        # each segment is a complete nested SGEO blob, CRC included
-        segments.append(decode(r.blob(length)))
+        # each segment is a complete nested SGEO blob whose bytes (CRC field
+        # included) the outer body CRC already covers, so never re-verify —
+        # the same handoff decode() makes for MESH via decode_mesh
+        segments.append(decode(r.blob(length), verify=False))
         r.align8()
     return Polycurve(segments=segments, units=header.units)
 

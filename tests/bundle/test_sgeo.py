@@ -606,3 +606,19 @@ def test_decode_polycurve_nests():
     decoded = sgeo.decode(sgeo.encode(Polycurve(segments=[inner, _line()], units="m")))
     assert len(decoded.segments) == 2
     assert len(decoded.segments[0].segments) == 1
+
+
+def test_decode_polycurve_honours_verify_false():
+    from specklepy.objects.geometry.polycurve import Polycurve
+
+    blob = bytearray(sgeo.encode(Polycurve(segments=[_line()], units="m")))
+    # corrupt the nested segment's stored CRC (its header starts at the second
+    # magic; the CRC field sits at header offset 0x0C)
+    inner = bytes(blob).index(sgeo.MAGIC, 4)
+    blob[inner + 12] ^= 0xFF
+    # verify=False must skip CRC checks for nested segments too
+    decoded = sgeo.decode(bytes(blob), verify=False)
+    assert len(decoded.segments) == 1
+    # while verify=True still catches the corruption via the outer body CRC
+    with pytest.raises(sgeo.SgeoDecodeError, match="CRC mismatch"):
+        sgeo.decode(bytes(blob))
