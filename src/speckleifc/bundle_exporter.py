@@ -105,6 +105,10 @@ class IfcBundleExporter:
                 opacity=float(_attr(material, "opacity", 1.0)),
                 metalness=float(_attr(material, "metalness", 0.0)),
                 roughness=float(_attr(material, "roughness", 1.0)),
+                # v5 PBR extras: authored material name + packed ARGB emissive
+                # (0 = black RGB, normalized to NULL by the pipeline)
+                name=_attr(material, "name"),
+                emissive=int(_attr(material, "emissive", 0)),
             )
             for mesh_id in _attr(proxy, "objects", []) or []:
                 geo_k = self._pipeline.intern_geometry_id(mesh_id)

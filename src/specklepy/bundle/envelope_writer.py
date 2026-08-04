@@ -7,7 +7,7 @@ writer never hand-declares them. ::
   {base}.envelope.relations.parquet(rel, src, dst, ord)  -- typed edges; ns per rel
   {base}.envelope.nodes.parquet(id, kind, name, def_ref,  -- shared value-entities;
         transform, units, subtype, argb, opacity,         -- `subtype` is the CONTAINER
-        metalness, roughness, elevation)                  -- discriminator (Model/Coll)
+        metalness, roughness, emissive, ior, elevation)   -- discriminator (Model/Coll)
   {base}.envelope.{meta,rel_types,node_kinds}.parquet    -- self-describing catalog
   {base}.envelope.scene_views.parquet(...)               -- producer grouping; omit if 0
 
@@ -80,10 +80,12 @@ class EnvelopeWriter:
         self.base_name = base_name
 
         self._relations = ParquetTableWriter(
-            self._p("relations.parquet"), schema_of(BY_TABLE["relations"])
+            self._p("relations.parquet"),
+            schema_of(BY_TABLE["relations"]),
+            table="relations",
         )
         self._nodes = ParquetTableWriter(
-            self._p("nodes.parquet"), schema_of(BY_TABLE["nodes"])
+            self._p("nodes.parquet"), schema_of(BY_TABLE["nodes"]), table="nodes"
         )
         self._scene_views: list[SceneView] = []
         self._completed = False
@@ -114,9 +116,23 @@ class EnvelopeWriter:
         metalness: float | None,
         roughness: float | None,
         elevation: float | None,
+        *,
+        emissive: int | None = None,
+        ior: float | None = None,
     ) -> None:
-        """Append one value-node. Only the columns relevant to ``kind`` are non-null."""
+        """Append one value-node. Only the columns relevant to ``kind`` are non-null.
+
+        ``emissive``/``ior`` (spec v5, ENG-8791) are keyword-only so pre-existing
+        positional callers cannot silently shift ``elevation`` into the wrong column
+        — in the PARQUET row they sit BETWEEN ``roughness`` and ``elevation``.
+        ``emissive`` is a packed ARGB; NULL = no emission (consumers default to
+        black). ``ior`` is the PBR index of refraction; NULL = unset.
+        """
         self._ensure_not_completed()
+        # Row is in spec column order (BY_TABLE["nodes"]); the writer raises if the
+        # arity ever drifts from the vendored schema. Once the bundle-spec repo's
+        # generated column-index constants land (generated/python/bundle_cols.py,
+        # class NODES), prefer those over comment-counting ordinals here.
         self._nodes.add_row(
             id,
             int(kind),
@@ -129,6 +145,8 @@ class EnvelopeWriter:
             opacity,
             metalness,
             roughness,
+            emissive,
+            ior,
             elevation,
         )
 
@@ -158,6 +176,7 @@ class EnvelopeWriter:
                     pa.field("produced_by", pa.string()),
                 ]
             ),
+            table="meta",
         ) as meta:
             meta.add_row(SCHEMA_VERSION, "specklepy EnvelopeWriter")
 
@@ -171,6 +190,7 @@ class EnvelopeWriter:
                     pa.field("dst_ns", pa.string()),
                 ]
             ),
+            table="rel_types",
         ) as rt:
             for r in REL_TYPES:
                 if r.status == "retired":
@@ -185,6 +205,7 @@ class EnvelopeWriter:
                     pa.field("name", pa.string()),
                 ]
             ),
+            table="node_kinds",
         ) as nk:
             for k in NODE_KINDS:
                 if k.status == "retired":
@@ -195,7 +216,9 @@ class EnvelopeWriter:
         if not self._scene_views:
             return
         with ParquetTableWriter(
-            self._p("scene_views.parquet"), schema_of(BY_TABLE["scene_views"])
+            self._p("scene_views.parquet"),
+            schema_of(BY_TABLE["scene_views"]),
+            table="scene_views",
         ) as sv:
             for v in self._scene_views:
                 for ord, key in enumerate(v.keys):
