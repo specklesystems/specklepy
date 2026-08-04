@@ -45,22 +45,26 @@ class EavWriter:
         self.base_name = base_name
 
         self._objects = ParquetTableWriter(
-            self._p("objects.parquet"), schema_of(BY_TABLE["objects"])
+            self._p("objects.parquet"), schema_of(BY_TABLE["objects"]), table="objects"
         )
         self._paths = ParquetTableWriter(
-            self._p("paths.parquet"), schema_of(BY_TABLE["paths"])
+            self._p("paths.parquet"), schema_of(BY_TABLE["paths"]), table="paths"
         )
         self._eav = ParquetTableWriter(
-            self._p("eav.parquet"), schema_of(BY_TABLE["eav"])
+            self._p("eav.parquet"), schema_of(BY_TABLE["eav"]), table="eav"
         )
         self._types = ParquetTableWriter(
-            self._p("types.parquet"), schema_of(BY_TABLE["types"])
+            self._p("types.parquet"), schema_of(BY_TABLE["types"]), table="types"
         )
         self._type_eav = ParquetTableWriter(
-            self._p("type_eav.parquet"), schema_of(BY_TABLE["type_eav"])
+            self._p("type_eav.parquet"),
+            schema_of(BY_TABLE["type_eav"]),
+            table="type_eav",
         )
         self._object_type = ParquetTableWriter(
-            self._p("object_type.parquet"), schema_of(BY_TABLE["object_type"])
+            self._p("object_type.parquet"),
+            schema_of(BY_TABLE["object_type"]),
+            table="object_type",
         )
 
         # interning: applicationId / path / type_key -> dense sequential int

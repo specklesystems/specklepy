@@ -41,9 +41,25 @@ def test_pipeline_full_bundle(tmp_path):
         p.display_instance(obj_k, inst_k, 0)
 
         mat_k = p.add_material(
-            "mat-1", argb=-1, opacity=1.0, metalness=0.0, roughness=0.5
+            "mat-1",
+            argb=-1,
+            opacity=1.0,
+            metalness=0.0,
+            roughness=0.5,
+            name="Painted Steel",
+            emissive=0xFF00FF00,  # green — kept
+            ior=1.45,
         )
         p.has_material(geo_k, mat_k)
+        # black-RGB emissive is normalized to NULL per the spec (NULL = no emission)
+        mat_black_k = p.add_material(
+            "mat-2",
+            argb=-1,
+            opacity=1.0,
+            metalness=0.0,
+            roughness=0.5,
+            emissive=0xFF000000,
+        )
 
         sys_k = p.add_container("sys-1", "Hot Water", None, "System")
         p.in_system(obj_k, sys_k, 0)
@@ -95,3 +111,15 @@ def test_pipeline_full_bundle(tmp_path):
         f"SELECT subtype, name FROM {g}.envelope.nodes.parquet') WHERE id = {sys_k}"
     ).fetchone()
     assert sub == ("System", "Hot Water")
+
+    # the material carries the full v5 PBR set: authored name + emissive/ior
+    mat = con.execute(
+        f"SELECT name, argb, emissive, ior "
+        f"FROM {g}.envelope.nodes.parquet') WHERE id = {mat_k}"
+    ).fetchone()
+    assert mat == ("Painted Steel", -1, -16711936, 1.45)  # 0xFF00FF00 as int32
+    mat_black = con.execute(
+        f"SELECT emissive, ior "
+        f"FROM {g}.envelope.nodes.parquet') WHERE id = {mat_black_k}"
+    ).fetchone()
+    assert mat_black == (None, None)

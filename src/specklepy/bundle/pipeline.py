@@ -146,18 +146,18 @@ class ObjectsArtifactPipeline:
         k, is_new = self._node_interner.get_or_add("def:" + definition_key)
         if is_new:
             self._envelope.add_node(
-                k,
-                NodeKind.DEFINITION,
-                name,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
+                id=k,
+                kind=NodeKind.DEFINITION,
+                name=name,
+                def_ref=None,
+                transform=None,
+                units=None,
+                subtype=None,
+                argb=None,
+                opacity=None,
+                metalness=None,
+                roughness=None,
+                elevation=None,
             )
         return k
 
@@ -173,18 +173,18 @@ class ObjectsArtifactPipeline:
         k, is_new = self._node_interner.get_or_add("inst:" + placement_key)
         if is_new:
             self._envelope.add_node(
-                k,
-                NodeKind.INSTANCE,
-                None,
-                def_ref,
-                _format_transform(transform),
-                units,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
+                id=k,
+                kind=NodeKind.INSTANCE,
+                name=None,
+                def_ref=def_ref,
+                transform=_format_transform(transform),
+                units=units,
+                subtype=None,
+                argb=None,
+                opacity=None,
+                metalness=None,
+                roughness=None,
+                elevation=None,
             )
         return k
 
@@ -195,23 +195,39 @@ class ObjectsArtifactPipeline:
         opacity: float,
         metalness: float,
         roughness: float,
+        *,
+        name: str | None = None,
+        emissive: int | None = None,
+        ior: float | None = None,
     ) -> int:
-        """Intern a MATERIAL value-node (inline render value), writing it once."""
+        """Intern a MATERIAL value-node (inline render value), writing it once.
+
+        v5 full-PBR columns (ENG-8791): ``name`` is the authored host material name
+        (receivers recreate the host material under it instead of a colour-derived
+        placeholder). ``emissive`` is a packed ARGB emissive colour — black RGB is
+        normalized to NULL per the spec (NULL = no emission; consumers default to
+        black). ``ior`` is the index of refraction (typically 1.0-2.5); None = unset.
+        """
         k, is_new = self._node_interner.get_or_add("mat:" + material_key)
         if is_new:
+            # producers normalize black-RGB emissive to NULL (spec: nodes.emissive)
+            if emissive is not None and emissive & 0x00FFFFFF == 0:
+                emissive = None
             self._envelope.add_node(
-                k,
-                NodeKind.MATERIAL,
-                None,
-                None,
-                None,
-                None,
-                None,
-                _argb_int32(argb),
-                opacity,
-                metalness,
-                roughness,
-                None,
+                id=k,
+                kind=NodeKind.MATERIAL,
+                name=name,
+                def_ref=None,
+                transform=None,
+                units=None,
+                subtype=None,
+                argb=_argb_int32(argb),
+                opacity=opacity,
+                metalness=metalness,
+                roughness=roughness,
+                elevation=None,
+                emissive=None if emissive is None else _argb_int32(emissive),
+                ior=ior,
             )
         return k
 
@@ -221,18 +237,18 @@ class ObjectsArtifactPipeline:
         k, is_new = self._node_interner.get_or_add("col:" + str(signed))
         if is_new:
             self._envelope.add_node(
-                k,
-                NodeKind.COLOR,
-                None,
-                None,
-                None,
-                None,
-                None,
-                signed,
-                None,
-                None,
-                None,
-                None,
+                id=k,
+                kind=NodeKind.COLOR,
+                name=None,
+                def_ref=None,
+                transform=None,
+                units=None,
+                subtype=None,
+                argb=signed,
+                opacity=None,
+                metalness=None,
+                roughness=None,
+                elevation=None,
             )
         return k
 
@@ -241,18 +257,18 @@ class ObjectsArtifactPipeline:
         k, is_new = self._node_interner.get_or_add("lvl:" + level_key)
         if is_new:
             self._envelope.add_node(
-                k,
-                NodeKind.LEVEL,
-                name,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                elevation,
+                id=k,
+                kind=NodeKind.LEVEL,
+                name=name,
+                def_ref=None,
+                transform=None,
+                units=None,
+                subtype=None,
+                argb=None,
+                opacity=None,
+                metalness=None,
+                roughness=None,
+                elevation=elevation,
             )
         return k
 
@@ -273,18 +289,18 @@ class ObjectsArtifactPipeline:
         k, is_new = self._node_interner.get_or_add("coll:" + collection_key)
         if is_new:
             self._envelope.add_node(
-                k,
-                NodeKind.CONTAINER,
-                name,
-                parent_collection_k,
-                None,
-                None,
-                subtype,
-                None,
-                None,
-                None,
-                None,
-                None,
+                id=k,
+                kind=NodeKind.CONTAINER,
+                name=name,
+                def_ref=parent_collection_k,
+                transform=None,
+                units=None,
+                subtype=subtype,
+                argb=None,
+                opacity=None,
+                metalness=None,
+                roughness=None,
+                elevation=None,
             )
         return k
 
@@ -305,18 +321,18 @@ class ObjectsArtifactPipeline:
         k, is_new = self._node_interner.get_or_add("cont:" + container_key)
         if is_new:
             self._envelope.add_node(
-                k,
-                NodeKind.CONTAINER,
-                name,
-                parent_container_k,
-                None,
-                None,
-                subtype,
-                None,
-                None,
-                None,
-                None,
-                None,
+                id=k,
+                kind=NodeKind.CONTAINER,
+                name=name,
+                def_ref=parent_container_k,
+                transform=None,
+                units=None,
+                subtype=subtype,
+                argb=None,
+                opacity=None,
+                metalness=None,
+                roughness=None,
+                elevation=None,
             )
         return k
 
