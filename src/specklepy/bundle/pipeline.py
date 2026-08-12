@@ -315,8 +315,8 @@ class ObjectsArtifactPipeline:
         node, once.
 
         Distinct from :meth:`add_collection` (the authored scene-tree). ``subtype`` is
-        the canonical axis tag (e.g. "Model", "System") — use the SAME tag across
-        connectors for the same concept.
+        the catalogued axis tag (bundle_spec CONTAINER subtype_values, e.g. "Model",
+        "MEP System") — use the SAME tag across connectors for the same concept.
         """
         k, is_new = self._node_interner.get_or_add("cont:" + container_key)
         if is_new:
@@ -391,7 +391,7 @@ class ObjectsArtifactPipeline:
         self._envelope.add_relation(Rel.IN_ROOM, object_k, room_k, ord)
 
     def in_system(self, object_k: int, system_k: int, ord: int) -> None:
-        """object → node(CONTAINER, subtype "System"): named logical engineering
+        """object → node(CONTAINER, subtype "MEP System"): named logical engineering
         system membership.
 
         Also the v5 home of physically-connected NETWORKS (subtype "Network") —

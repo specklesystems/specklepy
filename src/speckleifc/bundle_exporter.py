@@ -26,6 +26,10 @@ from specklepy.objects.models.collections.collection import Collection
 
 _DEFINITION_GEOMETRY = "definitionGeometry"
 
+# Catalogued CONTAINER subtype for MEP system grouping (bundle_spec.NODE_KINDS) —
+# the same tag rvextract/nwextract emit, so cross-connector consumers see one value.
+MEP_SYSTEM_SUBTYPE = "MEP System"
+
 
 def _attr(node: Base, key: str, default: Any = None) -> Any:
     """Read a typed or dynamic Base member, tolerating absence."""
@@ -220,16 +224,17 @@ class IfcBundleExporter:
                 continue
             name = _attr(proxy, "name")
             system_type = _attr(proxy, "systemType")
-            # Canonical container subtype stays "System" (cross-connector); the IFC
-            # system type (PredefinedType/ObjectType) rides on the display name so it
-            # isn't lost — but only when it adds information (some exports set
-            # ObjectType == Name, e.g. "S_PWC").
+            # The IFC system type (PredefinedType/ObjectType) rides on the display
+            # name so it isn't lost — but only when it adds information (some exports
+            # set ObjectType == Name, e.g. "S_PWC").
             display = (
                 f"{name} ({system_type})"
                 if system_type and system_type != name
                 else name
             )
-            sys_k = self._pipeline.add_container(system_id, display, None, "System")
+            sys_k = self._pipeline.add_container(
+                system_id, display, None, MEP_SYSTEM_SUBTYPE
+            )
             for member_id in _attr(proxy, "objects", []) or []:
                 obj_k = self._pipeline.intern_object(member_id)
                 self._pipeline.in_system(obj_k, sys_k, 0)
