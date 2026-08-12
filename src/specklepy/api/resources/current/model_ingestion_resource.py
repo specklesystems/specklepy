@@ -1,3 +1,5 @@
+from deprecated import deprecated
+
 from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
@@ -12,6 +14,9 @@ from specklepy.core.api.models.current import (
 )
 from specklepy.core.api.resources import (
     ModelIngestionResource as CoreResource,
+)
+from specklepy.core.api.resources.current.model_ingestion_resource import (
+    COMPLETE_WITH_VERSION_DEPRECATION,
 )
 from specklepy.logging import metrics
 
@@ -44,6 +49,7 @@ class ModelIngestionResource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Update"})
         return super().requeue(input)
 
+    @deprecated(**COMPLETE_WITH_VERSION_DEPRECATION)
     def complete(self, input: ModelIngestionSuccessInput) -> str:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion End"})
         return super().complete(input)
