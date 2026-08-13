@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import duckdb
 
-from speckleifc.bundle_exporter import IfcBundleExporter
-from specklepy.bundle.spec import Rel
+from speckleifc.bundle_exporter import COLLECTION_SUBTYPE, IfcBundleExporter
+from specklepy.bundle.spec import NODE_KINDS, NodeKind, Rel
 from specklepy.objects.data_objects import DataObject
 from specklepy.objects.geometry.mesh import Mesh
 from specklepy.objects.models.collections.collection import Collection
@@ -169,3 +169,133 @@ def test_exporter_maps_full_tree(tmp_path):
         "WHERE is_default ORDER BY view, ord"
     ).fetchall()
     assert sv == [(0, "rel", str(int(Rel.ON_LEVEL))), (1, "eav", "ifcType")]
+
+
+def _spatial_twin(guid: str, name: str, ifc_type: str) -> DataObject:
+    """The converter emits every spatial element as a Collection wrapping a twin
+    DataObject with the same GUID (spatial_element_converter)."""
+    twin = DataObject(applicationId=guid, name=name, properties={}, displayValue=[])
+    twin["ifcType"] = ifc_type
+    twin["@elements"] = []
+    return twin
+
+
+def _build_spatial_tree() -> Collection:
+    """Project > Site > Building > Storey > Space (+ a desk contained in the
+    space), shaped exactly as the converter emits it (ENG-9180)."""
+    desk = DataObject(
+        applicationId="desk-guid", name="Desk", properties={}, displayValue=[]
+    )
+    desk["ifcType"] = "IfcFurniture"
+    desk["@elements"] = []
+
+    space = Collection(
+        applicationId="space-guid",
+        name="Kitchen",
+        elements=[_spatial_twin("space-guid", "Kitchen", "IfcSpace"), desk],
+    )
+    space["ifcType"] = "IfcSpace"
+
+    storey = Collection(
+        applicationId="storey-guid",
+        name="Ground Floor",
+        elements=[
+            _spatial_twin("storey-guid", "Ground Floor", "IfcBuildingStorey"),
+            space,
+        ],
+    )
+    storey["ifcType"] = "IfcBuildingStorey"
+
+    building = Collection(
+        applicationId="building-guid",
+        name="Building",
+        elements=[_spatial_twin("building-guid", "Building", "IfcBuilding"), storey],
+    )
+    building["ifcType"] = "IfcBuilding"
+
+    site = Collection(
+        applicationId="site-guid",
+        name="Site",
+        elements=[_spatial_twin("site-guid", "Site", "IfcSite"), building],
+    )
+    site["ifcType"] = "IfcSite"
+
+    root = Collection(applicationId="proj", name="Project", elements=[site])
+    root["ifcType"] = "IfcProject"
+    root.elements.append(Collection(name="definitionGeometry", elements=[]))
+    return root
+
+
+def test_spatial_hierarchy_uses_canonical_containers(tmp_path):
+    """ENG-9180: spatial containers carry the catalogued Collection subtype, spaces
+    ship as objects only, and the IFC class survives as the ifcType eav row."""
+    out = str(tmp_path)
+    root_id, _ = IfcBundleExporter(out, "spatial").export(_build_spatial_tree())
+    assert root_id == "proj"
+
+    con = duckdb.connect()
+    g = f"read_parquet('{out}/spatial"
+
+    def k_of(app_id):
+        return con.execute(
+            f"SELECT object_index FROM {g}.eav.objects.parquet') "
+            "WHERE application_id = ?",
+            [app_id],
+        ).fetchone()[0]
+
+    def ifc_type_of(app_id):
+        return con.execute(
+            f"SELECT e.value_string FROM {g}.eav.eav.parquet') e "
+            f"JOIN {g}.eav.paths.parquet') p USING (path_index) "
+            f"JOIN {g}.eav.objects.parquet') o USING (object_index) "
+            "WHERE p.path = 'ifcType' AND o.application_id = ?",
+            [app_id],
+        ).fetchone()[0]
+
+    containers = con.execute(
+        f"SELECT id, name, subtype, def_ref FROM {g}.envelope.nodes.parquet') "
+        f"WHERE kind = {int(NodeKind.CONTAINER)}"
+    ).fetchall()
+
+    # project/site/building/storey mint containers; the space does NOT
+    assert {r[1] for r in containers} == {"Project", "Site", "Building", "Ground Floor"}
+
+    # every emitted subtype is the canonical tag, and that tag is catalogued in the
+    # declared bundle vocabulary — never an IFC class name
+    assert {r[2] for r in containers} == {COLLECTION_SUBTYPE}
+    container_kind = next(r for r in NODE_KINDS if r.id == int(NodeKind.CONTAINER))
+    assert COLLECTION_SUBTYPE in container_kind.subtype_values.split(",")
+
+    # the def_ref parent chain IS the spatial hierarchy
+    by_name = {r[1]: r for r in containers}
+    assert by_name["Project"][3] is None
+    assert by_name["Site"][3] == by_name["Project"][0]
+    assert by_name["Building"][3] == by_name["Site"][0]
+    assert by_name["Ground Floor"][3] == by_name["Building"][0]
+
+    # spatial twins are objects with the IFC class preserved as eav
+    for guid, ifc_type in [
+        ("site-guid", "IfcSite"),
+        ("building-guid", "IfcBuilding"),
+        ("storey-guid", "IfcBuildingStorey"),
+        ("space-guid", "IfcSpace"),
+        ("desk-guid", "IfcFurniture"),
+    ]:
+        assert ifc_type_of(guid) == ifc_type
+
+    rels = set(
+        con.execute(
+            f"SELECT rel, src, dst FROM {g}.envelope.relations.parquet')"
+        ).fetchall()
+    )
+    storey_k = by_name["Ground Floor"][0]
+    space_k, desk_k = k_of("space-guid"), k_of("desk-guid")
+
+    # the space object and its contents both attach to the storey container...
+    assert (int(Rel.IN_COLLECTION), space_k, storey_k) in rels
+    assert (int(Rel.IN_COLLECTION), desk_k, storey_k) in rels
+
+    # ...and occupancy rides as IN_ROOM: desk -> space object, exactly once; the
+    # space itself is in no room
+    in_room = [r for r in rels if r[0] == int(Rel.IN_ROOM)]
+    assert in_room == [(int(Rel.IN_ROOM), desk_k, space_k)]

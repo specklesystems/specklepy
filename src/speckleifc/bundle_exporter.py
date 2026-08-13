@@ -26,6 +26,14 @@ from specklepy.objects.models.collections.collection import Collection
 
 _DEFINITION_GEOMETRY = "definitionGeometry"
 
+COLLECTION_SUBTYPE = "Collection"
+"""The catalogued CONTAINER subtype for the authored scene tree (bundle_spec
+CONTAINER subtype_values). Spatial-hierarchy containers must not leak IFC class
+names here — the subtype is the cross-connector grouping discriminator; the IFC
+class stays queryable as the ``ifcType`` eav row on the twin object (ENG-9180)."""
+
+_IFC_SPACE = "IfcSpace"
+
 
 def _attr(node: Base, key: str, default: Any = None) -> Any:
     """Read a typed or dynamic Base member, tolerating absence."""
@@ -123,18 +131,22 @@ class IfcBundleExporter:
         parent_object_k: int | None,
         ord: int,
         is_root: bool = False,
+        room_k: int | None = None,
     ) -> None:
         if isinstance(node, Collection):
             if _attr(node, "name") == _DEFINITION_GEOMETRY:
                 return  # definition geometry, not a scene container
+            if _attr(node, "ifcType") == _IFC_SPACE:
+                self._walk_space(node, parent_collection_k, room_k)
+                return
             coll_k = self._pipeline.add_collection(
                 _attr(node, "applicationId") or _attr(node, "name") or "collection",
                 _attr(node, "name"),
                 parent_collection_k,
-                _attr(node, "ifcType") or "Collection",
+                COLLECTION_SUBTYPE,
             )
             for i, child in enumerate(_attr(node, "elements", []) or []):
-                self._walk(child, coll_k, None, i)
+                self._walk(child, coll_k, None, i, room_k=room_k)
             return
 
         if isinstance(node, DataObject):
@@ -159,6 +171,11 @@ class IfcBundleExporter:
             elif parent_collection_k is not None:
                 self._pipeline.in_collection(obj_k, parent_collection_k, ord)
 
+            # spatial occupancy: contained-in-space rides as IN_ROOM (object →
+            # space object); subelements stay with their parent only.
+            if room_k is not None and parent_object_k is None:
+                self._pipeline.in_room(obj_k, room_k, 0)
+
             self._emit_display(node, obj_k)
 
             for i, child in enumerate(_attr(node, "@elements", []) or []):
@@ -167,6 +184,34 @@ class IfcBundleExporter:
 
         # Meshes / geometry primitives appearing inline are skipped (definition geometry
         # is handled via the proxies above).
+
+    def _walk_space(
+        self,
+        node: Collection,
+        parent_collection_k: int | None,
+        enclosing_room_k: int | None,
+    ) -> None:
+        """Emit an IfcSpace without minting a container node.
+
+        Spaces are objects in the bundle model, not grouping nodes (IN_SPACE is
+        retired; rooms/spaces ship as objects with eav). The converter wraps every
+        spatial element in a Collection whose twin DataObject child carries the
+        same GUID, name, properties and geometry — so the twin becomes the space
+        object under the parent container, and the remaining children attach to
+        that same container with an IN_ROOM occupancy edge back to the space
+        object. The twin itself belongs to the enclosing room, if any.
+        """
+        space_id = _attr(node, "applicationId")
+        space_k = self._pipeline.intern_object(space_id) if space_id else None
+        for i, child in enumerate(_attr(node, "elements", []) or []):
+            is_twin = space_id is not None and _attr(child, "applicationId") == space_id
+            self._walk(
+                child,
+                parent_collection_k,
+                None,
+                i,
+                room_k=enclosing_room_k if is_twin else space_k,
+            )
 
     def _emit_display(self, node: DataObject, obj_k: int) -> None:
         for i, ip in enumerate(_attr(node, "displayValue", []) or []):

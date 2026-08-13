@@ -387,7 +387,8 @@ class ObjectsArtifactPipeline:
         self._envelope.add_relation(Rel.IN_MODEL, object_k, model_k, ord)
 
     def in_room(self, object_k: int, room_k: int, ord: int) -> None:
-        """object → node(CONTAINER, subtype "Room"): room containment."""
+        """object → object: spatial occupancy (furniture/door/window → containing
+        room/space object). Rooms and spaces are objects, not CONTAINER nodes."""
         self._envelope.add_relation(Rel.IN_ROOM, object_k, room_k, ord)
 
     def in_system(self, object_k: int, system_k: int, ord: int) -> None:
