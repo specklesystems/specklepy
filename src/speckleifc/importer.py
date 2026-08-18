@@ -12,11 +12,13 @@ from speckleifc.converter.project_converter import project_to_speckle
 from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
+from speckleifc.proxy_managers.connection_proxy_manager import ConnectionProxyManager
 from speckleifc.proxy_managers.instance_proxy_manager import InstanceProxyManager
 from speckleifc.proxy_managers.level_proxy_manager import LevelProxyManager
 from speckleifc.proxy_managers.render_material_proxy_manager import (
     RenderMaterialProxyManager,
 )
+from speckleifc.proxy_managers.system_proxy_manager import SystemProxyManager
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects import Base
 from specklepy.objects.data_objects import DataObject
@@ -31,6 +33,10 @@ class ImportJob:
 
     progress: IngestionProgressManager
 
+    emit_topology: bool = False
+    """Attach MEP topology (systemProxies + connectionProxies) to the root. Off by
+    default so the v1 output is unchanged; the 4.0 bundle path turns it on."""
+
     _render_material_manager: RenderMaterialProxyManager = field(
         default_factory=lambda: RenderMaterialProxyManager()
     )
@@ -39,6 +45,12 @@ class ImportJob:
     )
     _instance_proxy_manager: InstanceProxyManager = field(
         default_factory=lambda: InstanceProxyManager()
+    )
+    _system_proxy_manager: SystemProxyManager = field(
+        default_factory=lambda: SystemProxyManager()
+    )
+    _connection_proxy_manager: ConnectionProxyManager = field(
+        default_factory=lambda: ConnectionProxyManager()
     )
     geometries_count: int = 0
     geometries_used: int = 0
@@ -232,6 +244,20 @@ class ImportJob:
         tree["instanceDefinitionProxies"] = list(
             self._instance_proxy_manager.instance_definition_proxies.values()
         )
+
+        # Network topology: system membership + port-connectivity edges. Extracted
+        # directly from the IFC graph (global relationships, not per-element), so run
+        # once over the whole file here. Only for the 4.0 bundle path — leaving the v1
+        # output untouched (no systemProxies / connectionProxies keys).
+        if self.emit_topology:
+            self._system_proxy_manager.extract(self.ifc_file)
+            self._connection_proxy_manager.extract(self.ifc_file)
+            tree["systemProxies"] = list(
+                self._system_proxy_manager.system_proxies.values()
+            )
+            tree["connectionProxies"] = (
+                self._connection_proxy_manager.connection_proxies
+            )
         tree.elements.append(
             Collection(
                 name="definitionGeometry",

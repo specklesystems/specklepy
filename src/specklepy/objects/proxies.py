@@ -28,6 +28,63 @@ class GroupProxy(
 
 
 @dataclass(kw_only=True)
+class SystemProxy(
+    Base,
+    speckle_type="Speckle.Core.Models.Proxies.SystemProxy",
+):
+    """
+    Stores logical system (e.g. MEP distribution system) membership in root
+    collections. Sourced from IFC ``IfcSystem`` / ``IfcDistributionSystem``
+    grouping (``IfcRelAssignsToGroup``).
+
+    Args:
+        objects (list): application ids of the member elements
+        name (str): the system name (e.g. "S_Schmutzwasser")
+        applicationId (str): the IfcSystem GlobalId
+        systemType (str | None): predefined/object type, when present
+    """
+
+    objects: List[str]
+    name: str
+    applicationId: Optional[str]
+    systemType: Optional[str] = None
+
+
+@dataclass(kw_only=True)
+class ConnectionProxy(
+    Base,
+    speckle_type="Speckle.Core.Models.Proxies.ConnectionProxy",
+):
+    """
+    Stores a single network-connectivity edge between two elements, sourced
+    from IFC port connectivity (``IfcRelConnectsPorts`` resolved through the
+    ports' owning elements via ``IfcRelNests`` / ``IfcRelConnectsPortToElement``).
+
+    An edge is a directed pair with distinct endpoint roles, so the endpoints
+    are named fields rather than a positional ``objects`` list.
+
+    Args:
+        sourceAppId (str): application id of the source-end element
+            (owner of the relating port)
+        targetAppId (str): application id of the target-end element
+            (owner of the related port)
+        applicationId (str): the IfcRelConnectsPorts GlobalId
+        sourceFlowDirection (str | None): the source-end (relating) port's
+            FlowDirection (SOURCE / SINK / SOURCEANDSINK / NOTDEFINED)
+        targetFlowDirection (str | None): the target-end (related) port's
+            FlowDirection. Capturing both ends lets a consumer orient the edge
+            (SOURCE→SINK) where the data defines it; gravity systems remain
+            SOURCEANDSINK on both ends and stay undirected.
+    """
+
+    sourceAppId: str
+    targetAppId: str
+    applicationId: Optional[str]
+    sourceFlowDirection: Optional[str] = None
+    targetFlowDirection: Optional[str] = None
+
+
+@dataclass(kw_only=True)
 class InstanceProxy(
     Base,
     IHasUnits,
