@@ -66,9 +66,9 @@ def track(
     """
     if not TRACK:
         return
-    serverUrl = urlparse(account.serverInfo.url)
+    server_url = urlparse(account.serverInfo.url)
 
-    if serverUrl != urlparse("http://app.speckle.systems/"):
+    if server_url.hostname != urlparse("https://app.speckle.systems/").hostname:
         # Right now, we're keeping posthog only for app.speckle.systems users
         return
 
@@ -93,7 +93,7 @@ def track(
             "$lib": "specklepy",
             "$lib_version": specklepy_version,
             "$user_id": distinct_id,
-            "$host": serverUrl.hostname,
+            "$host": server_url.hostname,
             "hostAppSlug": HOST_APP,
             "hostAppVersion": HOST_APP_VERSION,
             "pythonImplementation": platform.python_implementation(),
