@@ -44,8 +44,9 @@ def test_metrics_track(httpserver: HTTPServer, client: SpeckleClient):
         # Test With email
         httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
             handler(
-                lambda payload: payload["properties"]["email"]
-                == client.account.userInfo.email
+                lambda payload: (
+                    payload["properties"]["email"] == client.account.userInfo.email
+                )
             )
         )
         metrics.track("SDK Action", client.account, None, True, True)

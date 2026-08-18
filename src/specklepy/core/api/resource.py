@@ -1,5 +1,5 @@
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Dict, List, Tuple, Type, TypeVar
 
 from gql.client import Client
 from gql.transport.exceptions import TransportQueryError
@@ -25,17 +25,17 @@ class ResourceBase:
         basepath: str,
         client: Client,
         name: str,
-        server_version: Optional[Tuple[Any, ...]] = None,
+        server_version: Tuple[Any, ...] | None = None,
     ) -> None:
         self.account = account
         self.basepath = basepath
         self.client = client
         self.name = name
         self.server_version = server_version
-        self.schema: Optional[Type] = None
+        self.schema: Type | None = None
         self.__lock = Lock()
 
-    def _step_into_response(self, response: dict, return_type: Union[str, List, None]):
+    def _step_into_response(self, response: dict, return_type: str | List | None):
         """Step into the dict to get the relevant data"""
         if return_type is None:
             return response
@@ -50,7 +50,7 @@ class ResourceBase:
         self,
         schema: Type[T],
         query: DocumentNode,
-        variables: Optional[Dict[str, Any]] = None,
+        variables: Dict[str, Any] | None = None,
     ) -> T:
         try:
             with self.__lock:
@@ -75,7 +75,7 @@ class ResourceBase:
 
         return schema.model_validate(response)
 
-    def _parse_response(self, response: Union[dict, list, None], schema=None):
+    def _parse_response(self, response: dict | list | None, schema=None):
         """Try to create a class instance from the response"""
         if response is None:
             return None
@@ -95,8 +95,8 @@ class ResourceBase:
     def make_request(
         self,
         query: DocumentNode,
-        params: Optional[Dict] = None,
-        return_type: Union[str, List, None] = None,
+        params: Dict | None = None,
+        return_type: str | List | None = None,
         schema=None,
         parse_response: bool = True,
     ) -> Any:
@@ -134,7 +134,7 @@ class ResourceBase:
             return response
 
     def _check_server_version_at_least(
-        self, target_version: Tuple[Any, ...], unsupported_message: Optional[str] = None
+        self, target_version: Tuple[Any, ...], unsupported_message: str | None = None
     ):
         """Use this check to guard against making unsupported requests on older servers.
 

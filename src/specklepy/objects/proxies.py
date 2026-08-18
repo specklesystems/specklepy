@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 from specklepy.objects.base import Base
 from specklepy.objects.interfaces import IHasUnits
@@ -14,7 +14,7 @@ class ColorProxy(
 ):
     objects: List[str]
     value: int
-    name: Optional[str]
+    name: str | None
 
 
 @dataclass(kw_only=True)
@@ -46,8 +46,8 @@ class SystemProxy(
 
     objects: List[str]
     name: str
-    applicationId: Optional[str]
-    systemType: Optional[str] = None
+    applicationId: str | None = None
+    systemType: str | None = None
 
 
 @dataclass(kw_only=True)
@@ -79,9 +79,9 @@ class ConnectionProxy(
 
     sourceAppId: str
     targetAppId: str
-    applicationId: Optional[str]
-    sourceFlowDirection: Optional[str] = None
-    targetFlowDirection: Optional[str] = None
+    applicationId: str | None
+    sourceFlowDirection: str | None = None
+    targetFlowDirection: str | None = None
 
 
 @dataclass(kw_only=True)

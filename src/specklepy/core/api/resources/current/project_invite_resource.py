@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 from gql import Client, gql
 
@@ -22,7 +22,7 @@ class ProjectInviteResource(ResourceBase):
         account: Account,
         basepath: str,
         client: Client,
-        server_version: Optional[Tuple[Any, ...]],
+        server_version: Tuple[Any, ...] | None,
     ) -> None:
         super().__init__(
             account=account,
@@ -132,8 +132,8 @@ class ProjectInviteResource(ResourceBase):
         ).data.data.data
 
     def get(
-        self, project_id: str, token: Optional[str]
-    ) -> Optional[PendingStreamCollaborator]:
+        self, project_id: str, token: str | None
+    ) -> PendingStreamCollaborator | None:
         """Returns: The invite, or None if no invite exists"""
 
         QUERY = gql(
@@ -176,7 +176,7 @@ class ProjectInviteResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[Optional[PendingStreamCollaborator]], QUERY, variables
+            DataResponse[PendingStreamCollaborator | None], QUERY, variables
         ).data
 
     def cancel(

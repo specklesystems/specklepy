@@ -1,5 +1,3 @@
-from typing import Optional
-
 from gql import gql
 
 from specklepy.core.api.inputs.model_inputs import ModelVersionsFilter
@@ -71,8 +69,8 @@ class VersionResource(ResourceBase):
         project_id: str,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[ModelVersionsFilter] = None,
+        cursor: str | None = None,
+        filter: ModelVersionsFilter | None = None,
     ) -> ResourceCollection[Version]:
         QUERY = gql(
             """

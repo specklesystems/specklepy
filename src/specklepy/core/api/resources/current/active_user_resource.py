@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from gql import gql
 
@@ -39,7 +39,7 @@ class ActiveUserResource(ResourceBase):
         )
         self.schema = User
 
-    def get(self) -> Optional[User]:
+    def get(self) -> User | None:
         """Gets the currently active user profile
         (as extracted from the authorization header)
 
@@ -67,7 +67,7 @@ class ActiveUserResource(ResourceBase):
         variables = {}
 
         return self.make_request_and_parse_response(
-            DataResponse[Optional[User]], QUERY, variables
+            DataResponse[User | None], QUERY, variables
         ).data
 
     def update(self, input: UserUpdateInput) -> User:
@@ -100,8 +100,8 @@ class ActiveUserResource(ResourceBase):
         self,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[UserProjectsFilter] = None,
+        cursor: str | None = None,
+        filter: UserProjectsFilter | None = None,
     ) -> ResourceCollection[Project]:
         QUERY = gql(
             """
@@ -137,7 +137,7 @@ class ActiveUserResource(ResourceBase):
         }
 
         response = self.make_request_and_parse_response(
-            DataResponse[Optional[DataResponse[ResourceCollection[Project]]]],
+            DataResponse[DataResponse[ResourceCollection[Project]] | None],
             QUERY,
             variables,
         )
@@ -189,7 +189,7 @@ class ActiveUserResource(ResourceBase):
         variables = {}
 
         response = self.make_request_and_parse_response(
-            DataResponse[Optional[DataResponse[List[PendingStreamCollaborator]]]],
+            DataResponse[DataResponse[List[PendingStreamCollaborator]] | None],
             QUERY,
             variables,
         )
@@ -219,7 +219,7 @@ class ActiveUserResource(ResourceBase):
         )
 
         response = self.make_request_and_parse_response(
-            DataResponse[Optional[DataResponse[DataResponse[PermissionCheckResult]]]],
+            DataResponse[DataResponse[DataResponse[PermissionCheckResult]] | None],
             QUERY,
         )
 
@@ -233,8 +233,8 @@ class ActiveUserResource(ResourceBase):
     def get_workspaces(
         self,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[UserWorkspacesFilter] = None,
+        cursor: str | None = None,
+        filter: UserWorkspacesFilter | None = None,
     ) -> ResourceCollection[Workspace]:
         """
         This feature is only available on Workspace enabled servers  (server versions
@@ -284,7 +284,7 @@ class ActiveUserResource(ResourceBase):
         }
 
         response = self.make_request_and_parse_response(
-            DataResponse[Optional[DataResponse[ResourceCollection[Workspace]]]],
+            DataResponse[DataResponse[ResourceCollection[Workspace]] | None],
             QUERY,
             variables,
         )
@@ -296,7 +296,7 @@ class ActiveUserResource(ResourceBase):
 
         return response.data.data
 
-    def get_active_workspace(self) -> Optional[LimitedWorkspace]:
+    def get_active_workspace(self) -> LimitedWorkspace | None:
         """
         This feature is only available on Workspace enabled servers  (server versions
         >=2.23.17) e.g. app.speckle.systems
@@ -319,7 +319,7 @@ class ActiveUserResource(ResourceBase):
         )
 
         response = self.make_request_and_parse_response(
-            DataResponse[Optional[DataResponse[Optional[LimitedWorkspace]]]],
+            DataResponse[DataResponse[LimitedWorkspace | None] | None],
             QUERY,
         )
 
@@ -334,8 +334,8 @@ class ActiveUserResource(ResourceBase):
         self,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[UserProjectsFilter] = None,
+        cursor: str | None = None,
+        filter: UserProjectsFilter | None = None,
     ) -> ResourceCollection[ProjectWithPermissions]:
         """
         Gets the currently active user's projects with their permissions.
@@ -398,7 +398,7 @@ class ActiveUserResource(ResourceBase):
 
         response = self.make_request_and_parse_response(
             DataResponse[
-                Optional[DataResponse[ResourceCollection[ProjectWithPermissions]]]
+                DataResponse[ResourceCollection[ProjectWithPermissions]] | None
             ],
             QUERY,
             variables,

@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Sequence
+from typing import Callable, Sequence
 
 from pydantic import BaseModel
 from typing_extensions import TypeVar
@@ -36,7 +36,7 @@ class SubscriptionResource(CoreResource):
         callback: Callable[[ProjectModelsUpdatedMessage], None],
         id: str,
         *,
-        model_ids: Optional[Sequence[str]] = None,
+        model_ids: Sequence[str] | None = None,
     ) -> None:
         metrics.track(
             metrics.SDK, self.account, {"name": "Subscription Project Models Updated"}

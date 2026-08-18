@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List
 from unittest import TestCase
 
 from specklepy.objects.base import Base
@@ -8,7 +8,7 @@ from specklepy.objects.graph_traversal.traversal import GraphTraversal, Traversa
 
 @dataclass()
 class TraversalMock(Base):
-    child: Optional[Base]
+    child: Base | None
     list_children: List[Base]
     dict_children: Dict[str, Base]
 

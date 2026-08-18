@@ -1,5 +1,3 @@
-from typing import Optional
-
 from gql import gql
 
 from specklepy.core.api.inputs.project_inputs import WorksaceProjectsFilter
@@ -69,8 +67,8 @@ class WorkspaceResource(ResourceBase):
         self,
         workspace_id: str,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[WorksaceProjectsFilter] = None,
+        cursor: str | None = None,
+        filter: WorksaceProjectsFilter | None = None,
     ) -> ResourceCollection[Project]:
         QUERY = gql(
             """
@@ -114,8 +112,8 @@ class WorkspaceResource(ResourceBase):
         self,
         workspace_id: str,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[WorksaceProjectsFilter] = None,
+        cursor: str | None = None,
+        filter: WorksaceProjectsFilter | None = None,
     ) -> ResourceCollection[ProjectWithPermissions]:
         QUERY = gql(
             """

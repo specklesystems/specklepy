@@ -1,5 +1,3 @@
-from typing import Optional
-
 from specklepy.core.api.models import (
     LimitedUser,
     UserSearchResultCollection,
@@ -26,7 +24,7 @@ class OtherUserResource(CoreResource):
         )
         self.schema = LimitedUser
 
-    def get(self, id: str) -> Optional[LimitedUser]:
+    def get(self, id: str) -> LimitedUser | None:
         metrics.track(metrics.SDK, self.account, {"name": "Other User Get"})
         return super().get(id)
 
@@ -35,7 +33,7 @@ class OtherUserResource(CoreResource):
         query: str,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
         archived: bool = False,
         emailOnly: bool = False,
     ) -> UserSearchResultCollection:

@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, Sequence, Type
+from typing import Any, Callable, Dict, Sequence, Type
 
 from gql import gql
 from graphql import DocumentNode
@@ -90,7 +90,7 @@ class SubscriptionResource(ResourceBase):
         self,
         callback: Callable[[ProjectModelsUpdatedMessage], None],
         id: str,
-        model_ids: Optional[Sequence[str]] = None,
+        model_ids: Sequence[str] | None = None,
     ) -> None:
         QUERY = gql(
             """
@@ -281,7 +281,7 @@ class SubscriptionResource(ResourceBase):
         self,
         response_type: Type[TEventArgs],
         query: DocumentNode,
-        variables: Optional[Dict[str, Any]],
+        variables: Dict[str, Any] | None,
         callback: Callable[[TEventArgs], None],
     ) -> None:
         async with self.client as session:

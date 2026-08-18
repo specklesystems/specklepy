@@ -1,5 +1,3 @@
-from typing import Optional
-
 from specklepy.core.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectModelsFilter,
@@ -43,8 +41,8 @@ class ProjectResource(CoreResource):
         project_id: str,
         *,
         models_limit: int = 25,
-        models_cursor: Optional[str] = None,
-        models_filter: Optional[ProjectModelsFilter] = None,
+        models_cursor: str | None = None,
+        models_filter: ProjectModelsFilter | None = None,
     ) -> ProjectWithModels:
         metrics.track(metrics.SDK, self.account, {"name": "Project Get With Models"})
         return super().get_with_models(

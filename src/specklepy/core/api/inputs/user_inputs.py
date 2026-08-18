@@ -1,22 +1,22 @@
-from typing import Optional, Sequence
+from typing import Sequence
 
 from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
 
 
 class UserUpdateInput(GraphQLBaseModel):
-    avatar: Optional[str] = None
-    bio: Optional[str] = None
-    company: Optional[str] = None
-    name: Optional[str] = None
+    avatar: str | None = None
+    bio: str | None = None
+    company: str | None = None
+    name: str | None = None
 
 
 class UserProjectsFilter(GraphQLBaseModel):
-    search: Optional[str] = None
-    only_with_roles: Optional[Sequence[str]] = None
-    workspace_id: Optional[str] = None
-    personal_only: Optional[bool] = None
-    include_implicit_access: Optional[bool] = None
+    search: str | None = None
+    only_with_roles: Sequence[str] | None = None
+    workspace_id: str | None = None
+    personal_only: bool | None = None
+    include_implicit_access: bool | None = None
 
 
 class UserWorkspacesFilter(GraphQLBaseModel):
-    search: Optional[str]
+    search: str | None
