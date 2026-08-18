@@ -13,7 +13,8 @@ from specklepy.bundle.eav_extraction import EavRow
 from specklepy.bundle.eav_writer import EavWriter
 from specklepy.bundle.envelope_writer import EnvelopeWriter
 from specklepy.bundle.geometries_writer import GeometriesParquetWriter
-from specklepy.bundle.spec import SCHEMA_VERSION, NodeKind, Rel
+from specklepy.bundle.parquet_table_writer import ParquetTableWriter, schema_of
+from specklepy.bundle.spec import BY_TABLE, SCHEMA_VERSION, NodeKind, Rel
 
 BASE = "test"
 
@@ -43,6 +44,24 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
     w.add_node(
         1, NodeKind.LEVEL, "L1", None, None, None, None, None, None, None, None, 3.5
     )
+    # full-PBR material (v5): emissive/ior are keyword-only, elevation stays last
+    # positionally
+    w.add_node(
+        2,
+        NodeKind.MATERIAL,
+        "Glass",
+        None,
+        None,
+        None,
+        None,
+        -1,
+        0.4,
+        0.0,
+        0.1,
+        None,
+        emissive=-16711936,  # 0xFF00FF00 as signed int32
+        ior=1.52,
+    )
     w.add_relation(Rel.IN_MODEL, 0, 0, 0)
     w.add_relation(Rel.ON_LEVEL, 0, 1, 0)
     w.complete()
@@ -57,17 +76,18 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
     )[0:1]
     assert ver[0] == SCHEMA_VERSION == 5
 
-    # rel_types catalog: 15 live+reserved (retired absent)
+    # rel_types catalog: 17 live+reserved (retired absent; 17 IN_GROUP and
+    # 22 HOSTED_ON were un-retired in spec v5)
     (n_rel,) = _q(
         con,
         f"SELECT count(*) FROM read_parquet('{out}/{BASE}.envelope.rel_types.parquet')",
     )[0]
-    assert n_rel == 15
+    assert n_rel == 17
     # retired ids never present
     retired = _q(
         con,
         f"SELECT count(*) FROM read_parquet('{out}/{BASE}.envelope.rel_types.parquet') "
-        "WHERE rel IN (13,15,16,17,18,19,20,22)",
+        "WHERE rel IN (13,15,16,18,19,20)",
     )[0][0]
     assert retired == 0
 
@@ -79,14 +99,32 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
     )[0][0]
     assert n_kind == 6
 
+    # nodes.parquet carries EXACTLY the spec's column set, in spec order — the
+    # July 2026 incident shipped empty/mis-shaped nodes files when writers drifted
+    # from the vendored schema.
+    described = _q(
+        con,
+        f"DESCRIBE SELECT * FROM read_parquet('{out}/{BASE}.envelope.nodes.parquet')",
+    )
+    assert [d[0] for d in described] == [c.name for c in BY_TABLE["nodes"]]
+    assert len(described) == 14  # v5: 12 + emissive + ior
+
     # nodes + relations content
     nodes = _q(
         con,
-        f"SELECT id, kind, name, subtype, elevation "
+        f"SELECT id, kind, name, subtype, elevation, emissive, ior "
         f"FROM read_parquet('{out}/{BASE}.envelope.nodes.parquet') ORDER BY id",
     )
     assert nodes[0][1] == int(NodeKind.CONTAINER) and nodes[0][3] == "Model"
     assert nodes[1][1] == int(NodeKind.LEVEL) and nodes[1][4] == 3.5
+    # non-material nodes leave the PBR extras NULL
+    assert nodes[0][5] is None and nodes[0][6] is None
+    # the material node round-trips emissive/ior (and elevation stays NULL —
+    # emissive/ior sit BETWEEN roughness and elevation in the row)
+    assert nodes[2][1] == int(NodeKind.MATERIAL)
+    assert nodes[2][4] is None
+    assert nodes[2][5] == -16711936
+    assert nodes[2][6] == 1.52
     rels = _q(
         con,
         f"SELECT rel, src, dst FROM "
@@ -167,6 +205,35 @@ def test_geometries_writer_rejects_non_sgeo(tmp_path):
     with pytest.raises(ValueError):
         w.add_geometry(0, b"NOPE")
     w.complete()
+
+
+def test_add_row_arity_mismatch_names_the_table(tmp_path):
+    """A row whose length drifts from the vendored schema must fail loudly, naming
+    the table — never silently drop or mis-place values (the July 2026 envelope
+    incident)."""
+    w = ParquetTableWriter(
+        str(tmp_path / "nodes.parquet"), schema_of(BY_TABLE["nodes"]), table="nodes"
+    )
+    with pytest.raises(ValueError, match=r"table 'nodes'.*12 values.*14 columns"):
+        # the pre-emissive/ior 12-column row shape
+        w.add_row(0, 1, None, None, None, None, None, None, None, None, None, None)
+    w.complete()
+
+
+def test_envelope_add_node_arity_matches_vendored_spec(tmp_path):
+    """EnvelopeWriter.add_node must always assemble exactly the spec's column count."""
+    w = EnvelopeWriter(str(tmp_path), BASE)
+    w.add_node(
+        0, NodeKind.MATERIAL, None, None, None, None, None, -1, 1.0, 0.0, 0.5, None
+    )
+    w.complete()
+    con = duckdb.connect()
+    cols = _q(
+        con,
+        f"DESCRIBE SELECT * FROM "
+        f"read_parquet('{tmp_path}/{BASE}.envelope.nodes.parquet')",
+    )
+    assert len(cols) == len(BY_TABLE["nodes"])
 
 
 def test_geometries_sharding(tmp_path):

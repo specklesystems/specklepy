@@ -1,5 +1,6 @@
 from typing import Any, Tuple
 
+from deprecated import deprecated
 from gql import Client, gql
 
 from specklepy.api.credentials import Account
@@ -20,6 +21,16 @@ from specklepy.api.resource import ResourceBase
 from specklepy.api.responses import DataResponse
 
 NAME = "ingestion"
+
+COMPLETE_WITH_VERSION_DEPRECATION: dict[str, Any] = {
+    "reason": (
+        "The completeWithVersion mutation bypasses the v2 REST uploads/complete"
+        " seam, so the server never dispatches dat generation and the created"
+        " version is not viewer-consumable in the bundle era. Complete uploads"
+        " via specklepy.bundle.upload.ArtifactPipeline"
+        " (the v2 REST uploads/complete flow) instead."
+    ),
+}
 
 
 class ModelIngestionResource(ResourceBase):
@@ -234,6 +245,7 @@ class ModelIngestionResource(ResourceBase):
             DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
         ).data.data.data
 
+    @deprecated(**COMPLETE_WITH_VERSION_DEPRECATION)
     def complete(self, input: ModelIngestionSuccessInput) -> str:
         """
         Request that the server completes the ingestion by creating a version

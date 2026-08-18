@@ -28,7 +28,9 @@ class Rel(IntEnum):
     IN_MODEL = 11
     IN_ROOM = 12
     IN_SYSTEM = 14
+    IN_GROUP = 17
     CONNECTS_TO = 21
+    HOSTED_ON = 22
     BOUNDS = 23
 
 
@@ -66,7 +68,7 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(2, "SOLID", "object", "geometry", "reserved", "ordinal"),
     RelTypeRow(3, "SUBELEMENT", "object", "object", "live", "ordinal"),
     RelTypeRow(4, "DEFINES", "node", "geometry", "live", None),
-    RelTypeRow(5, "HAS_MATERIAL", "geometry", "node", "live", None),
+    RelTypeRow(5, "HAS_MATERIAL", "geometry|instance", "node", "live", None),
     RelTypeRow(6, "HAS_COLOR", "geometry|object", "node", "live", None),
     RelTypeRow(7, "ON_LEVEL", "object", "node", "live", None),
     RelTypeRow(8, "DISPLAY_INSTANCE", "object", "node", "live", "ordinal"),
@@ -78,12 +80,12 @@ REL_TYPES: list[RelTypeRow] = [
     RelTypeRow(14, "IN_SYSTEM", "object", "node", "live", None),
     RelTypeRow(15, "IN_NETWORK", None, None, "retired", None),
     RelTypeRow(16, "IN_LINE", None, None, "retired", None),
-    RelTypeRow(17, "IN_GROUP", None, None, "retired", None),
+    RelTypeRow(17, "IN_GROUP", "object", "node", "live", None),
     RelTypeRow(18, "IN_ASSEMBLY", None, None, "retired", None),
     RelTypeRow(19, "IN_SUBASSEMBLY", None, None, "retired", None),
     RelTypeRow(20, "XREF", None, None, "retired", None),
     RelTypeRow(21, "CONNECTS_TO", "object", "object", "live", "scope"),
-    RelTypeRow(22, "HOSTED_ON", None, None, "retired", None),
+    RelTypeRow(22, "HOSTED_ON", "object", "object", "live", None),
     RelTypeRow(23, "BOUNDS", "object", "object", "live", None),
 ]
 
@@ -94,5 +96,5 @@ NODE_KINDS: list[NodeKindRow] = [
     NodeKindRow(4, "COLOR", "live", None),
     NodeKindRow(5, "LEVEL", "live", None),
     NodeKindRow(6, "COLLECTION", "retired", None),
-    NodeKindRow(7, "CONTAINER", "live", "Collection,Model,MEP System,Network"),
+    NodeKindRow(7, "CONTAINER", "live", "Collection,Model,MEP System,Network,Group"),
 ]

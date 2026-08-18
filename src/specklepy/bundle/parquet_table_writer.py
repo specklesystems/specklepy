@@ -62,11 +62,15 @@ class ParquetTableWriter:
         path: str,
         schema: pa.Schema,
         flush_rows: int = DEFAULT_ROWGROUP_ROWS,
+        table: str | None = None,
     ) -> None:
         self.path = path
         if os.path.exists(path):
             os.remove(path)
 
+        # spec table name for diagnostics (falls back to the file name); an arity
+        # mismatch must say WHICH table drifted from the vendored spec.
+        self.table = table or os.path.basename(path)
         self._schema = schema
         self._flush_rows = flush_rows
         # one buffer list per column, in schema order.
@@ -80,10 +84,16 @@ class ParquetTableWriter:
         if self._completed:
             raise RuntimeError("Writer already completed.")
         if len(values) != len(self._cols):
+            # The exact failure mode of the Jul-2026 envelope incident (in the C++
+            # writers): schema updated from the spec, row assembly not. Fail loudly,
+            # naming the table, instead of writing a malformed/empty artefact.
             raise ValueError(
-                f"{self.path}: expected {len(self._cols)} columns, got {len(values)}"
+                f"table '{self.table}': row has {len(values)} values but the schema "
+                f"has {len(self._cols)} columns "
+                f"({', '.join(self._schema.names)}) — row assembly is out of sync "
+                f"with the vendored bundle spec ({self.path})"
             )
-        for col, v in zip(self._cols, values, strict=False):
+        for col, v in zip(self._cols, values, strict=True):
             col.append(v)
         self._buffered += 1
         if self._buffered >= self._flush_rows:
