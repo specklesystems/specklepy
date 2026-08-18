@@ -37,7 +37,6 @@ class ActiveUserResource(ResourceBase):
             name=NAME,
             server_version=server_version,
         )
-        self.schema = User
 
     def get(self) -> User | None:
         """Gets the currently active user profile
@@ -47,7 +46,7 @@ class ActiveUserResource(ResourceBase):
             User -- the requested user, or none if no authentication token
             is provided to the Client
         """
-        QUERY = gql(
+        request = gql(
             """
             query User {
              data:activeUser {
@@ -64,14 +63,12 @@ class ActiveUserResource(ResourceBase):
            """
         )
 
-        variables = {}
-
         return self.make_request_and_parse_response(
-            DataResponse[User | None], QUERY, variables
+            DataResponse[User | None], request
         ).data
 
     def update(self, input: UserUpdateInput) -> User:
-        QUERY = gql(
+        request = gql(
             """
             mutation ActiveUserMutations($input: UserUpdateInput!) {
               data:activeUserMutations {
@@ -90,10 +87,12 @@ class ActiveUserResource(ResourceBase):
            """
         )
 
-        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
+        request.variable_values = {
+            "input": input.model_dump(warnings="error", by_alias=True)
+        }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[User]], QUERY, variables
+            DataResponse[DataResponse[User]], request
         ).data.data
 
     def get_projects(
@@ -103,7 +102,7 @@ class ActiveUserResource(ResourceBase):
         cursor: str | None = None,
         filter: UserProjectsFilter | None = None,
     ) -> ResourceCollection[Project]:
-        QUERY = gql(
+        request = gql(
             """
              query User($limit : Int!, $cursor: String, $filter: UserProjectsFilter) {
               data:activeUser {
@@ -128,7 +127,7 @@ class ActiveUserResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "limit": limit,
             "cursor": cursor,
             "filter": filter.model_dump(warnings="error", by_alias=True)
@@ -138,8 +137,7 @@ class ActiveUserResource(ResourceBase):
 
         response = self.make_request_and_parse_response(
             DataResponse[DataResponse[ResourceCollection[Project]] | None],
-            QUERY,
-            variables,
+            request,
         )
 
         if response.data is None:
@@ -150,7 +148,7 @@ class ActiveUserResource(ResourceBase):
         return response.data.data
 
     def get_project_invites(self) -> List[PendingStreamCollaborator]:
-        QUERY = gql(
+        request = gql(
             """
             query ProjectInvites {
               data:activeUser {
@@ -186,12 +184,9 @@ class ActiveUserResource(ResourceBase):
             """
         )
 
-        variables = {}
-
         response = self.make_request_and_parse_response(
             DataResponse[DataResponse[List[PendingStreamCollaborator]] | None],
-            QUERY,
-            variables,
+            request,
         )
 
         if response.data is None:
@@ -202,7 +197,7 @@ class ActiveUserResource(ResourceBase):
         return response.data.data
 
     def can_create_personal_projects(self) -> PermissionCheckResult:
-        QUERY = gql(
+        request = gql(
             """
             query CanCreatePersonalProject {
               data:activeUser {
@@ -220,7 +215,7 @@ class ActiveUserResource(ResourceBase):
 
         response = self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[PermissionCheckResult]] | None],
-            QUERY,
+            request,
         )
 
         if response.data is None:
@@ -240,7 +235,7 @@ class ActiveUserResource(ResourceBase):
         This feature is only available on Workspace enabled servers  (server versions
         >=2.23.17) e.g. app.speckle.systems
         """
-        QUERY = gql(
+        request = gql(
             """
             query ActiveUser($limit: Int!, $cursor: String, $filter: UserWorkspacesFilter) {
               data:activeUser {
@@ -275,7 +270,7 @@ class ActiveUserResource(ResourceBase):
             """  # noqa: E501
         )
 
-        variables = {
+        request.variable_values = {
             "limit": limit,
             "cursor": cursor,
             "filter": filter.model_dump(warnings="error", by_alias=True)
@@ -285,8 +280,7 @@ class ActiveUserResource(ResourceBase):
 
         response = self.make_request_and_parse_response(
             DataResponse[DataResponse[ResourceCollection[Workspace]] | None],
-            QUERY,
-            variables,
+            request,
         )
 
         if response.data is None:
@@ -301,7 +295,7 @@ class ActiveUserResource(ResourceBase):
         This feature is only available on Workspace enabled servers  (server versions
         >=2.23.17) e.g. app.speckle.systems
         """
-        QUERY = gql(
+        request = gql(
             """
             query ActiveUser {
               data:activeUser {
@@ -320,7 +314,7 @@ class ActiveUserResource(ResourceBase):
 
         response = self.make_request_and_parse_response(
             DataResponse[DataResponse[LimitedWorkspace | None] | None],
-            QUERY,
+            request,
         )
 
         if response.data is None:
@@ -341,7 +335,7 @@ class ActiveUserResource(ResourceBase):
         Gets the currently active user's projects with their permissions.
         This is useful for checking what actions can be performed on each project.
         """
-        QUERY = gql(
+        request = gql(
             """
           query User($limit : Int!, $cursor: String, $filter: UserProjectsFilter) {
             data:activeUser {
@@ -388,7 +382,7 @@ class ActiveUserResource(ResourceBase):
           """
         )
 
-        variables = {
+        request.variable_values = {
             "limit": limit,
             "cursor": cursor,
             "filter": filter.model_dump(warnings="error", by_alias=True)
@@ -400,8 +394,7 @@ class ActiveUserResource(ResourceBase):
             DataResponse[
                 DataResponse[ResourceCollection[ProjectWithPermissions]] | None
             ],
-            QUERY,
-            variables,
+            request,
         )
 
         if response.data is None:

@@ -26,7 +26,7 @@ class WorkspaceResource(ResourceBase):
         )
 
     def get(self, workspace_id: str) -> Workspace:
-        QUERY = gql(
+        request = gql(
             """
             query WorkspaceGet($workspaceId: String!) {
               data:workspace(id: $workspaceId) {
@@ -55,12 +55,12 @@ class WorkspaceResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "workspaceId": workspace_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[Workspace], QUERY, variables
+            DataResponse[Workspace], request
         ).data
 
     def get_projects(
@@ -70,7 +70,7 @@ class WorkspaceResource(ResourceBase):
         cursor: str | None = None,
         filter: WorksaceProjectsFilter | None = None,
     ) -> ResourceCollection[Project]:
-        QUERY = gql(
+        request = gql(
             """
             query Workspace($workspaceId: String!, $limit: Int!, $cursor: String, $filter: WorkspaceProjectsFilter) {
               data:workspace(id: $workspaceId) {
@@ -95,7 +95,7 @@ class WorkspaceResource(ResourceBase):
             """  # noqa: E501
         )
 
-        variables = {
+        request.variable_values = {
             "workspaceId": workspace_id,
             "limit": limit,
             "cursor": cursor,
@@ -105,7 +105,7 @@ class WorkspaceResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[ResourceCollection[Project]]], QUERY, variables
+            DataResponse[DataResponse[ResourceCollection[Project]]], request
         ).data.data
 
     def get_projects_with_permissions(
@@ -115,7 +115,7 @@ class WorkspaceResource(ResourceBase):
         cursor: str | None = None,
         filter: WorksaceProjectsFilter | None = None,
     ) -> ResourceCollection[ProjectWithPermissions]:
-        QUERY = gql(
+        request = gql(
             """
             query Workspace($workspaceId: String!, $limit: Int!, $cursor: String, $filter: WorkspaceProjectsFilter) {
               data:workspace(id: $workspaceId) {
@@ -162,7 +162,7 @@ class WorkspaceResource(ResourceBase):
             """  # noqa: E501
         )
 
-        variables = {
+        request.variable_values = {
             "workspaceId": workspace_id,
             "limit": limit,
             "cursor": cursor,
@@ -173,6 +173,5 @@ class WorkspaceResource(ResourceBase):
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[ResourceCollection[ProjectWithPermissions]]],
-            QUERY,
-            variables,
+            request,
         ).data.data

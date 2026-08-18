@@ -1,9 +1,10 @@
 import contextlib
 import re
-from typing import Dict
+from typing import Any
 from warnings import warn
 
-from gql import Client
+from deprecated import deprecated
+from gql import Client, gql
 from gql.transport.exceptions import TransportServerError
 from gql.transport.requests import RequestsHTTPTransport
 from gql.transport.websockets import WebsocketsTransport
@@ -191,8 +192,9 @@ class SpeckleClient:
 
         self._init_resources()
 
-    def execute_query(self, query: str) -> Dict:
-        return self.httpclient.execute(query)
+    @deprecated("Client.execute_query is deprecated, use httpclient instead")
+    def execute_query(self, query: str) -> dict[str, Any]:
+        return self.httpclient.execute(gql(query))
 
     def _init_resources(self) -> None:
         self.server = ServerResource(

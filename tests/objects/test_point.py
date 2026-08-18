@@ -22,7 +22,7 @@ def test_point_distance_calculation():
     assert distance == pytest.approx(expected)
 
     with pytest.raises(TypeError):
-        p1.distance_to("not a point")
+        p1.distance_to("not a point")  # pyright: ignore[reportArgumentType] - intentional mistyping
 
 
 def test_point_serialization():

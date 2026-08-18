@@ -32,7 +32,7 @@ class ProjectResource(ResourceBase):
         )
 
     def get(self, project_id: str) -> Project:
-        QUERY = gql(
+        request = gql(
             """
             query Project($projectId: String!) {
               data:project(id: $projectId) {
@@ -51,16 +51,14 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
         }
 
-        return self.make_request_and_parse_response(
-            DataResponse[Project], QUERY, variables
-        ).data
+        return self.make_request_and_parse_response(DataResponse[Project], request).data
 
     def get_permissions(self, project_id: str) -> ProjectPermissionChecks:
-        QUERY = gql(
+        request = gql(
             """
             query Project($projectId: String!) {
               data:project(id: $projectId) {
@@ -91,12 +89,12 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[ProjectPermissionChecks]], QUERY, variables
+            DataResponse[DataResponse[ProjectPermissionChecks]], request
         ).data.data
 
     def get_with_models(
@@ -107,7 +105,7 @@ class ProjectResource(ResourceBase):
         models_cursor: str | None = None,
         models_filter: ProjectModelsFilter | None = None,
     ) -> ProjectWithModels:
-        QUERY = gql(
+        request = gql(
             """
             query ProjectGetWithModels(
               $projectId: String!,
@@ -157,7 +155,7 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "modelsLimit": models_limit,
             "modelsCursor": models_cursor,
@@ -169,11 +167,11 @@ class ProjectResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[ProjectWithModels], QUERY, variables
+            DataResponse[ProjectWithModels], request
         ).data
 
     def get_with_team(self, project_id: str) -> ProjectWithTeam:
-        QUERY = gql(
+        request = gql(
             """
             query ProjectGetWithTeam($projectId: String!) {
               data:project(id: $projectId) {
@@ -233,12 +231,12 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[ProjectWithTeam], QUERY, variables
+            DataResponse[ProjectWithTeam], request
         ).data
 
     def create(self, input: ProjectCreateInput) -> Project:
@@ -248,7 +246,7 @@ class ProjectResource(ResourceBase):
         see client.active_user.can_create_personal_projects to see if the user has
         permission
         """
-        QUERY = gql(
+        request = gql(
             """
             mutation ProjectCreate($input: ProjectCreateInput) {
               data:projectMutations {
@@ -269,12 +267,12 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Project]], QUERY, variables
+            DataResponse[DataResponse[Project]], request
         ).data.data
 
     def create_in_workspace(self, input: WorkspaceProjectCreateInput) -> Project:
@@ -285,7 +283,7 @@ class ProjectResource(ResourceBase):
 
         see `workspace.permissions.can_create_project` to see if the user has permission
         """
-        QUERY = gql(
+        request = gql(
             """
           mutation WorkspaceProjectCreate($input: WorkspaceProjectCreateInput!) {
             data:workspaceMutations {
@@ -308,16 +306,16 @@ class ProjectResource(ResourceBase):
           """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[Project]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[Project]]], request
         ).data.data.data
 
     def update(self, input: ProjectUpdateInput) -> Project:
-        QUERY = gql(
+        request = gql(
             """
             mutation ProjectUpdate($input: ProjectUpdateInput!) {
               data:projectMutations{
@@ -338,16 +336,16 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Project]], QUERY, variables
+            DataResponse[DataResponse[Project]], request
         ).data.data
 
     def delete(self, project_id: str) -> bool:
-        QUERY = gql(
+        request = gql(
             """
             mutation ProjectDelete($projectId: String!) {
               data:projectMutations {
@@ -357,16 +355,16 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[bool]], QUERY, variables
+            DataResponse[DataResponse[bool]], request
         ).data.data
 
     def update_role(self, input: ProjectUpdateRoleInput) -> ProjectWithTeam:
-        QUERY = gql(
+        request = gql(
             """
             mutation ProjectUpdateRole($input: ProjectUpdateRoleInput!) {
               data:projectMutations {
@@ -427,10 +425,10 @@ class ProjectResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[ProjectWithTeam]], QUERY, variables
+            DataResponse[DataResponse[ProjectWithTeam]], request
         ).data.data
