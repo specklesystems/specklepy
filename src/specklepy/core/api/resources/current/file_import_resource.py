@@ -48,7 +48,7 @@ class FileImportResource(ResourceBase):
         Only use this if you are writing a file importer, that is responsible for
         processing file import jobs.
         """
-        QUERY = gql(
+        request = gql(
             """
                 mutation FinishFileImport($input: FinishFileImportInput!) {
                     data:fileUploadMutations {
@@ -58,16 +58,16 @@ class FileImportResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[bool]], QUERY, variables
+            DataResponse[DataResponse[bool]], request
         ).data.data
 
     def start_file_import(self, input: StartFileImportInput) -> FileImport:
-        QUERY = gql(
+        request = gql(
             """
             mutation StartFileImport($input: StartFileImportInput!) {
                 data:fileUploadMutations {
@@ -86,12 +86,12 @@ class FileImportResource(ResourceBase):
         """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[FileImport]], QUERY, variables
+            DataResponse[DataResponse[FileImport]], request
         ).data.data
 
     def generate_upload_url(self, input: GenerateFileUploadUrlInput) -> FileUploadUrl:
@@ -102,7 +102,7 @@ class FileImportResource(ResourceBase):
         which can be used as a short term authenticated route,
         to put a file to the server.
         """
-        QUERY = gql(
+        request = gql(
             """
             mutation GenerateUploadUrl($input: GenerateFileUploadUrlInput!) {
                 data:fileUploadMutations {
@@ -115,12 +115,12 @@ class FileImportResource(ResourceBase):
         """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[FileUploadUrl]], QUERY, variables
+            DataResponse[DataResponse[FileUploadUrl]], request
         ).data.data
 
     def upload_file(self, file: Path, url: str) -> UploadFileResponse:
@@ -169,7 +169,7 @@ class FileImportResource(ResourceBase):
         limit: int = 25,
         cursor: str | None = None,
     ) -> ResourceCollection[FileImport]:
-        QUERY = gql(
+        request = gql(
             """
             query ModelFileImportJobs(
                 $projectId: String!,
@@ -198,7 +198,7 @@ class FileImportResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "modelId": model_id,
             "input": {
@@ -209,6 +209,5 @@ class FileImportResource(ResourceBase):
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[ResourceCollection[FileImport]]]],
-            QUERY,
-            variables,
+            request,
         ).data.data.data

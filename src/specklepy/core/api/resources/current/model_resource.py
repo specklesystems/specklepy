@@ -31,7 +31,7 @@ class ModelResource(ResourceBase):
         )
 
     def get(self, model_id: str, project_id: str) -> Model:
-        QUERY = gql(
+        request = gql(
             """
             query ModelGet($modelId: String!, $projectId: String!) {
               data:project(id: $projectId) {
@@ -58,13 +58,13 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "modelId": model_id,
             "projectId": project_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Model]], QUERY, variables
+            DataResponse[DataResponse[Model]], request
         ).data.data
 
     def get_with_versions(
@@ -76,7 +76,7 @@ class ModelResource(ResourceBase):
         versions_cursor: str | None = None,
         versions_filter: ModelVersionsFilter | None = None,
     ) -> ModelWithVersions:
-        QUERY = gql(
+        request = gql(
             """
             query ModelGetWithVersions(
               $modelId: String!,
@@ -134,7 +134,7 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "modelId": model_id,
             "versionsLimit": versions_limit,
@@ -147,7 +147,7 @@ class ModelResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[ModelWithVersions]], QUERY, variables
+            DataResponse[DataResponse[ModelWithVersions]], request
         ).data.data
 
     def get_models(
@@ -158,7 +158,7 @@ class ModelResource(ResourceBase):
         models_cursor: str | None = None,
         models_filter: ProjectModelsFilter | None = None,
     ) -> ResourceCollection[Model]:
-        QUERY = gql(
+        request = gql(
             """
             query ProjectGetWithModels(
               $projectId: String!,
@@ -198,7 +198,7 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "modelsLimit": models_limit,
             "modelsCursor": models_cursor,
@@ -210,11 +210,11 @@ class ModelResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[ResourceCollection[Model]]], QUERY, variables
+            DataResponse[DataResponse[ResourceCollection[Model]]], request
         ).data.data
 
     def create(self, input: CreateModelInput) -> Model:
-        QUERY = gql(
+        request = gql(
             """
             mutation ModelCreate($input: CreateModelInput!) {
               data:modelMutations {
@@ -241,16 +241,16 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Model]], QUERY, variables
+            DataResponse[DataResponse[Model]], request
         ).data.data
 
     def delete(self, input: DeleteModelInput) -> bool:
-        QUERY = gql(
+        request = gql(
             """
             mutation ModelDelete($input: DeleteModelInput!) {
               data:modelMutations {
@@ -260,14 +260,16 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
+        request.variable_values = {
+            "input": input.model_dump(warnings="error", by_alias=True)
+        }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[bool]], QUERY, variables
+            DataResponse[DataResponse[bool]], request
         ).data.data
 
     def update(self, input: UpdateModelInput) -> Model:
-        QUERY = gql(
+        request = gql(
             """
             mutation ModelUpdate($input: UpdateModelInput!) {
               data:modelMutations {
@@ -294,16 +296,16 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Model]], QUERY, variables
+            DataResponse[DataResponse[Model]], request
         ).data.data
 
     def get_permissions(self, project_id: str, model_id: str) -> ModelPermissionChecks:
-        QUERY = gql(
+        request = gql(
             """
             query ModelPermissions($projectId: String!, $modelId: String!) {
               data:project(id: $projectId) {
@@ -331,18 +333,17 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {"projectId": project_id, "modelId": model_id}
+        request.variable_values = {"projectId": project_id, "modelId": model_id}
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[ModelPermissionChecks]]],
-            QUERY,
-            variables,
+            request,
         ).data.data.data
 
     def can_create_model_ingestion(
         self, project_id: str, model_id: str
     ) -> PermissionCheckResult:
-        QUERY = gql(
+        request = gql(
             """
             query ModelPermissions($projectId: String!, $modelId: String!) {
               data:project(id: $projectId) {
@@ -360,12 +361,11 @@ class ModelResource(ResourceBase):
             """
         )
 
-        variables = {"projectId": project_id, "modelId": model_id}
+        request.variable_values = {"projectId": project_id, "modelId": model_id}
 
         return self.make_request_and_parse_response(
             DataResponse[
                 DataResponse[DataResponse[DataResponse[PermissionCheckResult]]]
             ],
-            QUERY,
-            variables,
+            request,
         ).data.data.data.data

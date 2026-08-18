@@ -82,9 +82,12 @@ def create_test_automation_run(
         """
     )
 
-    params = {"automationId": test_automation_id, "projectId": project_id}
+    query.variable_values = {
+        "automationId": test_automation_id,
+        "projectId": project_id,
+    }
 
-    result = speckle_client.httpclient.execute(query, params)
+    result = speckle_client.httpclient.execute(query)
 
     print(result)
 
