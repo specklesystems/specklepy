@@ -511,12 +511,10 @@ class AutomationContext:
         # When objects are provided, each must have an id (empty list allowed for
         # version-level/skipped results).
         for o in object_list:
-            if not getattr(o, "id", None):
+            if o.id is None:
                 raise Exception(
                     f"You can only attach {level} results to objects with an id."
                 )
-            if o.id is None:
-                raise Exception("Each object must have an id")
 
             ids[o.id] = getattr(o, "applicationId", None)
 
