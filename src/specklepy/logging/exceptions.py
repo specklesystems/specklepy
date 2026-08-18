@@ -2,7 +2,7 @@ from typing import Any, List
 
 
 class SpeckleException(Exception):
-    def __init__(self, message: str, exception: Exception = None) -> None:
+    def __init__(self, message: str, exception: Exception | None = None) -> None:
         super().__init__()
         self.message = message
         self.exception = exception
@@ -23,7 +23,9 @@ class SpeckleInvalidUnitException(SpeckleException):
 
 
 class SerializationException(SpeckleException):
-    def __init__(self, message: str, obj: Any, exception: Exception = None) -> None:
+    def __init__(
+        self, message: str, obj: Any, exception: Exception | None = None
+    ) -> None:
         super().__init__(message=message, exception=exception)
         self.obj = obj
         self.unhandled_type = type(obj)
