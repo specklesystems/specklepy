@@ -270,7 +270,7 @@ class AutomationContext:
         else:
             results = None
 
-        params = {
+        query.variable_values = {
             "projectId": self.automation_run_data.project_id,
             "functionRunId": self.automation_run_data.function_run_id,
             "status": self.run_status.value,
@@ -278,8 +278,9 @@ class AutomationContext:
             "results": results,
             "contextView": self._automation_result.result_view,
         }
-        print(f"Reporting run status with content: {params}")
-        self.speckle_client.httpclient.execute(query, params)
+        print(f"Reporting run status with content: {query.variable_values}")
+
+        self.speckle_client.httpclient.execute(query)
 
     def store_file_result(self, file_path: Path | str) -> str:
         """Save a file attached to the project of this automation."""
@@ -510,10 +511,11 @@ class AutomationContext:
         # When objects are provided, each must have an id (empty list allowed for
         # version-level/skipped results).
         for o in object_list:
-            if not getattr(o, "id", None):
+            if o.id is None:
                 raise Exception(
                     f"You can only attach {level} results to objects with an id."
                 )
+
             ids[o.id] = getattr(o, "applicationId", None)
 
         print(

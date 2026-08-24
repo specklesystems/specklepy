@@ -22,7 +22,6 @@ class OtherUserResource(CoreResource):
             client=client,
             server_version=(server_version,),
         )
-        self.schema = LimitedUser
 
     def get(self, id: str) -> LimitedUser | None:
         metrics.track(metrics.SDK, self.account, {"name": "Other User Get"})

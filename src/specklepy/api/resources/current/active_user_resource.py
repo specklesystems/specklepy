@@ -32,7 +32,6 @@ class ActiveUserResource(CoreResource):
             client=client,
             server_version=server_version,
         )
-        self.schema = User
 
     def get(self) -> User | None:
         metrics.track(metrics.SDK, self.account, {"name": "Active User Get"})
