@@ -59,6 +59,13 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("id", "string", True),
         ColumnSpec("type", "string", True),
     ],
+    "model": [
+        ColumnSpec("path", "string", False),
+        ColumnSpec("value_string", "string", True),
+        ColumnSpec("value_double", "float64", True),
+        ColumnSpec("value_boolean", "bool", True),
+        ColumnSpec("unit", "string", True),
+    ],
     "nodes": [
         ColumnSpec("id", "int32", False),
         ColumnSpec("kind", "int32", False),
@@ -74,6 +81,7 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
         ColumnSpec("emissive", "int32", True),
         ColumnSpec("ior", "float64", True),
         ColumnSpec("elevation", "float64", True),
+        ColumnSpec("gh_topology", "string", True),
     ],
     "object_type": [
         ColumnSpec("object_index", "int32", False),
@@ -86,6 +94,20 @@ BY_TABLE: dict[str, list[ColumnSpec]] = {
     "paths": [
         ColumnSpec("path_index", "int32", False),
         ColumnSpec("path", "string", False),
+    ],
+    "property_set_definitions": [
+        ColumnSpec("set_name", "string", False),
+        ColumnSpec("set_key", "string", False),
+        ColumnSpec("set_description", "string", True),
+        ColumnSpec("field_name", "string", False),
+        ColumnSpec("field_bucket_id", "string", True),
+        ColumnSpec("data_type", "string", True),
+        ColumnSpec("default_string", "string", True),
+        ColumnSpec("default_double", "float64", True),
+        ColumnSpec("default_boolean", "bool", True),
+        ColumnSpec("unit", "string", True),
+        ColumnSpec("description", "string", True),
+        ColumnSpec("applies_to", "string", True),
     ],
     "relations": [
         ColumnSpec("rel", "int32", False),
