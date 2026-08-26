@@ -13,7 +13,7 @@ from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionSuccessInput,
     SourceDataInput,
 )
-from specklepy.core.api.models.current import Project, Version
+from specklepy.core.api.models.current import Project
 from specklepy.core.api.operations import send
 from specklepy.logging import metrics
 from specklepy.progress.ingestion_progress import IngestionProgressManager
@@ -32,7 +32,7 @@ def open_and_convert_file(
     version_message: str | None,
     model_ingestion_id: str,
     client: SpeckleClient,
-) -> Version:
+) -> str:
     try:
         start = time.time()
         very_start = start
@@ -96,9 +96,6 @@ def open_and_convert_file(
             )
         )
 
-        # needed to query version until ingestion api expands to serve it
-        version = client.version.get(version_id, project.id)
-
         end = time.time()
         print(f"Version committed after: {(end - start):.3f}s")
 
@@ -117,7 +114,7 @@ def open_and_convert_file(
             track_email=True,
         )
 
-        return version
+        return version_id
     except Exception as e:
         stack_trace = traceback.format_exc()
         with contextlib.suppress(Exception):

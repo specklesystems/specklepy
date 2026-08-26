@@ -44,6 +44,14 @@ class ModelIngestionResource(CoreResource):
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion Update"})
         return super().requeue(input)
 
+    def get_reserved_version_id(
+        self, project_id: str, model_ingestion_id: str
+    ) -> str | None:
+        metrics.track(
+            metrics.SDK, self.account, {"name": "Ingestion Get Reserved Version Id"}
+        )
+        return super().get_reserved_version_id(project_id, model_ingestion_id)
+
     def complete(self, input: ModelIngestionSuccessInput) -> str:
         metrics.track(metrics.SDK, self.account, {"name": "Ingestion End"})
         return super().complete(input)

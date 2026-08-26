@@ -1,6 +1,7 @@
 from typing import Any, Tuple
 
 from gql import Client, gql
+from pydantic import BaseModel, Field
 
 from specklepy.api.credentials import Account
 from specklepy.core.api.inputs.model_ingestion_inputs import (
@@ -18,8 +19,18 @@ from specklepy.core.api.models.current import (
 )
 from specklepy.core.api.resource import ResourceBase
 from specklepy.core.api.responses import DataResponse
+from specklepy.logging.exceptions import SpeckleException
 
 NAME = "ingestion"
+
+
+class _CompleteStatusData(BaseModel):
+    """statusData fragments selected by `complete`, discriminated by typename."""
+
+    typename: str = Field(alias="__typename")
+    version_id: str | None = Field(default=None, alias="versionId")
+    progress_message: str | None = Field(default=None, alias="progressMessage")
+    error_reason: str | None = Field(default=None, alias="errorReason")
 
 
 class ModelIngestionResource(ResourceBase):
@@ -234,10 +245,55 @@ class ModelIngestionResource(ResourceBase):
             DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
         ).data.data.data
 
+    def get_reserved_version_id(
+        self, project_id: str, model_ingestion_id: str
+    ) -> str | None:
+        """
+        Read the id the server reserved for the version this ingestion will produce.
+
+        Selects the top-level `ModelIngestion.versionId`, which only exists on
+        servers where every version entry point is an ingestion (2026.9+, ENG-9314).
+        On older servers the query fails validation, so only call this when the
+        server has signalled it (see `complete`).
+
+        Returns:
+            str | None -- the reserved version id, None if none was reserved
+        """
+        QUERY = gql(
+            """
+            query IngestionReservedVersionId(
+              $projectId: String!, $modelIngestionId: ID!
+            ) {
+              data:project(id: $projectId) {
+                data:ingestion(id: $modelIngestionId) {
+                  data:versionId
+                }
+              }
+            }
+            """
+        )
+
+        variables = {
+            "projectId": project_id,
+            "modelIngestionId": model_ingestion_id,
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[str | None]]],
+            QUERY,
+            variables,
+        ).data.data.data
+
     def complete(self, input: ModelIngestionSuccessInput) -> str:
         """
-        Request that the server completes the ingestion by creating a version
-        If successful, the job will be in a terminal "successful" state.
+        Request that the server completes the ingestion by creating a version.
+
+        On servers up to 2026.8 the ingestion is in a terminal "successful" state
+        when this returns and the version exists. From server 2026.9 (ENG-9314)
+        the server may answer with the ingestion still processing; in that case
+        the returned id is the one reserved for the version and the version is
+        not visible yet. Callers that need the version to exist should poll
+        `project.modelIngestions` (or `get_ingestion`) for a terminal status.
 
         For failed Ingestions, use `fail_with_error` instead
         For user cancellation, use `fail_with_cancelled` instead
@@ -246,7 +302,10 @@ class ModelIngestionResource(ResourceBase):
             input {ModelIngestionSuccessInput} -- input variable
 
         Returns:
-            str -- the id of the version that was just created to complete the ingestion
+            str -- the id of the version created (or reserved) for this ingestion
+
+        Raises:
+            SpeckleException -- the server reported the ingestion as failed
         """
         QUERY = gql(
             """
@@ -255,8 +314,15 @@ class ModelIngestionResource(ResourceBase):
                 data: modelIngestionMutations {
                   data: completeWithVersion(input: $input) {
                     data:statusData {
+                      __typename
                       ... on ModelIngestionSuccessStatus {
-                        data:versionId
+                        versionId
+                      }
+                      ... on ModelIngestionProcessingStatus {
+                        progressMessage
+                      }
+                      ... on ModelIngestionFailedStatus {
+                        errorReason
                       }
                     }
                   }
@@ -270,11 +336,37 @@ class ModelIngestionResource(ResourceBase):
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
-        return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[DataResponse[DataResponse[str]]]]],
+        status = self.make_request_and_parse_response(
+            DataResponse[DataResponse[DataResponse[DataResponse[_CompleteStatusData]]]],
             QUERY,
             variables,
-        ).data.data.data.data.data
+        ).data.data.data.data
+
+        if status.typename == "ModelIngestionSuccessStatus":
+            if status.version_id is None:
+                raise SpeckleException(
+                    "Ingestion completed but the server returned no version id"
+                )
+            return status.version_id
+
+        if status.typename == "ModelIngestionProcessingStatus":
+            version_id = self.get_reserved_version_id(
+                input.project_id, input.ingestion_id
+            )
+            if version_id is None:
+                raise SpeckleException(
+                    "Ingestion is still processing and the server reserved no"
+                    " version id"
+                )
+            return version_id
+
+        if status.typename == "ModelIngestionFailedStatus":
+            raise SpeckleException(status.error_reason or "Ingestion failed")
+
+        raise SpeckleException(
+            f"Unexpected ingestion status type from completeWithVersion:"
+            f" {status.typename}"
+        )
 
     def fail_with_error(self, input: ModelIngestionFailedInput) -> ModelIngestion:
         """
