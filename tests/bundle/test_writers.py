@@ -14,7 +14,7 @@ from specklepy.bundle.eav_writer import EavWriter
 from specklepy.bundle.envelope_writer import EnvelopeWriter
 from specklepy.bundle.geometries_writer import GeometriesParquetWriter
 from specklepy.bundle.parquet_table_writer import ParquetTableWriter, schema_of
-from specklepy.bundle.spec import BY_TABLE, SCHEMA_VERSION, NodeKind, Rel
+from specklepy.bundle.spec import BY_TABLE, REL_TYPES, SCHEMA_VERSION, NodeKind, Rel
 
 BASE = "test"
 
@@ -74,20 +74,23 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
         f"SELECT schema_version FROM "
         f"read_parquet('{out}/{BASE}.envelope.meta.parquet')",
     )[0:1]
-    assert ver[0] == SCHEMA_VERSION == 5
+    assert ver[0] == SCHEMA_VERSION == 1
 
-    # rel_types catalog: 17 live+reserved (retired absent; 17 IN_GROUP and
-    # 22 HOSTED_ON were un-retired in spec v5)
+    # rel_types catalog: every live+reserved row of the vendored spec, retired absent.
+    # Derived from the vendored catalog so a re-vendor never leaves a stale literal.
+    expected_live = sum(1 for r in REL_TYPES if r.status != "retired")
+    retired_ids = [r.id for r in REL_TYPES if r.status == "retired"]
+    assert expected_live > 0 and retired_ids
     (n_rel,) = _q(
         con,
         f"SELECT count(*) FROM read_parquet('{out}/{BASE}.envelope.rel_types.parquet')",
     )[0]
-    assert n_rel == 17
+    assert n_rel == expected_live
     # retired ids never present
     retired = _q(
         con,
         f"SELECT count(*) FROM read_parquet('{out}/{BASE}.envelope.rel_types.parquet') "
-        "WHERE rel IN (13,15,16,18,19,20)",
+        f"WHERE rel IN ({','.join(str(i) for i in retired_ids)})",
     )[0][0]
     assert retired == 0
 
@@ -107,7 +110,7 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
         f"DESCRIBE SELECT * FROM read_parquet('{out}/{BASE}.envelope.nodes.parquet')",
     )
     assert [d[0] for d in described] == [c.name for c in BY_TABLE["nodes"]]
-    assert len(described) == 14  # v5: 12 + emissive + ior
+    assert len(described) == len(BY_TABLE["nodes"])  # tracks the vendored spec
 
     # nodes + relations content
     nodes = _q(
@@ -214,7 +217,7 @@ def test_add_row_arity_mismatch_names_the_table(tmp_path):
     w = ParquetTableWriter(
         str(tmp_path / "nodes.parquet"), schema_of(BY_TABLE["nodes"]), table="nodes"
     )
-    with pytest.raises(ValueError, match=r"table 'nodes'.*12 values.*14 columns"):
+    with pytest.raises(ValueError, match=r"table 'nodes'.*12 values.*15 columns"):
         # the pre-emissive/ior 12-column row shape
         w.add_row(0, 1, None, None, None, None, None, None, None, None, None, None)
     w.complete()

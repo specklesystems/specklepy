@@ -1,5 +1,3 @@
-from typing import Optional
-
 from gql import gql
 
 from specklepy.core.api.inputs.model_inputs import ModelVersionsFilter
@@ -30,7 +28,7 @@ class VersionResource(ResourceBase):
         )
 
     def get(self, version_id: str, project_id: str) -> Version:
-        QUERY = gql(
+        request = gql(
             """
             query VersionGet($projectId: String!, $versionId: String!) {
               data:project(id: $projectId) {
@@ -56,13 +54,13 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "versionId": version_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Version]], QUERY, variables
+            DataResponse[DataResponse[Version]], request
         ).data.data
 
     def get_versions(
@@ -71,10 +69,10 @@ class VersionResource(ResourceBase):
         project_id: str,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[ModelVersionsFilter] = None,
+        cursor: str | None = None,
+        filter: ModelVersionsFilter | None = None,
     ) -> ResourceCollection[Version]:
-        QUERY = gql(
+        request = gql(
             """
             query VersionGetVersions(
               $projectId: String!,
@@ -112,7 +110,7 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "modelId": model_id,
             "limit": limit,
@@ -124,12 +122,11 @@ class VersionResource(ResourceBase):
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[ResourceCollection[Version]]]],
-            QUERY,
-            variables,
+            request,
         ).data.data.data
 
     def create(self, input: CreateVersionInput) -> Version:
-        QUERY = gql(
+        request = gql(
             """
             mutation Create($input: CreateVersionInput!) {
               data:versionMutations {
@@ -154,16 +151,16 @@ class VersionResource(ResourceBase):
             }
             """
         )
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Version]], QUERY, variables
+            DataResponse[DataResponse[Version]], request
         ).data.data
 
     def update(self, input: UpdateVersionInput) -> Version:
-        QUERY = gql(
+        request = gql(
             """
             mutation VersionUpdate($input: UpdateVersionInput!) {
               data:versionMutations {
@@ -189,14 +186,16 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {"input": input.model_dump(warnings="error", by_alias=True)}
+        request.variable_values = {
+            "input": input.model_dump(warnings="error", by_alias=True)
+        }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[Version]], QUERY, variables
+            DataResponse[DataResponse[Version]], request
         ).data.data
 
     def move_to_model(self, input: MoveVersionsInput) -> str:
-        QUERY = gql(
+        request = gql(
             """
             mutation VersionMoveToModel($input: MoveVersionsInput!) {
               data:versionMutations {
@@ -208,16 +207,16 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[str]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[str]]], request
         ).data.data.data
 
     def delete(self, input: DeleteVersionsInput) -> bool:
-        QUERY = gql(
+        request = gql(
             """
             mutation VersionDelete($input: DeleteVersionsInput!) {
               data:versionMutations {
@@ -227,16 +226,16 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[bool]], QUERY, variables
+            DataResponse[DataResponse[bool]], request
         ).data.data
 
     def received(self, input: MarkReceivedVersionInput) -> bool:
-        QUERY = gql(
+        request = gql(
             """
             mutation MarkReceived($input: MarkReceivedVersionInput!) {
               data:versionMutations {
@@ -246,10 +245,10 @@ class VersionResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[bool]], QUERY, variables
+            DataResponse[DataResponse[bool]], request
         ).data.data

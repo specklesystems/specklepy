@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from specklepy.core.api.inputs.user_inputs import (
     UserProjectsFilter,
@@ -32,9 +32,8 @@ class ActiveUserResource(CoreResource):
             client=client,
             server_version=server_version,
         )
-        self.schema = User
 
-    def get(self) -> Optional[User]:
+    def get(self) -> User | None:
         metrics.track(metrics.SDK, self.account, {"name": "Active User Get"})
         return super().get()
 
@@ -50,8 +49,8 @@ class ActiveUserResource(CoreResource):
         self,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[UserProjectsFilter] = None,
+        cursor: str | None = None,
+        filter: UserProjectsFilter | None = None,
     ) -> ResourceCollection[Project]:
         metrics.track(metrics.SDK, self.account, {"name": "Active User Get Projects"})
         return super().get_projects(limit=limit, cursor=cursor, filter=filter)
@@ -60,8 +59,8 @@ class ActiveUserResource(CoreResource):
         self,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[UserProjectsFilter] = None,
+        cursor: str | None = None,
+        filter: UserProjectsFilter | None = None,
     ) -> ResourceCollection[ProjectWithPermissions]:
         metrics.track(
             metrics.SDK,
@@ -89,13 +88,13 @@ class ActiveUserResource(CoreResource):
     def get_workspaces(
         self,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[UserWorkspacesFilter] = None,
+        cursor: str | None = None,
+        filter: UserWorkspacesFilter | None = None,
     ) -> ResourceCollection[Workspace]:
         metrics.track(metrics.SDK, self.account, {"name": "Active User Get Workspaces"})
         return super().get_workspaces(limit, cursor, filter)
 
-    def get_active_workspace(self) -> Optional[LimitedWorkspace]:
+    def get_active_workspace(self) -> LimitedWorkspace | None:
         metrics.track(
             metrics.SDK, self.account, {"name": "Active User Get Active Workspace"}
         )

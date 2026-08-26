@@ -1,5 +1,3 @@
-from typing import Optional
-
 from specklepy.core.api.inputs.model_inputs import ModelVersionsFilter
 from specklepy.core.api.inputs.version_inputs import (
     CreateVersionInput,
@@ -34,8 +32,8 @@ class VersionResource(CoreResource):
         project_id: str,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
-        filter: Optional[ModelVersionsFilter] = None,
+        cursor: str | None = None,
+        filter: ModelVersionsFilter | None = None,
     ) -> ResourceCollection[Version]:
         metrics.track(metrics.SDK, self.account, {"name": "Version Get Versions"})
         return super().get_versions(

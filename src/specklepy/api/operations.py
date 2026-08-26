@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from specklepy.core.api.operations import deserialize as core_deserialize
 from specklepy.core.api.operations import receive as _untracked_receive
@@ -11,7 +11,7 @@ from specklepy.transports.abstract_transport import AbstractTransport
 
 def send(
     base: Base,
-    transports: Optional[List[AbstractTransport]] = None,
+    transports: List[AbstractTransport] | None = None,
     use_default_cache: bool = True,
 ):
     """Sends an object via the provided transports. Defaults to the local cache.
@@ -35,8 +35,8 @@ def send(
 
 def receive(
     obj_id: str,
-    remote_transport: Optional[AbstractTransport] = None,
-    local_transport: Optional[AbstractTransport] = None,
+    remote_transport: AbstractTransport | None = None,
+    local_transport: AbstractTransport | None = None,
 ) -> Base:
     """Receives an object from a transport.
 
@@ -76,7 +76,7 @@ def serialize(
 
 
 def deserialize(
-    obj_string: str, read_transport: Optional[AbstractTransport] = None
+    obj_string: str, read_transport: AbstractTransport | None = None
 ) -> Base:
     """
     Deserialize a string object into a Base object.

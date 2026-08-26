@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 from gql import Client, gql
 
@@ -22,7 +22,7 @@ class ProjectInviteResource(ResourceBase):
         account: Account,
         basepath: str,
         client: Client,
-        server_version: Optional[Tuple[Any, ...]],
+        server_version: Tuple[Any, ...] | None,
     ) -> None:
         super().__init__(
             account=account,
@@ -35,7 +35,7 @@ class ProjectInviteResource(ResourceBase):
     def create(
         self, project_id: str, input: ProjectInviteCreateInput
     ) -> ProjectWithTeam:
-        QUERY = gql(
+        request = gql(
             """
             mutation ProjectInviteCreate(
               $projectId: ID!,
@@ -101,17 +101,17 @@ class ProjectInviteResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[ProjectWithTeam]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[ProjectWithTeam]]], request
         ).data.data.data
 
     def use(self, input: ProjectInviteUseInput) -> bool:
-        QUERY = gql(
+        request = gql(
             """
             mutation ProjectInviteUse($input: ProjectInviteUseInput!) {
               data:projectMutations {
@@ -123,20 +123,20 @@ class ProjectInviteResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[bool]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[bool]]], request
         ).data.data.data
 
     def get(
-        self, project_id: str, token: Optional[str]
-    ) -> Optional[PendingStreamCollaborator]:
+        self, project_id: str, token: str | None
+    ) -> PendingStreamCollaborator | None:
         """Returns: The invite, or None if no invite exists"""
 
-        QUERY = gql(
+        request = gql(
             """
             query ProjectInvite($projectId: String!, $token: String) {
               data:projectInvite(projectId: $projectId, token: $token) {
@@ -170,13 +170,13 @@ class ProjectInviteResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "token": token,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[Optional[PendingStreamCollaborator]], QUERY, variables
+            DataResponse[PendingStreamCollaborator | None], request
         ).data
 
     def cancel(
@@ -184,7 +184,7 @@ class ProjectInviteResource(ResourceBase):
         project_id: str,
         invite_id: str,
     ) -> ProjectWithTeam:
-        QUERY = gql(
+        request = gql(
             """
             mutation ProjectInviteCancel($projectId: ID!, $inviteId: String!) {
               data:projectMutations {
@@ -247,11 +247,11 @@ class ProjectInviteResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "inviteId": invite_id,
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[ProjectWithTeam]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[ProjectWithTeam]]], request
         ).data.data.data

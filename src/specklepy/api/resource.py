@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 from gql.client import Client
 
@@ -13,7 +13,7 @@ class ResourceBase(CoreResourceBase):
         basepath: str,
         client: Client,
         name: str,
-        server_version: Optional[Tuple[Any, ...]] = None,
+        server_version: Tuple[Any, ...] | None = None,
     ) -> None:
         super().__init__(
             account=account,

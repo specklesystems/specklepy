@@ -1,5 +1,3 @@
-from typing import Optional
-
 from gql import gql
 
 from specklepy.core.api.models import (
@@ -23,9 +21,8 @@ class OtherUserResource(ResourceBase):
             name=NAME,
             server_version=server_version,
         )
-        self.schema = LimitedUser
 
-    def get(self, id: str) -> Optional[LimitedUser]:
+    def get(self, id: str) -> LimitedUser | None:
         """
         Gets the profile of another user.
 
@@ -35,7 +32,7 @@ class OtherUserResource(ResourceBase):
         Returns:
             LimitedUser -- the retrieved profile of another user
         """
-        QUERY = gql(
+        request = gql(
             """
           query LimitedUser($id: String!) {
             data:otherUser(id: $id){
@@ -51,10 +48,10 @@ class OtherUserResource(ResourceBase):
           """
         )
 
-        variables = {"id": id}
+        request.variable_values = {"id": id}
 
         return self.make_request_and_parse_response(
-            DataResponse[Optional[LimitedUser]], QUERY, variables
+            DataResponse[LimitedUser | None], request
         ).data
 
     def user_search(
@@ -62,7 +59,7 @@ class OtherUserResource(ResourceBase):
         query: str,
         *,
         limit: int = 25,
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
         archived: bool = False,
         emailOnly: bool = False,
     ) -> UserSearchResultCollection:
@@ -81,7 +78,7 @@ class OtherUserResource(ResourceBase):
             ResourceCollection[LimitedUser] -- User objects that match the search query
         """
 
-        QUERY = gql(
+        request = gql(
             """
             query UserSearch(
                 $query: String!,
@@ -111,7 +108,7 @@ class OtherUserResource(ResourceBase):
             }
             """
         )
-        variables = {
+        request.variable_values = {
             "query": query,
             "limit": limit,
             "cursor": cursor,
@@ -120,5 +117,5 @@ class OtherUserResource(ResourceBase):
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[UserSearchResultCollection], QUERY, variables
+            DataResponse[UserSearchResultCollection], request
         ).data

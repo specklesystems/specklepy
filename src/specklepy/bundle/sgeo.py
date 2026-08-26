@@ -27,7 +27,6 @@ from __future__ import annotations
 import struct
 import zlib
 from enum import IntEnum, IntFlag
-from typing import Optional
 
 MAGIC = b"SGEO"
 VERSION_1 = 1
@@ -80,7 +79,7 @@ _UNIT_ENCODING = {
 }
 
 
-def get_encoding_from_unit(units: Optional[str]) -> int:
+def get_encoding_from_unit(units: str | None) -> int:
     """Map a semantic unit string to its SGEO uint16 code (0 if unrecognised)."""
     return _UNIT_ENCODING.get(units or "", 0)
 
@@ -169,7 +168,7 @@ def _polyline_body(b: bytearray, p) -> None:
 
 
 def _assemble(
-    primitive_type: PrimitiveType, flags: Flags, units: Optional[str], body: bytearray
+    primitive_type: PrimitiveType, flags: Flags, units: str | None, body: bytearray
 ) -> bytes:
     buf = bytearray(HEADER_SIZE + len(body))
     buf[0:4] = MAGIC  # 0x00..0x03
@@ -462,7 +461,7 @@ def encode(geometry) -> bytes:
     return encoder(geometry)
 
 
-def try_get_primitive_type(geometry) -> Optional[int]:
+def try_get_primitive_type(geometry) -> int | None:
     """Return the SGEO primitive type code if encodable, else ``None``."""
     primitive = _PRIMITIVE_TYPES.get(type(geometry).__name__)
     return int(primitive) if primitive is not None else None

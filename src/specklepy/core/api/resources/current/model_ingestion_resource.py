@@ -1,5 +1,6 @@
 from typing import Any, Tuple
 
+from deprecated import deprecated
 from gql import Client, gql
 
 from specklepy.api.credentials import Account
@@ -21,6 +22,16 @@ from specklepy.core.api.responses import DataResponse
 
 NAME = "ingestion"
 
+COMPLETE_WITH_VERSION_DEPRECATION: dict[str, Any] = {
+    "reason": (
+        "The completeWithVersion mutation bypasses the v2 REST uploads/complete"
+        " seam, so the server never dispatches dat generation and the created"
+        " version is not viewer-consumable in the bundle era. Complete uploads"
+        " via specklepy.bundle.upload.ArtifactPipeline"
+        " (the v2 REST uploads/complete flow) instead."
+    ),
+}
+
 
 class ModelIngestionResource(ResourceBase):
     """API Access class for model ingestion"""
@@ -41,7 +52,7 @@ class ModelIngestionResource(ResourceBase):
         )
 
     def get_ingestion(self, project_id: str, model_ingestion_id: str) -> ModelIngestion:
-        QUERY = gql(
+        request = gql(
             """
             query Query($projectId: String!, $modelIngestionId: ID!) {
               data:project(id: $projectId) {
@@ -71,19 +82,18 @@ class ModelIngestionResource(ResourceBase):
             """  # noqa: E501
         )
 
-        variables = {
+        request.variable_values = {
             "projectId": project_id,
             "modelIngestionId": model_ingestion_id,
         }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[ModelIngestion]],
-            QUERY,
-            variables,
+            request,
         ).data.data
 
     def create(self, input: ModelIngestionCreateInput) -> ModelIngestion:
-        QUERY = gql(
+        request = gql(
             """
             mutation IngestionCreate($input: ModelIngestionCreateInput!) {
               data: projectMutations {
@@ -111,18 +121,18 @@ class ModelIngestionResource(ResourceBase):
            """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]], request
         ).data.data.data
 
     def start_processing(
         self, input: ModelIngestionStartProcessingInput
     ) -> ModelIngestion:
-        QUERY = gql(
+        request = gql(
             """
             mutation IngestionStartProcessing($input: ModelIngestionStartProcessingInput!) {
               data: projectMutations {
@@ -150,16 +160,16 @@ class ModelIngestionResource(ResourceBase):
            """  # noqa: E501
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]], request
         ).data.data.data
 
     def requeue(self, input: ModelIngestionRequeueInput) -> ModelIngestion:
-        QUERY = gql(
+        request = gql(
             """
             mutation IngestionRequeue($input: ModelIngestionRequeueInput!) {
               data: projectMutations {
@@ -187,16 +197,16 @@ class ModelIngestionResource(ResourceBase):
            """  # noqa: E501
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]], request
         ).data.data.data
 
     def update_progress(self, input: ModelIngestionUpdateInput) -> ModelIngestion:
-        QUERY = gql(
+        request = gql(
             """
             mutation IngestionUpdateProgress(
               $input: ModelIngestionUpdateInput!
@@ -226,14 +236,15 @@ class ModelIngestionResource(ResourceBase):
            """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
-            DataResponse[DataResponse[DataResponse[ModelIngestion]]], QUERY, variables
+            DataResponse[DataResponse[DataResponse[ModelIngestion]]], request
         ).data.data.data
 
+    @deprecated(**COMPLETE_WITH_VERSION_DEPRECATION)
     def complete(self, input: ModelIngestionSuccessInput) -> str:
         """
         Request that the server completes the ingestion by creating a version
@@ -248,7 +259,7 @@ class ModelIngestionResource(ResourceBase):
         Returns:
             str -- the id of the version that was just created to complete the ingestion
         """
-        QUERY = gql(
+        request = gql(
             """
             mutation IngestionComplete($input: ModelIngestionSuccessInput!) {
               data: projectMutations {
@@ -266,14 +277,13 @@ class ModelIngestionResource(ResourceBase):
            """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[DataResponse[DataResponse[str]]]]],
-            QUERY,
-            variables,
+            request,
         ).data.data.data.data.data
 
     def fail_with_error(self, input: ModelIngestionFailedInput) -> ModelIngestion:
@@ -281,7 +291,7 @@ class ModelIngestionResource(ResourceBase):
         Fail the job with an error.
         For user requested cancellation, use `fail_with_cancelled` instead
         """
-        QUERY = gql(
+        request = gql(
             """
             mutation IngestionFailWithError($input: ModelIngestionFailedInput!) {
               data: projectMutations {
@@ -309,14 +319,13 @@ class ModelIngestionResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[ModelIngestion]]],
-            QUERY,
-            variables,
+            request,
         ).data.data.data
 
     def fail_with_cancel(self, input: ModelIngestionCancelledInput) -> ModelIngestion:
@@ -326,7 +335,7 @@ class ModelIngestionResource(ResourceBase):
         Other forms of cancellation use `fail_with_error`
         The ingestion should then enter a terminal "canceled" state
         """
-        QUERY = gql(
+        request = gql(
             """
             mutation IngestionFailWithCancel($input: ModelIngestionCancelledInput!) {
               data: projectMutations {
@@ -354,14 +363,13 @@ class ModelIngestionResource(ResourceBase):
             """
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[ModelIngestion]]],
-            QUERY,
-            variables,
+            request,
         ).data.data.data
 
     def request_cancellation(
@@ -378,7 +386,7 @@ class ModelIngestionResource(ResourceBase):
 
         See "cooperative cancellation pattern"
         """
-        QUERY = gql(
+        request = gql(
             """
             mutation IngestionRequestCancellation($input: ModelIngestionRequestCancellationInput!) {
               data: projectMutations {
@@ -406,12 +414,11 @@ class ModelIngestionResource(ResourceBase):
             """  # noqa: E501
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(warnings="error", by_alias=True),
         }
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[DataResponse[ModelIngestion]]],
-            QUERY,
-            variables,
+            request,
         ).data.data.data

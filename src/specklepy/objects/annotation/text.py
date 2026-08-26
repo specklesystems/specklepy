@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Plane, Point
@@ -33,10 +32,10 @@ class Text(Base, IHasUnits, speckle_type="Objects.Annotation.Text"):
         default_factory=lambda: AlignmentHorizontal.Left
     )
     alignmentV: AlignmentVertical = field(default_factory=lambda: AlignmentVertical.Top)
-    plane: Optional[Plane] = field(
+    plane: Plane | None = field(
         default_factory=lambda: None
     )  # None if the text object orientation follows camera view
-    maxWidth: Optional[float] = field(
+    maxWidth: float | None = field(
         default_factory=lambda: None
     )  # Maximum width of the text field. None, if don't split into lines
 
