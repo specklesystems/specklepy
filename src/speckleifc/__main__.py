@@ -39,7 +39,7 @@ def cmd_line_import() -> None:
         client.authenticate_with_token(TOKEN)
         project = client.project.get(args.project_id)
 
-        version = open_and_convert_file(
+        version_id = open_and_convert_file(
             args.file_path,
             project,
             args.version_message,
@@ -47,7 +47,7 @@ def cmd_line_import() -> None:
             client,
         )
         with open(args.output_path, "w") as f:
-            json.dump({"success": True, "commitId": version.id}, f)
+            json.dump({"success": True, "commitId": version_id}, f)
     except Exception as e:
         stack_trace = traceback.format_exc()
         error_msg = f"IFC Importer failed with exception:\n{stack_trace}"
