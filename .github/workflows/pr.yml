@@ -140,6 +140,7 @@ jobs:
           repository: specklesystems/speckle-bundle-spec
           ref: ${{ steps.pin.outputs.commit }}
           path: speckle-bundle-spec
+          token: ${{ secrets.CONNECTORS_GH_TOKEN }}
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
