@@ -14,6 +14,7 @@ from specklepy.objects.geometry.mesh import Mesh
 
 PRODUCER = Producer(slug="fixture", version="0.1", migrated_from_schema_version=None)
 IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+PLACEMENT = [1, 0, 0, 30.5, 0, 1, 0, 12.2, 0, 0, 1, 0, 0, 0, 0, 1]
 
 
 def mesh() -> Mesh:
@@ -167,7 +168,14 @@ def build(out: str, base: str) -> Ks:
                 0, "Front", True, 0, 0, -10, 2, 0, 1, 0, 0, 0, 1, units="m", fov=45
             )
         )
-        p.add_reference_point("projectBasePoint", IDENTITY, "m")
+        p.add_model_placement(
+            "projectBasePoint",
+            PLACEMENT,
+            "m",
+            True,
+            source="projectBasePoint",
+            options={"internalOrigin": IDENTITY, "projectBasePoint": PLACEMENT},
+        )
         p.add_model_property("projectInformation.name", "Fixture")
         p.add_property_set_definition(
             "Pset_Wall", "pset-key", "Width", "bucket-w", "double", unit="mm"

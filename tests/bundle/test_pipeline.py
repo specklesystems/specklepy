@@ -126,16 +126,27 @@ def test_nodes(bundle):
 
 def test_optional_files(bundle):
     _, _, q = bundle
+    csv = lambda t: ",".join(repr(float(d)) for d in t)  # noqa: E731
     assert q(
-        "SELECT path, value_string FROM {g}.eav.model.parquet') ORDER BY path"
+        "SELECT path, value_string, value_boolean FROM {g}.eav.model.parquet') "
+        "ORDER BY path"
     ) == [
-        ("projectInformation.name", "Fixture"),
-        ("referencePoint.kind", "projectBasePoint"),
+        ("modelPlacement.appliedToGeometry", None, True),
+        ("modelPlacement.default", "projectBasePoint", None),
         (
-            "referencePoint.transform",
-            ",".join(repr(float(d)) for d in fixture_bundle.IDENTITY),
+            "modelPlacement.options.internalOrigin.transform",
+            csv(fixture_bundle.IDENTITY),
+            None,
         ),
-        ("referencePoint.units", "m"),
+        (
+            "modelPlacement.options.projectBasePoint.transform",
+            csv(fixture_bundle.PLACEMENT),
+            None,
+        ),
+        ("modelPlacement.source", "projectBasePoint", None),
+        ("modelPlacement.transform", csv(fixture_bundle.PLACEMENT), None),
+        ("modelPlacement.units", "m", None),
+        ("projectInformation.name", "Fixture", None),
     ]
     assert q(
         "SELECT set_name, field_name, field_bucket_id, unit "
@@ -189,14 +200,41 @@ def test_model_property_coalesces_one_typed_column(tmp_path):
     ]
 
 
-def test_reference_point_rules(tmp_path):
-    with ObjectsArtifactPipeline(str(tmp_path), BASE, Producer("t", "1")) as p:
+def _model_strings(out: str) -> dict[str, str]:
+    return dict(
+        duckdb.sql(
+            f"SELECT path, value_string "
+            f"FROM read_parquet('{out}/{BASE}.eav.model.parquet')"
+        ).fetchall()
+    )
+
+
+def test_model_placement_rules(tmp_path):
+    out = str(tmp_path)
+    identity = fixture_bundle.IDENTITY
+    with ObjectsArtifactPipeline(out, BASE, Producer("t", "1")) as p:
         with pytest.raises(ValueError):
-            p.add_reference_point("bogus", None, "m")
+            p.add_model_placement(
+                "surveyPoint",
+                identity,
+                "m",
+                False,
+                options={"internalOrigin": identity},
+            )
         with pytest.raises(ValueError):
-            p.add_reference_point("surveyPoint", None, "m")
-        p.add_reference_point("internalOriginFallback", None, "m")
-    rows = duckdb.sql(
-        f"SELECT path FROM read_parquet('{tmp_path}/{BASE}.eav.model.parquet')"
-    ).fetchall()
-    assert rows == [("referencePoint.kind",), ("referencePoint.units",)]
+            p.add_model_placement("internalOrigin", identity[:15], "m", False)
+        p.add_model_placement(
+            "internalOrigin", identity, "m", False, source="internalOriginFallback"
+        )
+    rows = _model_strings(out)
+    assert rows["modelPlacement.default"] == "internalOrigin"
+    assert rows["modelPlacement.source"] == "internalOriginFallback"
+    assert "modelPlacement.options.internalOrigin.transform" not in rows
+
+
+def test_model_placement_source_defaults_to_default(tmp_path):
+    out = str(tmp_path)
+    with ObjectsArtifactPipeline(out, BASE, Producer("t", "1")) as p:
+        p.add_model_placement("drawingWcs", fixture_bundle.IDENTITY, "mm", True)
+    rows = _model_strings(out)
+    assert rows["modelPlacement.source"] == "drawingWcs"

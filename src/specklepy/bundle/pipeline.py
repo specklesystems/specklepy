@@ -34,13 +34,11 @@ from specklepy.bundle.property_set_definitions_writer import (
 )
 from specklepy.bundle.spec import NodeKind, Rel
 
-REFERENCE_POINT_KINDS = frozenset(
-    {"projectBasePoint", "surveyPoint", "sharedCoordinates", "internalOriginFallback"}
-)
-
 
 def _format_transform(transform: Sequence[float]) -> str:
     """16 row-major doubles as a comma-separated string."""
+    if len(transform) != 16:
+        raise ValueError(f"transform must have 16 doubles, got {len(transform)}")
     return ",".join(repr(float(d)) for d in transform)
 
 
@@ -381,21 +379,33 @@ class ObjectsArtifactPipeline:
             self._model = ModelEavWriter(self.output_dir, self.base_name)
         self._model.add_row(path, string, double, boolean, unit)
 
-    def add_reference_point(
-        self, kind: str, transform: Sequence[float] | None, units: str | None
+    def add_model_placement(
+        self,
+        default: str,
+        transform: Sequence[float],
+        units: str | None,
+        applied_to_geometry: bool,
+        *,
+        source: str | None = None,
+        options: Mapping[str, Sequence[float]] | None = None,
     ) -> None:
-        """The re-basing applied to geometry, as ``referencePoint.*`` model rows.
-        ``transform`` is omitted only for ``internalOriginFallback``."""
-        if kind not in REFERENCE_POINT_KINDS:
-            raise ValueError(f"unknown reference point kind '{kind}'")
-        if transform is None and kind != "internalOriginFallback":
-            raise ValueError(f"reference point '{kind}' requires a transform")
-        self.add_model_property("referencePoint.kind", kind)
-        if transform is not None:
-            self.add_model_property(
-                "referencePoint.transform", _format_transform(transform)
+        """Where the model sits: host internal → ``default`` datum, plus every
+        selectable datum in ``options``."""
+        if options and default not in options:
+            raise ValueError(
+                f"modelPlacement default '{default}' is not one of {sorted(options)}"
             )
-        self.add_model_property("referencePoint.units", units)
+        for kind, t in (options or {}).items():
+            self.add_model_property(
+                f"modelPlacement.options.{kind}.transform", _format_transform(t)
+            )
+        self.add_model_property("modelPlacement.default", default)
+        self.add_model_property("modelPlacement.source", source or default)
+        self.add_model_property(
+            "modelPlacement.transform", _format_transform(transform)
+        )
+        self.add_model_property("modelPlacement.units", units)
+        self.add_model_property("modelPlacement.appliedToGeometry", applied_to_geometry)
 
     def add_property_set_definition(
         self,
