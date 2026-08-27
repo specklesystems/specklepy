@@ -1,22 +1,10 @@
-from typing import Sequence
+from warnings import warn
 
-from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.api.inputs.user_inputs import *  # noqa: F403
+from specklepy.logging.exceptions import SpeckleWarning
 
-
-class UserUpdateInput(GraphQLBaseModel):
-    avatar: str | None = None
-    bio: str | None = None
-    company: str | None = None
-    name: str | None = None
-
-
-class UserProjectsFilter(GraphQLBaseModel):
-    search: str | None = None
-    only_with_roles: Sequence[str] | None = None
-    workspace_id: str | None = None
-    personal_only: bool | None = None
-    include_implicit_access: bool | None = None
-
-
-class UserWorkspacesFilter(GraphQLBaseModel):
-    search: str | None
+warn(
+    "Imports from `specklepy.core.api.inputs.user_inputs` are now deprecated, import from `specklepy.api.inputs.user_inputs` instead",  # noqa: E501
+    SpeckleWarning,
+    stacklevel=2,
+)

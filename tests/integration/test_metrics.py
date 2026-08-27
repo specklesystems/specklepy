@@ -5,21 +5,37 @@ from pytest_httpserver import HTTPServer
 from requests import HTTPError
 from werkzeug import Request, Response
 
-from specklepy.core.api.client import SpeckleClient
+from specklepy.api.client import SpeckleClient
+from specklepy.api.credentials import Account, UserInfo
+from specklepy.api.models.current import ServerInfo
 from specklepy.logging import metrics
 
 PATH = "/"
 
+TEST_USER_ID = "abcefmyuser"
+TEST_USER_EMAIL = "me@example.com"
+
 
 def assert_common_properties(payload: Any) -> None:
-    assert payload["event"] == "SDK Action"
-    assert payload["properties"]["token"] == "acd87c5a50b56df91a795e999812a3a4"
-    assert payload["properties"]["type"] == "action"
-    assert payload["properties"]["server_id"]
-    assert payload["properties"]["distinct_id"]
-    assert payload["properties"]["hostApp"] == "python"
+    assert payload["event"] == "Send"
+    assert payload["distinct_id"] == TEST_USER_ID
+    assert payload["properties"]["$os"]
+    assert payload["properties"]["$os_version"]
+    assert payload["properties"]["$lib"] == "specklepy"
+    assert payload["properties"]["$user_id"] == payload["distinct_id"]
+    assert payload["properties"]["$host"] == "app.speckle.systems"
+    assert payload["properties"]["email"] == TEST_USER_EMAIL
+    assert payload["properties"]["hostAppSlug"] == "python"
     assert payload["properties"]["hostAppVersion"]
-    assert payload["properties"]["core_version"]
+    assert payload["properties"]["specklePyVersion"]
+
+
+@pytest.fixture(scope="session")
+def metrics_account() -> Account:
+    return Account(
+        serverInfo=ServerInfo(url="https://app.speckle.systems"),
+        userInfo=UserInfo(id=TEST_USER_ID, email="me@example.com"),
+    )
 
 
 def handler(extra_check: Callable[[Any], bool]) -> Callable[[Request], Response]:
@@ -33,23 +49,17 @@ def handler(extra_check: Callable[[Any], bool]) -> Callable[[Request], Response]
     return inner
 
 
-def test_metrics_track(httpserver: HTTPServer, client: SpeckleClient):
+def test_metrics_track(httpserver: HTTPServer, metrics_account: Account):
     with ScopedMetricsSetup(httpserver.url_for(PATH)) as _:
-        # Test No email
-        httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
-            handler(lambda payload: "email" not in payload["properties"])
-        )
-        metrics.track("SDK Action", client.account, None, True, False)
-
-        # Test With email
+        # Test
         httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
             handler(
                 lambda payload: (
-                    payload["properties"]["email"] == client.account.userInfo.email
+                    payload["properties"]["email"] == metrics_account.userInfo.email
                 )
             )
         )
-        metrics.track("SDK Action", client.account, None, True, True)
+        metrics.track("Send", metrics_account, None, True)
 
         # Test With custom value
         httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
@@ -57,21 +67,39 @@ def test_metrics_track(httpserver: HTTPServer, client: SpeckleClient):
                 lambda payload: payload["properties"]["myCustomProp"] == "myCustomValue"
             )
         )
-        metrics.track(
-            "SDK Action", client.account, {"myCustomProp": "myCustomValue"}, True, True
+        metrics.track("Send", metrics_account, {"myCustomProp": "myCustomValue"}, True)
+
+
+def test_skip_metrics_track_for_non_app_server(
+    httpserver: HTTPServer, client: SpeckleClient
+):
+    with ScopedMetricsSetup(httpserver.url_for(PATH)) as _:
+        was_tracked = False
+
+        def track_handler(payload) -> bool:
+            nonlocal was_tracked
+            was_tracked = True
+            return True
+
+        httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
+            handler(track_handler)
         )
 
+        metrics.track("Send", client.account, None, True)
 
-def test_metrics_errors(httpserver: HTTPServer):
+        assert not was_tracked
+
+
+def test_metrics_errors(httpserver: HTTPServer, metrics_account: Account):
     with ScopedMetricsSetup(httpserver.url_for(PATH)) as _:
         httpserver.expect_oneshot_request(PATH, "post").respond_with_data("", 400)
 
         # Expect send_sync == true to mean mean it will raise
         with pytest.raises(HTTPError):
-            metrics.track("SDK Action", send_sync=True)
+            metrics.track("Send", metrics_account, send_sync=True)
 
         # Expect send_sync == false to mean mean it won't
-        metrics.track("SDK Action")
+        metrics.track("Send", metrics_account)
 
 
 class ScopedMetricsSetup:
@@ -82,7 +110,7 @@ class ScopedMetricsSetup:
     tracker: metrics.MetricsTracker
 
     def __init__(self, metrics_url: str):
-        self.tracker = metrics.initialise_tracker()
+        self.tracker = metrics._initialise_tracker()
         self.tracker.analytics_url = metrics_url
 
     def __enter__(self):

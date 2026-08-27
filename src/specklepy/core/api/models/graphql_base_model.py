@@ -1,17 +1,10 @@
-from pydantic import AliasGenerator, BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from warnings import warn
 
+from specklepy.api.models.graphql_base_model import *  # noqa: F403
+from specklepy.logging.exceptions import SpeckleWarning
 
-class GraphQLBaseModel(BaseModel):
-    """
-    Parent class for all GraphQL Object Model classes
-    Sets-up a pydantic config to serialize properties using a camel case alias
-    """
-
-    model_config = ConfigDict(
-        alias_generator=AliasGenerator(
-            serialization_alias=to_camel,
-            validation_alias=to_camel,
-        ),
-        populate_by_name=True,
-    )
+warn(
+    "Imports from `specklepy.core.api.models.graphql_base_model` are now deprecated, import from `specklepy.api.models.graphql_base_model` instead",  # noqa: E501
+    SpeckleWarning,
+    stacklevel=2,
+)

@@ -1,9 +1,9 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.inputs.user_inputs import UserProjectsFilter
-from specklepy.core.api.models.current import (
+from specklepy.api.inputs.project_inputs import ProjectCreateInput
+from specklepy.api.inputs.user_inputs import UserProjectsFilter
+from specklepy.api.models.current import (
     Project,
     ProjectWithPermissions,
     ResourceCollection,

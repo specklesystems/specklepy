@@ -2,10 +2,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from specklepy.core.api.inputs.model_ingestion_inputs import (
+from specklepy.api.inputs.model_ingestion_inputs import (
     ModelIngestionSuccessInput,
 )
-from specklepy.core.api.resources.current.model_ingestion_resource import (
+from specklepy.api.resources.current.model_ingestion_resource import (
     ModelIngestionResource,
 )
 from specklepy.logging.exceptions import SpeckleException

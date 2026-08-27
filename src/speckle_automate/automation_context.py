@@ -18,12 +18,12 @@ from speckle_automate.schema import (
 )
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.inputs.model_inputs import CreateModelInput
-from specklepy.core.api.inputs.version_inputs import (
+from specklepy.api.inputs.model_inputs import CreateModelInput
+from specklepy.api.inputs.version_inputs import (
     CreateVersionInput,
     MarkReceivedVersionInput,
 )
-from specklepy.core.api.models.current import Model, Version
+from specklepy.api.models.current import Model, Version
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base

@@ -1,39 +1,10 @@
-from specklepy.core.api.enums import (
-    ProjectModelIngestionUpdatedMessageType,
-    ProjectModelsUpdatedMessageType,
-    ProjectUpdatedMessageType,
-    ProjectVersionsUpdatedMessageType,
-    UserProjectsUpdatedMessageType,
+from warnings import warn
+
+from specklepy.api.models.subscription_messages import *  # noqa: F403
+from specklepy.logging.exceptions import SpeckleWarning
+
+warn(
+    "Imports from `specklepy.core.api.models.subscription_messages` are now deprecated, import from `specklepy.api.models.subscription_messages` instead",  # noqa: E501
+    SpeckleWarning,
+    stacklevel=2,
 )
-from specklepy.core.api.models.current import Model, ModelIngestion, Project, Version
-from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
-
-
-class UserProjectsUpdatedMessage(GraphQLBaseModel):
-    id: str
-    type: UserProjectsUpdatedMessageType
-    project: Project | None
-
-
-class ProjectModelsUpdatedMessage(GraphQLBaseModel):
-    id: str
-    type: ProjectModelsUpdatedMessageType
-    model: Model | None
-
-
-class ProjectUpdatedMessage(GraphQLBaseModel):
-    id: str
-    type: ProjectUpdatedMessageType
-    project: Project | None
-
-
-class ProjectVersionsUpdatedMessage(GraphQLBaseModel):
-    id: str
-    type: ProjectVersionsUpdatedMessageType
-    model_id: str
-    version: Version | None
-
-
-class ProjectModelIngestionUpdatedMessage(GraphQLBaseModel):
-    model_ingestion: ModelIngestion
-    type: ProjectModelIngestionUpdatedMessageType

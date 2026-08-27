@@ -1,9 +1,9 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
-from specklepy.core.api.models import ResourceCollection, User
+from specklepy.api.inputs.project_inputs import ProjectCreateInput
+from specklepy.api.inputs.user_inputs import UserProjectsFilter, UserUpdateInput
+from specklepy.api.models import ResourceCollection, User
 from specklepy.logging.exceptions import GraphQLException
 
 
