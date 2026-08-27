@@ -9,8 +9,6 @@ from pathlib import Path
 from speckleifc.bundle_exporter import IfcBundleExporter
 from speckleifc.ifc_geometry_processing import open_ifc
 from speckleifc.importer import ImportJob
-from specklepy.bundle.envelope_writer import Producer
-from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.api.client import SpeckleClient
 from specklepy.api.inputs.model_ingestion_inputs import (
     ModelIngestionFailedInput,
@@ -20,6 +18,7 @@ from specklepy.api.inputs.model_ingestion_inputs import (
 )
 from specklepy.api.models.current import Project
 from specklepy.api.operations import send
+from specklepy.bundle.envelope_writer import Producer
 from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
