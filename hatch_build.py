@@ -11,6 +11,10 @@ the published wheel carries the constants and a dev checkout imports them unchan
 to this repo. CI provisions it with ``.github/actions/checkout-bundle-spec`` (the pinned
 SHA there is the ONE place the spec version is pinned for this repo). A missing checkout
 is a hard build error, never a silent fallback to a stale copy (ADR-0004: fail loud).
+
+The hook runs when specklepy is (re)built: after moving the spec checkout to a new
+commit, run ``mise run install`` (``uv sync --reinstall-package specklepy``) so the
+editable install picks up the new modules.
 """
 
 from __future__ import annotations

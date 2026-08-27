@@ -8,7 +8,9 @@ python.uv_venv_auto = true
 
 
 [tasks.install]
-run= "uv sync --all-extras --all-groups"
+# --reinstall-package: re-run hatch_build.py so a moved ../speckle-bundle-spec checkout is
+# picked up (uv otherwise reuses the cached editable build when this repo is unchanged).
+run= "uv sync --all-extras --all-groups --reinstall-package specklepy"
 
 
 [tasks.install_docs]
