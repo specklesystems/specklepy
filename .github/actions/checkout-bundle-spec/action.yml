@@ -1,0 +1,24 @@
+name: Checkout speckle-bundle-spec
+description: >
+  Checkout the speckle-bundle-spec repo that hatch_build.py pulls the generated Python
+  target from. The ref below is the ONE place this repo pins the spec version — bump it
+  to move specklepy to a new spec commit (same pattern as speckle-sharp-sdk).
+
+inputs:
+  token:
+    required: true
+    description: "GitHub token with read access to specklesystems/speckle-bundle-spec (private)"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout speckle-bundle-spec
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        repository: specklesystems/speckle-bundle-spec
+        ref: e360fcfeeef3354c95c2a3a5554782bae15b783a
+        token: ${{ inputs.token }}
+        path: speckle-bundle-spec
+        persist-credentials: false
+        sparse-checkout: |
+          generated/python

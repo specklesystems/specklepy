@@ -1,4 +1,7 @@
 name: "Publish Python Package"
+env:
+  SPECKLE_BUNDLE_SPEC_DIR: ${{ github.workspace }}/speckle-bundle-spec
+
 on:
   push:
     branches:
@@ -46,6 +49,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # hatch_build.py copies the generated bundle-spec modules from this checkout at build time.
+      - name: Checkout speckle-bundle-spec
+        uses: ./.github/actions/checkout-bundle-spec
+        with:
+          token: ${{ secrets.CONNECTORS_GH_TOKEN }}
       - name: "Build package artifacts"
         run: uv build
 

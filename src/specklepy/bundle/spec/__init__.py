@@ -1,18 +1,12 @@
-"""Vendored Speckle bundle spec — the single source of truth, generated.
+"""Speckle bundle spec — the generated Python target, pulled from the sibling checkout.
 
-These two modules (``bundle_spec``, ``bundle_schemas``) are GENERATED from
-``speckle-bundle-spec/spec/bundle-spec.sql`` and committed here verbatim (the same
-"compiled-in" approach the .NET SDK uses with BundleSpec.cs / BundleSchemas.cs). Do
-not hand-edit.
-
-PINNED: ``BUNDLE_SPEC_PIN.json`` records the exact bundle-spec version + spec hash these
-files were vendored from, so the C++ extractors (which build against the same published
-bundle-spec artifact) and this Python target stay in lockstep. CI enforces it with
-``npm run verify-pin -- --python <this dir>`` in the speckle-bundle-spec repo.
-
-To refresh: in a clone of ``speckle-bundle-spec`` at the target version run
-``node codegen/generate-all.mjs``, copy ``generated/python/*.py`` over these files, and
-update ``BUNDLE_SPEC_PIN.json`` (its ``version`` + ``specHash``).
+``bundle_spec``, ``bundle_schemas`` and ``bundle_cols`` are GENERATED from
+``speckle-bundle-spec/spec/bundle-spec.sql``. They are NOT committed here: ``hatch_build.py``
+copies them from ``../speckle-bundle-spec/generated/python/`` (or ``$SPECKLE_BUNDLE_SPEC_DIR``)
+on every build — the same compiled-in approach the .NET SDK uses with BundleSpec.cs, where
+the csproj includes the sibling clone's generated files. The wheel ships them; a dev checkout
+gets them on ``uv sync``. Which spec commit CI builds against is pinned in
+``.github/actions/checkout-bundle-spec/action.yml`` — the one pin for this repo.
 """
 
 from specklepy.bundle.spec.bundle_schemas import BY_TABLE, ColumnSpec

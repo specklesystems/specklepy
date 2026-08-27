@@ -1,4 +1,7 @@
 name: "Specklepy test"
+env:
+  SPECKLE_BUNDLE_SPEC_DIR: ${{ github.workspace }}/speckle-bundle-spec
+
 on:
   workflow_call:
     secrets:
@@ -35,6 +38,11 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      # hatch_build.py copies the generated bundle-spec modules from this checkout at build time.
+      - name: Checkout speckle-bundle-spec
+        uses: ./.github/actions/checkout-bundle-spec
+        with:
+          token: ${{ secrets.CONNECTORS_GH_TOKEN }}
 
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
@@ -90,6 +98,11 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      # hatch_build.py copies the generated bundle-spec modules from this checkout at build time.
+      - name: Checkout speckle-bundle-spec
+        uses: ./.github/actions/checkout-bundle-spec
+        with:
+          token: ${{ secrets.CONNECTORS_GH_TOKEN }}
 
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0

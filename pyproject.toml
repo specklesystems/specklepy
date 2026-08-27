@@ -60,12 +60,20 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 source = "vcs"
 
+# bundle-spec constants are pulled from the sibling speckle-bundle-spec checkout at build
+# time (hatch_build.py) — never committed here.
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
 [tool.hatch.build.targets.wheel]
 only-include = ["src", "licenses"]
 sources = ["src"]
+# the copied-in spec modules are gitignored; artifacts overrides VCS-ignore so they ship
+artifacts = ["src/specklepy/bundle/spec/bundle_*.py"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src", "licenses"]
+include = ["src", "licenses", "hatch_build.py"]
+artifacts = ["src/specklepy/bundle/spec/bundle_*.py"]
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"

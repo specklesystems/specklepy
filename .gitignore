@@ -117,3 +117,8 @@ scratch.py
 settings.json
 
 .DS_Store
+
+# generated bundle-spec target, copied in from ../speckle-bundle-spec by hatch_build.py
+src/specklepy/bundle/spec/bundle_spec.py
+src/specklepy/bundle/spec/bundle_schemas.py
+src/specklepy/bundle/spec/bundle_cols.py
