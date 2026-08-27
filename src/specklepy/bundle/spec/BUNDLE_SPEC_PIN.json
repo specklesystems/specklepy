@@ -1,7 +1,8 @@
 {
   "name": "@speckle/bundle-spec",
   "version": "1.0.0",
-  "schemaVersion": 1,
-  "specHash": "sha256:97be40f54de158c9c888f762f45940a07882c4f384b3ab6be639abf9ee6e995b",
-  "note": "Provenance of the vendored bundle_spec.py + bundle_schemas.py + bundle_cols.py. Enforced by speckle-bundle-spec `npm run verify-pin -- --python <this dir>` (CI drift guard). Re-vendor: copy generated/python/*.py from the matching bundle-spec version + update this file."
+  "schemaVersion": "1.0.0",
+  "commit": "e360fcfeeef3354c95c2a3a5554782bae15b783a",
+  "specHash": "sha256:40c15f9150aaee2db6fbf2277b9ed71ec9a0332b145c11adbf4821aa69da5ad4",
+  "note": "Provenance of the vendored bundle_spec.py + bundle_schemas.py + bundle_cols.py. Enforced by speckle-bundle-spec `npm run verify-pin -- --python <this dir>` (CI drift guard). Re-vendor: copy generated/python/*.py from the matching bundle-spec commit + update this file."
 }

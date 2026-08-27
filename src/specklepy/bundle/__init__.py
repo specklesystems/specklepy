@@ -8,6 +8,12 @@ repo). The typed producer API is
 :class:`~specklepy.bundle.upload.ArtifactPipeline`.
 """
 
+from specklepy.bundle.envelope_writer import (
+    CameraView,
+    Producer,
+    SceneView,
+    SceneViewKey,
+)
 from specklepy.bundle.pipeline import ObjectsArtifactPipeline
 from specklepy.bundle.spec import SCHEMA_VERSION, NodeKind, Rel
 from specklepy.bundle.upload import ArtifactPipeline
@@ -15,6 +21,10 @@ from specklepy.bundle.upload import ArtifactPipeline
 __all__ = [
     "ObjectsArtifactPipeline",
     "ArtifactPipeline",
+    "Producer",
+    "SceneView",
+    "SceneViewKey",
+    "CameraView",
     "NodeKind",
     "Rel",
     "SCHEMA_VERSION",

@@ -1,125 +1,202 @@
-"""End-to-end: drive ObjectsArtifactPipeline with a real Mesh + nodes/relations/props,
-then read the whole bundle back with DuckDB."""
+"""End-to-end: every ObjectsArtifactPipeline writer, read back via DuckDB."""
 
 from __future__ import annotations
 
-import duckdb
+import os
 
-from specklepy.bundle.pipeline import ObjectsArtifactPipeline
-from specklepy.bundle.spec import Rel
-from specklepy.objects.geometry.mesh import Mesh
+import duckdb
+import pytest
+
+from specklepy.bundle import ObjectsArtifactPipeline, Producer
+from specklepy.bundle.spec import SCHEMA_VERSION, NodeKind, Rel
+from tests.bundle import fixture_bundle
 
 BASE = "model"
 
 
-def _mesh() -> Mesh:
-    # a single triangle
-    return Mesh(
-        vertices=[0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-        faces=[3, 0, 1, 2],
-        units="m",
-    )
-
-
-def test_pipeline_full_bundle(tmp_path):
+@pytest.fixture
+def bundle(tmp_path):
     out = str(tmp_path)
-    with ObjectsArtifactPipeline(out, BASE) as p:
-        obj_k = p.intern_object("element-1")
-        p.add_properties(
-            "element-1",
-            {"Pset_Wall": {"Width": 200}},
-            root_scalars=[("name", "Wall-1"), ("ifcType", "IfcWall")],
-        )
-
-        # definition holds the mesh; instance places it; object displays the instance.
-        geo_k = p.add_geometry("mesh-1", _mesh())
-        def_k = p.add_definition("def-1", "WallBody")
-        p.defines(def_k, geo_k, 0)
-        inst_k = p.add_instance(
-            "place-1", def_k, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], "m"
-        )
-        p.display_instance(obj_k, inst_k, 0)
-
-        mat_k = p.add_material(
-            "mat-1",
-            argb=-1,
-            opacity=1.0,
-            metalness=0.0,
-            roughness=0.5,
-            name="Painted Steel",
-            emissive=0xFF00FF00,  # green — kept
-            ior=1.45,
-        )
-        p.has_material(geo_k, mat_k)
-        # black-RGB emissive is normalized to NULL per the spec (NULL = no emission)
-        mat_black_k = p.add_material(
-            "mat-2",
-            argb=-1,
-            opacity=1.0,
-            metalness=0.0,
-            roughness=0.5,
-            emissive=0xFF000000,
-        )
-
-        sys_k = p.add_container("sys-1", "Hot Water", None, "System")
-        p.in_system(obj_k, sys_k, 0)
-        p.connects_to(obj_k, obj_k)  # trivial self-edge just to exercise the rel
-
+    ks = fixture_bundle.build(out, BASE)
     con = duckdb.connect()
-    g = f"read_parquet('{out}/{BASE}"
 
-    # geometry landed with SGEO content + sha256 id
-    geo = con.execute(
-        f"SELECT geometryIndex, octet_length(content), type "
-        f"FROM {g}.geometries.parquet')"
-    ).fetchall()
-    assert geo == [(geo_k, geo[0][1], "mesh")]
-    assert geo[0][1] >= 16  # at least the SGEO header
+    def q(sql: str):
+        return con.execute(sql.replace("{g}", f"read_parquet('{out}/{BASE}")).fetchall()
 
-    # the eav side has the object + its width + root scalars
-    width = con.execute(
-        f"""SELECT e.value_double FROM {g}.eav.eav.parquet') e
-            JOIN {g}.eav.paths.parquet') pa USING(path_index)
-            WHERE pa.path = 'properties.Pset_Wall.Width'"""
-    ).fetchone()
-    assert width[0] == 200.0
-    names = con.execute(
-        f"""SELECT e.value_string FROM {g}.eav.eav.parquet') e
-            JOIN {g}.eav.paths.parquet') pa USING(path_index)
-            WHERE pa.path = 'ifcType'"""
-    ).fetchone()
-    assert names[0] == "IfcWall"
+    return out, ks, q
 
-    # envelope: the edges we emitted are present, with the right rel ids
-    rels = set(
-        con.execute(
-            f"SELECT rel, src, dst FROM {g}.envelope.relations.parquet')"
-        ).fetchall()
+
+def test_meta_carries_producer_provenance(bundle):
+    _, _, q = bundle
+    assert q("SELECT * FROM {g}.envelope.meta.parquet')") == [
+        (
+            SCHEMA_VERSION,
+            "fixture",
+            "0.1",
+            "specklepy",
+            fixture_bundle.PRODUCER.sdk_version,
+            None,
+        )
+    ]
+    assert isinstance(SCHEMA_VERSION, str)
+
+
+def test_geometries_land_with_type_labels(bundle):
+    _, ks, q = bundle
+    rows = dict(q("SELECT geometryIndex, type FROM {g}.geometries.parquet')"))
+    assert rows[ks.mesh_geo] == "mesh"
+    assert rows[ks.region_geo] == "region"
+    assert rows[ks.text_geo] == "text"
+    assert len(rows) == 5
+
+
+def test_eav_rows(bundle):
+    _, _, q = bundle
+    rows = {
+        path: (s, d, b)
+        for path, s, d, b in q(
+            """SELECT pa.path, e.value_string, e.value_double, e.value_boolean
+               FROM {g}.eav.eav.parquet') e
+               JOIN {g}.eav.paths.parquet') pa USING(path_index)"""
+        )
+    }
+    assert rows["properties.Pset_Wall.Width"][1] == 200.0
+    assert rows["properties.Pset_Wall.LoadBearing"][2] is True
+    assert rows["ifcType"][0] == "IfcWall"
+
+
+def test_every_relation_kind_is_emitted(bundle):
+    _, ks, q = bundle
+    rels = set(q("SELECT rel, src, dst, ord FROM {g}.envelope.relations.parquet')"))
+    expected = {
+        (Rel.DISPLAY, ks.wall, ks.mesh_geo, 0),
+        (Rel.DISPLAY_INSTANCE, ks.placed, ks.instance, 0),
+        (Rel.SUBELEMENT, ks.wall, ks.host, 0),
+        (Rel.DEFINES, ks.definition, ks.mesh_geo + 3, 0),
+        (Rel.DEFINES_INSTANCE, ks.definition, ks.nested_instance, 1),
+        (Rel.DEFINES_MEMBER, ks.definition, ks.member, 0),
+        (Rel.DEFINES_MEMBER, ks.definition, ks.nested_member, 1),
+        (Rel.PLACES, ks.nested_member, ks.nested_instance, 0),
+        (Rel.HAS_MATERIAL, ks.mesh_geo, ks.material, 0),
+        (Rel.HAS_COLOR, ks.mesh_geo, ks.color, 0),
+        (Rel.OBJECT_HAS_MATERIAL, ks.wall, ks.material, 0),
+        (Rel.OBJECT_HAS_COLOR, ks.wall, ks.color, 0),
+        (Rel.NODE_HAS_MATERIAL, ks.layer, ks.material, 0),
+        (Rel.NODE_HAS_COLOR, ks.layer, ks.color, 0),
+        (Rel.ON_LEVEL, ks.wall, ks.level, 0),
+        (Rel.IN_COLLECTION, ks.wall, ks.layer, 0),
+        (Rel.IN_MODEL, ks.wall, ks.model, 0),
+        (Rel.IN_ROOM, ks.wall, ks.host, 0),
+        (Rel.IN_SYSTEM, ks.wall, ks.system, 0),
+        (Rel.IN_GROUP, ks.wall, ks.group, 0),
+        (Rel.IN_ASSEMBLY, ks.host, ks.wall, 0),
+        (Rel.HOSTED_ON, ks.host, ks.wall, 0),
+        (Rel.BOUNDS, ks.wall, ks.host, 0),
+        (Rel.CONNECTS_TO, ks.wall, ks.host, ks.system),
+    }
+    assert {(int(r), s, d, o) for r, s, d, o in expected} <= rels
+    emitted = {r for r, *_ in rels}
+    live = {int(r) for r in Rel}
+    assert emitted == live - {int(Rel.SOLID)}
+
+
+def test_nodes(bundle):
+    _, ks, q = bundle
+    nodes = {
+        row[0]: row
+        for row in q(
+            "SELECT id, kind, name, def_ref, transform, units, subtype, argb, "
+            "emissive, ior, elevation, gh_topology FROM {g}.envelope.nodes.parquet')"
+        )
+    }
+    inst = nodes[ks.instance]
+    assert inst[1] == NodeKind.INSTANCE and inst[3] == ks.definition
+    assert inst[4].startswith("1.0,0.0") and inst[5] == "m"
+    mat = nodes[ks.material]
+    assert mat[2] == "Painted Steel" and mat[7] == -1
+    assert mat[8] == -16711936 and mat[9] == 1.45
+    black = nodes[ks.material + 1]
+    assert black[8] is None and black[9] is None
+    assert nodes[ks.layer][6] == "Layer" and nodes[ks.layer][11] == "0-1"
+    assert nodes[ks.system][6] == "MEP System"
+    assert nodes[ks.level][10] == 3.0
+    ids = sorted(nodes)
+    assert ids == list(range(len(ids)))
+
+
+def test_optional_files(bundle):
+    _, _, q = bundle
+    assert q(
+        "SELECT path, value_string FROM {g}.eav.model.parquet') ORDER BY path"
+    ) == [
+        ("projectInformation.name", "Fixture"),
+        ("referencePoint.kind", "projectBasePoint"),
+        (
+            "referencePoint.transform",
+            ",".join(repr(float(d)) for d in fixture_bundle.IDENTITY),
+        ),
+        ("referencePoint.units", "m"),
+    ]
+    assert q(
+        "SELECT set_name, field_name, field_bucket_id, unit "
+        "FROM {g}.eav.property_set_definitions.parquet')"
+    ) == [
+        ("Pset_Wall", "Width", "bucket-w", "mm"),
+        ("Pset_Wall", "LoadBearing", "bucket-lb", None),
+    ]
+    assert q(
+        "SELECT name, fov, units, is_ortho FROM {g}.envelope.camera_views.parquet')"
+    ) == [("Front", 45.0, "m", False)]
+    assert q("SELECT ord, source, ref FROM {g}.envelope.scene_views.parquet')") == [
+        (0, "rel", str(int(Rel.ON_LEVEL)))
+    ]
+
+
+def test_optional_files_absent_when_unused(tmp_path):
+    out = str(tmp_path)
+    with ObjectsArtifactPipeline(out, BASE, Producer("t", "1")) as p:
+        p.intern_object("a")
+    names = set(os.listdir(out))
+    assert f"{BASE}.envelope.meta.parquet" in names
+    assert (
+        not {
+            f"{BASE}.eav.model.parquet",
+            f"{BASE}.eav.property_set_definitions.parquet",
+            f"{BASE}.envelope.camera_views.parquet",
+            f"{BASE}.envelope.scene_views.parquet",
+        }
+        & names
     )
-    assert (int(Rel.DEFINES), def_k, geo_k) in rels
-    assert (int(Rel.DISPLAY_INSTANCE), obj_k, inst_k) in rels
-    assert (int(Rel.HAS_MATERIAL), geo_k, mat_k) in rels
-    assert (int(Rel.IN_SYSTEM), obj_k, sys_k) in rels
-    assert (int(Rel.CONNECTS_TO), obj_k, obj_k) in rels
 
-    # the instance node carries its transform + units; the system container its subtype
-    inst = con.execute(
-        f"SELECT transform, units FROM {g}.envelope.nodes.parquet') WHERE id = {inst_k}"
-    ).fetchone()
-    assert inst[1] == "m" and inst[0].startswith("1.0,0.0")
-    sub = con.execute(
-        f"SELECT subtype, name FROM {g}.envelope.nodes.parquet') WHERE id = {sys_k}"
-    ).fetchone()
-    assert sub == ("System", "Hot Water")
 
-    # the material carries the full v5 PBR set: authored name + emissive/ior
-    mat = con.execute(
-        f"SELECT name, argb, emissive, ior "
-        f"FROM {g}.envelope.nodes.parquet') WHERE id = {mat_k}"
-    ).fetchone()
-    assert mat == ("Painted Steel", -1, -16711936, 1.45)  # 0xFF00FF00 as int32
-    mat_black = con.execute(
-        f"SELECT emissive, ior "
-        f"FROM {g}.envelope.nodes.parquet') WHERE id = {mat_black_k}"
-    ).fetchone()
-    assert mat_black == (None, None)
+def test_model_property_coalesces_one_typed_column(tmp_path):
+    out = str(tmp_path)
+    with ObjectsArtifactPipeline(out, BASE, Producer("t", "1")) as p:
+        p.add_model_property("flag", True)
+        p.add_model_property("count", 3)
+        p.add_model_property("ratio", 0.5, "m")
+        p.add_model_property("label", "x")
+        p.add_model_property("skipped", None)
+        p.add_model_property("nan", float("nan"))
+    rows = duckdb.sql(
+        f"SELECT * FROM read_parquet('{out}/{BASE}.eav.model.parquet') ORDER BY path"
+    ).fetchall()
+    assert rows == [
+        ("count", None, 3.0, None, None),
+        ("flag", None, None, True, None),
+        ("label", "x", None, None, None),
+        ("ratio", None, 0.5, None, "m"),
+    ]
+
+
+def test_reference_point_rules(tmp_path):
+    with ObjectsArtifactPipeline(str(tmp_path), BASE, Producer("t", "1")) as p:
+        with pytest.raises(ValueError):
+            p.add_reference_point("bogus", None, "m")
+        with pytest.raises(ValueError):
+            p.add_reference_point("surveyPoint", None, "m")
+        p.add_reference_point("internalOriginFallback", None, "m")
+    rows = duckdb.sql(
+        f"SELECT path FROM read_parquet('{tmp_path}/{BASE}.eav.model.parquet')"
+    ).fetchall()
+    assert rows == [("referencePoint.kind",), ("referencePoint.units",)]

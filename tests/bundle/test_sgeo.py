@@ -64,6 +64,10 @@ def test_unit_encoding_mapping():
     assert sgeo.get_encoding_from_unit(None) == 0
 
 
+def test_primitive_type_codes_cover_the_catalog():
+    assert [int(t) for t in sgeo.PrimitiveType] == list(range(13))
+
+
 def test_try_get_primitive_type():
     assert sgeo.try_get_primitive_type(_make_mesh()) == 0
     assert sgeo.try_get_primitive_type(object()) is None
@@ -199,3 +203,50 @@ def test_pad8_alignment_when_faces_misaligned():
 def test_encode_unknown_raises():
     with pytest.raises(ValueError):
         sgeo.encode(object())
+
+
+def test_region_layout():
+    from tests.bundle.fixture_bundle import region
+
+    blob = sgeo.encode(region())
+    assert blob[5] == sgeo.PrimitiveType.REGION
+    flags, units = struct.unpack_from("<HH", blob, 6)
+    assert flags == 0 and units == 3
+    has_hatch, loops = struct.unpack_from("<II", blob, 16)
+    assert (has_hatch, loops) == (0, 0)
+    (boundary_len,) = struct.unpack_from("<I", blob, 24)
+    boundary = blob[32 : 32 + boundary_len]
+    assert boundary[0:4] == b"SGEO" and boundary[5] == sgeo.PrimitiveType.POLYLINE
+    assert struct.unpack_from("<H", boundary, 6)[0] & sgeo.Flags.CLOSED
+    assert len(blob) % 8 == 0
+
+
+def test_text_layout_and_flags():
+    from tests.bundle.fixture_bundle import text
+
+    t = text()
+    t.maxWidth = 10.0
+    blob = sgeo.encode(t)
+    assert blob[5] == sgeo.PrimitiveType.TEXT
+    (flags,) = struct.unpack_from("<H", blob, 6)
+    assert flags == sgeo.Flags.HAS_MAX_WIDTH
+    align_h, align_v = struct.unpack_from("<II", blob, 16)
+    assert (align_h, align_v) == (0, 0)
+    height, max_width = struct.unpack_from("<dd", blob, 24)
+    assert (height, max_width) == (2.5, 10.0)
+    plane_end = 40 + 12 * 8
+    (byte_len,) = struct.unpack_from("<I", blob, plane_end)
+    assert blob[plane_end + 8 : plane_end + 8 + byte_len] == b"Hi"
+    assert len(blob) % 8 == 0
+
+    t.maxWidth = None
+    assert struct.unpack_from("<H", sgeo.encode(t), 6)[0] == 0
+
+
+def test_text_without_plane_raises():
+    from tests.bundle.fixture_bundle import text
+
+    t = text()
+    t.plane = None
+    with pytest.raises(ValueError):
+        sgeo.encode(t)

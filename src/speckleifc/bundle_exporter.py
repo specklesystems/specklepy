@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from specklepy.bundle.envelope_writer import SceneView, SceneViewKey
+from specklepy.bundle.envelope_writer import Producer, SceneView, SceneViewKey
 from specklepy.bundle.pipeline import ObjectsArtifactPipeline
 from specklepy.bundle.spec import Rel
 from specklepy.objects.base import Base
@@ -38,8 +38,8 @@ def _attr(node: Base, key: str, default: Any = None) -> Any:
 class IfcBundleExporter:
     """Translates a converted IFC root Collection into a bundle on disk."""
 
-    def __init__(self, output_dir: str, base_name: str) -> None:
-        self._pipeline = ObjectsArtifactPipeline(output_dir, base_name)
+    def __init__(self, output_dir: str, base_name: str, producer: Producer) -> None:
+        self._pipeline = ObjectsArtifactPipeline(output_dir, base_name, producer)
         self._def_k_by_id: dict[str, int] = {}
         self._object_count = 0
         self._has_levels = False
