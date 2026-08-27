@@ -16,7 +16,7 @@ from specklepy.api.inputs.model_ingestion_inputs import (
     ModelIngestionSuccessInput,
     SourceDataInput,
 )
-from specklepy.api.models.current import Project, Version
+from specklepy.api.models.current import Project
 from specklepy.api.operations import send
 from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.logging import metrics
@@ -47,7 +47,7 @@ def open_and_convert_file(
     version_message: str | None,
     model_ingestion_id: str,
     client: SpeckleClient,
-) -> Version:
+) -> str:
     try:
         start = time.time()
         very_start = start
@@ -91,7 +91,7 @@ def open_and_convert_file(
         start = time.time()
 
         if bundle:
-            version = _upload_bundle(
+            version_id = _upload_bundle(
                 client, project, account, model_ingestion_id, data, progress
             )
         else:
@@ -118,9 +118,6 @@ def open_and_convert_file(
                 )
             )
 
-            # needed to query version until ingestion api expands to serve it
-            version = client.version.get(version_id, project.id)
-
         end = time.time()
         print(f"Version committed after: {(end - start):.3f}s")
 
@@ -138,7 +135,7 @@ def open_and_convert_file(
             send_sync=True,
         )
 
-        return version
+        return version_id
     except Exception as e:
         stack_trace = traceback.format_exc()
         with contextlib.suppress(Exception):
@@ -154,44 +151,6 @@ def open_and_convert_file(
         raise e
 
 
-def _fetch_pre_allocated_version_id(
-    account, project_id: str, model_ingestion_id: str
-) -> str | None:
-    """Read the ingestion's pre-allocated ``versionId`` (a v2-only top-level field).
-
-    Uses the TOP-LEVEL ``ModelIngestion.versionId``, not the ``versionId`` under
-    ``statusData → ModelIngestionSuccessStatus``: that one is only populated once the
-    ingestion has SUCCEEDED, but we need the id up-front (to name/reference the version
-    before uploading), when the status is still PROCESSING and the success fragment is
-    null.
-
-    Done with a dedicated GraphQL query rather than the shared model_ingestion resource
-    because the top-level ``versionId`` field only exists on servers with the v2 data
-    endpoints — selecting it in the SDK's standard ingestion queries breaks older
-    servers. This runs only on the bundle path (a v2 server), so it is safe here.
-    """
-    import httpx
-
-    url = account.serverInfo.url.rstrip("/") + "/graphql"
-    headers = {"Authorization": f"Bearer {account.token}"} if account.token else {}
-    query = (
-        "query($p:String!,$i:ID!){ project(id:$p){ ingestion(id:$i){ versionId } } }"
-    )
-    resp = httpx.post(
-        url,
-        headers=headers,
-        json={"query": query, "variables": {"p": project_id, "i": model_ingestion_id}},
-        timeout=60,
-    )
-    body = resp.json()
-    if body.get("errors"):
-        raise SpeckleException(
-            f"Failed to fetch pre-allocated version id: {body['errors']}"
-        )
-    ingestion = ((body.get("data") or {}).get("project") or {}).get("ingestion") or {}
-    return ingestion.get("versionId")
-
-
 def _upload_bundle(
     client: SpeckleClient,
     project: Project,
@@ -199,14 +158,14 @@ def _upload_bundle(
     model_ingestion_id: str,
     data,
     progress: IngestionProgressManager,
-) -> Version:
+) -> str:
     """Build the Speckle 4.0 artefact bundle and upload it via the v2 data endpoints.
 
     Opt-in via SPECKLE_IFC_BUNDLE. The version is created server-side by the v2
     ``complete`` call (no v1 ``model_ingestion.complete``).
     """
-    version_id = _fetch_pre_allocated_version_id(
-        account, project.id, model_ingestion_id
+    version_id = client.model_ingestion.get_reserved_version_id(
+        project.id, model_ingestion_id
     )
     if not version_id:
         raise SpeckleException(
@@ -223,5 +182,4 @@ def _upload_bundle(
         ) as pipeline:
             version_id = pipeline.upload_dir(version_id, root_id, child_count)
 
-    # needed to query version until ingestion api expands to serve it
-    return client.version.get(version_id, project.id)
+    return version_id
