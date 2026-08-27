@@ -24,7 +24,7 @@ class ServerTransport(AbstractTransport):
     ```py
     from specklepy.api import operations
     from specklepy.api.client import SpeckleClient
-    from specklepy.core.api.inputs.version_inputs import CreateVersionInput
+    from specklepy.api.inputs.version_inputs import CreateVersionInput
     from specklepy.transports.server import ServerTransport
 
     # here's the data you want to send
