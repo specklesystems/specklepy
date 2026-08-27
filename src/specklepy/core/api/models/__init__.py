@@ -1,55 +1,10 @@
-from specklepy.core.api.models.current import (
-    AuthStrategy,
-    FileImport,
-    FileUploadUrl,
-    LimitedUser,
-    Model,
-    ModelWithVersions,
-    PendingStreamCollaborator,
-    Project,
-    ProjectCollaborator,
-    ProjectCommentCollection,
-    ProjectWithModels,
-    ProjectWithPermissions,
-    ProjectWithTeam,
-    ResourceCollection,
-    ServerConfiguration,
-    ServerInfo,
-    ServerMigration,
-    User,
-    UserSearchResultCollection,
-    Version,
-)
-from specklepy.core.api.models.subscription_messages import (
-    ProjectModelsUpdatedMessage,
-    ProjectUpdatedMessage,
-    ProjectVersionsUpdatedMessage,
-    UserProjectsUpdatedMessage,
-)
+from warnings import warn
 
-__all__ = [
-    "User",
-    "ResourceCollection",
-    "ServerMigration",
-    "AuthStrategy",
-    "ServerConfiguration",
-    "ServerInfo",
-    "LimitedUser",
-    "PendingStreamCollaborator",
-    "ProjectCollaborator",
-    "Version",
-    "Model",
-    "ModelWithVersions",
-    "Project",
-    "ProjectWithModels",
-    "ProjectWithPermissions",
-    "ProjectWithTeam",
-    "ProjectCommentCollection",
-    "UserSearchResultCollection",
-    "UserProjectsUpdatedMessage",
-    "ProjectModelsUpdatedMessage",
-    "ProjectUpdatedMessage",
-    "ProjectVersionsUpdatedMessage",
-    "FileImport",
-    "FileUploadUrl",
-]
+from specklepy.api.models import *  # noqa: F403
+from specklepy.logging.exceptions import SpeckleWarning
+
+warn(
+    "Imports from `specklepy.core.api.models` are now deprecated, import from `specklepy.api.models` instead",  # noqa: E501
+    SpeckleWarning,
+    stacklevel=2,
+)

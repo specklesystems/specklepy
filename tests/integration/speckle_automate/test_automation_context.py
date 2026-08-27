@@ -19,10 +19,10 @@ from speckle_automate.fixtures import (
 )
 from speckle_automate.schema import AutomateBase
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.inputs import ProjectCreateInput
-from specklepy.core.api.models import Project
-from specklepy.core.api.models.current import Model, Version
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.inputs import ProjectCreateInput
+from specklepy.api.models import Project
+from specklepy.api.models.current import Model, Version
 from specklepy.core.helpers import crypto_random_string
 from specklepy.objects.base import Base
 

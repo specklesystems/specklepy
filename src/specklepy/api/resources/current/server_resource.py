@@ -1,11 +1,16 @@
+import re
 from typing import Any, Dict, List, Tuple
 
+from gql import gql
+
 from specklepy.api.models import ServerInfo
-from specklepy.core.api.resources import ServerResource as CoreResource
-from specklepy.logging import metrics
+from specklepy.api.resource import ResourceBase
+from specklepy.api.responses import DataResponse
+
+NAME = "server"
 
 
-class ServerResource(CoreResource):
+class ServerResource(ResourceBase):
     """API Access class for the server"""
 
     def __init__(self, account, basepath, client) -> None:
@@ -13,6 +18,7 @@ class ServerResource(CoreResource):
             account=account,
             basepath=basepath,
             client=client,
+            name=NAME,
         )
 
     def get(self) -> ServerInfo:
@@ -21,8 +27,36 @@ class ServerResource(CoreResource):
         Returns:
             dict -- the server info in dictionary form
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Server Get"})
-        return super().get()
+        request = gql(
+            """
+            query Server {
+                data:serverInfo {
+                    name
+                    company
+                    description
+                    adminContact
+                    canonicalUrl
+                    version
+                    scopes {
+                        name
+                        description
+                    }
+                    authStrategies{
+                        id
+                        name
+                        icon
+                    }
+                    workspaces {
+                      workspacesEnabled
+                    }
+                }
+            }
+            """
+        )
+
+        return self.make_request_and_parse_response(
+            DataResponse[ServerInfo], request
+        ).data
 
     def version(self) -> Tuple[Any, ...]:
         """Get the server version
@@ -31,18 +65,58 @@ class ServerResource(CoreResource):
             the server version in the format (major, minor, patch, (tag, build))
             eg (2, 6, 3) for a stable build and (2, 6, 4, 'alpha', 4711) for alpha
         """
-        # not tracking as it will be called along with other
-        # mutations / queries as a check
-        return super().version()
+        # not tracking as it will be called along with other mutations / queries
+        # as a check
+        request = gql(
+            """
+            query Server {
+                data:serverInfo {
+                    data:version
+                }
+            }
+            """
+        )
+        ver = self.make_request_and_parse_response(
+            DataResponse[DataResponse[str]], request
+        ).data.data
 
-    def apps(self) -> Dict:
+        # pylint: disable=consider-using-generator; (list comp is faster)
+        return tuple(
+            [
+                int(segment) if segment.isdigit() else segment
+                for segment in re.split(r"\.|-", ver)
+            ]
+        )
+
+    def apps(self) -> List[Dict[str, Any]]:
         """Get the apps registered on the server
 
         Returns:
-            dict -- a dictionary of apps registered on the server
+            a list of apps registered on the server, in dictionary form
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Server Apps"})
-        return super().apps()
+        request = gql(
+            """
+            query Apps {
+                data:apps{
+                    id
+                    name
+                    description
+                    termsAndConditionsLink
+                    trustByDefault
+                    logo
+                    author {
+                        id
+                        name
+                        avatar
+                    }
+                }
+            }
+        """
+        )
+
+        return self.make_request_and_parse_response(
+            DataResponse[List[Dict[str, Any]]], request
+        ).data
 
     def create_token(self, name: str, scopes: List[str], lifespan: int) -> str:
         """Create a personal API token
@@ -55,8 +129,18 @@ class ServerResource(CoreResource):
         Returns:
             str -- the new API token. note: this is the only time you'll see the token!
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Server Create Token"})
-        return super().create_token(name, scopes, lifespan)
+        request = gql(
+            """
+            mutation TokenCreate($token: ApiTokenCreateInput!) {
+                data:apiTokenCreate(token: $token)
+            }
+            """
+        )
+        request.variable_values = {
+            "token": {"scopes": scopes, "name": name, "lifespan": lifespan}
+        }
+
+        return self.make_request_and_parse_response(DataResponse[str], request).data
 
     def revoke_token(self, token: str) -> bool:
         """Revokes (deletes) a personal API token
@@ -67,5 +151,13 @@ class ServerResource(CoreResource):
         Returns:
             bool -- True if the token was successfully deleted
         """
-        metrics.track(metrics.SDK, self.account, {"name": "Server Revoke Token"})
-        return super().revoke_token(token)
+        request = gql(
+            """
+            mutation TokenRevoke($token: String!) {
+                data:apiTokenRevoke(token: $token)
+            }
+            """
+        )
+        request.variable_values = {"token": token}
+
+        return self.make_request_and_parse_response(DataResponse[bool], request).data
