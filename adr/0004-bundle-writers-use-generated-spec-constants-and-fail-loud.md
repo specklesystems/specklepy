@@ -22,8 +22,10 @@ pinned spec on every PR.
   `envelope_writer.py`, `eav_writer.py`, `geometries_writer.py`): row-arity
   guards raise with clear errors; material params are keyword-only so
   positional drift is impossible (#506).
-- **`src/specklepy/bundle/spec/`**: the vendored spec
-  (`BUNDLE_SPEC_PIN.json`, generated schemas/constants) must track
-  upstream bundle-spec — a stale vendor copy is this repo's version of
-  ordinal drift (#506 re-synced it after it went stale ahead of the
-  incident).
+- **`src/specklepy/bundle/spec/`**: the generated schemas/constants are no
+  longer vendored — `hatch_build.py` copies them from the sibling
+  `../speckle-bundle-spec` checkout on every build (the spec SHA CI builds
+  against is pinned once in `.github/actions/checkout-bundle-spec/action.yml`),
+  so a stale copy — this repo's version of ordinal drift (#506 re-synced the
+  old vendor copy after it went stale ahead of the incident) — can no longer
+  happen silently: a missing checkout fails the build.
