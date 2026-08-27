@@ -54,8 +54,9 @@ def test_metrics_track(httpserver: HTTPServer, metrics_account: Account):
         # Test
         httpserver.expect_oneshot_request(PATH, "post").respond_with_handler(
             handler(
-                lambda payload: payload["properties"]["email"]
-                == metrics_account.userInfo.email
+                lambda payload: (
+                    payload["properties"]["email"] == metrics_account.userInfo.email
+                )
             )
         )
         metrics.track("Send", metrics_account, None, True)

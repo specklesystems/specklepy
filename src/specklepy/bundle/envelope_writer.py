@@ -119,6 +119,7 @@ class EnvelopeWriter:
         *,
         emissive: int | None = None,
         ior: float | None = None,
+        gh_topology: str | None = None,
     ) -> None:
         """Append one value-node. Only the columns relevant to ``kind`` are non-null.
 
@@ -127,6 +128,8 @@ class EnvelopeWriter:
         — in the PARQUET row they sit BETWEEN ``roughness`` and ``elevation``.
         ``emissive`` is a packed ARGB; NULL = no emission (consumers default to
         black). ``ior`` is the PBR index of refraction; NULL = unset.
+        ``gh_topology`` (CONTAINER only) is the Grasshopper collection topology
+        string (e.g. ``"0-1 0;0-1"``) preserved for receive; NULL for everything else.
         """
         self._ensure_not_completed()
         # Row is in spec column order (BY_TABLE["nodes"]); the writer raises if the
@@ -148,6 +151,7 @@ class EnvelopeWriter:
             emissive,
             ior,
             elevation,
+            gh_topology,
         )
 
     def add_scene_view(self, view: SceneView) -> None:
@@ -166,13 +170,14 @@ class EnvelopeWriter:
 
     # Self-describing catalog (SOT §6): rel/kind vocabulary + schema version, from the
     # generated spec catalog (live + reserved rows; retired ids are absent and never
-    # reused). Tiny.
+    # reused). Tiny. schema_version is the spec semver as TEXT (bundle-spec #25): one
+    # string names the vocabulary, so it is never an int column.
     def _write_catalog(self) -> None:
         with ParquetTableWriter(
             self._p("meta.parquet"),
             pa.schema(
                 [
-                    pa.field("schema_version", pa.int32(), nullable=False),
+                    pa.field("schema_version", pa.string(), nullable=False),
                     pa.field("produced_by", pa.string()),
                 ]
             ),

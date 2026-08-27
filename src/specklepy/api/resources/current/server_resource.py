@@ -5,7 +5,7 @@ from gql import gql
 
 from specklepy.api.models import ServerInfo
 from specklepy.api.resource import ResourceBase
-from specklepy.logging.exceptions import GraphQLException
+from specklepy.api.responses import DataResponse
 
 NAME = "server"
 
@@ -27,10 +27,10 @@ class ServerResource(ResourceBase):
         Returns:
             dict -- the server info in dictionary form
         """
-        query = gql(
+        request = gql(
             """
             query Server {
-                serverInfo {
+                data:serverInfo {
                     name
                     company
                     description
@@ -54,11 +54,9 @@ class ServerResource(ResourceBase):
             """
         )
 
-        server_info = self.make_request(
-            query=query, return_type="serverInfo", schema=ServerInfo
-        )
-
-        return server_info
+        return self.make_request_and_parse_response(
+            DataResponse[ServerInfo], request
+        ).data
 
     def version(self) -> Tuple[Any, ...]:
         """Get the server version
@@ -69,22 +67,18 @@ class ServerResource(ResourceBase):
         """
         # not tracking as it will be called along with other mutations / queries
         # as a check
-        query = gql(
+        request = gql(
             """
             query Server {
-                serverInfo {
-                    version
+                data:serverInfo {
+                    data:version
                 }
             }
             """
         )
-        ver = self.make_request(
-            query=query, return_type=["serverInfo", "version"], parse_response=False
-        )
-        if isinstance(ver, Exception):
-            raise GraphQLException(
-                f"Could not get server version for {self.basepath}", [ver]
-            )
+        ver = self.make_request_and_parse_response(
+            DataResponse[DataResponse[str]], request
+        ).data.data
 
         # pylint: disable=consider-using-generator; (list comp is faster)
         return tuple(
@@ -94,16 +88,16 @@ class ServerResource(ResourceBase):
             ]
         )
 
-    def apps(self) -> Dict:
+    def apps(self) -> List[Dict[str, Any]]:
         """Get the apps registered on the server
 
         Returns:
-            dict -- a dictionary of apps registered on the server
+            a list of apps registered on the server, in dictionary form
         """
-        query = gql(
+        request = gql(
             """
             query Apps {
-                apps{
+                data:apps{
                     id
                     name
                     description
@@ -120,7 +114,9 @@ class ServerResource(ResourceBase):
         """
         )
 
-        return self.make_request(query=query, return_type="apps", parse_response=False)
+        return self.make_request_and_parse_response(
+            DataResponse[List[Dict[str, Any]]], request
+        ).data
 
     def create_token(self, name: str, scopes: List[str], lifespan: int) -> str:
         """Create a personal API token
@@ -133,21 +129,18 @@ class ServerResource(ResourceBase):
         Returns:
             str -- the new API token. note: this is the only time you'll see the token!
         """
-        query = gql(
+        request = gql(
             """
             mutation TokenCreate($token: ApiTokenCreateInput!) {
-                apiTokenCreate(token: $token)
+                data:apiTokenCreate(token: $token)
             }
             """
         )
-        params = {"token": {"scopes": scopes, "name": name, "lifespan": lifespan}}
+        request.variable_values = {
+            "token": {"scopes": scopes, "name": name, "lifespan": lifespan}
+        }
 
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="apiTokenCreate",
-            parse_response=False,
-        )
+        return self.make_request_and_parse_response(DataResponse[str], request).data
 
     def revoke_token(self, token: str) -> bool:
         """Revokes (deletes) a personal API token
@@ -158,18 +151,13 @@ class ServerResource(ResourceBase):
         Returns:
             bool -- True if the token was successfully deleted
         """
-        query = gql(
+        request = gql(
             """
             mutation TokenRevoke($token: String!) {
-                apiTokenRevoke(token: $token)
+                data:apiTokenRevoke(token: $token)
             }
             """
         )
-        params = {"token": token}
+        request.variable_values = {"token": token}
 
-        return self.make_request(
-            query=query,
-            params=params,
-            return_type="apiTokenRevoke",
-            parse_response=False,
-        )
+        return self.make_request_and_parse_response(DataResponse[bool], request).data

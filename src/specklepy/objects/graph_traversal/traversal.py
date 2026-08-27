@@ -41,7 +41,7 @@ _default_rule = DefaultRule()
 @define(slots=True, frozen=True)
 class TraversalContext:
     current: Base
-    member_name: Optional[str] = None
+    member_name: str | None = None
     parent: Optional["TraversalContext"] = None
 
 
@@ -50,7 +50,7 @@ class TraversalContext:
 class GraphTraversal:
     _rules: List[ITraversalRule]
 
-    def _get_active_rule(self, o: Base) -> Optional[ITraversalRule]:
+    def _get_active_rule(self, o: Base) -> ITraversalRule | None:
         for rule in self._rules:
             if rule.does_rule_hold(o):
                 return rule
@@ -93,8 +93,8 @@ class GraphTraversal:
     def _traverse_member_to_stack(
         stack: List[TraversalContext],
         value: Any,
-        member_name: Optional[str] = None,
-        parent: Optional[TraversalContext] = None,
+        member_name: str | None = None,
+        parent: TraversalContext | None = None,
     ):
         if isinstance(value, Base):
             stack.append(TraversalContext(value, member_name, parent))
@@ -110,7 +110,7 @@ class GraphTraversal:
                 )
 
     @staticmethod
-    def traverse_member(value: Optional[Any]) -> Iterator[Base]:
+    def traverse_member(value: Any | None) -> Iterator[Base]:
         if isinstance(value, Base):
             yield value
         elif isinstance(value, list):

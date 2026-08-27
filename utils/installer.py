@@ -6,12 +6,11 @@ import os
 import sys
 from importlib import import_module, invalidate_caches
 from pathlib import Path
-from typing import Optional
 
 _user_data_env_var = "SPECKLE_USERDATA_PATH"
 
 
-def _path() -> Optional[Path]:
+def _path() -> Path | None:
     """Read the user data path override setting."""
     path_override = os.environ.get(_user_data_env_var)
     if path_override:
@@ -28,7 +27,7 @@ def override_application_name(application_name: str) -> None:
     _application_name = application_name
 
 
-def override_application_data_path(path: Optional[str]) -> None:
+def override_application_data_path(path: str | None) -> None:
     """
     Override the global Speckle application data path.
 

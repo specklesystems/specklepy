@@ -127,11 +127,11 @@ query AutomationRuns(
 }
         """
     )
-    params = {
+    query.variable_values = {
         "projectId": project_id,
         "modelId": model_id,
     }
-    response = speckle_client.httpclient.execute(query, params)
+    response = speckle_client.httpclient.execute(query)
     return response["project"]["model"]["automationStatus"]
 
 

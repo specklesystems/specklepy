@@ -5,6 +5,7 @@ import pytest
 from specklepy.api.operations import deserialize, serialize
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.geometry import Line, Point, Polycurve, Polyline
+from specklepy.objects.interfaces import ICurve
 from specklepy.objects.models.units import Units
 
 
@@ -18,7 +19,7 @@ def sample_points() -> Tuple[Point, Point, Point]:
 
 
 @pytest.fixture
-def sample_lines(sample_points: Tuple[Point, Point, Point]) -> List[Line]:
+def sample_lines(sample_points: Tuple[Point, Point, Point]) -> List[ICurve]:
     p1, p2, p3 = sample_points
     return [
         Line(start=p1, end=p2, units=Units.m),
@@ -27,11 +28,11 @@ def sample_lines(sample_points: Tuple[Point, Point, Point]) -> List[Line]:
 
 
 @pytest.fixture
-def sample_polycurve(sample_lines: List[Line]) -> Polycurve:
+def sample_polycurve(sample_lines: List[ICurve]) -> Polycurve:
     return Polycurve(segments=sample_lines, units=Units.m)
 
 
-def test_polycurve_creation(sample_lines: List[Line]):
+def test_polycurve_creation(sample_lines: List[ICurve]):
     polycurve = Polycurve(segments=sample_lines, units=Units.m)
     assert len(polycurve.segments) == 2
     assert polycurve.units == Units.m.value
@@ -40,7 +41,7 @@ def test_polycurve_creation(sample_lines: List[Line]):
 
 def test_polycurve_is_closed(sample_points: Tuple[Point, Point, Point]):
     p1, p2, p3 = sample_points
-    lines = [
+    lines: List[ICurve] = [
         Line(start=p1, end=p2, units=Units.m),
         Line(start=p2, end=p3, units=Units.m),
         Line(start=p3, end=p1, units=Units.m),
@@ -111,4 +112,4 @@ def test_polycurve_empty():
 
 def test_polycurve_invalid_segment():
     with pytest.raises(SpeckleException):
-        Polycurve(segments=["not a curve"], units=Units.m)
+        Polycurve(segments=["not a curve"], units=Units.m)  # type: ignore - intentionally mistyping

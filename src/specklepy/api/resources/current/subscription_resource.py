@@ -1,8 +1,7 @@
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, Sequence, Type
+from typing import Callable, Sequence, Type
 
-from gql import gql
-from graphql import DocumentNode
+from gql import GraphQLRequest, gql
 from pydantic import BaseModel
 from typing_extensions import TypeVar
 
@@ -56,7 +55,7 @@ class SubscriptionResource(ResourceBase):
     async def user_projects_updated(
         self, callback: Callable[[UserProjectsUpdatedMessage], None]
     ) -> None:
-        QUERY = gql(
+        request = gql(
             """
             subscription UserProjectsUpdated {
               data:userProjectsUpdated {
@@ -81,8 +80,7 @@ class SubscriptionResource(ResourceBase):
 
         await self.subscribe_2(
             DataResponse[UserProjectsUpdatedMessage],
-            QUERY,
-            None,
+            request,
             callback=lambda d: callback(d.data),
         )
 
@@ -90,9 +88,9 @@ class SubscriptionResource(ResourceBase):
         self,
         callback: Callable[[ProjectModelsUpdatedMessage], None],
         id: str,
-        model_ids: Optional[Sequence[str]] = None,
+        model_ids: Sequence[str] | None = None,
     ) -> None:
-        QUERY = gql(
+        request = gql(
             """
             subscription ProjectModelsUpdated($id: String!, $modelIds: [String!]) {
               data:projectModelsUpdated(id: $id, modelIds: $modelIds) {
@@ -121,12 +119,11 @@ class SubscriptionResource(ResourceBase):
             """
         )
 
-        variables = {"id": id, "modelIds": model_ids}
+        request.variable_values = {"id": id, "modelIds": model_ids}
 
         await self.subscribe_2(
             DataResponse[ProjectModelsUpdatedMessage],
-            QUERY,
-            variables,
+            request,
             callback=lambda d: callback(d.data),
         )
 
@@ -135,7 +132,7 @@ class SubscriptionResource(ResourceBase):
         callback: Callable[[ProjectUpdatedMessage], None],
         id: str,
     ) -> None:
-        QUERY = gql(
+        request = gql(
             """
             subscription ProjectUpdated($id: String!) {
               data:projectUpdated(id: $id) {
@@ -158,12 +155,11 @@ class SubscriptionResource(ResourceBase):
             """
         )
 
-        variables = {"id": id}
+        request.variable_values = {"id": id}
 
         await self.subscribe_2(
             DataResponse[ProjectUpdatedMessage],
-            QUERY,
-            variables,
+            request,
             callback=lambda d: callback(d.data),
         )
 
@@ -172,7 +168,7 @@ class SubscriptionResource(ResourceBase):
         callback: Callable[[ProjectVersionsUpdatedMessage], None],
         id: str,
     ) -> None:
-        QUERY = gql(
+        request = gql(
             """
             subscription ProjectVersionsUpdated($id: String!) {
               data:projectVersionsUpdated(id: $id) {
@@ -201,12 +197,11 @@ class SubscriptionResource(ResourceBase):
             """
         )
 
-        variables = {"id": id}
+        request.variable_values = {"id": id}
 
         await self.subscribe_2(
             DataResponse[ProjectVersionsUpdatedMessage],
-            QUERY,
-            variables,
+            request,
             callback=lambda d: callback(d.data),
         )
 
@@ -215,7 +210,7 @@ class SubscriptionResource(ResourceBase):
         callback: Callable[[ProjectModelIngestionUpdatedMessage], None],
         input: ProjectModelIngestionSubscriptionInput,
     ) -> None:
-        QUERY = gql(
+        request = gql(
             """
             subscription IngestionUpdated($input: ProjectModelIngestionSubscriptionInput!) {
               data: projectModelIngestionUpdated(input: $input) {
@@ -246,7 +241,7 @@ class SubscriptionResource(ResourceBase):
             """  # noqa: E501
         )
 
-        variables = {
+        request.variable_values = {
             "input": input.model_dump(
                 warnings="error", by_alias=True, exclude_none=True
             ),
@@ -254,8 +249,7 @@ class SubscriptionResource(ResourceBase):
 
         await self.subscribe_2(
             DataResponse[ProjectModelIngestionUpdatedMessage],
-            QUERY,
-            variables,
+            request,
             callback=lambda d: callback(d.data),
         )
 
@@ -280,13 +274,12 @@ class SubscriptionResource(ResourceBase):
     async def subscribe_2(
         self,
         response_type: Type[TEventArgs],
-        query: DocumentNode,
-        variables: Optional[Dict[str, Any]],
+        request: GraphQLRequest,
         callback: Callable[[TEventArgs], None],
     ) -> None:
         async with self.client as session:
             self.session = session
-            gen = session.subscribe(query, variable_values=variables)
+            gen = session.subscribe(request)
             async for res in gen:
                 event_arg = response_type.model_validate(res)
                 callback(event_arg)

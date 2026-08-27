@@ -1,8 +1,8 @@
-from typing import Any, List, Optional
+from typing import Any, List
 
 
 class SpeckleException(Exception):
-    def __init__(self, message: str, exception: Exception = None) -> None:
+    def __init__(self, message: str, exception: Exception | None = None) -> None:
         super().__init__()
         self.message = message
         self.exception = exception
@@ -23,7 +23,9 @@ class SpeckleInvalidUnitException(SpeckleException):
 
 
 class SerializationException(SpeckleException):
-    def __init__(self, message: str, obj: Any, exception: Exception = None) -> None:
+    def __init__(
+        self, message: str, obj: Any, exception: Exception | None = None
+    ) -> None:
         super().__init__(message=message, exception=exception)
         self.obj = obj
         self.unhandled_type = type(obj)
@@ -37,7 +39,7 @@ class SerializationException(SpeckleException):
 
 class GraphQLException(SpeckleException):
     def __init__(
-        self, message: str, errors: Optional[List[Any]] = None, data=None
+        self, message: str, errors: List[Any] | None = None, data=None
     ) -> None:
         super().__init__(message=message)
         self.errors = errors

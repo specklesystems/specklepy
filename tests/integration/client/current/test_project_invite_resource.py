@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pytest
 
 from specklepy.api.client import SpeckleClient
@@ -153,7 +151,7 @@ class TestProjectInviteResource:
         client: SpeckleClient,
         second_client: SpeckleClient,
         project: Project,
-        new_role: Optional[str],
+        new_role: str | None,
         created_invite: PendingStreamCollaborator,
     ):
         assert created_invite.token
