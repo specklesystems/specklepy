@@ -74,7 +74,7 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
         f"SELECT schema_version FROM "
         f"read_parquet('{out}/{BASE}.envelope.meta.parquet')",
     )[0:1]
-    assert ver[0] == SCHEMA_VERSION == 1
+    assert ver[0] == SCHEMA_VERSION == "1.0.0"
 
     # rel_types catalog: every live+reserved row of the vendored spec, retired absent.
     # Derived from the vendored catalog so a re-vendor never leaves a stale literal.

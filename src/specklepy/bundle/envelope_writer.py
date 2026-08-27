@@ -170,13 +170,14 @@ class EnvelopeWriter:
 
     # Self-describing catalog (SOT §6): rel/kind vocabulary + schema version, from the
     # generated spec catalog (live + reserved rows; retired ids are absent and never
-    # reused). Tiny.
+    # reused). Tiny. schema_version is the spec semver as TEXT (bundle-spec #25): one
+    # string names the vocabulary, so it is never an int column.
     def _write_catalog(self) -> None:
         with ParquetTableWriter(
             self._p("meta.parquet"),
             pa.schema(
                 [
-                    pa.field("schema_version", pa.int32(), nullable=False),
+                    pa.field("schema_version", pa.string(), nullable=False),
                     pa.field("produced_by", pa.string()),
                 ]
             ),

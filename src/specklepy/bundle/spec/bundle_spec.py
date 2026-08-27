@@ -1,6 +1,6 @@
 # GENERATED FROM spec/bundle-spec.sql — DO NOT EDIT.
 # Run `npm run generate` (or node codegen/generate-all.mjs) to refresh.
-"""Speckle bundle vocabulary (schema_version 1).
+"""Speckle bundle vocabulary (schema_version 1.0.0).
 
 Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate with
 `node codegen/generate-all.mjs` in that repo, then re-vendor into specklepy.
@@ -9,7 +9,7 @@ Single source of truth: speckle-bundle-spec/spec/bundle-spec.sql. Regenerate wit
 from enum import IntEnum
 from typing import NamedTuple, Optional
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = "1.0.0"
 
 
 class Rel(IntEnum):
