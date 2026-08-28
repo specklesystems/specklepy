@@ -1,4 +1,6 @@
-from typing import List
+from typing import TYPE_CHECKING, List
+
+from specklepy.api.credentials import Account
 
 # from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
@@ -6,6 +8,11 @@ from specklepy.objects.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.transports.sqlite import SQLiteTransport
+
+if TYPE_CHECKING:
+    from specklepy.bundle.model import Model
+
+BUNDLE_REFERENCE_PREFIX = "bundle."
 
 
 def send(
@@ -65,6 +72,9 @@ def receive(
     Returns:
         Base -- the base object
     """
+    if obj_id.startswith(BUNDLE_REFERENCE_PREFIX):
+        return _receive_bundle_as_base(obj_id, remote_transport)
+
     if not local_transport:
         local_transport = SQLiteTransport()
 
@@ -89,6 +99,60 @@ def receive(
     )
 
     return serializer.read_json(obj_string=obj_string)
+
+
+def receive3(
+    account: Account,
+    project_id: str,
+    model_id: str,
+    version_id: str,
+    *,
+    include_geometry: bool = True,
+    mark_received: bool = True,
+) -> "Model":
+    """Receives a bundle-only version as a :class:`~specklepy.bundle.model.Model`.
+
+    Requires the ``bundle`` extra (pyarrow). Close the model (or use it as a context
+    manager) to delete the downloaded files.
+    """
+    from specklepy.bundle.receive import receive as receive_bundle
+
+    return receive_bundle(
+        account,
+        project_id,
+        model_id,
+        version_id,
+        include_geometry=include_geometry,
+        mark_received=mark_received,
+    )
+
+
+def _receive_bundle_as_base(
+    reference: str, remote_transport: AbstractTransport | None
+) -> Base:
+    from specklepy.bundle.download import BundleReference
+    from specklepy.transports.server import ServerTransport
+
+    parsed = BundleReference.parse(reference)
+    account = getattr(remote_transport, "account", None)
+    if not isinstance(remote_transport, ServerTransport) or account is None:
+        raise SpeckleException(
+            f"'{reference}' is a bundle reference: this version is bundle-only and "
+            "needs an authenticated ServerTransport (or operations.receive3)."
+        )
+    if parsed.project_id != remote_transport.stream_id:
+        raise SpeckleException(
+            f"Bundle reference '{reference}' belongs to project "
+            f"'{parsed.project_id}', not '{remote_transport.stream_id}'."
+        )
+    with receive3(
+        account,
+        parsed.project_id,
+        parsed.model_id,
+        parsed.version_id,
+        mark_received=False,
+    ) as model:
+        return model.to_base()
 
 
 def serialize(
@@ -141,4 +205,4 @@ def deserialize(
     return serializer.read_json(obj_string=obj_string)
 
 
-__all__ = ["receive", "send", "serialize", "deserialize"]
+__all__ = ["receive", "receive3", "send", "serialize", "deserialize"]

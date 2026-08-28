@@ -18,13 +18,23 @@ from specklepy.bundle.envelope_writer import (
     SceneView,
     SceneViewKey,
 )
+from specklepy.bundle.model import Model, ModelGeometry, ModelObject
 from specklepy.bundle.pipeline import ObjectsArtifactPipeline
+from specklepy.bundle.receive import receive
 from specklepy.bundle.spec import SCHEMA_VERSION, NodeKind, Rel
 from specklepy.bundle.upload import ArtifactPipeline
 
 __all__ = [
     "ObjectsArtifactPipeline",
     "ArtifactPipeline",
+    "receive",
+    "Model",
+    "ModelObject",
+    "ModelGeometry",
+    "receive",
+    "Model",
+    "ModelObject",
+    "ModelGeometry",
     "Producer",
     "SceneView",
     "SceneViewKey",
