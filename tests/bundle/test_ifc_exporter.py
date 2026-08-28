@@ -7,7 +7,7 @@ from __future__ import annotations
 import duckdb
 
 from speckleifc.bundle_exporter import IfcBundleExporter
-from specklepy.bundle import Producer
+from specklepy.bundle import BundleBuilder, Producer
 from specklepy.bundle.spec import Rel
 from specklepy.objects.data_objects import DataObject
 from specklepy.objects.geometry.mesh import Mesh
@@ -104,10 +104,9 @@ def _build_tree() -> Collection:
 
 def test_exporter_maps_full_tree(tmp_path):
     out = str(tmp_path)
-    root_id, obj_count = IfcBundleExporter(out, BASE, Producer("ifc", "0.8.5")).export(
-        _build_tree()
-    )
-    assert root_id == "proj"
+    builder = BundleBuilder(Producer("ifc", "0.8.5"), "m", out, BASE)
+    obj_count = IfcBundleExporter(builder).export(_build_tree())
+    assert builder.build().object_count == obj_count
     meta = f"read_parquet('{out}/{BASE}.envelope.meta.parquet')"
     assert duckdb.sql(
         f"SELECT produced_by, producer_version FROM {meta}"
@@ -143,12 +142,12 @@ def test_exporter_maps_full_tree(tmp_path):
     assert any(r[0] == int(Rel.ON_LEVEL) and r[1] == wall_k for r in rels)
     assert any(r[0] == int(Rel.IN_SYSTEM) and r[1] == wall_k for r in rels)
 
-    # system container: subtype canonical "System", IFC type folded into name
+    # system container: spec subtype "MEP System", IFC type folded into name
     sysrow = con.execute(
         f"SELECT name, subtype FROM {g}.envelope.nodes.parquet') "
-        "WHERE subtype = 'System'"
+        "WHERE subtype = 'MEP System'"
     ).fetchone()
-    assert sysrow[1] == "System"
+    assert sysrow[1] == "MEP System"
     assert "AIRCONDITIONING" in sysrow[0]
 
     # directed connection a->b is a SINGLE edge; undirected x<->y is a reciprocal pair

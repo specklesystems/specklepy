@@ -85,6 +85,7 @@ nav:
               - Inputs: specklepy/core/api/inputs/inputs.md
               - Enums: specklepy/core/api/enums.md
       - Bundles:
+          - Sending bundle versions: specklepy/bundle/send.md
           - Receiving bundle versions: specklepy/bundle/receive.md
       - Objects:
           - Base: specklepy/objects/base.md
