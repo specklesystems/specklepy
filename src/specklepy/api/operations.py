@@ -10,7 +10,9 @@ from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.transports.sqlite import SQLiteTransport
 
 if TYPE_CHECKING:
+    from specklepy.bundle.builder import BundleBuilder
     from specklepy.bundle.model import Model
+    from specklepy.bundle.send import SendOptions, SendResult
 
 BUNDLE_REFERENCE_PREFIX = "bundle."
 
@@ -127,6 +129,25 @@ def receive3(
     )
 
 
+def send3(
+    account: Account,
+    project_id: str,
+    model_id: str,
+    builder: "BundleBuilder",
+    options: "SendOptions | None" = None,
+) -> "SendResult":
+    """Publishes a :class:`~specklepy.bundle.builder.BundleBuilder` as a new version.
+
+    Creates the model ingestion, uploads the bundle over the ``/api/v2`` artifacts
+    rail and returns once the upload is complete; the version appears when the server
+    finishes ingesting. The builder is finished by this call and cannot be reused.
+    Requires the ``bundle`` extra (pyarrow).
+    """
+    from specklepy.bundle.send import send as send_bundle
+
+    return send_bundle(account, project_id, model_id, builder, options)
+
+
 def _receive_bundle_as_base(
     reference: str, remote_transport: AbstractTransport | None
 ) -> Base:
@@ -205,4 +226,4 @@ def deserialize(
     return serializer.read_json(obj_string=obj_string)
 
 
-__all__ = ["receive", "receive3", "send", "serialize", "deserialize"]
+__all__ = ["receive", "receive3", "send", "send3", "serialize", "deserialize"]

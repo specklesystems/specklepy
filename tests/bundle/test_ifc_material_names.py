@@ -45,7 +45,7 @@ def test_material_names_and_values_match_legacy_tree(tmp_path):
     from speckleifc.bundle_exporter import IfcBundleExporter
     from speckleifc.ifc_geometry_processing import open_ifc
     from speckleifc.importer import ImportJob
-    from specklepy.bundle import Producer
+    from specklepy.bundle import BundleBuilder, Producer
     from specklepy.bundle.spec import NodeKind
 
     root = ImportJob(
@@ -59,7 +59,9 @@ def test_material_names_and_values_match_legacy_tree(tmp_path):
     assert all(m.name for m in legacy)
     assert any(m.name == "DefaultMaterial" for m in legacy)
 
-    IfcBundleExporter(str(tmp_path), BASE, Producer("ifc", "0.8.5")).export(root)
+    builder = BundleBuilder(Producer("ifc", "0.8.5"), "m", str(tmp_path), BASE)
+    IfcBundleExporter(builder).export(root)
+    builder.build()
 
     rows = (
         duckdb.connect()

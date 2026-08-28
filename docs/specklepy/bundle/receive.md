@@ -21,7 +21,7 @@ with operations.receive3(account, project_id, model_id, version_id) as model:
         print(obj.application_id, obj["Constraints.Base Offset"], obj.level.name)
 
     wall = model.object_by_application_id("wall-1")
-    for geometry in wall.geometries:          # placements already composed
+    for geometry in wall.geometries:  # placements already composed
         mesh = geometry.decode_mesh()
         material = geometry.effective_material
 ```

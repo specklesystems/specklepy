@@ -18,6 +18,8 @@ from specklepy.api.inputs.model_ingestion_inputs import (
 )
 from specklepy.api.models.current import Project
 from specklepy.api.operations import send
+from specklepy.bundle.builder import BundleBuilder
+from specklepy.bundle.download import BundleReference
 from specklepy.bundle.envelope_writer import Producer
 from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.logging import metrics
@@ -184,13 +186,18 @@ def _upload_bundle(
 
     progress.report("Writing bundle", None)
     with tempfile.TemporaryDirectory(prefix="speckle-bundle-") as bundle_dir:
-        root_id, child_count = IfcBundleExporter(
-            bundle_dir, version_id, _bundle_producer()
-        ).export(data)
+        builder = BundleBuilder(_bundle_producer(), "m", bundle_dir, version_id)
+        IfcBundleExporter(builder).export(data)
+        files = builder.build()
         progress.report("Uploading bundle", None)
+        model_id = client.model_ingestion.get_ingestion(
+            project.id, model_ingestion_id
+        ).model_id
+        root_id = str(BundleReference(project.id, model_id, version_id))
         with ArtifactPipeline(
             project.id, model_ingestion_id, version_id, account, bundle_dir
         ) as pipeline:
-            version_id = pipeline.upload_dir(version_id, root_id, child_count)
-
+            version_id = pipeline.upload_files(
+                files.by_name, root_id, files.object_count
+            )
     return version_id
