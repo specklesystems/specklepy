@@ -18,6 +18,7 @@ from specklepy.api.inputs.model_ingestion_inputs import (
 )
 from specklepy.api.models.current import Project
 from specklepy.api.operations import send
+from specklepy.bundle.envelope_writer import Producer
 from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
@@ -35,6 +36,14 @@ PROGRESS_INTERVAL_SECONDS = 10
 # detached-object send, whose behaviour is unchanged. Only flip where the target server
 # exposes the v2 data endpoints AND the viewer reads bundles.
 _BUNDLE_ENV_VAR = "SPECKLE_IFC_BUNDLE"
+
+
+def _bundle_producer() -> Producer:
+    try:
+        version = importlib.metadata.version("ifcopenshell")
+    except importlib.metadata.PackageNotFoundError:
+        version = "unknown"
+    return Producer(slug="ifc", version=version)
 
 
 def _bundle_enabled() -> bool:
@@ -175,7 +184,9 @@ def _upload_bundle(
 
     progress.report("Writing bundle", None)
     with tempfile.TemporaryDirectory(prefix="speckle-bundle-") as bundle_dir:
-        root_id, child_count = IfcBundleExporter(bundle_dir, version_id).export(data)
+        root_id, child_count = IfcBundleExporter(
+            bundle_dir, version_id, _bundle_producer()
+        ).export(data)
         progress.report("Uploading bundle", None)
         with ArtifactPipeline(
             project.id, model_ingestion_id, version_id, account, bundle_dir

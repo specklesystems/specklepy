@@ -16,7 +16,7 @@ Rows are added as a positional sequence in schema-column order; nullable columns
 from __future__ import annotations
 
 import os
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -63,8 +63,14 @@ class ParquetTableWriter:
         schema: pa.Schema,
         flush_rows: int = DEFAULT_ROWGROUP_ROWS,
         table: str | None = None,
+        column_count: int | None = None,
     ) -> None:
         self.path = path
+        if column_count is not None and column_count != len(schema):
+            raise ValueError(
+                f"table '{table or os.path.basename(path)}': schema has {len(schema)} "
+                f"columns but the generated column constants declare {column_count}"
+            )
         if os.path.exists(path):
             os.remove(path)
 
@@ -98,6 +104,17 @@ class ParquetTableWriter:
         self._buffered += 1
         if self._buffered >= self._flush_rows:
             self._flush_row_group()
+
+    def add_row_at(self, values: Mapping[int, Any]) -> None:
+        """Append one row addressed by generated column index; every column required."""
+        if len(values) != len(self._cols) or any(
+            not 0 <= i < len(self._cols) for i in values
+        ):
+            raise ValueError(
+                f"table '{self.table}': indexed row covers {sorted(values)} but the "
+                f"schema has columns 0..{len(self._cols) - 1}"
+            )
+        self.add_row(*(values[i] for i in range(len(self._cols))))
 
     def complete(self) -> None:
         """Flush the final row group and close the file (writes the footer/metadata)."""

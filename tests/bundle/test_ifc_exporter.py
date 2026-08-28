@@ -7,6 +7,7 @@ from __future__ import annotations
 import duckdb
 
 from speckleifc.bundle_exporter import IfcBundleExporter
+from specklepy.bundle import Producer
 from specklepy.bundle.spec import Rel
 from specklepy.objects.data_objects import DataObject
 from specklepy.objects.geometry.mesh import Mesh
@@ -103,8 +104,14 @@ def _build_tree() -> Collection:
 
 def test_exporter_maps_full_tree(tmp_path):
     out = str(tmp_path)
-    root_id, obj_count = IfcBundleExporter(out, BASE).export(_build_tree())
+    root_id, obj_count = IfcBundleExporter(out, BASE, Producer("ifc", "0.8.5")).export(
+        _build_tree()
+    )
     assert root_id == "proj"
+    meta = f"read_parquet('{out}/{BASE}.envelope.meta.parquet')"
+    assert duckdb.sql(
+        f"SELECT produced_by, producer_version FROM {meta}"
+    ).fetchall() == [("ifc", "0.8.5")]
 
     con = duckdb.connect()
     g = f"read_parquet('{out}/{BASE}"

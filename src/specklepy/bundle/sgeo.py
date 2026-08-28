@@ -48,6 +48,8 @@ class PrimitiveType(IntEnum):
     ELLIPSE = 8
     SPIRAL = 9
     BOX = 10
+    REGION = 11
+    TEXT = 12
 
 
 class Flags(IntFlag):
@@ -63,6 +65,8 @@ class Flags(IntFlag):
     HAS_COLORS = 1 << 6
     HAS_SIZES = 1 << 7
     HAS_TRIM_DOMAIN = 1 << 8
+    SCREEN_ORIENTED = 1 << 9
+    HAS_MAX_WIDTH = 1 << 10
 
 
 # Mirrors Speckle.Sdk.Common.Units.GetEncodingFromUnit: the exact semantic unit
@@ -84,7 +88,7 @@ def get_encoding_from_unit(units: str | None) -> int:
     return _UNIT_ENCODING.get(units or "", 0)
 
 
-# ── CRC32 (IEEE 802.3, polynomial 0xEDB88820) ──────────────────────────────
+# ── CRC32 (IEEE 802.3, polynomial 0xEDB88320) ──────────────────────────────
 
 
 def crc32(data: bytes) -> int:
@@ -178,7 +182,6 @@ def _assemble(
     struct.pack_into("<H", buf, 8, get_encoding_from_unit(units))  # 0x08 units
     struct.pack_into("<H", buf, 10, 0)  # 0x0A reserved
     buf[HEADER_SIZE:] = body
-    # Must use the ported crc32 (poly 0xEDB88820), NOT zlib — see crc32 docstring.
     crc = crc32(bytes(body))
     struct.pack_into("<I", buf, 12, crc)  # 0x0C crc
     return bytes(buf)
@@ -250,12 +253,53 @@ def _encode_polycurve(pc) -> bytes:
     _u32(body, len(pc.segments))
     _u32(body, 0)
     for seg in pc.segments:
-        blob = encode(seg)
-        _u32(body, len(blob))
-        _u32(body, 0)
-        body += blob
-        _pad8(body)
+        _curve_blob(body, seg)
     return _assemble(PrimitiveType.POLYCURVE, flags, pc.units, body)
+
+
+def _curve_blob(body: bytearray, curve) -> None:
+    blob = encode(curve)
+    _u32(body, len(blob))
+    _u32(body, 0)
+    body += blob
+    _pad8(body)
+
+
+def _encode_region(r) -> bytes:
+    body = bytearray()
+    _u32(body, 1 if r.hasHatchPattern else 0)
+    _u32(body, len(r.innerLoops))
+    _curve_blob(body, r.boundary)
+    for loop in r.innerLoops:
+        _curve_blob(body, loop)
+    return _assemble(PrimitiveType.REGION, Flags.NONE, r.units, body)
+
+
+def _encode_text(t) -> bytes:
+    if t.plane is None:
+        raise ValueError("Text.plane is required for SGEO encoding.")
+    flags = Flags.NONE
+    if getattr(t, "screenOriented", False):
+        flags |= Flags.SCREEN_ORIENTED
+    if t.maxWidth is not None:
+        flags |= Flags.HAS_MAX_WIDTH
+    value = t.value.encode("utf-8")
+    body = bytearray()
+    _u32(body, _enum_value(t.alignmentH))
+    _u32(body, _enum_value(t.alignmentV))
+    _f64(body, t.height)
+    if t.maxWidth is not None:
+        _f64(body, t.maxWidth)
+    _plane(body, t.plane)
+    _u32(body, len(value))
+    _u32(body, 0)
+    body += value
+    _pad8(body)
+    return _assemble(PrimitiveType.TEXT, flags, t.units, body)
+
+
+def _enum_value(v) -> int:
+    return int(getattr(v, "value", v))
 
 
 def _encode_curve(c) -> bytes:
@@ -425,6 +469,8 @@ _ENCODERS = {
     "Ellipse": _encode_ellipse,
     "Spiral": _encode_spiral,
     "Box": _encode_box,
+    "Region": _encode_region,
+    "Text": _encode_text,
 }
 
 _PRIMITIVE_TYPES = {
@@ -440,6 +486,8 @@ _PRIMITIVE_TYPES = {
     "Ellipse": PrimitiveType.ELLIPSE,
     "Spiral": PrimitiveType.SPIRAL,
     "Box": PrimitiveType.BOX,
+    "Region": PrimitiveType.REGION,
+    "Text": PrimitiveType.TEXT,
 }
 
 

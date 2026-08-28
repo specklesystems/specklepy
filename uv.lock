@@ -2305,11 +2305,9 @@ dependencies = [
 
 [package.optional-dependencies]
 bundle = [
-    { name = "duckdb" },
     { name = "pyarrow" },
 ]
 speckleifc = [
-    { name = "duckdb" },
     { name = "ifcopenshell" },
     { name = "pyarrow" },
 ]
@@ -2318,6 +2316,7 @@ speckleifc = [
 dev = [
     { name = "commitizen" },
     { name = "devtools" },
+    { name = "duckdb" },
     { name = "hatch" },
     { name = "hatch-vcs" },
     { name = "pre-commit" },
@@ -2342,8 +2341,6 @@ docs = [
 requires-dist = [
     { name = "attrs", specifier = ">=24.3.0" },
     { name = "deprecated", specifier = ">=1.2.15" },
-    { name = "duckdb", marker = "extra == 'bundle'", specifier = ">=1.1.0" },
-    { name = "duckdb", marker = "extra == 'speckleifc'", specifier = ">=1.1.0" },
     { name = "gql", extras = ["requests", "websockets"], specifier = ">=4.0.0,<5.0.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "ifcopenshell", marker = "extra == 'speckleifc'", specifier = ">=0.8.5" },
@@ -2359,6 +2356,7 @@ provides-extras = ["bundle", "speckleifc"]
 dev = [
     { name = "commitizen", specifier = ">=4.1.0" },
     { name = "devtools", specifier = ">=0.12.2" },
+    { name = "duckdb", specifier = ">=1.1.0" },
     { name = "hatch", specifier = ">=1.14.0" },
     { name = "hatch-vcs", specifier = ">=0.4.0" },
     { name = "pre-commit", specifier = ">=4.0.1" },
