@@ -38,6 +38,7 @@ class Text(Base, IHasUnits, speckle_type="Objects.Annotation.Text"):
     maxWidth: float | None = field(
         default_factory=lambda: None
     )  # Maximum width of the text field. None, if don't split into lines
+    screenOriented: bool = False
 
     def __repr__(self) -> str:
         return (
@@ -49,5 +50,6 @@ class Text(Base, IHasUnits, speckle_type="Objects.Annotation.Text"):
             f"alignmentV: {self.alignmentV}, "
             f"plane: {self.plane}, "
             f"maxWidth: {self.maxWidth}, "
+            f"screenOriented: {self.screenOriented}, "
             f"units: {self.units})"
         )
