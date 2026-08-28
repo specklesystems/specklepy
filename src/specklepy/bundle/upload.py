@@ -20,7 +20,7 @@ from typing import Mapping
 
 import httpx
 
-from specklepy.core.api.credentials import Account
+from specklepy.api.credentials import Account
 
 
 class ArtifactUploadError(Exception):

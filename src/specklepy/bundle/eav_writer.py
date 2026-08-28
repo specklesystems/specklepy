@@ -22,7 +22,15 @@ from typing import Callable, Iterable
 
 from specklepy.bundle.eav_extraction import EavRow
 from specklepy.bundle.parquet_table_writer import ParquetTableWriter, schema_of
-from specklepy.bundle.spec import BY_TABLE
+from specklepy.bundle.spec import (
+    BY_TABLE,
+    EAV,
+    OBJECT_TYPE,
+    OBJECTS,
+    PATHS,
+    TYPE_EAV,
+    TYPES,
+)
 
 
 def _value_boolean(row: EavRow) -> bool | None:
@@ -44,24 +52,12 @@ class EavWriter:
         self.output_dir = output_dir
         self.base_name = base_name
 
-        self._objects = ParquetTableWriter(
-            self._p("objects.parquet"), schema_of(BY_TABLE["objects"])
-        )
-        self._paths = ParquetTableWriter(
-            self._p("paths.parquet"), schema_of(BY_TABLE["paths"])
-        )
-        self._eav = ParquetTableWriter(
-            self._p("eav.parquet"), schema_of(BY_TABLE["eav"])
-        )
-        self._types = ParquetTableWriter(
-            self._p("types.parquet"), schema_of(BY_TABLE["types"])
-        )
-        self._type_eav = ParquetTableWriter(
-            self._p("type_eav.parquet"), schema_of(BY_TABLE["type_eav"])
-        )
-        self._object_type = ParquetTableWriter(
-            self._p("object_type.parquet"), schema_of(BY_TABLE["object_type"])
-        )
+        self._objects = self._table("objects", OBJECTS.COLUMN_COUNT)
+        self._paths = self._table("paths", PATHS.COLUMN_COUNT)
+        self._eav = self._table("eav", EAV.COLUMN_COUNT)
+        self._types = self._table("types", TYPES.COLUMN_COUNT)
+        self._type_eav = self._table("type_eav", TYPE_EAV.COLUMN_COUNT)
+        self._object_type = self._table("object_type", OBJECT_TYPE.COLUMN_COUNT)
 
         # interning: applicationId / path / type_key -> dense sequential int
         # (first-seen order).
@@ -162,6 +158,14 @@ class EavWriter:
         self._type_index[type_key] = idx
         self._types.add_row(idx, type_key)
         return idx, True
+
+    def _table(self, name: str, column_count: int) -> ParquetTableWriter:
+        return ParquetTableWriter(
+            self._p(f"{name}.parquet"),
+            schema_of(BY_TABLE[name]),
+            table=name,
+            column_count=column_count,
+        )
 
     def _p(self, suffix: str) -> str:
         return os.path.join(self.output_dir, f"{self.base_name}.eav.{suffix}")

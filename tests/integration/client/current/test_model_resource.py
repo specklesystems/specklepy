@@ -1,17 +1,17 @@
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.inputs.model_inputs import (
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.inputs.model_inputs import (
     CreateModelInput,
     DeleteModelInput,
     UpdateModelInput,
 )
-from specklepy.core.api.inputs.project_inputs import (
+from specklepy.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectModelsFilter,
 )
-from specklepy.core.api.models.current import (
+from specklepy.api.models.current import (
     Model,
     ModelPermissionChecks,
     PermissionCheckResult,

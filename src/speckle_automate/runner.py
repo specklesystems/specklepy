@@ -8,7 +8,7 @@ import json
 import sys
 import traceback
 from pathlib import Path
-from typing import Callable, Optional, Tuple, TypeVar, Union, overload
+from typing import Callable, Tuple, TypeVar, overload
 
 from pydantic import create_model
 from pydantic.json_schema import GenerateJsonSchema
@@ -31,8 +31,8 @@ def _read_input_data(inputs_location: str) -> str:
 
 
 def _parse_input_data(
-    input_location: str, input_schema: Optional[type[T]]
-) -> Tuple[AutomationRunData, Optional[T], str]:
+    input_location: str, input_schema: type[T] | None
+) -> Tuple[AutomationRunData, T | None, str]:
     input_json_string = _read_input_data(input_location)
 
     class FunctionRunData(AutomateBase):
@@ -78,8 +78,8 @@ class AutomateGenerateJsonSchema(GenerateJsonSchema):
 
 
 def execute_automate_function(
-    automate_function: Union[AutomateFunction[T], AutomateFunctionWithoutInputs],
-    input_schema: Optional[type[T]] = None,
+    automate_function: AutomateFunction[T] | AutomateFunctionWithoutInputs,
+    input_schema: type[T] | None = None,
 ):
     """Runs the provided automate function with the input schema."""
     # first arg is the python file name, we do not need that
@@ -157,8 +157,8 @@ def run_function(
 
 def run_function(
     automation_context: AutomationContext,
-    automate_function: Union[AutomateFunction[T], AutomateFunctionWithoutInputs],
-    inputs: Optional[T] = None,
+    automate_function: AutomateFunction[T] | AutomateFunctionWithoutInputs,
+    inputs: T | None = None,
 ) -> AutomationContext:
     """Run the provided function with the automate sdk context."""
     automation_context.report_run_status()

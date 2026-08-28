@@ -7,15 +7,30 @@ import hashlib
 import os
 
 import duckdb
+import pyarrow as pa
 import pytest
 
 from specklepy.bundle.eav_extraction import EavRow
 from specklepy.bundle.eav_writer import EavWriter
-from specklepy.bundle.envelope_writer import EnvelopeWriter
+from specklepy.bundle.envelope_writer import EnvelopeWriter, Producer
 from specklepy.bundle.geometries_writer import GeometriesParquetWriter
-from specklepy.bundle.spec import SCHEMA_VERSION, NodeKind, Rel
+from specklepy.bundle.model_eav_writer import ModelEavWriter
+from specklepy.bundle.parquet_table_writer import ParquetTableWriter, schema_of
+from specklepy.bundle.property_set_definitions_writer import (
+    PropertySetDefinitionsWriter,
+)
+from specklepy.bundle.spec import (
+    BY_TABLE,
+    NODE_KINDS,
+    NODES,
+    REL_TYPES,
+    SCHEMA_VERSION,
+    NodeKind,
+    Rel,
+)
 
 BASE = "test"
+PRODUCER = Producer("test", "0", migrated_from_schema_version=3)
 
 
 def _q(con, sql):
@@ -24,24 +39,19 @@ def _q(con, sql):
 
 def test_envelope_writer_roundtrip_and_catalog(tmp_path):
     out = str(tmp_path)
-    w = EnvelopeWriter(out, BASE)
-    # one container (subtype Model) + one object→container edge
+    w = EnvelopeWriter(out, BASE, PRODUCER)
+    w.add_node(0, NodeKind.CONTAINER, name="Model A", subtype="Model")
+    w.add_node(1, NodeKind.LEVEL, name="L1", elevation=3.5)
     w.add_node(
-        0,
-        NodeKind.CONTAINER,
-        "Model A",
-        None,
-        None,
-        None,
-        "Model",
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-    w.add_node(
-        1, NodeKind.LEVEL, "L1", None, None, None, None, None, None, None, None, 3.5
+        2,
+        NodeKind.MATERIAL,
+        name="Glass",
+        argb=-1,
+        opacity=0.4,
+        metalness=0.0,
+        roughness=0.1,
+        emissive=-16711936,
+        ior=1.52,
     )
     w.add_relation(Rel.IN_MODEL, 0, 0, 0)
     w.add_relation(Rel.ON_LEVEL, 0, 1, 0)
@@ -49,44 +59,49 @@ def test_envelope_writer_roundtrip_and_catalog(tmp_path):
 
     con = duckdb.connect()
 
-    # meta: schema version from the spec
-    (ver,) = _q(
-        con,
-        f"SELECT schema_version FROM "
-        f"read_parquet('{out}/{BASE}.envelope.meta.parquet')",
-    )[0:1]
-    assert ver[0] == SCHEMA_VERSION == 5
+    meta = _q(con, f"SELECT * FROM read_parquet('{out}/{BASE}.envelope.meta.parquet')")
+    assert meta == [(SCHEMA_VERSION, "test", "0", "specklepy", PRODUCER.sdk_version, 3)]
 
-    # rel_types catalog: 15 live+reserved (retired absent)
+    expected_live = sum(1 for r in REL_TYPES if r.status != "retired")
+    retired_ids = [r.id for r in REL_TYPES if r.status == "retired"]
+    assert expected_live > 0 and retired_ids
     (n_rel,) = _q(
         con,
         f"SELECT count(*) FROM read_parquet('{out}/{BASE}.envelope.rel_types.parquet')",
     )[0]
-    assert n_rel == 15
-    # retired ids never present
+    assert n_rel == expected_live
     retired = _q(
         con,
         f"SELECT count(*) FROM read_parquet('{out}/{BASE}.envelope.rel_types.parquet') "
-        "WHERE rel IN (13,15,16,17,18,19,20,22)",
+        f"WHERE rel IN ({','.join(str(i) for i in retired_ids)})",
     )[0][0]
     assert retired == 0
 
-    # node_kinds catalog: 6 live (COLLECTION retired/folded)
     n_kind = _q(
         con,
         f"SELECT count(*) FROM "
         f"read_parquet('{out}/{BASE}.envelope.node_kinds.parquet')",
     )[0][0]
-    assert n_kind == 6
+    assert n_kind == sum(1 for k in NODE_KINDS if k.status != "retired")
 
-    # nodes + relations content
+    described = _q(
+        con,
+        f"DESCRIBE SELECT * FROM read_parquet('{out}/{BASE}.envelope.nodes.parquet')",
+    )
+    assert [d[0] for d in described] == [c.name for c in BY_TABLE["nodes"]]
+
     nodes = _q(
         con,
-        f"SELECT id, kind, name, subtype, elevation "
+        f"SELECT id, kind, name, subtype, elevation, emissive, ior "
         f"FROM read_parquet('{out}/{BASE}.envelope.nodes.parquet') ORDER BY id",
     )
     assert nodes[0][1] == int(NodeKind.CONTAINER) and nodes[0][3] == "Model"
     assert nodes[1][1] == int(NodeKind.LEVEL) and nodes[1][4] == 3.5
+    assert nodes[0][5] is None and nodes[0][6] is None
+    assert nodes[2][1] == int(NodeKind.MATERIAL)
+    assert nodes[2][4] is None
+    assert nodes[2][5] == -16711936
+    assert nodes[2][6] == 1.52
     rels = _q(
         con,
         f"SELECT rel, src, dst FROM "
@@ -116,7 +131,6 @@ def test_eav_writer_roundtrip(tmp_path):
     )
     assert objs == [(0, "guid-1")]
 
-    # join eav -> paths and coalesce values
     res = _q(
         con,
         f"""
@@ -134,7 +148,6 @@ def test_eav_writer_roundtrip(tmp_path):
 
 
 def _fake_sgeo(primitive_type: int = 0, body: bytes = b"\x00" * 8) -> bytes:
-    """Minimal valid-enough SGEO blob: 16-byte header (magic/version/type) + body."""
     header = bytearray(16)
     header[0:4] = b"SGEO"
     header[4] = 1
@@ -147,19 +160,20 @@ def test_geometries_writer_id_is_sha256_and_type_from_header(tmp_path):
     blob = _fake_sgeo(primitive_type=0, body=b"\x01\x02\x03\x04\x05\x06\x07\x08")
     w = GeometriesParquetWriter(out, BASE)
     w.add_geometry(7, blob)
-    w.add_geometry(7, blob)  # dedup by geometryIndex -> one row
+    w.add_geometry(7, blob)
+    w.add_geometry(8, _fake_sgeo(primitive_type=11))
+    w.add_geometry(9, _fake_sgeo(primitive_type=12))
     w.complete()
 
     con = duckdb.connect()
     rows = _q(
         con,
         f"SELECT geometryIndex, id, type "
-        f"FROM read_parquet('{out}/{BASE}.geometries.parquet')",
+        f"FROM read_parquet('{out}/{BASE}.geometries.parquet') ORDER BY geometryIndex",
     )
-    assert len(rows) == 1
-    assert rows[0][0] == 7
-    assert rows[0][1] == hashlib.sha256(blob).hexdigest()
-    assert rows[0][2] == "mesh"
+    assert len(rows) == 3
+    assert rows[0] == (7, hashlib.sha256(blob).hexdigest(), "mesh")
+    assert rows[1][2] == "region" and rows[2][2] == "text"
 
 
 def test_geometries_writer_rejects_non_sgeo(tmp_path):
@@ -169,10 +183,63 @@ def test_geometries_writer_rejects_non_sgeo(tmp_path):
     w.complete()
 
 
+def test_add_row_arity_mismatch_names_the_table(tmp_path):
+    w = ParquetTableWriter(
+        str(tmp_path / "nodes.parquet"), schema_of(BY_TABLE["nodes"]), table="nodes"
+    )
+    with pytest.raises(ValueError, match=r"table 'nodes'.*12 values.*15 columns"):
+        w.add_row(0, 1, None, None, None, None, None, None, None, None, None, None)
+    w.complete()
+
+
+def test_add_row_at_requires_every_column(tmp_path):
+    w = ParquetTableWriter(
+        str(tmp_path / "nodes.parquet"), schema_of(BY_TABLE["nodes"]), table="nodes"
+    )
+    with pytest.raises(ValueError, match=r"table 'nodes'.*indexed row"):
+        w.add_row_at({NODES.ID: 0, NODES.KIND: 1})
+    w.complete()
+
+
+def test_column_count_guard_catches_schema_drift(tmp_path):
+    with pytest.raises(ValueError, match=r"table 'nodes'.*declare 15"):
+        ParquetTableWriter(
+            str(tmp_path / "nodes.parquet"),
+            pa.schema([pa.field("id", pa.int32())]),
+            table="nodes",
+            column_count=NODES.COLUMN_COUNT,
+        )
+
+
+def test_model_eav_writer_requires_exactly_one_value(tmp_path):
+    w = ModelEavWriter(str(tmp_path), BASE)
+    with pytest.raises(ValueError):
+        w.add_row("p", "s", 1.0, None, None)
+    with pytest.raises(ValueError):
+        w.add_row("p", None, None, None, None)
+    w.add_row("p", None, None, False, None)
+    w.complete()
+    rows = duckdb.sql(
+        f"SELECT * FROM read_parquet('{tmp_path}/{BASE}.eav.model.parquet')"
+    ).fetchall()
+    assert rows == [("p", None, None, False, None)]
+
+
+def test_property_set_definitions_writer_allows_at_most_one_default(tmp_path):
+    w = PropertySetDefinitionsWriter(str(tmp_path), BASE)
+    with pytest.raises(ValueError):
+        w.add_row("S", "k", None, "f", None, None, "a", 1.0, None, None, None, None)
+    w.add_row("S", "k", None, "f", "b", "double", None, 1.0, None, "mm", None, None)
+    w.complete()
+    rows = duckdb.sql(
+        f"SELECT set_name, field_name, default_double, unit FROM "
+        f"read_parquet('{tmp_path}/{BASE}.eav.property_set_definitions.parquet')"
+    ).fetchall()
+    assert rows == [("S", "f", 1.0, "mm")]
+
+
 def test_geometries_sharding(tmp_path):
     out = str(tmp_path)
-    # tiny cap forces a roll: each blob ~24 bytes, cap 30 -> shard 0 gets one,
-    # shard 1 next.
     w = GeometriesParquetWriter(out, BASE, shard_cap_bytes=30)
     for i in range(3):
         w.add_geometry(i, _fake_sgeo(body=bytes([i]) * 8))

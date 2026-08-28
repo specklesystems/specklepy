@@ -25,3 +25,11 @@ run = "uv run pytest"
 
 [env]
 IS_PUBLIC = "false"
+
+[tasks.bundle-validate]
+description = "Verify the vendored bundle-spec pin and validate an emitted bundle (needs node + duckdb CLI; SPECKLE_BUNDLE_SPEC_DIR overrides the sibling checkout)"
+run = """
+export SPECKLE_BUNDLE_SPEC_DIR="${SPECKLE_BUNDLE_SPEC_DIR:-../speckle-bundle-spec}"
+node "$SPECKLE_BUNDLE_SPEC_DIR/codegen/verify-pin.mjs" --python src/specklepy/bundle/spec
+uv run pytest tests/bundle/test_conformance.py -q -rs
+"""

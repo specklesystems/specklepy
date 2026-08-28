@@ -1,6 +1,6 @@
 import pytest
 
-from specklepy.core.api.operations import deserialize, serialize
+from specklepy.api.operations import deserialize, serialize
 from specklepy.objects.geometry import Vector
 from specklepy.objects.models.units import Units
 
@@ -28,7 +28,7 @@ def test_vector_units():
 
 def test_vector_invalid_construction():
     with pytest.raises(TypeError):
-        Vector(x=1.0, y=2.0)  # missing z and units
+        Vector(x=1.0, y=2.0)  # pyright: ignore[reportCallIssue] # intentionally missing z and units
 
 
 def test_vector_serialization():

@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from contextlib import closing
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging.exceptions import SpeckleException
@@ -11,9 +11,9 @@ from specklepy.transports.abstract_transport import AbstractTransport
 class SQLiteTransport(AbstractTransport):
     def __init__(
         self,
-        base_path: Optional[str] = None,
-        app_name: Optional[str] = None,
-        scope: Optional[str] = None,
+        base_path: str | None = None,
+        app_name: str | None = None,
+        scope: str | None = None,
         max_batch_size_mb: float = 10.0,
         name: str = "SQLite",
     ) -> None:

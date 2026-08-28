@@ -12,6 +12,12 @@ Geometry blobs are encoded and decoded by :mod:`specklepy.bundle.sgeo`
 bundle back. Decoding covers every primitive the encoder emits.
 """
 
+from specklepy.bundle.envelope_writer import (
+    CameraView,
+    Producer,
+    SceneView,
+    SceneViewKey,
+)
 from specklepy.bundle.pipeline import ObjectsArtifactPipeline
 from specklepy.bundle.spec import SCHEMA_VERSION, NodeKind, Rel
 from specklepy.bundle.upload import ArtifactPipeline
@@ -19,6 +25,10 @@ from specklepy.bundle.upload import ArtifactPipeline
 __all__ = [
     "ObjectsArtifactPipeline",
     "ArtifactPipeline",
+    "Producer",
+    "SceneView",
+    "SceneViewKey",
+    "CameraView",
     "NodeKind",
     "Rel",
     "SCHEMA_VERSION",

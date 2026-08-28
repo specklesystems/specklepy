@@ -1,6 +1,6 @@
 import pytest
 
-from specklepy.core.api.operations import deserialize, serialize
+from specklepy.api.operations import deserialize, serialize
 from specklepy.objects.geometry import Point
 from specklepy.objects.models.units import Units
 
@@ -22,7 +22,7 @@ def test_point_distance_calculation():
     assert distance == pytest.approx(expected)
 
     with pytest.raises(TypeError):
-        p1.distance_to("not a point")
+        p1.distance_to("not a point")  # pyright: ignore[reportArgumentType] - intentional mistyping
 
 
 def test_point_serialization():

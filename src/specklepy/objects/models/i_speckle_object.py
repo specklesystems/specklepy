@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class ISpeckleObject(speckle_type="ISpeckleObjects", metaclass=ABCMeta):
+class ISpeckleObject(metaclass=ABCMeta):
     @property
     @abstractmethod
     def id(self) -> str | None:

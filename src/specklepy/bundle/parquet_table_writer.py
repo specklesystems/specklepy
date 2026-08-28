@@ -16,7 +16,7 @@ Rows are added as a positional sequence in schema-column order; nullable columns
 from __future__ import annotations
 
 import os
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -62,11 +62,21 @@ class ParquetTableWriter:
         path: str,
         schema: pa.Schema,
         flush_rows: int = DEFAULT_ROWGROUP_ROWS,
+        table: str | None = None,
+        column_count: int | None = None,
     ) -> None:
         self.path = path
+        if column_count is not None and column_count != len(schema):
+            raise ValueError(
+                f"table '{table or os.path.basename(path)}': schema has {len(schema)} "
+                f"columns but the generated column constants declare {column_count}"
+            )
         if os.path.exists(path):
             os.remove(path)
 
+        # spec table name for diagnostics (falls back to the file name); an arity
+        # mismatch must say WHICH table drifted from the vendored spec.
+        self.table = table or os.path.basename(path)
         self._schema = schema
         self._flush_rows = flush_rows
         # one buffer list per column, in schema order.
@@ -80,14 +90,31 @@ class ParquetTableWriter:
         if self._completed:
             raise RuntimeError("Writer already completed.")
         if len(values) != len(self._cols):
+            # The exact failure mode of the Jul-2026 envelope incident (in the C++
+            # writers): schema updated from the spec, row assembly not. Fail loudly,
+            # naming the table, instead of writing a malformed/empty artefact.
             raise ValueError(
-                f"{self.path}: expected {len(self._cols)} columns, got {len(values)}"
+                f"table '{self.table}': row has {len(values)} values but the schema "
+                f"has {len(self._cols)} columns "
+                f"({', '.join(self._schema.names)}) — row assembly is out of sync "
+                f"with the vendored bundle spec ({self.path})"
             )
-        for col, v in zip(self._cols, values, strict=False):
+        for col, v in zip(self._cols, values, strict=True):
             col.append(v)
         self._buffered += 1
         if self._buffered >= self._flush_rows:
             self._flush_row_group()
+
+    def add_row_at(self, values: Mapping[int, Any]) -> None:
+        """Append one row addressed by generated column index; every column required."""
+        if len(values) != len(self._cols) or any(
+            not 0 <= i < len(self._cols) for i in values
+        ):
+            raise ValueError(
+                f"table '{self.table}': indexed row covers {sorted(values)} but the "
+                f"schema has columns 0..{len(self._cols) - 1}"
+            )
+        self.add_row(*(values[i] for i in range(len(self._cols))))
 
     def complete(self) -> None:
         """Flush the final row group and close the file (writes the footer/metadata)."""

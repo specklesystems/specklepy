@@ -21,11 +21,8 @@ Conventions: little-endian throughout; f64 = IEEE-754 double; the body starts
 8-byte aligned at 0x10 and every f64 array stays 8-aligned (u32 scalars are
 padded in pairs via :func:`_pad8`).
 
-:func:`encode` writes blobs; :func:`decode` reads them back for the receive side
-of the artefact path, covering every primitive the encoder emits.
-:func:`decode_mesh` is a raw-array fast path for MESH only — meshes are the
-dense case where allocating a ``Base`` per geometry dominates, and connectors
-that bake straight into a host application want the flat arrays anyway.
+:func:`encode` writes blobs; :func:`decode` reads them back (:func:`decode_mesh` is
+the raw-array fast path for MESH).
 """
 
 from __future__ import annotations
@@ -34,7 +31,7 @@ import struct
 import zlib
 from dataclasses import dataclass
 from enum import IntEnum, IntFlag
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from specklepy.objects.base import Base
@@ -59,6 +56,8 @@ class PrimitiveType(IntEnum):
     ELLIPSE = 8
     SPIRAL = 9
     BOX = 10
+    REGION = 11
+    TEXT = 12
 
 
 class Flags(IntFlag):
@@ -74,6 +73,8 @@ class Flags(IntFlag):
     HAS_COLORS = 1 << 6
     HAS_SIZES = 1 << 7
     HAS_TRIM_DOMAIN = 1 << 8
+    SCREEN_ORIENTED = 1 << 9
+    HAS_MAX_WIDTH = 1 << 10
 
 
 # Mirrors Speckle.Sdk.Common.Units.GetEncodingFromUnit: the exact semantic unit
@@ -90,12 +91,12 @@ _UNIT_ENCODING = {
 }
 
 
-def get_encoding_from_unit(units: Optional[str]) -> int:
+def get_encoding_from_unit(units: str | None) -> int:
     """Map a semantic unit string to its SGEO uint16 code (0 if unrecognised)."""
     return _UNIT_ENCODING.get(units or "", 0)
 
 
-# ── CRC32 (IEEE 802.3, polynomial 0xEDB88820) ──────────────────────────────
+# ── CRC32 (IEEE 802.3, polynomial 0xEDB88320) ──────────────────────────────
 
 
 def crc32(data: bytes) -> int:
@@ -179,7 +180,7 @@ def _polyline_body(b: bytearray, p) -> None:
 
 
 def _assemble(
-    primitive_type: PrimitiveType, flags: Flags, units: Optional[str], body: bytearray
+    primitive_type: PrimitiveType, flags: Flags, units: str | None, body: bytearray
 ) -> bytes:
     buf = bytearray(HEADER_SIZE + len(body))
     buf[0:4] = MAGIC  # 0x00..0x03
@@ -189,7 +190,6 @@ def _assemble(
     struct.pack_into("<H", buf, 8, get_encoding_from_unit(units))  # 0x08 units
     struct.pack_into("<H", buf, 10, 0)  # 0x0A reserved
     buf[HEADER_SIZE:] = body
-    # Must use the ported crc32 (poly 0xEDB88820), NOT zlib — see crc32 docstring.
     crc = crc32(bytes(body))
     struct.pack_into("<I", buf, 12, crc)  # 0x0C crc
     return bytes(buf)
@@ -261,12 +261,53 @@ def _encode_polycurve(pc) -> bytes:
     _u32(body, len(pc.segments))
     _u32(body, 0)
     for seg in pc.segments:
-        blob = encode(seg)
-        _u32(body, len(blob))
-        _u32(body, 0)
-        body += blob
-        _pad8(body)
+        _curve_blob(body, seg)
     return _assemble(PrimitiveType.POLYCURVE, flags, pc.units, body)
+
+
+def _curve_blob(body: bytearray, curve) -> None:
+    blob = encode(curve)
+    _u32(body, len(blob))
+    _u32(body, 0)
+    body += blob
+    _pad8(body)
+
+
+def _encode_region(r) -> bytes:
+    body = bytearray()
+    _u32(body, 1 if r.hasHatchPattern else 0)
+    _u32(body, len(r.innerLoops))
+    _curve_blob(body, r.boundary)
+    for loop in r.innerLoops:
+        _curve_blob(body, loop)
+    return _assemble(PrimitiveType.REGION, Flags.NONE, r.units, body)
+
+
+def _encode_text(t) -> bytes:
+    if t.plane is None:
+        raise ValueError("Text.plane is required for SGEO encoding.")
+    flags = Flags.NONE
+    if t.screenOriented:
+        flags |= Flags.SCREEN_ORIENTED
+    if t.maxWidth is not None:
+        flags |= Flags.HAS_MAX_WIDTH
+    value = t.value.encode("utf-8")
+    body = bytearray()
+    _u32(body, _enum_value(t.alignmentH))
+    _u32(body, _enum_value(t.alignmentV))
+    _f64(body, t.height)
+    if t.maxWidth is not None:
+        _f64(body, t.maxWidth)
+    _plane(body, t.plane)
+    _u32(body, len(value))
+    _u32(body, 0)
+    body += value
+    _pad8(body)
+    return _assemble(PrimitiveType.TEXT, flags, t.units, body)
+
+
+def _enum_value(v) -> int:
+    return int(getattr(v, "value", v))
 
 
 def _encode_curve(c) -> bytes:
@@ -436,6 +477,8 @@ _ENCODERS = {
     "Ellipse": _encode_ellipse,
     "Spiral": _encode_spiral,
     "Box": _encode_box,
+    "Region": _encode_region,
+    "Text": _encode_text,
 }
 
 _PRIMITIVE_TYPES = {
@@ -451,6 +494,8 @@ _PRIMITIVE_TYPES = {
     "Ellipse": PrimitiveType.ELLIPSE,
     "Spiral": PrimitiveType.SPIRAL,
     "Box": PrimitiveType.BOX,
+    "Region": PrimitiveType.REGION,
+    "Text": PrimitiveType.TEXT,
 }
 
 
@@ -472,48 +517,29 @@ def encode(geometry) -> bytes:
     return encoder(geometry)
 
 
-def try_get_primitive_type(geometry) -> Optional[int]:
+def try_get_primitive_type(geometry) -> int | None:
     """Return the SGEO primitive type code if encodable, else ``None``."""
     primitive = _PRIMITIVE_TYPES.get(type(geometry).__name__)
     return int(primitive) if primitive is not None else None
 
 
 # ── decoding ───────────────────────────────────────────────────────────────
-#
-# The receive side of the artefact path: connectors that load a 4.0 bundle read
-# geometry blobs back out of the geometries table. Every primitive the encoder
-# emits can be decoded; unknown or corrupt blobs raise :class:`SgeoDecodeError`
-# rather than silently returning nothing, so a caller can tell "not supported"
-# from "no geometry".
-#
-# Two levels, deliberately: :func:`decode_mesh` returns a plain
-# :class:`DecodedMesh` of raw arrays for consumers that bake straight into a
-# host application (no Base allocation per mesh, which dominates on dense
-# scenes), and :func:`decode` wraps that into a real ``Mesh`` for consumers
-# that want the object model.
 
 
 class SgeoDecodeError(ValueError):
-    """A blob is not valid SGEO v1, or holds a primitive we cannot decode yet."""
+    """Blob is not valid SGEO v1, or holds a primitive this decoder does not know."""
 
 
 _UNIT_DECODING = {code: unit for unit, code in _UNIT_ENCODING.items()}
 
 
-def get_unit_from_encoding(code: int) -> Optional[str]:
-    """Inverse of :func:`get_encoding_from_unit`; ``None`` for the 0 sentinel.
-
-    Not round-trip-exact by construction: the encoder maps every unrecognised
-    unit string to 0, so 0 decodes to ``None`` rather than to whatever the
-    producer originally had.
-    """
+def get_unit_from_encoding(code: int) -> str | None:
+    """Inverse of :func:`get_encoding_from_unit`; 0 decodes to ``None``."""
     return _UNIT_DECODING.get(code)
 
 
 @dataclass(frozen=True)
 class SgeoHeader:
-    """The fixed 16-byte SGEO header, parsed."""
-
     version: int
     primitive_type: int
     flags: Flags
@@ -521,12 +547,11 @@ class SgeoHeader:
     crc: int
 
     @property
-    def units(self) -> Optional[str]:
+    def units(self) -> str | None:
         return get_unit_from_encoding(self.units_code)
 
     @property
-    def primitive(self) -> Optional[PrimitiveType]:
-        """The primitive as an enum member, or ``None`` for an unknown code."""
+    def primitive(self) -> PrimitiveType | None:
         try:
             return PrimitiveType(self.primitive_type)
         except ValueError:
@@ -535,27 +560,17 @@ class SgeoHeader:
 
 @dataclass
 class DecodedMesh:
-    """A mesh's raw SGEO arrays, in Speckle's flat layout.
+    """Raw mesh arrays in Speckle's flat layout, for consumers that bake directly."""
 
-    ``faces`` is the flat ``[n, i0..in-1, n, i0..]`` face list, matching
-    ``Mesh.faces``; ``vertices``/``vertexNormals`` are flat xyz triples and
-    ``textureCoordinates`` flat uv pairs.
-    """
-
-    vertices: List[float]
-    faces: List[int]
-    vertex_normals: List[float]
-    texture_coordinates: List[float]
-    colors: List[int]
-    units: Optional[str]
+    vertices: list[float]
+    faces: list[int]
+    vertex_normals: list[float]
+    texture_coordinates: list[float]
+    colors: list[int]
+    units: str | None
 
 
 def decode_header(blob: bytes) -> SgeoHeader:
-    """Parse the 16-byte header without touching the body.
-
-    Lets a caller dispatch on primitive type (or skip a blob it cannot handle)
-    before paying for a full decode.
-    """
     if len(blob) < HEADER_SIZE:
         raise SgeoDecodeError(
             f"SGEO blob is {len(blob)} bytes, shorter than the "
@@ -579,12 +594,6 @@ def decode_header(blob: bytes) -> SgeoHeader:
 
 
 def verify_crc(blob: bytes) -> None:
-    """Raise when the stored CRC does not match the body bytes.
-
-    Cheap (one zlib call), and the only integrity check the format carries — a
-    truncated download otherwise surfaces as garbage coordinates rather than an
-    error.
-    """
     header = decode_header(blob)
     actual = crc32(blob[HEADER_SIZE:])
     if actual != header.crc:
@@ -595,16 +604,7 @@ def verify_crc(blob: bytes) -> None:
 
 
 def decode_mesh(blob: bytes, *, verify: bool = True) -> DecodedMesh:
-    """Decode a MESH blob into its raw arrays.
-
-    Mirrors :func:`_encode_mesh` byte for byte, including its two asymmetric
-    alignment rules: normals and UVs are each preceded by a pad to the next
-    8-byte boundary, colours are **not**.
-
-    Only ``vertex_count`` and ``face_count`` are stored, so the optional array
-    lengths are derived from the vertex count (3 per vertex for normals, 2 for
-    UVs, 1 for colours) — the format has no room for anything else.
-    """
+    """MESH fast path: raw arrays, no ``Base`` allocation."""
     header = decode_header(blob)
     if header.primitive_type != PrimitiveType.MESH:
         primitive = header.primitive
@@ -613,46 +613,28 @@ def decode_mesh(blob: bytes, *, verify: bool = True) -> DecodedMesh:
     if verify:
         verify_crc(blob)
 
-    body = memoryview(blob)[HEADER_SIZE:]
-    vertex_count, face_count = struct.unpack_from("<II", body, 0)
-
-    offset = 8
-    vertices, offset = _read_f64_array(body, offset, vertex_count * 3, "vertices")
-    faces, offset = _read_i32_array(body, offset, face_count, "faces")
-
-    normals: List[float] = []
+    r = _Reader(memoryview(blob)[HEADER_SIZE:])
+    vertex_count = r.u32()
+    face_count = r.u32()
+    vertices = r.f64s(vertex_count * 3)
+    faces = r.i32s(face_count)
+    normals: list[float] = []
     if header.flags & Flags.HAS_NORMALS:
-        offset = _align8(offset)
-        normals, offset = _read_f64_array(body, offset, vertex_count * 3, "normals")
-
-    uvs: List[float] = []
+        r.align8()
+        normals = r.f64s(vertex_count * 3)
+    uvs: list[float] = []
     if header.flags & Flags.HAS_UVS:
-        offset = _align8(offset)
-        uvs, offset = _read_f64_array(body, offset, vertex_count * 2, "UVs")
-
-    colors: List[int] = []
+        r.align8()
+        uvs = r.f64s(vertex_count * 2)
+    colors: list[int] = []
     if header.flags & Flags.HAS_COLORS:
-        # No pad before colours — mirrors the encoder's documented asymmetry.
-        colors, offset = _read_i32_array(body, offset, vertex_count, "colors")
-
-    return DecodedMesh(
-        vertices=vertices,
-        faces=faces,
-        vertex_normals=normals,
-        texture_coordinates=uvs,
-        colors=colors,
-        units=header.units,
-    )
+        # no pad before colours, matching the encoder
+        colors = r.i32s(vertex_count)
+    return DecodedMesh(vertices, faces, normals, uvs, colors, header.units)
 
 
 def decode(blob: bytes, *, verify: bool = True) -> Base:
-    """Decode an SGEO v1 blob into the Speckle object it was encoded from.
-
-    The inverse of :func:`encode`, covering every primitive the encoder emits.
-
-    Raises:
-        SgeoDecodeError: on a malformed blob or an unknown primitive code.
-    """
+    """Inverse of :func:`encode` for every primitive the encoder emits."""
     header = decode_header(blob)
     primitive = header.primitive
     if primitive is None:
@@ -661,7 +643,6 @@ def decode(blob: bytes, *, verify: bool = True) -> Base:
         verify_crc(blob)
 
     if primitive is PrimitiveType.MESH:
-        # the raw path already builds the arrays; just wrap them
         from specklepy.objects.geometry.mesh import Mesh
 
         mesh = decode_mesh(blob, verify=False)
@@ -680,21 +661,16 @@ def decode(blob: bytes, *, verify: bool = True) -> Base:
     return decoder(header, _Reader(memoryview(blob)[HEADER_SIZE:]))
 
 
-# ── per-primitive decoders ─────────────────────────────────────────────────
-#
-# Each inverts the matching ``_encode_*`` above; read them side by side. The
-# encoders are the specification — where a field is *derived* rather than stored
-# (a Circle's centre, an array length) it is called out, because that is where a
-# decoder silently invents data if it guesses wrong.
+# ── per-primitive decoders (each inverts the matching _encode_* above) ─────
 
 
 def _decode_line(header: SgeoHeader, r: _Reader) -> Base:
     from specklepy.objects.geometry.line import Line
 
     domain = r.interval()
-    start = r.point(header.units)
-    end = r.point(header.units)
-    line = Line(start=start, end=end, units=header.units)
+    line = Line(
+        start=r.point(header.units), end=r.point(header.units), units=header.units
+    )
     line.domain = domain
     return line
 
@@ -703,10 +679,8 @@ def _decode_polyline(header: SgeoHeader, r: _Reader) -> Base:
     from specklepy.objects.geometry.polyline import Polyline
 
     count = r.u32()
-    r.u32()  # reserved
+    r.u32()
     polyline = Polyline(value=r.f64s(count * 3), units=header.units)
-    # Polyline has no `closed` field — it computes is_closed() from its points —
-    # so the flag round-trips as the dynamic member the producer set.
     polyline["closed"] = bool(header.flags & Flags.CLOSED)
     return polyline
 
@@ -715,37 +689,68 @@ def _decode_polycurve(header: SgeoHeader, r: _Reader) -> Base:
     from specklepy.objects.geometry.polycurve import Polycurve
 
     count = r.u32()
-    r.u32()  # reserved
-    segments = []
-    for _ in range(count):
-        length = r.u32()
-        r.u32()  # reserved
-        # each segment is a complete nested SGEO blob whose bytes (CRC field
-        # included) the outer body CRC already covers, so never re-verify —
-        # the same handoff decode() makes for MESH via decode_mesh
-        segments.append(decode(r.blob(length), verify=False))
-        r.align8()
+    r.u32()
+    segments = [r.curve_blob() for _ in range(count)]
     return Polycurve(segments=segments, units=header.units)
+
+
+def _decode_region(header: SgeoHeader, r: _Reader) -> Base:
+    from specklepy.objects.geometry.region import Region
+
+    has_hatch = r.u32() != 0
+    loop_count = r.u32()
+    boundary = r.curve_blob()
+    loops = [r.curve_blob() for _ in range(loop_count)]
+    return Region(
+        boundary=boundary,
+        innerLoops=loops,
+        hasHatchPattern=has_hatch,
+        displayValue=[],
+        units=header.units,
+    )
+
+
+def _decode_text(header: SgeoHeader, r: _Reader) -> Base:
+    from specklepy.objects.annotation.text import (
+        AlignmentHorizontal,
+        AlignmentVertical,
+        Text,
+    )
+
+    align_h = AlignmentHorizontal(r.u32())
+    align_v = AlignmentVertical(r.u32())
+    height = r.f64()
+    max_width = r.f64() if header.flags & Flags.HAS_MAX_WIDTH else None
+    plane = r.plane(header.units)
+    length = r.u32()
+    r.u32()
+    return Text(
+        value=r.blob(length).decode("utf-8"),
+        origin=plane.origin,
+        height=height,
+        alignmentH=align_h,
+        alignmentV=align_v,
+        plane=plane,
+        maxWidth=max_width,
+        screenOriented=bool(header.flags & Flags.SCREEN_ORIENTED),
+        units=header.units,
+    )
 
 
 def _decode_curve(header: SgeoHeader, r: _Reader) -> Base:
     from specklepy.objects.geometry.curve import Curve
 
-    display = r.polyline_body(header.units, closed=bool(header.flags & Flags.CLOSED))
-
+    closed = bool(header.flags & Flags.CLOSED)
+    display = r.polyline_body(header.units, closed=closed)
     degree = r.u32()
     point_count = r.u32()
     knot_count = r.u32()
-    r.u32()  # reserved
+    r.u32()
     domain = r.interval()
-
     points = r.f64s(point_count * 3)
     rational = bool(header.flags & Flags.RATIONAL)
-    # weights are written only when rational, one per control point — the count
-    # is not stored, so it has to come from point_count
     weights = r.f64s(point_count) if rational else []
     knots = r.f64s(knot_count)
-
     curve = Curve(
         degree=degree,
         periodic=bool(header.flags & Flags.PERIODIC),
@@ -753,11 +758,7 @@ def _decode_curve(header: SgeoHeader, r: _Reader) -> Base:
         points=points,
         weights=weights,
         knots=knots,
-        # NB: the encoder sets CLOSED from `_is_closed(c.displayValue)`, not from
-        # `c.closed` — the field itself never reaches the wire. For a producer
-        # that keeps the two in step (Blender sets both from `use_cyclic_u`) this
-        # is faithful; for one that disagrees, the display polyline wins.
-        closed=bool(header.flags & Flags.CLOSED),
+        closed=closed,
         displayValue=display,
         units=header.units,
         bbox=None,
@@ -769,15 +770,11 @@ def _decode_curve(header: SgeoHeader, r: _Reader) -> Base:
 def _decode_arc(header: SgeoHeader, r: _Reader) -> Base:
     from specklepy.objects.geometry.arc import Arc
 
-    plane = r.plane(header.units)
-    start = r.point(header.units)
-    mid = r.point(header.units)
-    end = r.point(header.units)
     arc = Arc(
-        plane=plane,
-        startPoint=start,
-        midPoint=mid,
-        endPoint=end,
+        plane=r.plane(header.units),
+        startPoint=r.point(header.units),
+        midPoint=r.point(header.units),
+        endPoint=r.point(header.units),
         units=header.units,
     )
     arc.domain = r.interval()
@@ -790,8 +787,7 @@ def _decode_circle(header: SgeoHeader, r: _Reader) -> Base:
     radius = r.f64()
     domain = r.interval()
     plane = r.plane(header.units)
-    # `center` is not on the wire: the encoder writes only radius + domain +
-    # plane, and a circle's centre is its plane origin by construction.
+    # centre is not on the wire; it is the plane origin by construction
     circle = Circle(plane=plane, center=plane.origin, radius=radius, units=header.units)
     circle.domain = domain
     return circle
@@ -802,28 +798,20 @@ def _decode_points(header: SgeoHeader, r: _Reader) -> Base:
     from specklepy.objects.geometry.point_cloud import PointCloud
 
     count = r.u32()
-    r.u32()  # reserved
+    r.u32()
     coords = r.f64s(count * 3)
-
     colors = r.i32s(count) if header.flags & Flags.HAS_COLORS else []
-    sizes: List[float] = []
+    sizes: list[float] = []
     if header.flags & Flags.HAS_SIZES:
         r.align8()
         sizes = r.f64s(count)
 
-    # A lone Point and a one-point PointCloud with no colours or sizes encode to
-    # identical bytes, so the distinction cannot be recovered. Prefer Point: it
-    # is what a single-point blob almost always was, and it is the cheaper shape.
+    # a lone Point and a bare one-point cloud share the same bytes; prefer Point
     if count == 1 and not colors and not sizes:
         return Point(x=coords[0], y=coords[1], z=coords[2], units=header.units)
 
     points = [
-        Point(
-            x=coords[i],
-            y=coords[i + 1],
-            z=coords[i + 2],
-            units=header.units,
-        )
+        Point(x=coords[i], y=coords[i + 1], z=coords[i + 2], units=header.units)
         for i in range(0, len(coords), 3)
     ]
     cloud = PointCloud(points=points, units=header.units)
@@ -840,10 +828,8 @@ def _decode_ellipse(header: SgeoHeader, r: _Reader) -> Base:
     first_radius = r.f64()
     second_radius = r.f64()
     domain = r.interval()
-    plane = r.plane(header.units)
-
     ellipse = Ellipse(
-        plane=plane,
+        plane=r.plane(header.units),
         first_radius=first_radius,
         second_radius=second_radius,
         units=header.units,
@@ -858,29 +844,19 @@ def _decode_spiral(header: SgeoHeader, r: _Reader) -> Base:
     from specklepy.objects.geometry.spiral import Spiral
 
     display = r.polyline_body(header.units, closed=bool(header.flags & Flags.CLOSED))
-
     spiral_type = r.u32()
-    r.u32()  # reserved
-    start = r.point(header.units)
-    end = r.point(header.units)
-    plane = r.plane(header.units)
-    turns = r.f64()
-    pitch_axis = r.vector(header.units)
-    pitch = r.f64()
-    domain = r.interval()
-
+    r.u32()
     spiral = Spiral(
-        start_point=start,
-        end_point=end,
-        plane=plane,
-        turns=turns,
-        pitch=pitch,
-        pitch_axis=pitch_axis,
+        start_point=r.point(header.units),
+        end_point=r.point(header.units),
+        plane=r.plane(header.units),
+        turns=r.f64(),
+        pitch_axis=r.vector(header.units),
+        pitch=r.f64(),
         units=header.units,
     )
-    spiral.domain = domain
+    spiral.domain = r.interval()
     spiral["spiralType"] = spiral_type
-    # an all-zero leading polyline means the producer had no displayValue
     if display.value:
         spiral["displayValue"] = display
     return spiral
@@ -889,9 +865,8 @@ def _decode_spiral(header: SgeoHeader, r: _Reader) -> Base:
 def _decode_box(header: SgeoHeader, r: _Reader) -> Base:
     from specklepy.objects.geometry.box import Box
 
-    plane = r.plane(header.units)
     return Box(
-        basePlane=plane,
+        basePlane=r.plane(header.units),
         xSize=r.interval(),
         ySize=r.interval(),
         zSize=r.interval(),
@@ -910,20 +885,15 @@ _DECODERS = {
     PrimitiveType.ELLIPSE: _decode_ellipse,
     PrimitiveType.SPIRAL: _decode_spiral,
     PrimitiveType.BOX: _decode_box,
+    PrimitiveType.REGION: _decode_region,
+    PrimitiveType.TEXT: _decode_text,
 }
 
 
-# ── low-level body readers ─────────────────────────────────────────────────
+# ── low-level body reader (mirrors the writers one for one) ────────────────
 
 
 class _Reader:
-    """A cursor over an SGEO body, mirroring the encoder's writers one for one.
-
-    Offsets are body-relative, which is what makes :meth:`align8` the exact
-    inverse of :func:`_pad8` — the body always starts 8-aligned at 0x10, so the
-    two agree.
-    """
-
     __slots__ = ("_body", "offset")
 
     def __init__(self, body: memoryview) -> None:
@@ -946,13 +916,13 @@ class _Reader:
     def f64(self) -> float:
         return struct.unpack_from("<d", self._body, self._take(8, "float64"))[0]
 
-    def f64s(self, count: int) -> List[float]:
+    def f64s(self, count: int) -> list[float]:
         if count <= 0:
             return []
         at = self._take(count * 8, f"{count} float64s")
         return list(struct.unpack_from(f"<{count}d", self._body, at))
 
-    def i32s(self, count: int) -> List[int]:
+    def i32s(self, count: int) -> list[int]:
         if count <= 0:
             return []
         at = self._take(count * 4, f"{count} int32s")
@@ -963,24 +933,24 @@ class _Reader:
         return bytes(self._body[at : at + size])
 
     def align8(self) -> None:
-        self.offset = _align8(self.offset)
+        self.offset += -self.offset % 8
 
     def interval(self):
         from specklepy.objects.primitive import Interval
 
         return Interval(start=self.f64(), end=self.f64())
 
-    def point(self, units: Optional[str]):
+    def point(self, units: str | None):
         from specklepy.objects.geometry.point import Point
 
         return Point(x=self.f64(), y=self.f64(), z=self.f64(), units=units)
 
-    def vector(self, units: Optional[str]):
+    def vector(self, units: str | None):
         from specklepy.objects.geometry.vector import Vector
 
         return Vector(x=self.f64(), y=self.f64(), z=self.f64(), units=units)
 
-    def plane(self, units: Optional[str]):
+    def plane(self, units: str | None):
         from specklepy.objects.geometry.plane import Plane
 
         return Plane(
@@ -991,59 +961,22 @@ class _Reader:
             units=units,
         )
 
-    def polyline_body(self, units: Optional[str], closed: bool = False):
-        """Read the render polyline that leads a CURVE or SPIRAL body.
-
-        The inverse of :func:`_polyline_body`, trailing ``_pad8`` included — the
-        analytical definition that follows is f64-aligned only because of it.
-        """
+    def polyline_body(self, units: str | None, closed: bool = False):
+        """Render polyline leading CURVE/SPIRAL; padded, unlike standalone POLYLINE."""
         from specklepy.objects.geometry.polyline import Polyline
 
         count = self.u32()
-        self.u32()  # reserved
+        self.u32()
         value = self.f64s(count * 3)
         self.align8()
         polyline = Polyline(value=value, units=units)
         polyline["closed"] = closed
         return polyline
 
-
-def _align8(offset: int) -> int:
-    """Skip to the next 8-byte boundary — the read side of :func:`_pad8`."""
-    return offset + (-offset % 8)
-
-
-def _ensure_available(body: memoryview, offset: int, size: int, label: str) -> None:
-    if offset + size > len(body):
-        raise SgeoDecodeError(
-            f"SGEO body truncated reading {label}: need {size} bytes at offset "
-            f"{offset}, only {max(0, len(body) - offset)} remain."
-        )
-
-
-def _read_f64_array(
-    body: memoryview, offset: int, count: int, label: str
-) -> Tuple[List[float], int]:
-    if count == 0:
-        return [], offset
-    size = count * 8
-    _ensure_available(body, offset, size, label)
-    values = list(struct.unpack_from(f"<{count}d", body, offset))
-    return values, offset + size
-
-
-def _read_i32_array(
-    body: memoryview, offset: int, count: int, label: str
-) -> Tuple[List[int], int]:
-    """Read ``count`` signed 32-bit words.
-
-    Signed on the way out even though the encoder packs unsigned: ``Mesh.colors``
-    holds signed ARGB ints, and face indices never exceed int32 anyway, so
-    signed is the layout that round-trips.
-    """
-    if count == 0:
-        return [], offset
-    size = count * 4
-    _ensure_available(body, offset, size, label)
-    values = list(struct.unpack_from(f"<{count}i", body, offset))
-    return values, offset + size
+    def curve_blob(self):
+        """Nested [len][reserved][blob][pad8]; the outer CRC already covers it."""
+        length = self.u32()
+        self.u32()
+        curve = decode(self.blob(length), verify=False)
+        self.align8()
+        return curve

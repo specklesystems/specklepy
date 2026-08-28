@@ -4,8 +4,8 @@ import pytest
 
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.enums import ModelIngestionStatus
-from specklepy.core.api.inputs.model_ingestion_inputs import (
+from specklepy.api.enums import ModelIngestionStatus
+from specklepy.api.inputs.model_ingestion_inputs import (
     ModelIngestionCancelledInput,
     ModelIngestionCreateInput,
     ModelIngestionFailedInput,
@@ -15,9 +15,9 @@ from specklepy.core.api.inputs.model_ingestion_inputs import (
     ModelIngestionUpdateInput,
     SourceDataInput,
 )
-from specklepy.core.api.inputs.model_inputs import CreateModelInput
-from specklepy.core.api.inputs.project_inputs import ProjectCreateInput
-from specklepy.core.api.models.current import (
+from specklepy.api.inputs.model_inputs import CreateModelInput
+from specklepy.api.inputs.project_inputs import ProjectCreateInput
+from specklepy.api.models.current import (
     Model,
     ModelIngestion,
     ModelIngestionStatusData,
