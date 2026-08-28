@@ -4,6 +4,8 @@ on:
     secrets:
       CODECOV_TOKEN:
         required: true
+      CONNECTORS_GH_TOKEN:
+        required: true
   pull_request:
     branches:
       - "main"

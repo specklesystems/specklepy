@@ -17,6 +17,7 @@ jobs:
     uses: "./.github/workflows/pr.yml"
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      CONNECTORS_GH_TOKEN: ${{ secrets.CONNECTORS_GH_TOKEN }}
     permissions:
       contents: read
       packages: read # required to pull docker images
