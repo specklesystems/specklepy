@@ -15,59 +15,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-internal: # Run integration tests against the internal server image
-    name: Test (internal)
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-          - "3.10"
-          - "3.11"
-          - "3.12"
-          - "3.13"
-          - "3.14"
-    permissions:
-      contents: read
-      packages: read # to pull speckle-server docker images
+  # test-internal: # Run integration tests against the internal server image
+  #   name: Test (internal)
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version:
+  #         - "3.10"
+  #         - "3.11"
+  #         - "3.12"
+  #         - "3.13"
+  #         - "3.14"
+  #   permissions:
+  #     contents: read
+  #     packages: read # to pull speckle-server docker images
 
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
+  #   steps:
+  #     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+  #       with:
+  #         persist-credentials: false
 
-      - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-        with:
-          python-version: ${{ matrix.python-version }}
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
+  #     - name: Install uv and set the python version
+  #       uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         enable-cache: true
+  #         cache-dependency-glob: "uv.lock"
 
-      - name: Install the project
-        run: uv sync --all-extras --dev
+  #     - name: Install the project
+  #       run: uv sync --all-extras --dev
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # pinned to v4.2.0
-        with:
-          registry: "ghcr.io"
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+  #     - name: Login to GitHub Container Registry
+  #       uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # pinned to v4.2.0
+  #       with:
+  #         registry: "ghcr.io"
+  #         username: ${{ github.actor }}
+  #         password: ${{ github.token }}
 
-      - name: Run Speckle Server
-        run: docker compose --file docker-compose-internal.yml up --detach --wait
+  #     - name: Run Speckle Server
+  #       run: docker compose --file docker-compose-internal.yml up --detach --wait
 
-      - name: Run tests
-        run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
+  #     - name: Run tests
+  #       run: uv run pytest --cov --cov-report xml:reports/coverage.xml --junitxml=reports/test-results.xml
 
-      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # pinned to v7.0.0
-        if: matrix.python-version == 3.14
-        with:
-          fail_ci_if_error: true # optional (default = false)
-          files: ./reports/test-results.xml # optional
-          token: ${{ secrets.CODECOV_TOKEN }}
+  #     - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # pinned to v7.0.0
+  #       if: matrix.python-version == 3.14
+  #       with:
+  #         fail_ci_if_error: true # optional (default = false)
+  #         files: ./reports/test-results.xml # optional
+  #         token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Minimize uv cache
-        run: uv cache prune --ci
+  #     - name: Minimize uv cache
+  #       run: uv cache prune --ci
 
   test-public: # Run integration tests against the public server image
     name: Test (public)
