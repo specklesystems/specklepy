@@ -115,12 +115,13 @@ def test_relationships_object_to_node(model):
     )
     assert wall.level.objects == [wall]
     assert wall.system.subtype == "MEP System"
+    assert [s.name for s in wall.systems] == ["Hot Water", "Return Air"]
     assert [g.name for g in wall.groups] == ["Group A"]
     assert isinstance(wall.collection, ModelContainer)
     assert wall.collection.subtype == "Layer" and wall.collection.gh_topology == "0-1"
     assert wall.collection.objects == [wall] and wall.collection.path == ["Walls"]
     assert m.levels == [wall.level]
-    assert len(m.collections) == 4  # layer, model, system, group
+    assert len(m.collections) == 5  # layer, model, two systems, group
 
 
 def test_appearance_three_planes(model):

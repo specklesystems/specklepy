@@ -78,6 +78,7 @@ class Ks:
     layer: int
     model: int
     system: int
+    system2: int
     group: int
 
 
@@ -150,6 +151,8 @@ def build(out: str, base: str) -> Ks:
         p.in_model(wall, model, 0)
         system = p.add_container("sys-1", "Hot Water", None, "MEP System")
         p.in_system(wall, system, 0)
+        system2 = p.add_container("sys-2", "Return Air", None, "MEP System")
+        p.in_system(wall, system2, 0)
         group = p.add_container("grp-1", "Group A", None, "Group")
         p.in_group(wall, group, 0)
 
@@ -204,5 +207,6 @@ def build(out: str, base: str) -> Ks:
         layer=layer,
         model=model,
         system=system,
+        system2=system2,
         group=group,
     )

@@ -324,6 +324,7 @@ class ObjectsArtifactPipeline:
         self._envelope.add_relation(Rel.IN_ROOM, object_k, room_k, ord)
 
     def in_system(self, object_k: int, system_k: int, ord: int) -> None:
+        """object → CONTAINER(MEP System); multi-valued — one edge per membership."""
         self._envelope.add_relation(Rel.IN_SYSTEM, object_k, system_k, ord)
 
     def in_group(self, object_k: int, group_k: int, ord: int) -> None:

@@ -12,10 +12,12 @@ def _manual_import() -> None:
         SourceDataInput,
     )
 
-    PROJECT_ID = "412a3c3927"
-    MODEL_ID = "223e61212d"
-    SERVER_URL = "latest.speckle.systems"
-    FILE_PATH = r"C:\Test Files\ifc\AC20-FZK-Haus.ifc"  # noqa: E501
+    PROJECT_ID = "97c7cfce70"
+    MODEL_ID = "f76378c2e0"
+    SERVER_URL = "next.speckle.dev"
+    FILE_PATH = (
+        r"C:\Test Files\ifc\GRAPHISOFT_Archicad_Sample_Project-S-Office_v1.0_AC25.ifc"  # noqa: E501
+    )
 
     metrics.set_host_app(
         "ifc",

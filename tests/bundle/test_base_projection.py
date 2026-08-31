@@ -42,6 +42,7 @@ def test_root_shape(root):
         "Group A",
         "Host",
         "Hot Water",
+        "Return Air",
         "Walls",
     ]
     assert all(c.applicationId == c.id and c.id.startswith("coll-") for c in containers)
