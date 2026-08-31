@@ -4,7 +4,7 @@ import pytest
 
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.models.current import Project
+from specklepy.api.models.current import Project
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Point
 from specklepy.transports.memory import MemoryTransport

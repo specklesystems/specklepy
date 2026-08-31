@@ -19,10 +19,10 @@ from speckle_automate.fixtures import (
 )
 from speckle_automate.schema import AutomateBase
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.inputs import ProjectCreateInput
-from specklepy.core.api.models import Project
-from specklepy.core.api.models.current import Model, Version
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.inputs import ProjectCreateInput
+from specklepy.api.models import Project
+from specklepy.api.models.current import Model, Version
 from specklepy.core.helpers import crypto_random_string
 from specklepy.objects.base import Base
 
@@ -127,11 +127,11 @@ query AutomationRuns(
 }
         """
     )
-    params = {
+    query.variable_values = {
         "projectId": project_id,
         "modelId": model_id,
     }
-    response = speckle_client.httpclient.execute(query, params)
+    response = speckle_client.httpclient.execute(query)
     return response["project"]["model"]["automationStatus"]
 
 

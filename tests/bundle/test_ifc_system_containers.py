@@ -37,6 +37,7 @@ def test_distribution_system_becomes_mep_system_container(tmp_path):
     from speckleifc.bundle_exporter import MEP_SYSTEM_SUBTYPE, IfcBundleExporter
     from speckleifc.ifc_geometry_processing import open_ifc
     from speckleifc.importer import ImportJob
+    from specklepy.bundle import BundleBuilder, Producer
     from specklepy.bundle.spec import NodeKind, Rel
 
     root = ImportJob(
@@ -50,7 +51,9 @@ def test_distribution_system_becomes_mep_system_container(tmp_path):
     assert proxies[0].systemType == "AIRCONDITIONING"
     assert proxies[0].objects == [CUBE_GUID]
 
-    IfcBundleExporter(str(tmp_path), BASE).export(root)
+    builder = BundleBuilder(Producer("ifc", "0.8.5"), "m", str(tmp_path), BASE)
+    IfcBundleExporter(builder).export(root)
+    builder.build()
 
     con = duckdb.connect()
     g = f"read_parquet('{tmp_path}/{BASE}"

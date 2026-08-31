@@ -6,7 +6,7 @@ import math
 
 import pytest
 
-from specklepy.core.api.operations import deserialize, serialize
+from specklepy.api.operations import deserialize, serialize
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.geometry import Circle, Plane, Point, Vector
 from specklepy.objects.models.units import Units

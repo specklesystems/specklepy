@@ -26,7 +26,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from specklepy.bundle.parquet_table_writer import schema_of
-from specklepy.bundle.spec import BY_TABLE
+from specklepy.bundle.spec import BY_TABLE, GEOMETRIES
 
 # Flush (write a row group + free the buffer) once buffered blob bytes reach this
 # budget.
@@ -52,6 +52,8 @@ _PRIMITIVE_TYPE_NAME = {
     8: "ellipse",
     9: "spiral",
     10: "box",
+    11: "region",
+    12: "text",
 }
 
 
@@ -72,6 +74,11 @@ class GeometriesParquetWriter:
         self._output_dir = output_dir
         self._base_name = base_name
         self._schema = schema_of(BY_TABLE["geometries"])
+        if len(self._schema) != GEOMETRIES.COLUMN_COUNT:
+            raise ValueError(
+                f"table 'geometries': schema has {len(self._schema)} columns but the "
+                f"generated column constants declare {GEOMETRIES.COLUMN_COUNT}"
+            )
         self._flush_bytes = (
             _mb_env("SPECKLE_PARQUET_ROWGROUP_MB", _DEFAULT_ROWGROUP_MB) * 1024 * 1024
         )

@@ -23,8 +23,6 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
 
-
-
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
@@ -35,7 +33,7 @@ markdown_extensions:
   - pymdownx.superfences
 
 extra_css:
-- stylesheets/extra.css
+  - stylesheets/extra.css
 
 plugins:
   - search
@@ -68,63 +66,65 @@ plugins:
 nav:
   - Home: index.md
   - specklepy SDK:
-    - API:
-      - Client: specklepy/api/client.md
-      - Credentials: specklepy/api/credentials.md
-      - Operations: specklepy/api/operations.md
-      - Resources:
-        - ActiveUserResource: specklepy/api/resources/ActiveUserResource.md
-        - FileImportResource: specklepy/api/resources/FileImportResource.md
-        - ModelResource: specklepy/api/resources/ModelResource.md
-        - OtherUserResource: specklepy/api/resources/OtherUserResource.md
-        - ProjectInviteResource: specklepy/api/resources/ProjectInviteResource.md
-        - ProjectResource: specklepy/api/resources/ProjectResource.md
-        - ServerResource: specklepy/api/resources/ServerResource.md
-        - SubscriptionResource: specklepy/api/resources/SubscriptionResource.md
-        - VersionResource: specklepy/api/resources/VersionResource.md
-        - WorkspaceResource: specklepy/api/resources/WorkspaceResource.md
-    - Objects:
-      - Base: specklepy/objects/base.md
-      - Data Objects: specklepy/objects/data_objects.md
-      - Geometry:
-        - Arc: specklepy/objects/geometry/Arc.md
-        - Box: specklepy/objects/geometry/Box.md
-        - Circle: specklepy/objects/geometry/Circle.md
-        - ControlPoint: specklepy/objects/geometry/ControlPoint.md
-        - Curve: specklepy/objects/geometry/Curve.md
-        - Ellipse: specklepy/objects/geometry/Ellipse.md
-        - Line: specklepy/objects/geometry/Line.md
-        - Mesh: specklepy/objects/geometry/Mesh.md
-        - Plane: specklepy/objects/geometry/Plane.md
-        - Point: specklepy/objects/geometry/Point.md
-        - PointCloud: specklepy/objects/geometry/PointCloud.md
-        - Polycurve: specklepy/objects/geometry/Polycurve.md
-        - Polyline: specklepy/objects/geometry/Polyline.md
-        - Spiral: specklepy/objects/geometry/Spiral.md
-        - Surface: specklepy/objects/geometry/Surface.md
-        - Vector: specklepy/objects/geometry/Vector.md
-      - Primitives:
-        - Interval: specklepy/objects/primitives/interval.md
-      - Other:
-        - RenderMaterial: specklepy/objects/other/render_material.md
-        - Collection: specklepy/objects/other/collection.md
-      - Proxies:
-        - ColorProxy: specklepy/objects/proxies/ColorProxy.md
-        - GroupProxy: specklepy/objects/proxies/GroupProxy.md
-        - InstanceProxy: specklepy/objects/proxies/InstanceProxy.md
-        - InstanceDefinitionProxy: specklepy/objects/proxies/InstanceDefinitionProxy.md
-        - LevelProxy: specklepy/objects/proxies/LevelProxy.md
-        - RenderMaterialProxy: specklepy/objects/proxies/RenderMaterialProxy.md
-      - Graph Traversal: specklepy/objects/graph_traversal/traversal.md
-    - Transports: specklepy/transports/transports.md
-    - Serialization: specklepy/serialization/serializer.md
-    - Core API:
-      - Models: specklepy/core/api/models/models.md
-      - Inputs: specklepy/core/api/inputs/inputs.md
-      - Enums: specklepy/core/api/enums.md
-    - Logging:
-      - Exceptions: specklepy/logging/exceptions.md
+      - API:
+          - Client: specklepy/api/client.md
+          - Credentials: specklepy/api/credentials.md
+          - Operations: specklepy/api/operations.md
+          - Resources:
+              - ActiveUserResource: specklepy/api/resources/ActiveUserResource.md
+              - FileImportResource: specklepy/api/resources/FileImportResource.md
+              - ModelResource: specklepy/api/resources/ModelResource.md
+              - OtherUserResource: specklepy/api/resources/OtherUserResource.md
+              - ProjectInviteResource: specklepy/api/resources/ProjectInviteResource.md
+              - ProjectResource: specklepy/api/resources/ProjectResource.md
+              - ServerResource: specklepy/api/resources/ServerResource.md
+              - SubscriptionResource: specklepy/api/resources/SubscriptionResource.md
+              - VersionResource: specklepy/api/resources/VersionResource.md
+              - WorkspaceResource: specklepy/api/resources/WorkspaceResource.md
+              - Models: specklepy/core/api/models/models.md
+              - Inputs: specklepy/core/api/inputs/inputs.md
+              - Enums: specklepy/core/api/enums.md
+      - Bundles:
+          - Sending bundle versions: specklepy/bundle/send.md
+          - Receiving bundle versions: specklepy/bundle/receive.md
+      - Objects:
+          - Base: specklepy/objects/base.md
+          - Data Objects: specklepy/objects/data_objects.md
+          - Geometry:
+              - Arc: specklepy/objects/geometry/Arc.md
+              - Box: specklepy/objects/geometry/Box.md
+              - Circle: specklepy/objects/geometry/Circle.md
+              - ControlPoint: specklepy/objects/geometry/ControlPoint.md
+              - Curve: specklepy/objects/geometry/Curve.md
+              - Ellipse: specklepy/objects/geometry/Ellipse.md
+              - Line: specklepy/objects/geometry/Line.md
+              - Mesh: specklepy/objects/geometry/Mesh.md
+              - Plane: specklepy/objects/geometry/Plane.md
+              - Point: specklepy/objects/geometry/Point.md
+              - PointCloud: specklepy/objects/geometry/PointCloud.md
+              - Polycurve: specklepy/objects/geometry/Polycurve.md
+              - Polyline: specklepy/objects/geometry/Polyline.md
+              - Spiral: specklepy/objects/geometry/Spiral.md
+              - Surface: specklepy/objects/geometry/Surface.md
+              - Vector: specklepy/objects/geometry/Vector.md
+          - Primitives:
+              - Interval: specklepy/objects/primitives/interval.md
+          - Other:
+              - RenderMaterial: specklepy/objects/other/render_material.md
+              - Collection: specklepy/objects/other/collection.md
+          - Proxies:
+              - ColorProxy: specklepy/objects/proxies/ColorProxy.md
+              - GroupProxy: specklepy/objects/proxies/GroupProxy.md
+              - InstanceProxy: specklepy/objects/proxies/InstanceProxy.md
+              - InstanceDefinitionProxy: specklepy/objects/proxies/InstanceDefinitionProxy.md
+              - LevelProxy: specklepy/objects/proxies/LevelProxy.md
+              - RenderMaterialProxy: specklepy/objects/proxies/RenderMaterialProxy.md
+          - Graph Traversal: specklepy/objects/graph_traversal/traversal.md
+      - Transports: specklepy/transports/transports.md
+      - Serialization: specklepy/serialization/serializer.md
+      - Logging:
+          - Exceptions: specklepy/logging/exceptions.md
   - Speckle Automate:
-    - AutomationContext: speckle_automate/automation_context.md
-    - Runner: speckle_automate/runner.md
-    - Schema: speckle_automate/schema.md
+      - AutomationContext: speckle_automate/automation_context.md
+      - Runner: speckle_automate/runner.md
+      - Schema: speckle_automate/schema.md

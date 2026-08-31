@@ -1,8 +1,8 @@
 from time import monotonic
 
-from specklepy.core.api.client import SpeckleClient
-from specklepy.core.api.inputs.model_ingestion_inputs import ModelIngestionUpdateInput
-from specklepy.core.api.models.current import ModelIngestion
+from specklepy.api.client import SpeckleClient
+from specklepy.api.inputs.model_ingestion_inputs import ModelIngestionUpdateInput
+from specklepy.api.models.current import ModelIngestion
 
 
 class IngestionProgressManager:

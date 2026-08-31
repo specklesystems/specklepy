@@ -1,6 +1,10 @@
 ::: specklepy.api.operations.send
 
+::: specklepy.api.operations.send3
+
 ::: specklepy.api.operations.receive
+
+::: specklepy.api.operations.receive3
 
 ::: specklepy.api.operations.serialize
 

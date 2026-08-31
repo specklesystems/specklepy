@@ -1,16 +1,14 @@
-from typing import Optional
-
 import pytest
 
 from specklepy.api.client import SpeckleClient
-from specklepy.core.api.enums import ProjectVisibility
-from specklepy.core.api.inputs.project_inputs import (
+from specklepy.api.enums import ProjectVisibility
+from specklepy.api.inputs.project_inputs import (
     ProjectCreateInput,
     ProjectInviteCreateInput,
     ProjectInviteUseInput,
     ProjectUpdateRoleInput,
 )
-from specklepy.core.api.models import (
+from specklepy.api.models import (
     LimitedUser,
     PendingStreamCollaborator,
     Project,
@@ -153,7 +151,7 @@ class TestProjectInviteResource:
         client: SpeckleClient,
         second_client: SpeckleClient,
         project: Project,
-        new_role: Optional[str],
+        new_role: str | None,
         created_invite: PendingStreamCollaborator,
     ):
         assert created_invite.token

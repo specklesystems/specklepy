@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Union
 
 from specklepy.logging.exceptions import SpeckleException, SpeckleInvalidUnitException
 
@@ -87,7 +86,7 @@ def get_units_from_encoding(unit: int) -> Units:
     )
 
 
-def get_encoding_from_units(unit: Union[Units, str, None]):
+def get_encoding_from_units(unit: Units | str | None):
     maybe_sanitized_unit = unit
     if isinstance(unit, str):
         for unit_enum, aliases in UNITS_STRINGS.items():

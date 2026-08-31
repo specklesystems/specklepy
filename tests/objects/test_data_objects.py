@@ -1,6 +1,6 @@
 import pytest
 
-from specklepy.core.api.operations import deserialize, serialize
+from specklepy.api.operations import deserialize, serialize
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.objects.data_objects import BlenderObject, DataObject, QgisObject
@@ -80,13 +80,13 @@ def test_data_object_invalid_types():
     complex_obj = ComplexObject()
 
     with pytest.raises((ValueError, SpeckleException)):
-        data_obj.name = complex_obj  # should be string
+        data_obj.name = complex_obj  # pyright: ignore[reportAttributeAccessIssue] - should be string
 
     with pytest.raises(SpeckleException):
-        data_obj.properties = [1, 2, 3]  # should be dict, not list
+        data_obj.properties = [1, 2, 3]  # pyright: ignore[reportAttributeAccessIssue] - should be dict, not list
 
     with pytest.raises(SpeckleException):
-        data_obj.displayValue = {"key": "value"}  # should be list, not dict
+        data_obj.displayValue = {"key": "value"}  # pyright: ignore[reportAttributeAccessIssue] - should be list, not dict
 
 
 def test_data_object_serialization():
@@ -181,7 +181,7 @@ def test_blender_object_invalid_types():
     complex_obj = ComplexObject()
 
     with pytest.raises((ValueError, SpeckleException)):
-        blender_obj.type = complex_obj  # should be string
+        blender_obj.type = complex_obj  # type: ignore - should be string
 
 
 def test_blender_object_serialization():

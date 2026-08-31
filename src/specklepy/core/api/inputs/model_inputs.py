@@ -1,26 +1,10 @@
-from typing import Optional, Sequence
+from warnings import warn
 
-from specklepy.core.api.models.graphql_base_model import GraphQLBaseModel
+from specklepy.api.inputs.model_inputs import *  # noqa: F403
+from specklepy.logging.exceptions import SpeckleWarning
 
-
-class CreateModelInput(GraphQLBaseModel):
-    name: str
-    description: Optional[str] = None
-    project_id: str
-
-
-class DeleteModelInput(GraphQLBaseModel):
-    id: str
-    project_id: str
-
-
-class UpdateModelInput(GraphQLBaseModel):
-    id: str
-    name: Optional[str] = None
-    description: Optional[str] = None
-    project_id: str
-
-
-class ModelVersionsFilter(GraphQLBaseModel):
-    priority_ids: Sequence[str]
-    priority_ids_only: Optional[bool] = None
+warn(
+    "Imports from `specklepy.core.api.inputs.model_inputs` are now deprecated, import from `specklepy.api.inputs.model_inputs` instead",  # noqa: E501
+    SpeckleWarning,
+    stacklevel=2,
+)

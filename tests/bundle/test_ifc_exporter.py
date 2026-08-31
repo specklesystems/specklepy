@@ -7,6 +7,7 @@ from __future__ import annotations
 import duckdb
 
 from speckleifc.bundle_exporter import MEP_SYSTEM_SUBTYPE, IfcBundleExporter
+from specklepy.bundle import BundleBuilder, Producer
 from specklepy.bundle.spec import NODE_KINDS, NodeKind, Rel
 from specklepy.objects.data_objects import DataObject
 from specklepy.objects.geometry.mesh import Mesh
@@ -81,8 +82,7 @@ def _build_tree() -> Collection:
             applicationId="sys-1",
             systemType="AIRCONDITIONING",
         ),
-        # some exports set ObjectType == Name (e.g. "S_PWC") — the label must not
-        # repeat the type then
+        # some exports set ObjectType == Name — the label must not repeat the type
         SystemProxy(
             objects=["a"],
             name="S_PWC",
@@ -111,8 +111,13 @@ def _build_tree() -> Collection:
 
 def test_exporter_maps_full_tree(tmp_path):
     out = str(tmp_path)
-    root_id, obj_count = IfcBundleExporter(out, BASE).export(_build_tree())
-    assert root_id == "proj"
+    builder = BundleBuilder(Producer("ifc", "0.8.5"), "m", out, BASE)
+    obj_count = IfcBundleExporter(builder).export(_build_tree())
+    assert builder.build().object_count == obj_count
+    meta = f"read_parquet('{out}/{BASE}.envelope.meta.parquet')"
+    assert duckdb.sql(
+        f"SELECT produced_by, producer_version FROM {meta}"
+    ).fetchall() == [("ifc", "0.8.5")]
 
     con = duckdb.connect()
     g = f"read_parquet('{out}/{BASE}"
@@ -142,28 +147,25 @@ def test_exporter_maps_full_tree(tmp_path):
     wall_k = k_of("wall-guid")
     assert any(r[0] == int(Rel.IN_COLLECTION) and r[1] == wall_k for r in rels)
     assert any(r[0] == int(Rel.ON_LEVEL) and r[1] == wall_k for r in rels)
+    assert any(r[0] == int(Rel.IN_SYSTEM) and r[1] == wall_k for r in rels)
 
-    # the exporter's subtype tag is the catalogued CONTAINER vocabulary value
+    # the exporter's subtype tag is a catalogued CONTAINER vocabulary value
     container_row = next(r for r in NODE_KINDS if r.id == int(NodeKind.CONTAINER))
-    assert MEP_SYSTEM_SUBTYPE in container_row.subtype_values.split(",")
+    assert MEP_SYSTEM_SUBTYPE in (container_row.subtype_values or "").split(",")
 
-    # system containers: subtype "MEP System"; IFC type folded into the name only
-    # when it differs from the authored name
+    # system containers: IFC type folded into the name only when it differs
     sysrows = con.execute(
         f"SELECT id, name FROM {g}.envelope.nodes.parquet') "
         f"WHERE kind = {int(NodeKind.CONTAINER)} AND subtype = ?",
         [MEP_SYSTEM_SUBTYPE],
     ).fetchall()
-    names = {r[1] for r in sysrows}
-    assert names == {"HVAC (AIRCONDITIONING)", "S_PWC"}
+    assert {r[1] for r in sysrows} == {"HVAC (AIRCONDITIONING)", "S_PWC"}
 
     # each system member has exactly one IN_SYSTEM edge, targeting a system container
     sys_ks = {r[0] for r in sysrows}
-    in_system = [r for r in rels if r[0] == int(Rel.IN_SYSTEM)]
-    assert all(r[2] in sys_ks for r in in_system)
-    member_edges = [r for r in in_system if r[1] == wall_k]
-    assert len(member_edges) == 1
-    assert len([r for r in in_system if r[1] == k_of("a")]) == 1
+    member_edges = [r for r in rels if r[0] == int(Rel.IN_SYSTEM)]
+    assert all(dst in sys_ks for _, _, dst in member_edges)
+    assert len({src for _, src, _ in member_edges}) == len(member_edges) == 2
 
     # directed connection a->b is a SINGLE edge; undirected x<->y is a reciprocal pair
     a, b, x, y = k_of("a"), k_of("b"), k_of("x"), k_of("y")

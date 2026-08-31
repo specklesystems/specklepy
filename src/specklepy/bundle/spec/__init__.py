@@ -1,6 +1,6 @@
 """Vendored Speckle bundle spec — the single source of truth, generated.
 
-These two modules (``bundle_spec``, ``bundle_schemas``) are GENERATED from
+These modules (``bundle_spec``, ``bundle_schemas``, ``bundle_cols``) are GENERATED from
 ``speckle-bundle-spec/spec/bundle-spec.sql`` and committed here verbatim (the same
 "compiled-in" approach the .NET SDK uses with BundleSpec.cs / BundleSchemas.cs). Do
 not hand-edit.
@@ -15,6 +15,22 @@ To refresh: in a clone of ``speckle-bundle-spec`` at the target version run
 update ``BUNDLE_SPEC_PIN.json`` (its ``version`` + ``specHash``).
 """
 
+from specklepy.bundle.spec.bundle_cols import (
+    CAMERA_VIEWS,
+    EAV,
+    GEOMETRIES,
+    MODEL,
+    NODES,
+    OBJECT_TYPE,
+    OBJECTS,
+    PATHS,
+    PROPERTY_SET_DEFINITIONS,
+    RELATIONS,
+    SCENE_VIEWS,
+    STRUCTURAL_RESULTS,
+    TYPE_EAV,
+    TYPES,
+)
 from specklepy.bundle.spec.bundle_schemas import BY_TABLE, ColumnSpec
 from specklepy.bundle.spec.bundle_spec import (
     NODE_KINDS,
@@ -29,6 +45,20 @@ from specklepy.bundle.spec.bundle_spec import (
 __all__ = [
     "BY_TABLE",
     "ColumnSpec",
+    "CAMERA_VIEWS",
+    "EAV",
+    "GEOMETRIES",
+    "MODEL",
+    "NODES",
+    "OBJECT_TYPE",
+    "OBJECTS",
+    "PATHS",
+    "PROPERTY_SET_DEFINITIONS",
+    "RELATIONS",
+    "SCENE_VIEWS",
+    "STRUCTURAL_RESULTS",
+    "TYPE_EAV",
+    "TYPES",
     "NODE_KINDS",
     "REL_TYPES",
     "SCHEMA_VERSION",
