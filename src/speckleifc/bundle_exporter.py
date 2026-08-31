@@ -25,6 +25,8 @@ from specklepy.objects.geometry import Mesh
 from specklepy.objects.models.collections.collection import Collection
 
 _DEFINITION_GEOMETRY = "definitionGeometry"
+# catalogued CONTAINER subtype (bundle_spec NODE_KINDS), shared with rvextract
+MEP_SYSTEM_SUBTYPE = "MEP System"
 
 
 def _attr(node: Base, key: str, default: Any = None) -> Any:
@@ -182,7 +184,7 @@ class IfcBundleExporter:
             if system_type and system_type != name:
                 display = f"{name} ({system_type})"
             system = self._b.get_or_add_container(
-                system_id, display, None, "MEP System"
+                system_id, display, None, MEP_SYSTEM_SUBTYPE
             )
             for member_id in _attr(proxy, "objects", []) or []:
                 self._b.get_or_add_object(member_id).system = system
