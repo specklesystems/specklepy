@@ -37,12 +37,9 @@ def test_distribution_system_becomes_mep_system_container(tmp_path):
     from speckleifc.converter.node import MEP_SYSTEM_SUBTYPE
     from speckleifc.ifc_geometry_processing import open_ifc
     from speckleifc.importer import ImportJob
-    from specklepy.bundle import BundleBuilder, Producer
     from specklepy.bundle.spec import NodeKind, Rel
 
-    builder = BundleBuilder(Producer("ifc", "0.8.5"), "m", str(tmp_path), BASE)
-    ImportJob(open_ifc(str(FIXTURE)), builder, _NoProgress()).run()
-    builder.build()
+    ImportJob(open_ifc(str(FIXTURE)), str(tmp_path), BASE, _NoProgress()).run()
 
     con = duckdb.connect()
     g = f"read_parquet('{tmp_path}/{BASE}"

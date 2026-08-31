@@ -11,6 +11,7 @@ spatial tree walk emits containers and object rows
 
 from __future__ import annotations
 
+import importlib.metadata
 import logging
 import time
 from typing import cast
@@ -33,27 +34,44 @@ from speckleifc.converter.object import Placement, convert_object
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
 from speckleifc.progress import ProgressReporter
-from specklepy.bundle.builder import BundleBuilder, BundleContainer, BundleObject
-from specklepy.bundle.envelope_writer import SceneViewKey
+from specklepy.bundle.builder import (
+    BundleBuilder,
+    BundleContainer,
+    BundleFiles,
+    BundleObject,
+)
+from specklepy.bundle.envelope_writer import Producer, SceneViewKey
 from specklepy.bundle.spec import Rel
 from specklepy.logging.exceptions import SpeckleException
 
 logger = logging.getLogger(__name__)
 
 
+def _producer() -> Producer:
+    try:
+        version = importlib.metadata.version("ifcopenshell")
+    except importlib.metadata.PackageNotFoundError:
+        version = "unknown"
+    return Producer(slug="ifc", version=version)
+
+
 class ImportJob:
     def __init__(
-        self, ifc_file: file, builder: BundleBuilder, progress: ProgressReporter
+        self,
+        ifc_file: file,
+        output_dir: str,
+        base_name: str,
+        progress: ProgressReporter,
     ) -> None:
         self.ifc_file = ifc_file
-        self.builder = builder
+        self.builder = BundleBuilder(_producer(), "m", output_dir, base_name)
         self.progress = progress
 
-        self._materials = MaterialManager(builder)
-        self._definitions = DefinitionManager(builder, self._materials)
-        self._levels = LevelManager(builder)
-        self._systems = SystemManager(builder)
-        self._groups = GroupManager(builder)
+        self._materials = MaterialManager(self.builder)
+        self._definitions = DefinitionManager(self.builder, self._materials)
+        self._levels = LevelManager(self.builder)
+        self._systems = SystemManager(self.builder)
+        self._groups = GroupManager(self.builder)
 
         self._placements: dict[int, Placement] = {}
         """step id → placement, filled by the geometry pre-pass"""
@@ -69,7 +87,7 @@ class ImportJob:
     def empty_meshes_skipped(self) -> int:
         return self._definitions.empty_meshes_skipped
 
-    def run(self) -> None:
+    def run(self) -> BundleFiles:
         start = time.time()
         self._pre_process_geometry()
         print(f"Geometry conversion complete after {(time.time() - start):.3f}s")
@@ -77,6 +95,7 @@ class ImportJob:
         if self.empty_meshes_skipped:
             logger.info("Skipped %d empty style meshes", self.empty_meshes_skipped)
         self._convert_and_emit()
+        return self.builder.build()
 
     def _convert_and_emit(self) -> None:
         start = time.time()

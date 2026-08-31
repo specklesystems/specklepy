@@ -14,9 +14,7 @@ from specklepy.api.inputs.model_ingestion_inputs import (
     SourceDataInput,
 )
 from specklepy.api.models.current import Project
-from specklepy.bundle.builder import BundleBuilder
 from specklepy.bundle.download import BundleReference
-from specklepy.bundle.envelope_writer import Producer
 from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.logging import metrics
 from specklepy.logging.exceptions import SpeckleException
@@ -26,14 +24,6 @@ from specklepy.progress.ingestion_progress import IngestionProgressManager
 # with progress updates to ensure we're not waisting time sending updates.
 # We could maybe go a little lower, but for now I'm not risking degrading performance
 PROGRESS_INTERVAL_SECONDS = 10
-
-
-def _bundle_producer() -> Producer:
-    try:
-        version = importlib.metadata.version("ifcopenshell")
-    except importlib.metadata.PackageNotFoundError:
-        version = "unknown"
-    return Producer(slug="ifc", version=version)
 
 
 def open_and_convert_file(
@@ -84,9 +74,7 @@ def open_and_convert_file(
         ifc_file = open_ifc(file_path)  # pyright: ignore[reportUnknownVariableType]
 
         with tempfile.TemporaryDirectory(prefix="speckle-bundle-") as bundle_dir:
-            builder = BundleBuilder(_bundle_producer(), "m", bundle_dir, version_id)
-            ImportJob(ifc_file, builder, progress).run()  # pyright: ignore[reportUnknownArgumentType]
-            files = builder.build()
+            files = ImportJob(ifc_file, bundle_dir, version_id, progress).run()  # pyright: ignore[reportUnknownArgumentType]
             print(f"File conversion complete after {(time.time() - start):.3f}s")
 
             start = time.time()

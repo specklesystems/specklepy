@@ -12,7 +12,6 @@ ifcopenshell = pytest.importorskip("ifcopenshell")  # requires the [speckleifc] 
 
 from speckleifc.converter.node import MEP_SYSTEM_SUBTYPE  # noqa: E402
 from speckleifc.importer import ImportJob  # noqa: E402
-from specklepy.bundle import BundleBuilder, Producer  # noqa: E402
 from specklepy.bundle.spec import NODE_KINDS, NodeKind, Rel  # noqa: E402
 
 BASE = "syn"
@@ -213,10 +212,9 @@ def _synthetic_file():
 @pytest.fixture(scope="module")
 def bundle(tmp_path_factory):
     out = str(tmp_path_factory.mktemp("synthetic"))
-    builder = BundleBuilder(Producer("ifc", "0.8.5"), "m", out, BASE)
-    job = ImportJob(_synthetic_file(), builder, _NoProgress())
+    job = ImportJob(_synthetic_file(), out, BASE, _NoProgress())
     job._convert_and_emit()  # no geometry in the synthetic file — skip the pre-pass
-    builder.build()
+    job.builder.build()
 
     con = duckdb.connect()
     g = f"read_parquet('{out}/{BASE}"
