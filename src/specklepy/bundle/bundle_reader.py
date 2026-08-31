@@ -103,6 +103,7 @@ class Relations:
     collection_by_object: dict[int, int] = field(default_factory=dict)
     in_room: list[RelationRow] = field(default_factory=list)
     groups_by_object: dict[int, list[int]] = field(default_factory=dict)
+    systems_by_object: dict[int, list[int]] = field(default_factory=dict)
     in_assembly: list[RelationRow] = field(default_factory=list)
     connects_to: list[RelationRow] = field(default_factory=list)
     hosted_on: list[RelationRow] = field(default_factory=list)
@@ -277,6 +278,8 @@ def _relations(t: ParquetTable) -> Relations:
             r.in_room.append(row)
         elif rel == Rel.IN_GROUP:
             r.groups_by_object.setdefault(src, []).append(dst)
+        elif rel == Rel.IN_SYSTEM:
+            r.systems_by_object.setdefault(src, []).append(dst)
         elif rel == Rel.IN_ASSEMBLY:
             r.in_assembly.append(row)
         elif rel == Rel.CONNECTS_TO:
@@ -298,10 +301,11 @@ def _relations(t: ParquetTable) -> Relations:
             r.material_by_node[src] = dst
         elif rel == Rel.NODE_HAS_COLOR:
             r.color_by_node[src] = dst
-        elif rel not in (Rel.ON_LEVEL, Rel.IN_MODEL, Rel.IN_SYSTEM):
+        elif rel not in (Rel.ON_LEVEL, Rel.IN_MODEL):
             r.unknown_rels.add(rel)
         if rel in _OBJECT_NODE_RELS:
-            r.object_node_by_rel.setdefault(rel, {})[src] = dst
+            # first-wins so multi-valued rels (IN_SYSTEM) resolve deterministically
+            r.object_node_by_rel.setdefault(rel, {}).setdefault(src, dst)
     return r
 
 

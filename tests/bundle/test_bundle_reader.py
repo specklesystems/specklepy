@@ -66,7 +66,8 @@ def test_relations_are_bucketed(bundle):
     by_rel = r.object_node_by_rel
     assert by_rel[int(Rel.ON_LEVEL)][ks.wall] == ks.level
     assert by_rel[int(Rel.IN_MODEL)][ks.wall] == ks.model
-    assert by_rel[int(Rel.IN_SYSTEM)][ks.wall] == ks.system
+    assert by_rel[int(Rel.IN_SYSTEM)][ks.wall] == ks.system  # first membership
+    assert r.systems_by_object[ks.wall] == [ks.system, ks.system2]
     assert r.unknown_rels == set()
 
 

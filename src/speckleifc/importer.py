@@ -1,190 +1,124 @@
+"""IFC → Speckle bundle: one ``ImportJob`` drives a :class:`BundleBuilder` directly.
+
+Two passes over the file: the geometry iterator interns definitions/materials
+(:mod:`~speckleifc.converter.node` managers over
+:mod:`~speckleifc.converter.geometry`) and caches per-element placements, then the
+spatial tree walk emits containers and object rows
+(:mod:`~speckleifc.converter.object`). The relation-only sweeps
+(:mod:`~speckleifc.converter.relation`) and the model-scoped rows
+(:mod:`~speckleifc.converter.model`) run once at the end.
+"""
+
+from __future__ import annotations
+
+import logging
 import time
-from dataclasses import dataclass, field
-from typing import List, cast
+from typing import cast
 
 from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.geom import file
 from ifcopenshell.ifcopenshell_wrapper import Triangulation, TriangulationElement
 
-from speckleifc.converter.data_object_converter import data_object_to_speckle
-from speckleifc.converter.geometry_converter import geometry_to_speckle
-from speckleifc.converter.project_converter import project_to_speckle
-from speckleifc.converter.spatial_element_converter import spatial_element_to_speckle
+from speckleifc.converter import relation
+from speckleifc.converter.geometry import transposed
+from speckleifc.converter.model import emit_georeferencing
+from speckleifc.converter.node import (
+    DefinitionManager,
+    GroupManager,
+    LevelManager,
+    MaterialManager,
+    SystemManager,
+)
+from speckleifc.converter.object import Placement, convert_object
 from speckleifc.ifc_geometry_processing import create_geometry_iterator
 from speckleifc.ifc_openshell_helpers import get_children
-from speckleifc.proxy_managers.connection_proxy_manager import ConnectionProxyManager
-from speckleifc.proxy_managers.instance_proxy_manager import InstanceProxyManager
-from speckleifc.proxy_managers.level_proxy_manager import LevelProxyManager
-from speckleifc.proxy_managers.render_material_proxy_manager import (
-    RenderMaterialProxyManager,
-)
-from speckleifc.proxy_managers.system_proxy_manager import SystemProxyManager
+from speckleifc.progress import ProgressReporter
+from specklepy.bundle.builder import BundleBuilder, BundleContainer, BundleObject
+from specklepy.bundle.envelope_writer import SceneViewKey
+from specklepy.bundle.spec import Rel
 from specklepy.logging.exceptions import SpeckleException
-from specklepy.objects import Base
-from specklepy.objects.data_objects import DataObject
-from specklepy.objects.models.collections.collection import Collection
-from specklepy.objects.proxies import InstanceProxy
-from specklepy.progress.ingestion_progress import IngestionProgressManager
+
+logger = logging.getLogger(__name__)
 
 
-@dataclass
 class ImportJob:
-    ifc_file: file
+    def __init__(
+        self, ifc_file: file, builder: BundleBuilder, progress: ProgressReporter
+    ) -> None:
+        self.ifc_file = ifc_file
+        self.builder = builder
+        self.progress = progress
 
-    progress: IngestionProgressManager
+        self._materials = MaterialManager(builder)
+        self._definitions = DefinitionManager(builder, self._materials)
+        self._levels = LevelManager(builder)
+        self._systems = SystemManager(builder)
+        self._groups = GroupManager(builder)
 
-    emit_topology: bool = False
-    """Attach MEP topology (systemProxies + connectionProxies) to the root. Off by
-    default so the v1 output is unchanged; the 4.0 bundle path turns it on."""
+        self._placements: dict[int, Placement] = {}
+        """step id → placement, filled by the geometry pre-pass"""
+        self._current_level = None
+        self._current_storey_name: str | None = None
+        self._current_room: BundleObject | None = None
 
-    _render_material_manager: RenderMaterialProxyManager = field(
-        default_factory=lambda: RenderMaterialProxyManager()
-    )
-    _level_proxy_manager: LevelProxyManager = field(
-        default_factory=lambda: LevelProxyManager()
-    )
-    _instance_proxy_manager: InstanceProxyManager = field(
-        default_factory=lambda: InstanceProxyManager()
-    )
-    _system_proxy_manager: SystemProxyManager = field(
-        default_factory=lambda: SystemProxyManager()
-    )
-    _connection_proxy_manager: ConnectionProxyManager = field(
-        default_factory=lambda: ConnectionProxyManager()
-    )
-    geometries_count: int = 0
-    geometries_used: int = 0
-    elements_converted: int = 0
-    _current_storey_data_object: DataObject | None = field(default=None, init=False)
+        self.geometries_count = 0
+        self.geometries_used = 0
+        self.elements_converted = 0
 
-    _display_value_cache: dict[int, list[Base]] = field(default_factory=dict)
-    """Maps an instance step ID to a list of instances"""
+    @property
+    def empty_meshes_skipped(self) -> int:
+        return self._definitions.empty_meshes_skipped
 
-    def convert_element(
-        self,
-        step_element: entity_instance,
-        parent_element: entity_instance | None = None,
-    ) -> Base:
-        try:
-            return self._convert_element(step_element, parent_element)
-        except SpeckleException:
-            raise
-        except Exception as ex:
-            raise SpeckleException(
-                f"Failed to convert {step_element.is_a()} #{step_element.id()}"
-            ) from ex
-
-    def _convert_element(
-        self,
-        step_element: entity_instance,
-        parent_element: entity_instance | None = None,
-    ) -> Base:
-        # Track current storey context and store for level proxies
-        previous_storey_data_object = self._current_storey_data_object
-        if step_element.is_a("IfcBuildingStorey"):
-            # Convert the building storey to a DataObject for the level proxy
-            storey_display_value = self._display_value_cache.get(step_element.id(), [])
-            self._current_storey_data_object = data_object_to_speckle(
-                storey_display_value, step_element, [], parent_element=None
-            )
-
-        children = self._convert_children(step_element)
-        id = step_element.id()
-        display_value = self._display_value_cache.get(id, [])
-
-        if display_value:
-            self.geometries_used += 1
-
-        # Extract current storey name from DataObject if available
-        current_storey_name = (
-            self._current_storey_data_object.name
-            if self._current_storey_data_object
-            else None
-        )
-
-        if step_element.is_a("IfcProject"):
-            result = project_to_speckle(step_element, children)
-        elif step_element.is_a("IfcSpatialStructureElement"):
-            result = spatial_element_to_speckle(
-                display_value, step_element, children, current_storey_name
-            )
-        else:
-            result = data_object_to_speckle(
-                display_value,
-                step_element,
-                children,
-                current_storey_name,
-                parent_element,
-            )
-            # Associate non-spatial elements with current storey for level proxies
-            if self._current_storey_data_object is not None and result.applicationId:
-                self._level_proxy_manager.add_element_level_mapping(
-                    self._current_storey_data_object, result.applicationId
-                )
-
-        # Restore previous storey context
-        self._current_storey_data_object = previous_storey_data_object
-        self.elements_converted += 1
-        if self.progress.should_report_progress():
-            self.progress.report(
-                f"Converted {self.elements_converted:,} elements", None
-            )
-
-        return result
-
-    def _convert_children(self, step_element: entity_instance) -> list[Base]:
-        return [
-            self.convert_element(i, parent_element=step_element)
-            for i in get_children(step_element)
-            if self._should_convert(i)
-        ]
-
-    @staticmethod
-    def _should_convert(step_element: entity_instance) -> bool:
-        # We only consider IfcRoot objects convertible
-        # This is the super class for root level entities that have a GUID...
-        # This will ignore some types like IfcGridAxis
-        s = step_element.is_a("IfcRoot")
-        if not s:
-            print(
-                f"Skipping #{step_element.id()} because it's type ({step_element.is_a()}) it not an IfcRoot"  # noqa: E501
-            )
-        return s
-
-    def convert(self) -> Base:
+    def run(self) -> None:
         start = time.time()
-        self.pre_process_geometry()
-        print(
-            f"Geometry conversion complete after {(time.time() - start):.3f}s"  # noqa: E501
-        )
+        self._pre_process_geometry()
+        print(f"Geometry conversion complete after {(time.time() - start):.3f}s")
         print(f"Created {self.geometries_count} geometries")
+        if self.empty_meshes_skipped:
+            logger.info("Skipped %d empty style meshes", self.empty_meshes_skipped)
+        self._convert_and_emit()
 
+    def _convert_and_emit(self) -> None:
         start = time.time()
-        root = self._convert_project_tree()
-        print(
-            f"Element tree conversion complete after {(time.time() - start):.3f}s"  # noqa: E501
-        )
+        self._convert_project_tree()
+        print(f"Element tree conversion complete after {(time.time() - start):.3f}s")
         print(f"Used {self.geometries_used} geometries")
-        return root
 
-    def pre_process_geometry(self) -> None:
+        self._systems.extract(self.ifc_file)
+        self._groups.extract(self.ifc_file)
+        relation.emit_connections(self.ifc_file, self.builder)
+        relation.emit_hosting(self.ifc_file, self.builder)
+        relation.emit_space_boundaries(self.ifc_file, self.builder)
+        emit_georeferencing(self.ifc_file, self.builder)
+
+        keys = [SceneViewKey.rel(Rel.ON_LEVEL)] if self._levels.has_levels else []
+        self.builder.scene_view(
+            "Level / Class", True, *keys, SceneViewKey.eav("ifcType")
+        )
+
+    # ── geometry pre-pass ────────────────────────────────────────────────────
+
+    def _pre_process_geometry(self) -> None:
         iterator = create_geometry_iterator(self.ifc_file)
         if not iterator.initialize():
             raise SpeckleException("Failed to find any geometry in file")
 
         self.progress.report("Converting geometries", None)
-        self.geometries_count = 0
 
         while True:
             shape = cast(TriangulationElement, iterator.get())
             self.geometries_count += 1
-            id = cast(int, shape.id)
+            step_id = cast(int, shape.id)
             try:
-                display_value = self._create_display_value(shape)
-                self._display_value_cache[id] = display_value
+                definitions = self._definitions.definitions_for(
+                    cast(Triangulation, shape.geometry)
+                )
+                if definitions:
+                    matrix = shape.transformation.matrix
+                    self._placements[step_id] = (transposed(matrix), definitions)
             except Exception as ex:
                 raise SpeckleException(
-                    f"Failed to convert geometry with id: {id}"
+                    f"Failed to convert geometry with id: {step_id}"
                 ) from ex
 
             if self.progress.should_report_progress():
@@ -194,76 +128,136 @@ class ImportJob:
             if not iterator.next():
                 break
 
-    def _create_display_value(self, shape: TriangulationElement) -> List[Base]:
-        geometry = cast(Triangulation, shape.geometry)
-        display_value_geometry = geometry_to_speckle(
-            geometry, self._render_material_manager
-        )
+    # ── spatial tree ─────────────────────────────────────────────────────────
 
-        definition_ids = self._instance_proxy_manager.add_display_value_definitions(
-            display_value_geometry
-        )
-        matrix = shape.transformation.matrix
-        transposed = [
-            matrix[0], matrix[4], matrix[8], matrix[12],
-            matrix[1], matrix[5], matrix[9], matrix[13],
-            matrix[2], matrix[6], matrix[10], matrix[14],
-            matrix[3], matrix[7], matrix[11], matrix[15],
-        ]  # fmt: skip
-
-        return [
-            cast(
-                Base,
-                InstanceProxy(
-                    units="m",
-                    definitionId=definition_id,
-                    transform=transposed,
-                    maxDepth=0,
-                    applicationId=f"{shape.guid}:{definition_id}",
-                ),
-            )
-            for definition_id in definition_ids
-        ]
-
-    def _convert_project_tree(self) -> Base:
+    def _convert_project_tree(self) -> None:
         projects = self.ifc_file.by_type("IfcProject", False)
         if len(projects) != 1:
             raise SpeckleException("Expected exactly one IfcProject in file")
-        project = projects[0]
 
         self.progress.report("Converting elements", None)
+        self._convert_element(projects[0], None, None, None)
 
-        tree = self.convert_element(project)
-        if not isinstance(tree, Collection):
-            raise TypeError("Expected root object to convert to a Collection")
+    def _convert_element(
+        self,
+        element: entity_instance,
+        parent_container: BundleContainer | None,
+        parent_object: BundleObject | None,
+        parent_element: entity_instance | None,
+    ) -> None:
+        try:
+            self._convert(element, parent_container, parent_object, parent_element)
+        except SpeckleException:
+            raise
+        except Exception as ex:
+            raise SpeckleException(
+                f"Failed to convert {element.is_a()} #{element.id()}"
+            ) from ex
 
-        tree["renderMaterialProxies"] = list(
-            self._render_material_manager.render_material_proxies.values()
-        )
-        tree["levelProxies"] = list(self._level_proxy_manager.level_proxies.values())
-        tree["instanceDefinitionProxies"] = list(
-            self._instance_proxy_manager.instance_definition_proxies.values()
-        )
-
-        # Network topology: system membership + port-connectivity edges. Extracted
-        # directly from the IFC graph (global relationships, not per-element), so run
-        # once over the whole file here. Only for the 4.0 bundle path — leaving the v1
-        # output untouched (no systemProxies / connectionProxies keys).
-        if self.emit_topology:
-            self._system_proxy_manager.extract(self.ifc_file)
-            self._connection_proxy_manager.extract(self.ifc_file)
-            tree["systemProxies"] = list(
-                self._system_proxy_manager.system_proxies.values()
+    def _convert(
+        self,
+        element: entity_instance,
+        parent_container: BundleContainer | None,
+        parent_object: BundleObject | None,
+        parent_element: entity_instance | None,
+    ) -> None:
+        guid = cast(str, element.GlobalId)
+        existing = self.builder.try_get_object(guid)
+        if existing is not None and existing.properties_written:
+            logger.warning(
+                "Element %s (#%d) is reachable more than once; keeping the first "
+                "conversion",
+                guid,
+                element.id(),
             )
-            tree["connectionProxies"] = (
-                self._connection_proxy_manager.connection_proxies
-            )
-        tree.elements.append(
-            Collection(
-                name="definitionGeometry",
-                elements=list(self._instance_proxy_manager.instance_geometry.values()),
-            )
-        )
-        tree["version"] = 3
+            return
 
-        return tree
+        previous_level = self._current_level
+        previous_storey_name = self._current_storey_name
+        previous_room = self._current_room
+
+        if element.is_a("IfcBuildingStorey"):
+            self._current_level = self._levels.get_or_add(element)
+            self._current_storey_name = cast(str, element.Name or guid)
+
+        if element.is_a("IfcProject") or element.is_a("IfcSpatialStructureElement"):
+            self._convert_spatial(element, parent_container)
+        else:
+            self._convert_product(
+                element, parent_container, parent_object, parent_element
+            )
+
+        self._current_level = previous_level
+        self._current_storey_name = previous_storey_name
+        self._current_room = previous_room
+
+        self.elements_converted += 1
+        if self.progress.should_report_progress():
+            self.progress.report(
+                f"Converted {self.elements_converted:,} elements", None
+            )
+
+    def _convert_spatial(
+        self, element: entity_instance, parent_container: BundleContainer | None
+    ) -> None:
+        guid = cast(str, element.GlobalId)
+        name = cast(str, element.Name or element.LongName or guid)
+        container = self.builder.get_or_add_container(
+            guid, name, parent_container, element.is_a()
+        )
+        if not element.is_a("IfcProject"):
+            obj = self._emit_object(element, name)
+            obj.collection = container
+            if element.is_a("IfcSpace"):
+                self._current_room = obj
+        for child in get_children(element):
+            if self._should_convert(child):
+                self._convert_element(child, container, None, element)
+
+    def _convert_product(
+        self,
+        element: entity_instance,
+        parent_container: BundleContainer | None,
+        parent_object: BundleObject | None,
+        parent_element: entity_instance | None,
+    ) -> None:
+        obj = self._emit_object(element, cast(str, element.Name or element.GlobalId))
+
+        if parent_object is not None:
+            parent_object.add_child(obj)
+            if parent_element is not None and parent_element.is_a("IfcElementAssembly"):
+                parent_object.add_assembly_member(obj)
+        elif parent_container is not None:
+            obj.collection = parent_container
+
+        if self._current_level is not None:
+            self._levels.assign(obj, self._current_level)
+        if self._current_room is not None:
+            obj.room = self._current_room
+
+        for child in get_children(element):
+            if self._should_convert(child):
+                self._convert_element(child, parent_container, obj, element)
+
+    def _emit_object(self, element: entity_instance, name: str) -> BundleObject:
+        placement = self._placements.get(element.id())
+        if placement is not None:
+            self.geometries_used += 1
+        return convert_object(
+            self.builder,
+            element,
+            name,
+            storey_name=self._current_storey_name,
+            placement=placement,
+        )
+
+    @staticmethod
+    def _should_convert(element: entity_instance) -> bool:
+        # Only IfcRoot entities (the GUID-carrying roots) are convertible; this
+        # skips e.g. IfcGridAxis
+        if not element.is_a("IfcRoot"):
+            logger.debug(
+                "Skipping #%d: %s is not an IfcRoot", element.id(), element.is_a()
+            )
+            return False
+        return True

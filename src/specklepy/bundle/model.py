@@ -512,8 +512,15 @@ class ModelObject:
 
     @property
     def system(self) -> ModelContainer | None:
+        """First system membership; see :attr:`systems` for all of them."""
         node = self._node_by_rel(Rel.IN_SYSTEM)
         return node if isinstance(node, ModelContainer) else None
+
+    @property
+    def systems(self) -> list[ModelContainer]:
+        return self._model._nodes_for(
+            ModelContainer, self._model.bundle.relations.systems_by_object.get(self.k)
+        )
 
     @property
     def collection(self) -> ModelContainer | None:

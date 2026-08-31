@@ -1,12 +1,9 @@
 """ENG-9129 regression — authored IFC material names must survive into Parquet.
 
-Converts the checked-in IFC fixture through BOTH paths and compares materials:
-the legacy path (``ImportJob.convert()`` → root Collection with
-``renderMaterialProxies`` holding ``RenderMaterial``s) against the Parquet path
-(``IfcBundleExporter`` → ``envelope.nodes.parquet`` MATERIAL rows). The fixture
-has no IFCSURFACESTYLE, so ifcopenshell falls back to its default style — with
-``use-material-names`` on, the legacy material is named ``DefaultMaterial``;
-that exact name must land on the MATERIAL node instead of NULL.
+Converts the checked-in IFC fixture through the native import path and asserts the
+MATERIAL rows carry names. The fixture has no IFCSURFACESTYLE, so ifcopenshell falls
+back to its default style — with ``use-material-names`` on, that must land as
+``DefaultMaterial`` on the MATERIAL node instead of NULL.
 """
 
 from __future__ import annotations
@@ -34,57 +31,32 @@ class _NoProgress:
         return False
 
 
-def _signed_int32(argb: int) -> int:
-    """Independent reimplementation of the argb column encoding (don't reuse the
-    producer's helper — the test should disagree with it if it ever breaks)."""
-    argb &= 0xFFFFFFFF
-    return argb - 0x1_0000_0000 if argb >= 0x8000_0000 else argb
-
-
-def test_material_names_and_values_match_legacy_tree(tmp_path):
-    from speckleifc.bundle_exporter import IfcBundleExporter
+def test_material_names_land_on_material_nodes(tmp_path):
     from speckleifc.ifc_geometry_processing import open_ifc
     from speckleifc.importer import ImportJob
     from specklepy.bundle import BundleBuilder, Producer
-    from specklepy.bundle.spec import NodeKind
-
-    root = ImportJob(
-        open_ifc(str(FIXTURE)), _NoProgress(), emit_topology=True
-    ).convert()
-
-    legacy = [proxy.value for proxy in root["renderMaterialProxies"]]
-    assert legacy, "fixture must produce at least one render material"
-    # the legacy path authors a name for every material in this fixture
-    # (ifcopenshell's fallback style => "DefaultMaterial")
-    assert all(m.name for m in legacy)
-    assert any(m.name == "DefaultMaterial" for m in legacy)
+    from specklepy.bundle.spec import NodeKind, Rel
 
     builder = BundleBuilder(Producer("ifc", "0.8.5"), "m", str(tmp_path), BASE)
-    IfcBundleExporter(builder).export(root)
+    ImportJob(open_ifc(str(FIXTURE)), builder, _NoProgress()).run()
     builder.build()
 
-    rows = (
-        duckdb.connect()
-        .execute(
-            "SELECT name, argb, opacity, metalness, roughness "
-            f"FROM read_parquet('{tmp_path}/{BASE}.envelope.nodes.parquet') "
-            f"WHERE kind = {int(NodeKind.MATERIAL)}"
-        )
-        .fetchall()
-    )
+    con = duckdb.connect()
+    g = f"read_parquet('{tmp_path}/{BASE}"
 
-    # identity is the applicationId, never the display name: one MATERIAL row per
-    # distinct legacy material id (no dedup or inflation by name)
-    assert len(rows) == len({m.applicationId for m in legacy})
+    rows = con.execute(
+        f"SELECT name, argb, opacity FROM {g}.envelope.nodes.parquet') "
+        f"WHERE kind = {int(NodeKind.MATERIAL)}"
+    ).fetchall()
 
-    expected = {
-        (
-            m.name,
-            _signed_int32(int(m.diffuse)),
-            float(m.opacity),
-            float(m.metalness),
-            float(m.roughness),
-        )
-        for m in legacy
-    }
-    assert {tuple(r) for r in rows} == expected
+    assert rows, "fixture must produce at least one MATERIAL row"
+    assert all(name for name, *_ in rows)
+    assert any(name == "DefaultMaterial" for name, *_ in rows)
+    assert all(argb is not None and opacity is not None for _, argb, opacity in rows)
+
+    # every material is bound geometry-plane only (HAS_MATERIAL src = geometry)
+    rels = con.execute(f"SELECT rel FROM {g}.envelope.relations.parquet')").fetchall()
+    emitted = {r[0] for r in rels}
+    assert int(Rel.HAS_MATERIAL) in emitted
+    assert int(Rel.OBJECT_HAS_MATERIAL) not in emitted
+    assert int(Rel.NODE_HAS_MATERIAL) not in emitted

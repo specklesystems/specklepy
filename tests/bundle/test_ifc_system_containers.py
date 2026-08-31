@@ -2,10 +2,10 @@
 
 Converts the checked-in fixture (the material-names cube plus an
 ``IfcDistributionSystem`` grouping it via ``IfcRelAssignsToGroup``) through the
-real import path (``ImportJob.convert()`` with ``emit_topology``) and the
-Parquet path (``IfcBundleExporter``), then asserts the container row uses the
-catalogued ``MEP System`` subtype — the same tag rvextract/nwextract emit — and
-that the member has exactly one ``IN_SYSTEM`` edge targeting it.
+native import path (``ImportJob.run()`` driving a ``BundleBuilder``), then asserts
+the container row uses the catalogued ``MEP System`` subtype — the same tag
+rvextract/nwextract emit — and that the member has exactly one ``IN_SYSTEM`` edge
+targeting it.
 """
 
 from __future__ import annotations
@@ -34,25 +34,14 @@ class _NoProgress:
 
 
 def test_distribution_system_becomes_mep_system_container(tmp_path):
-    from speckleifc.bundle_exporter import MEP_SYSTEM_SUBTYPE, IfcBundleExporter
+    from speckleifc.converter.node import MEP_SYSTEM_SUBTYPE
     from speckleifc.ifc_geometry_processing import open_ifc
     from speckleifc.importer import ImportJob
     from specklepy.bundle import BundleBuilder, Producer
     from specklepy.bundle.spec import NodeKind, Rel
 
-    root = ImportJob(
-        open_ifc(str(FIXTURE)), _NoProgress(), emit_topology=True
-    ).convert()
-
-    # the importer extracted the IfcRelAssignsToGroup grouping into a SystemProxy
-    proxies = root["systemProxies"]
-    assert [p.applicationId for p in proxies] == [SYSTEM_GUID]
-    assert proxies[0].name == "HVAC Supply"
-    assert proxies[0].systemType == "AIRCONDITIONING"
-    assert proxies[0].objects == [CUBE_GUID]
-
     builder = BundleBuilder(Producer("ifc", "0.8.5"), "m", str(tmp_path), BASE)
-    IfcBundleExporter(builder).export(root)
+    ImportJob(open_ifc(str(FIXTURE)), builder, _NoProgress()).run()
     builder.build()
 
     con = duckdb.connect()
@@ -77,3 +66,13 @@ def test_distribution_system_becomes_mep_system_container(tmp_path):
         [int(Rel.IN_SYSTEM)],
     ).fetchall()
     assert in_system == [(cube_k, sysrows[0][0])]
+
+    # spatial containers keep their raw IFC class names as subtype
+    subtypes = {
+        r[0]
+        for r in con.execute(
+            f"SELECT subtype FROM {g}.envelope.nodes.parquet') "
+            f"WHERE kind = {int(NodeKind.CONTAINER)}"
+        ).fetchall()
+    }
+    assert "IfcProject" in subtypes

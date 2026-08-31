@@ -82,6 +82,7 @@ class BundleBuilder:
         self.pipeline = ObjectsArtifactPipeline(self.directory, base_name, producer)
         self._objects: dict[str, BundleObject] = {}
         self._containers: dict[str, BundleContainer] = {}
+        self._semantic_containers: dict[str, BundleContainer] = {}
         self._definitions: dict[str, BundleDefinition] = {}
         self._materials: dict[str, BundleMaterial] = {}
         self._colors: dict[int, BundleColor] = {}
@@ -139,6 +140,33 @@ class BundleBuilder:
         )
         container = BundleContainer(self, k, key, name, subtype, parent)
         self._containers[key] = container
+        return container
+
+    def get_or_add_semantic_container(
+        self,
+        key: str,
+        name: str | None,
+        parent: BundleContainer | None,
+        subtype: str,
+    ) -> BundleContainer:
+        """Semantic container (MEP System / Network / Group …) — the ``cont:``
+        namespace, distinct from the scene tree."""
+        existing = self._semantic_containers.get(key)
+        if existing is not None:
+            _same(key, existing.name, name, "name")
+            _same(key, existing.subtype, subtype, "subtype")
+            _same(
+                key,
+                existing.parent.key if existing.parent else None,
+                parent.key if parent else None,
+                "parent",
+            )
+            return existing
+        k = self.pipeline.add_container(
+            key, name, parent.k if parent else None, subtype
+        )
+        container = BundleContainer(self, k, key, name, subtype, parent)
+        self._semantic_containers[key] = container
         return container
 
     # ── objects ──────────────────────────────────────────────────────────────
@@ -573,7 +601,6 @@ class BundleObject:
         self._parent: BundleObject | None = None
         self._collection: BundleContainer | None = None
         self._model: BundleContainer | None = None
-        self._system: BundleContainer | None = None
         self._level: BundleLevel | None = None
         self._material: BundleMaterial | None = None
         self._color: BundleColor | None = None
@@ -706,16 +733,6 @@ class BundleObject:
         )
 
     @property
-    def system(self) -> BundleContainer | None:
-        return self._system
-
-    @system.setter
-    def system(self, value: BundleContainer | None) -> None:
-        self._set(
-            "_system", value, lambda k: self._builder.pipeline.in_system(self.k, k, 0)
-        )
-
-    @property
     def level(self) -> BundleLevel | None:
         return self._level
 
@@ -807,6 +824,9 @@ class BundleObject:
 
     def add_to_group(self, group: BundleContainer, ord: int = 0) -> None:
         self._builder.pipeline.in_group(self.k, group.k, ord)
+
+    def add_to_system(self, system: BundleContainer, ord: int = 0) -> None:
+        self._builder.pipeline.in_system(self.k, system.k, ord)
 
     def connect_to(self, other: BundleObject, scope: int = 0) -> None:
         self._builder.pipeline.connects_to(self.k, other.k, scope)

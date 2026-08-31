@@ -105,6 +105,10 @@ def test_relations_and_appearance_roundtrip(tmp_path):
         walls.color = red
         group = b.get_or_add_container("g", "Group A", None, "Group")
         wall.add_to_group(group)
+        supply = b.get_or_add_semantic_container("s1", "Supply", None, "MEP System")
+        ret = b.get_or_add_semantic_container("s2", "Return", None, "MEP System")
+        wall.add_to_system(supply)
+        wall.add_to_system(ret)
         assert b.get_or_add_material("m", "Concrete", -8355712) is concrete
         with pytest.raises(ValueError):
             b.get_or_add_material("m", "Other", -8355712)
@@ -121,6 +125,8 @@ def test_relations_and_appearance_roundtrip(tmp_path):
     assert wall.bounds_rooms == [room] and door.room is room
     assert door.connected_to == [wall] and wall.connected_to == [door]
     assert [g.name for g in wall.groups] == ["Group A"]
+    assert [s.name for s in wall.systems] == ["Supply", "Return"]
+    assert wall.system.name == "Supply"
 
 
 def test_definitions_placements_members_roundtrip(tmp_path):

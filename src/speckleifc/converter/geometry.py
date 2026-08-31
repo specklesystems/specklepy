@@ -1,6 +1,11 @@
+"""Geometry conversion (the ``geometries`` namespace): split an ifcopenshell
+triangulation into per-style speckle meshes paired with their render material."""
+
+from __future__ import annotations
+
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import cast
+from typing import Any, cast
 
 from ifcopenshell.ifcopenshell_wrapper import (
     Triangulation,
@@ -8,17 +13,15 @@ from ifcopenshell.ifcopenshell_wrapper import (
     style,
 )
 
-from speckleifc.proxy_managers.render_material_proxy_manager import (
-    RenderMaterialProxyManager,
-)
-from specklepy.objects.base import Base
 from specklepy.objects.geometry import Mesh
 from specklepy.objects.other import RenderMaterial
 
 
-def geometry_to_speckle(
-    geometry: Triangulation, render_material_manager: RenderMaterialProxyManager
-) -> list[Base]:
+def geometry_to_speckle(geometry: Triangulation) -> list[tuple[Mesh, RenderMaterial]]:
+    """Split one triangulation into per-style meshes, paired with their material.
+
+    A style with no faces yields a zero-vertex mesh — callers skip those.
+    """
     materials = cast(Sequence[style], geometry.materials)
     MESH_COUNT = max(len(materials), 1)
 
@@ -34,9 +37,6 @@ def geometry_to_speckle(
         return []
 
     mapped_meshes = _pre_alloc_mesh_lists(geometry, material_ids, MESH_COUNT)
-    for i, mesh in enumerate(mapped_meshes):
-        material = _material_to_speckle(materials[i])
-        render_material_manager.add_mesh_material_mapping(material, mesh)
 
     mapped_faces_pointers = [0] * MESH_COUNT
     mapped_vertices_pointers = [0] * MESH_COUNT
@@ -80,7 +80,10 @@ def geometry_to_speckle(
             9  # number of item's we've just added to the mesh.vertices list
         )
 
-    return mapped_meshes  # type: ignore
+    return [
+        (mesh, _material_to_speckle(materials[i]))
+        for i, mesh in enumerate(mapped_meshes)
+    ]
 
 
 def _material_to_speckle(material: style) -> RenderMaterial:
@@ -128,3 +131,13 @@ def _pre_alloc_mesh_lists(
         )
         meshes.append(mesh)
     return meshes
+
+
+def transposed(matrix: Any) -> list[float]:
+    # ifcopenshell hands the placement column-major; bundles store row-major
+    return [
+        matrix[0], matrix[4], matrix[8], matrix[12],
+        matrix[1], matrix[5], matrix[9], matrix[13],
+        matrix[2], matrix[6], matrix[10], matrix[14],
+        matrix[3], matrix[7], matrix[11], matrix[15],
+    ]  # fmt: skip
