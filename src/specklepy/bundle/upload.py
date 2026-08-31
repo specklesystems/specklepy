@@ -21,6 +21,7 @@ from typing import Mapping
 import httpx
 
 from specklepy.api.credentials import Account
+from specklepy.logging import metrics
 
 
 class ArtifactUploadError(Exception):
@@ -56,7 +57,15 @@ class ArtifactPipeline:
         self.output_dir = output_dir
 
         base = account.serverInfo.url.rstrip("/") + "/api/v2/"
-        headers = {"Authorization": f"Bearer {account.token}"} if account.token else {}
+        # The server reads clientAppVersion for envelope-born versions from the
+        # apollographql-client-version header on uploads/complete, mirroring the
+        # GraphQL transport in api/client.py (ENG-9491).
+        headers = {
+            "apollographql-client-name": metrics.HOST_APP,
+            "apollographql-client-version": metrics.HOST_APP_VERSION,
+        }
+        if account.token:
+            headers["Authorization"] = f"Bearer {account.token}"
         self._speckle = httpx.Client(base_url=base, headers=headers, timeout=timeout)
         # presigned S3 PUTs are unauthenticated (the URL carries the signature).
         self._s3 = httpx.Client(timeout=timeout)
