@@ -164,13 +164,16 @@ class ServerTransport(AbstractTransport):
             endpoint, data={"objects": json.dumps(new_children_ids)}, stream=True
         )
         r.encoding = "utf-8"
-        lines = r.iter_lines(decode_unicode=True)
+        # requests' 512-byte default chunk is slow AF
+        lines = r.iter_lines(
+            chunk_size=1024 * 1024, decode_unicode=True, delimiter="\n"
+        )
 
         # iter through returned objects saving them as we go
         target_transport.begin_write()
         for line in lines:
             if line:
-                hash, obj = line.split("\t")
+                hash, obj = line.split("\t", 1)
                 target_transport.save_object(hash, obj)
 
         target_transport.save_object(id, root_obj_serialized)
