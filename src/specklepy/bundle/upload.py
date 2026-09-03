@@ -101,7 +101,12 @@ class ArtifactPipeline:
         files = {
             os.path.basename(p): p
             for p in sorted(
-                glob.glob(os.path.join(self.output_dir, f"{base_name}.*.parquet"))
+                # glob.escape: base_name is the source filename stem, and `[a29]`-style
+                # tags are common in BIM deliverables — unescaped they become
+                # character classes and the artefacts are never found (FEA-645).
+                glob.glob(
+                    os.path.join(self.output_dir, f"{glob.escape(base_name)}.*.parquet")
+                )
             )
         }
         if not files:
