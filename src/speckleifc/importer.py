@@ -31,7 +31,10 @@ from speckleifc.converter.node import (
     SystemManager,
 )
 from speckleifc.converter.object import Placement, convert_object
-from speckleifc.ifc_geometry_processing import create_geometry_iterator
+from speckleifc.ifc_geometry_processing import (
+    contexts_for_3d_representations,
+    create_geometry_iterator,
+)
 from speckleifc.ifc_openshell_helpers import get_children
 from speckleifc.progress import ProgressReporter
 from specklepy.bundle.builder import (
@@ -120,7 +123,20 @@ class ImportJob:
     def _pre_process_geometry(self) -> None:
         iterator = create_geometry_iterator(self.ifc_file)
         if not iterator.initialize():
-            raise SpeckleException("Failed to find any geometry in file")
+            # The default context-first selection came up empty. Before declaring the
+            # file empty, retry with the contexts the 3D representations actually
+            # reference (ENG-9524: exporters that put Body representations in a Plan
+            # context). A file that converts today never reaches this branch.
+            context_ids = contexts_for_3d_representations(self.ifc_file)
+            if context_ids:
+                logger.warning(
+                    "Default context selection found no geometry; "
+                    "retrying with contexts %s",
+                    context_ids,
+                )
+                iterator = create_geometry_iterator(self.ifc_file, context_ids)
+            if not context_ids or not iterator.initialize():
+                raise SpeckleException("Failed to find any geometry in file")
 
         self.progress.report("Converting geometries", None)
 
