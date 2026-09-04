@@ -50,10 +50,68 @@ def open_ifc(file_path: str) -> file:
         raise SpeckleException(f"file at {file_path} is not a compatible ifc file type")
 
 
-def create_geometry_iterator(ifc_file: file | sqlite) -> iterator:
+# RepresentationType values that carry 3D shape (IFC2x3 + IFC4 vocabularies).
+# Curve-only types (Curve2D, GeometricCurveSet, Annotation2D, ...) are deliberately
+# absent: they never yield a solid and must not steer context selection.
+_3D_REPRESENTATION_TYPES = frozenset(
+    t.lower()
+    for t in (
+        "SweptSolid",
+        "AdvancedSweptSolid",
+        "Brep",
+        "AdvancedBrep",
+        "CSG",
+        "Clipping",
+        "SurfaceModel",
+        "SolidModel",
+        "Tessellation",
+        "MappedRepresentation",
+        "SectionedSpine",
+    )
+)
+
+# What IfcOpenShell's own default picks (mapping.cpp,
+# addRepresentationsFromDefaultContexts): top-level contexts of these types, plus
+# their sub-contexts.
+_DEFAULT_CONTEXT_TYPES = frozenset(("model", "design", "model view", "detail view"))
+
+
+def contexts_for_3d_representations(ifc_file: file) -> list[int]:
+    """Context ids IfcOpenShell should read: its own default choice, widened with every
+    context a 3D shape representation actually points at.
+
+    IfcOpenShell selects representations context-first. With the default settings it
+    keeps the Model-family contexts (+ sub-contexts) and only falls back to "all
+    contexts" when those hold *nothing*. Some exporters (ICPrefab/iTConcrete precast
+    files, ENG-9524) attach every Body representation to a *Plan* context; one stray
+    FootPrint curve in a Model sub-context then defeats the fallback and the whole file
+    reads as empty. Building the id set from the representations themselves makes the
+    selection evidence-based while staying a strict superset of the default, so nothing
+    the default converts is lost.
+    """
+    ids: set[int] = set()
+    for context in ifc_file.by_type("IfcGeometricRepresentationContext", False):
+        context_type = (context.ContextType or "").lower()
+        if context_type in _DEFAULT_CONTEXT_TYPES:
+            ids.add(context.id())
+            for sub in context.HasSubContexts or ():
+                ids.add(sub.id())
+    for rep in ifc_file.by_type("IfcShapeRepresentation"):
+        is_3d = (rep.RepresentationType or "").lower() in _3D_REPRESENTATION_TYPES
+        if is_3d and rep.ContextOfItems is not None:
+            ids.add(rep.ContextOfItems.id())
+    return sorted(ids)
+
+
+def create_geometry_iterator(
+    ifc_file: file | sqlite, context_ids: list[int] | None = None
+) -> iterator:
     GEOMETRY_LIBRARY = "hybrid-opencascade-cgal"  # First OCC then fallback to CGAL
+    ifc_settings = _create_iterator_settings()
+    if context_ids:
+        ifc_settings.set("context-ids", context_ids)
     return iterator(
-        _create_iterator_settings(),
+        ifc_settings,
         ifc_file,
         multiprocessing.cpu_count(),
         geometry_library=GEOMETRY_LIBRARY,  # type: ignore
