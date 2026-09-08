@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from deprecated import deprecated
 from gql import Client, gql
 
 from specklepy.api.credentials import Account
@@ -11,12 +12,23 @@ from specklepy.api.inputs.file_import_inputs import (
     StartFileImportInput,
 )
 from specklepy.api.models import FileImport, FileUploadUrl, ResourceCollection
+from specklepy.api.models.current import ModelIngestion
 from specklepy.api.models.graphql_base_model import GraphQLBaseModel
 from specklepy.api.resource import ResourceBase
 from specklepy.api.responses import DataResponse
 from specklepy.logging.exceptions import SpeckleException
 
 NAME = "file_import"
+
+FILE_IMPORT_DEPRECATION: dict[str, Any] = {
+    "reason": (
+        "The legacy file import mutations are being removed from the server."
+        " startFileImport is a throw-stub on servers from 2026.9 and"
+        " finishFileImport is deleted. Upload via generate_upload_url and"
+        " upload_file, then call start_file_ingestion and track the returned"
+        " ModelIngestion via client.model_ingestion."
+    ),
+}
 
 
 class UploadFileResponse(GraphQLBaseModel):
@@ -41,6 +53,7 @@ class FileImportResource(ResourceBase):
             name=NAME,
         )
 
+    @deprecated(**FILE_IMPORT_DEPRECATION)
     def finish_file_import_job(self, input: FinishFileImportInput) -> bool:
         """
         This is mostly an internal api, that marks a file import job finished.
@@ -66,6 +79,7 @@ class FileImportResource(ResourceBase):
             DataResponse[DataResponse[bool]], request
         ).data.data
 
+    @deprecated(**FILE_IMPORT_DEPRECATION)
     def start_file_import(self, input: StartFileImportInput) -> FileImport:
         request = gql(
             """
@@ -92,6 +106,48 @@ class FileImportResource(ResourceBase):
 
         return self.make_request_and_parse_response(
             DataResponse[DataResponse[FileImport]], request
+        ).data.data
+
+    def start_file_ingestion(self, input: StartFileImportInput) -> ModelIngestion:
+        """
+        Register a completed upload and start its conversion as a model ingestion.
+
+        Call generate_upload_url and upload_file first; the etag from the upload
+        goes into the input. Track the returned ingestion via
+        client.model_ingestion.
+        """
+        request = gql(
+            """
+            mutation StartFileIngestion($input: StartFileImportInput!) {
+                data:fileUploadMutations {
+                    data:startFileIngestion(input: $input) {
+                        id
+                        createdAt
+                        updatedAt
+                        modelId
+                        projectId
+                        userId
+                        cancellationRequested
+                        statusData {
+                            ... on HasModelIngestionStatus {
+                                status
+                            }
+                            ... on HasProgressMessage {
+                                progressMessage
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        )
+
+        request.variable_values = {
+            "input": input.model_dump(warnings="error", by_alias=True),
+        }
+
+        return self.make_request_and_parse_response(
+            DataResponse[DataResponse[ModelIngestion]], request
         ).data.data
 
     def generate_upload_url(self, input: GenerateFileUploadUrlInput) -> FileUploadUrl:
