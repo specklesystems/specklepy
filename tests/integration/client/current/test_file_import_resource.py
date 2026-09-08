@@ -4,7 +4,7 @@ import pytest
 
 from specklepy.api import operations
 from specklepy.api.client import SpeckleClient
-from specklepy.api.enums import ProjectVisibility
+from specklepy.api.enums import ModelIngestionStatus, ProjectVisibility
 from specklepy.api.inputs.file_import_inputs import (
     FileImportErrorInput,
     FileImportResult,
@@ -112,6 +112,38 @@ class TestFileImportResource:
         assert job
         assert job.converted_status == 0
         assert job.converted_version_id is None
+
+    def test_start_file_ingestion(
+        self,
+        file_path: Path,
+        client: SpeckleClient,
+        project: Project,
+        upload_url: FileUploadUrl,
+    ) -> None:
+        model = client.model.create(
+            CreateModelInput(name=crypto_random_string(10), project_id=project.id)
+        )
+        upload_response = client.file_import.upload_file(
+            file=file_path, url=upload_url.url
+        )
+        ingestion = client.file_import.start_file_ingestion(
+            StartFileImportInput(
+                project_id=project.id,
+                model_id=model.id,
+                file_id=upload_url.file_id,
+                etag=upload_response.etag,
+            )
+        )
+
+        assert ingestion.project_id == project.id
+        assert ingestion.model_id == model.id
+        assert ingestion.status_data.status in (
+            ModelIngestionStatus.QUEUED,
+            ModelIngestionStatus.PROCESSING,
+        )
+
+        queried = client.model_ingestion.get_ingestion(project.id, ingestion.id)
+        assert queried.id == ingestion.id
 
     def test_finish_file_import_success(
         self,
