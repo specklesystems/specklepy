@@ -19,6 +19,7 @@ from specklepy.api.models import Project
 from specklepy.api.models.current import FileUploadUrl
 from specklepy.core.helpers import crypto_random_string
 from specklepy.transports.server.server import ServerTransport
+from tests.integration.conftest import is_public
 from tests.integration.fakemesh import FakeMesh
 
 
@@ -113,6 +114,9 @@ class TestFileImportResource:
         assert job.converted_status == 0
         assert job.converted_version_id is None
 
+    @pytest.mark.skipif(
+        is_public(), reason="The public API does not support the ingestion API"
+    )
     def test_start_file_ingestion(
         self,
         file_path: Path,
