@@ -108,17 +108,20 @@ def test_relationships_object_to_node(model):
     m, ks = model
     wall = m.object(ks.wall)
     assert isinstance(wall.level, ModelLevel)
-    assert (wall.level.name, wall.level.elevation, wall.level.kind) == (
+    assert (wall.level.name, wall.level.fields.elevation, wall.level.kind) == (
         "L1",
         3.0,
         NodeKind.LEVEL,
     )
     assert wall.level.objects == [wall]
-    assert wall.system.subtype == "MEP System"
+    assert wall.system.fields.subtype == "MEP System"
     assert [s.name for s in wall.systems] == ["Hot Water", "Return Air"]
     assert [g.name for g in wall.groups] == ["Group A"]
     assert isinstance(wall.collection, ModelContainer)
-    assert wall.collection.subtype == "Layer" and wall.collection.gh_topology == "0-1"
+    assert (
+        wall.collection.fields.subtype == "Layer"
+        and wall.collection.fields.gh_topology == "0-1"
+    )
     assert wall.collection.objects == [wall] and wall.collection.path == ["Walls"]
     assert m.levels == [wall.level]
     assert len(m.collections) == 5  # layer, model, two systems, group
@@ -129,8 +132,8 @@ def test_appearance_three_planes(model):
     wall = m.object(ks.wall)
     mesh = wall.geometries[0]
     assert isinstance(mesh.material, ModelMaterial)
-    assert mesh.material.name == "Painted Steel" and mesh.material.ior == 1.45
-    assert mesh.color.argb == -65536
+    assert mesh.material.name == "Painted Steel" and mesh.material.fields.ior == 1.45
+    assert mesh.color.fields.argb == -65536
     assert wall.material is mesh.material and wall.color is mesh.color
     assert wall.collection.material is mesh.material
     assert wall.collection.color is mesh.color

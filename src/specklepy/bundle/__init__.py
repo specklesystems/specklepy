@@ -14,7 +14,6 @@ bundle back. Decoding covers every primitive the encoder emits.
 
 from specklepy.bundle.builder import BundleBuilder, BundleFiles
 from specklepy.bundle.envelope_writer import (
-    CameraView,
     Producer,
     SceneView,
     SceneViewKey,
@@ -23,7 +22,17 @@ from specklepy.bundle.model import Model, ModelGeometry, ModelObject
 from specklepy.bundle.pipeline import ObjectsArtifactPipeline
 from specklepy.bundle.receive import receive
 from specklepy.bundle.send import SendOptions, SendResult, send
-from specklepy.bundle.spec import SCHEMA_VERSION, NodeKind, Rel
+from specklepy.bundle.spec import (
+    SCHEMA_VERSION,
+    CameraView,
+    Color,
+    Container,
+    Level,
+    Material,
+    NodeKind,
+    PropertySetField,
+    Rel,
+)
 from specklepy.bundle.upload import ArtifactPipeline
 
 __all__ = [
@@ -51,6 +60,11 @@ __all__ = [
     "SceneView",
     "SceneViewKey",
     "CameraView",
+    "Color",
+    "Container",
+    "Level",
+    "Material",
+    "PropertySetField",
     "NodeKind",
     "Rel",
     "SCHEMA_VERSION",

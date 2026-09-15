@@ -6,7 +6,7 @@ from specklepy.bundle import BundleBuilder, Producer
 from specklepy.bundle.bundle_reader import read_bundle
 from specklepy.bundle.envelope_writer import CameraView, SceneViewKey
 from specklepy.bundle.model import Model, ModelContainer, ModelLevel
-from specklepy.bundle.spec import Rel
+from specklepy.bundle.spec import Level, Material, Rel
 from specklepy.objects.geometry.mesh import Mesh
 
 PRODUCER = Producer("test", "1.0")
@@ -76,7 +76,7 @@ def test_objects_properties_collections_roundtrip(tmp_path):
     assert wall.get_string("speckle_type") == "Objects.Data.DataObject"
     assert wall.get_string("type") == "Walls"
     assert wall.collection_path == ["Level 1", "Walls"]
-    assert wall.collection.subtype == "Category"
+    assert wall.collection.fields.subtype == "Category"
     assert wall.collection.parent.name == "Level 1"
     [tier] = m.default_scene_view
     assert tier.relation == int(Rel.IN_COLLECTION)
@@ -88,9 +88,18 @@ def test_objects_properties_collections_roundtrip(tmp_path):
 def test_relations_and_appearance_roundtrip(tmp_path):
     def author(b):
         walls = b.get_or_add_container_path(["Walls"])
-        concrete = b.get_or_add_material("m", "Concrete", -8355712, roughness=0.8)
+        concrete = b.get_or_add_material(
+            "m",
+            Material(
+                argb=-8355712,
+                opacity=1.0,
+                metalness=0.0,
+                roughness=0.8,
+                name="Concrete",
+            ),
+        )
         red = b.get_or_add_color(-65536)
-        l1 = b.get_or_add_level("L1", "Level 1", 0.0)
+        l1 = b.get_or_add_level("L1", Level(elevation=0.0, name="Level 1"))
         wall = describe(b, "wall", walls, {})
         wall.add_geometry(tri()).material = concrete
         wall.level = l1
@@ -109,16 +118,40 @@ def test_relations_and_appearance_roundtrip(tmp_path):
         ret = b.get_or_add_semantic_container("s2", "Return", None, "MEP System")
         wall.add_to_system(supply)
         wall.add_to_system(ret)
-        assert b.get_or_add_material("m", "Concrete", -8355712) is concrete
+        assert (
+            b.get_or_add_material(
+                "m",
+                Material(
+                    argb=-8355712,
+                    opacity=1.0,
+                    metalness=0.0,
+                    roughness=0.8,
+                    name="Concrete",
+                ),
+            )
+            is concrete
+        )
         with pytest.raises(ValueError):
-            b.get_or_add_material("m", "Other", -8355712)
+            b.get_or_add_material(
+                "m",
+                Material(
+                    argb=-8355712,
+                    opacity=1.0,
+                    metalness=0.0,
+                    roughness=0.8,
+                    name="Other",
+                ),
+            )
 
     m = build_and_read(tmp_path, author)
     wall, door, room = (m.object_by_application_id(a) for a in ("wall", "door", "room"))
     [mesh] = wall.geometries
-    assert mesh.material.name == "Concrete" and mesh.material.roughness == 0.8
+    assert mesh.material.name == "Concrete" and mesh.material.fields.roughness == 0.8
     assert wall.material is None and mesh.effective_material is mesh.material
-    assert door.color.argb == -65536 and mesh.effective_color is wall.collection.color
+    assert (
+        door.color.fields.argb == -65536
+        and mesh.effective_color is wall.collection.color
+    )
     assert isinstance(wall.level, ModelLevel) and wall.level.name == "Level 1"
     assert door.host is wall and wall.hosted == [door]
     assert door.parent is wall and wall.children == [door]
@@ -132,7 +165,10 @@ def test_relations_and_appearance_roundtrip(tmp_path):
 def test_definitions_placements_members_roundtrip(tmp_path):
     def author(b):
         layer = b.get_or_add_container_path(["Blocks"], "Layer")
-        fabric = b.get_or_add_material("fabric", "Fabric", 0)
+        fabric = b.get_or_add_material(
+            "fabric",
+            Material(argb=0, opacity=1.0, metalness=0.0, roughness=1.0, name="Fabric"),
+        )
         populated = []
 
         def populate(d):
@@ -174,7 +210,7 @@ def test_definitions_placements_members_roundtrip(tmp_path):
 def test_model_extras_and_scene_view(tmp_path):
     def author(b):
         host = b.get_or_add_container("Main.rvt", "Main.rvt", None, "Model")
-        l1 = b.get_or_add_level("L1", "Level 1", 0.0)
+        l1 = b.get_or_add_level("L1", Level(elevation=0.0, name="Level 1"))
         o = describe(
             b,
             "w",
@@ -195,7 +231,28 @@ def test_model_extras_and_scene_view(tmp_path):
         )
         b.add_model_property("modelPlacement.units", "m")
         b.add_model_property("projectInformation.number", 42.0)
-        b.add_camera_view(CameraView(0, "Front", True, 0, 0, -10, 5, 0, 1, 0, 0, 0, 1))
+        b.add_camera_view(
+            CameraView(
+                view=0,
+                name="Front",
+                is_default=True,
+                ord=0,
+                pos_x=0,
+                pos_y=-10,
+                pos_z=5,
+                forward_x=0,
+                forward_y=1,
+                forward_z=0,
+                up_x=0,
+                up_y=0,
+                up_z=1,
+                target_x=None,
+                target_y=None,
+                target_z=None,
+                units="m",
+                is_ortho=False,
+            )
+        )
 
     m = build_and_read(tmp_path, author)
     w = m.object_by_application_id("w")
@@ -296,8 +353,8 @@ def test_gh_topology_only_on_the_leaf(tmp_path):
 
     m = build_and_read(tmp_path, author)
     o = m.object_by_application_id("o")
-    assert o.collection.gh_topology == "{0;1}"
-    assert o.collection.parent.gh_topology is None
+    assert o.collection.fields.gh_topology == "{0;1}"
+    assert o.collection.parent.fields.gh_topology is None
     assert o.collection.parent.parent is None
     assert len(m.collections) == 2
 
