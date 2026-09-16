@@ -19,6 +19,7 @@ from specklepy.bundle.builder import (
     BundleMaterial,
     BundleObject,
 )
+from specklepy.bundle.spec import Level, Material
 from specklepy.objects.other import RenderMaterial
 
 logger = logging.getLogger(__name__)
@@ -36,9 +37,13 @@ class MaterialManager:
     def get_or_add(self, material: RenderMaterial, fallback_key: str) -> BundleMaterial:
         return self._builder.get_or_add_material(
             material.applicationId or fallback_key,
-            material.name,
-            int(material.diffuse),
-            opacity=float(material.opacity),
+            Material(
+                argb=int(material.diffuse),
+                opacity=float(material.opacity),
+                metalness=0.0,
+                roughness=1.0,
+                name=material.name,
+            ),
         )
 
 
@@ -95,8 +100,10 @@ class LevelManager:
         elevation = getattr(storey, "Elevation", None)
         return self._builder.get_or_add_level(
             guid,
-            cast(str, storey.Name or guid),
-            float(elevation) if elevation is not None else 0.0,
+            Level(
+                elevation=float(elevation) if elevation is not None else 0.0,
+                name=cast(str, storey.Name or guid),
+            ),
         )
 
     def assign(self, obj: BundleObject, level: BundleLevel) -> None:

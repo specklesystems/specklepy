@@ -10,16 +10,24 @@ from enum import Enum
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
-from specklepy.bundle import sgeo
+from specklepy.bundle import node_fields, sgeo
 from specklepy.bundle.bundle_reader import (
     ArtefactBundle,
     Geometry,
     Node,
     read_geometries,
 )
-from specklepy.bundle.envelope_writer import CameraView
 from specklepy.bundle.property_table import PropertyView
-from specklepy.bundle.spec import NodeKind, Rel
+from specklepy.bundle.spec import (
+    CameraView,
+    Color,
+    Container,
+    Definition,
+    Level,
+    Material,
+    NodeKind,
+    Rel,
+)
 
 if TYPE_CHECKING:
     from specklepy.objects.base import Base
@@ -710,9 +718,9 @@ class ModelNode:
 
 
 class ModelLevel(ModelNode):
-    @property
-    def elevation(self) -> float | None:
-        return self._node.elevation
+    @cached_property
+    def fields(self) -> Level:
+        return node_fields.level(self.k, self._node)
 
     @property
     def objects(self) -> list[ModelObject]:
@@ -720,38 +728,22 @@ class ModelLevel(ModelNode):
 
 
 class ModelMaterial(ModelNode):
-    @property
-    def argb(self) -> int | None:
-        return self._node.argb
-
-    @property
-    def opacity(self) -> float | None:
-        return self._node.opacity
-
-    @property
-    def metalness(self) -> float | None:
-        return self._node.metalness
-
-    @property
-    def roughness(self) -> float | None:
-        return self._node.roughness
-
-    @property
-    def emissive(self) -> int | None:
-        return self._node.emissive
-
-    @property
-    def ior(self) -> float | None:
-        return self._node.ior
+    @cached_property
+    def fields(self) -> Material:
+        return node_fields.material(self.k, self._node)
 
 
 class ModelColor(ModelNode):
-    @property
-    def argb(self) -> int:
-        return self._node.argb or 0
+    @cached_property
+    def fields(self) -> Color:
+        return node_fields.color(self.k, self._node)
 
 
 class ModelDefinition(ModelNode):
+    @cached_property
+    def fields(self) -> Definition:
+        return node_fields.definition(self.k, self._node)
+
     @property
     def placements(self) -> list[ModelInstance]:
         return self._model._nodes_for(
@@ -783,13 +775,9 @@ class ModelInstance(ModelNode):
 
 
 class ModelContainer(ModelNode):
-    @property
-    def subtype(self) -> str | None:
-        return self._node.subtype
-
-    @property
-    def gh_topology(self) -> str | None:
-        return self._node.gh_topology
+    @cached_property
+    def fields(self) -> Container:
+        return node_fields.container(self.k, self._node)
 
     @property
     def parent(self) -> ModelContainer | None:

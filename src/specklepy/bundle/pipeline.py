@@ -10,6 +10,7 @@ then hand the output dir to :mod:`specklepy.bundle.upload`.
 
 from __future__ import annotations
 
+import dataclasses
 import math
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -32,7 +33,14 @@ from specklepy.bundle.model_eav_writer import ModelEavWriter
 from specklepy.bundle.property_set_definitions_writer import (
     PropertySetDefinitionsWriter,
 )
-from specklepy.bundle.spec import NodeKind, Rel
+from specklepy.bundle.spec import (
+    Container,
+    Level,
+    Material,
+    NodeKind,
+    PropertySetField,
+    Rel,
+)
 
 
 def _format_transform(transform: Sequence[float]) -> str:
@@ -46,6 +54,23 @@ def _argb_int32(argb: int) -> int:
     """Reinterpret packed ARGB as signed int32 (the ``argb`` column type)."""
     argb &= 0xFFFFFFFF
     return argb - 0x1_0000_0000 if argb >= 0x8000_0000 else argb
+
+
+def normalize_material(fields: Material) -> Material:
+    """Apply the spec's storage rules: colours as signed int32, black emissive as NULL.
+
+    Callers that intern by key must normalize before comparing a repeat against the
+    stored row, or an unnormalized duplicate compares unequal to a row it would write
+    identically.
+    """
+    emissive = fields.emissive
+    if emissive is not None and emissive & 0x00FFFFFF == 0:
+        emissive = None
+    return dataclasses.replace(
+        fields,
+        argb=_argb_int32(fields.argb),
+        emissive=None if emissive is None else _argb_int32(emissive),
+    )
 
 
 class ObjectsArtifactPipeline:
@@ -161,34 +186,21 @@ class ObjectsArtifactPipeline:
             )
         return k
 
-    def add_material(
-        self,
-        material_key: str,
-        argb: int,
-        opacity: float,
-        metalness: float,
-        roughness: float,
-        *,
-        name: str | None = None,
-        emissive: int | None = None,
-        ior: float | None = None,
-    ) -> int:
-        """MATERIAL node. ``name`` is the authored host material name."""
+    def add_material(self, material_key: str, fields: Material) -> int:
+        """MATERIAL node. ``fields.name`` is the authored host material name."""
+        fields = normalize_material(fields)
         k, is_new = self._node_interner.get_or_add("mat:" + material_key)
         if is_new:
-            # spec: black-RGB emissive is stored as NULL (no emission)
-            if emissive is not None and emissive & 0x00FFFFFF == 0:
-                emissive = None
             self._envelope.add_node(
                 k,
                 NodeKind.MATERIAL,
-                name=name,
-                argb=_argb_int32(argb),
-                opacity=opacity,
-                metalness=metalness,
-                roughness=roughness,
-                emissive=None if emissive is None else _argb_int32(emissive),
-                ior=ior,
+                name=fields.name,
+                argb=fields.argb,
+                opacity=fields.opacity,
+                metalness=fields.metalness,
+                roughness=fields.roughness,
+                emissive=fields.emissive,
+                ior=fields.ior,
             )
         return k
 
@@ -199,56 +211,41 @@ class ObjectsArtifactPipeline:
             self._envelope.add_node(k, NodeKind.COLOR, argb=signed)
         return k
 
-    def add_level(self, level_key: str, name: str | None, elevation: float) -> int:
+    def add_level(self, level_key: str, fields: Level) -> int:
         k, is_new = self._node_interner.get_or_add("lvl:" + level_key)
         if is_new:
-            self._envelope.add_node(k, NodeKind.LEVEL, name=name, elevation=elevation)
+            self._envelope.add_node(
+                k, NodeKind.LEVEL, name=fields.name, elevation=fields.elevation
+            )
         return k
 
-    def add_collection(
-        self,
-        collection_key: str,
-        name: str | None,
-        parent_collection_k: int | None,
-        subtype: str | None,
-        *,
-        gh_topology: str | None = None,
-    ) -> int:
+    def add_collection(self, collection_key: str, fields: Container) -> int:
         """Scene-tree CONTAINER (target of IN_COLLECTION); parent chain via ``def_ref``.
 
         Spec subtypes: Collection, Layer, Folder, Model, MEP System, Network, Group.
         """
         k, is_new = self._node_interner.get_or_add("coll:" + collection_key)
         if is_new:
-            self._envelope.add_node(
-                k,
-                NodeKind.CONTAINER,
-                name=name,
-                def_ref=parent_collection_k,
-                subtype=subtype,
-                gh_topology=gh_topology,
-            )
+            self._add_container_node(k, fields)
         return k
 
-    def add_container(
-        self,
-        container_key: str,
-        name: str | None,
-        parent_container_k: int | None,
-        subtype: str | None,
-    ) -> int:
+    def add_container(self, container_key: str, fields: Container) -> int:
         """Semantic CONTAINER (Model / MEP System / Network / Group …), distinct from
         the scene tree."""
         k, is_new = self._node_interner.get_or_add("cont:" + container_key)
         if is_new:
-            self._envelope.add_node(
-                k,
-                NodeKind.CONTAINER,
-                name=name,
-                def_ref=parent_container_k,
-                subtype=subtype,
-            )
+            self._add_container_node(k, fields)
         return k
+
+    def _add_container_node(self, k: int, fields: Container) -> None:
+        self._envelope.add_node(
+            k,
+            NodeKind.CONTAINER,
+            name=fields.name,
+            def_ref=fields.def_ref,
+            subtype=fields.subtype,
+            gh_topology=fields.gh_topology,
+        )
 
     # ── relations ───────────────────────────────────────────────────────────
 
@@ -408,40 +405,25 @@ class ObjectsArtifactPipeline:
         self.add_model_property("modelPlacement.units", units)
         self.add_model_property("modelPlacement.appliedToGeometry", applied_to_geometry)
 
-    def add_property_set_definition(
-        self,
-        set_name: str,
-        set_key: str,
-        field_name: str,
-        field_bucket_id: str | None = None,
-        data_type: str | None = None,
-        *,
-        default_string: str | None = None,
-        default_double: float | None = None,
-        default_boolean: bool | None = None,
-        unit: str | None = None,
-        description: str | None = None,
-        set_description: str | None = None,
-        applies_to: str | None = None,
-    ) -> None:
+    def add_property_set_definition(self, fields: PropertySetField) -> None:
         """One field of a property-set schema; call in authored field order."""
         if self._property_sets is None:
             self._property_sets = PropertySetDefinitionsWriter(
                 self.output_dir, self.base_name
             )
         self._property_sets.add_row(
-            set_name,
-            set_key,
-            set_description,
-            field_name,
-            field_bucket_id,
-            data_type,
-            default_string,
-            default_double,
-            default_boolean,
-            unit,
-            description,
-            applies_to,
+            fields.set_name,
+            fields.set_key,
+            fields.set_description,
+            fields.field_name,
+            fields.field_bucket_id,
+            fields.data_type,
+            fields.default_string,
+            fields.default_double,
+            fields.default_boolean,
+            fields.unit,
+            fields.description,
+            fields.applies_to,
         )
 
     # ── lifecycle ───────────────────────────────────────────────────────────

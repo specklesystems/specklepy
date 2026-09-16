@@ -1,6 +1,7 @@
 """Vendored Speckle bundle spec — the single source of truth, generated.
 
-These modules (``bundle_spec``, ``bundle_schemas``, ``bundle_cols``) are GENERATED from
+These modules (``bundle_spec``, ``bundle_schemas``, ``bundle_cols``, ``bundle_nodes``,
+``bundle_rows``) are GENERATED from
 ``speckle-bundle-spec/spec/bundle-spec.sql`` and committed here verbatim (the same
 "compiled-in" approach the .NET SDK uses with BundleSpec.cs / BundleSchemas.cs). Do
 not hand-edit.
@@ -12,7 +13,8 @@ bundle-spec artifact) and this Python target stay in lockstep. CI enforces it wi
 
 To refresh: in a clone of ``speckle-bundle-spec`` at the target version run
 ``node codegen/generate-all.mjs``, copy ``generated/python/*.py`` over these files, and
-update ``BUNDLE_SPEC_PIN.json`` (its ``version`` + ``specHash``).
+update ``BUNDLE_SPEC_PIN.json`` (its ``version``, ``schemaVersion``, ``commit`` and
+``specHash`` — CI checks the spec repo out at ``commit``).
 """
 
 from specklepy.bundle.spec.bundle_cols import (
@@ -31,6 +33,19 @@ from specklepy.bundle.spec.bundle_cols import (
     TYPE_EAV,
     TYPES,
 )
+from specklepy.bundle.spec.bundle_nodes import (
+    Color,
+    Container,
+    Definition,
+    Instance,
+    Level,
+    Material,
+)
+from specklepy.bundle.spec.bundle_rows import (
+    CameraView,
+    PropertySetField,
+    StructuralResult,
+)
 from specklepy.bundle.spec.bundle_schemas import BY_TABLE, ColumnSpec
 from specklepy.bundle.spec.bundle_spec import (
     NODE_KINDS,
@@ -44,7 +59,16 @@ from specklepy.bundle.spec.bundle_spec import (
 
 __all__ = [
     "BY_TABLE",
+    "CameraView",
+    "Color",
     "ColumnSpec",
+    "Container",
+    "Definition",
+    "Instance",
+    "Level",
+    "Material",
+    "PropertySetField",
+    "StructuralResult",
     "CAMERA_VIEWS",
     "EAV",
     "GEOMETRIES",

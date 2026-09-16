@@ -13,7 +13,7 @@ from specklepy.bundle.parquet_table_reader import (
     read_table,
 )
 from specklepy.bundle.property_table import PropertyTable, PropertyView, coalesce
-from specklepy.bundle.spec import Rel
+from specklepy.bundle.spec import PropertySetField, Rel
 
 SGEO_MAGIC = b"SGEO"
 
@@ -58,22 +58,6 @@ class Geometry:
 class SceneViewTier:
     source: str
     ref: str
-
-
-@dataclass(frozen=True)
-class PropertySetField:
-    set_name: str
-    set_key: str
-    set_description: str | None
-    field_name: str
-    field_bucket_id: str | None
-    data_type: str | None
-    default_string: str | None
-    default_double: float | None
-    default_boolean: bool | None
-    unit: str | None
-    description: str | None
-    applies_to: str | None
 
 
 _OBJECT_NODE_RELS = {

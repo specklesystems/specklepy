@@ -7,7 +7,13 @@ from dataclasses import dataclass
 
 from specklepy.bundle import CameraView, ObjectsArtifactPipeline, Producer
 from specklepy.bundle.envelope_writer import SceneView, SceneViewKey
-from specklepy.bundle.spec import Rel
+from specklepy.bundle.spec import (
+    Container,
+    Level,
+    Material,
+    PropertySetField,
+    Rel,
+)
 from specklepy.objects.annotation.text import Text
 from specklepy.objects.geometry import Plane, Point, Polyline, Region, Vector
 from specklepy.objects.geometry.mesh import Mesh
@@ -108,15 +114,26 @@ def build(out: str, base: str) -> Ks:
 
         material = p.add_material(
             "mat-1",
-            -1,
-            1.0,
-            0.0,
-            0.5,
-            name="Painted Steel",
-            emissive=0xFF00FF00,
-            ior=1.45,
+            Material(
+                argb=-1,
+                opacity=1.0,
+                metalness=0.0,
+                roughness=0.5,
+                name="Painted Steel",
+                emissive=0xFF00FF00,
+                ior=1.45,
+            ),
         )
-        p.add_material("mat-black", -1, 1.0, 0.0, 0.5, emissive=0xFF000000)
+        p.add_material(
+            "mat-black",
+            Material(
+                argb=-1,
+                opacity=1.0,
+                metalness=0.0,
+                roughness=0.5,
+                emissive=0xFF000000,
+            ),
+        )
         color = p.add_color(0xFFFF0000)
         p.has_material(mesh_geo, material)
         p.has_color(mesh_geo, color)
@@ -140,20 +157,26 @@ def build(out: str, base: str) -> Ks:
         instance = p.add_instance("place-1", definition, IDENTITY, "m")
         p.display_instance(placed, instance, 0)
 
-        layer = p.add_collection("layer-1", "Walls", None, "Layer", gh_topology="0-1")
+        layer = p.add_collection(
+            "layer-1", Container(subtype="Layer", name="Walls", gh_topology="0-1")
+        )
         p.in_collection(wall, layer, 0)
         p.node_has_material(layer, material)
         p.node_has_color(layer, color)
 
-        level = p.add_level("lvl-1", "L1", 3.0)
+        level = p.add_level("lvl-1", Level(elevation=3.0, name="L1"))
         p.on_level(wall, level)
-        model = p.add_container("model-1", "Host", None, "Model")
+        model = p.add_container("model-1", Container(subtype="Model", name="Host"))
         p.in_model(wall, model, 0)
-        system = p.add_container("sys-1", "Hot Water", None, "MEP System")
+        system = p.add_container(
+            "sys-1", Container(subtype="MEP System", name="Hot Water")
+        )
         p.in_system(wall, system, 0)
-        system2 = p.add_container("sys-2", "Return Air", None, "MEP System")
+        system2 = p.add_container(
+            "sys-2", Container(subtype="MEP System", name="Return Air")
+        )
         p.in_system(wall, system2, 0)
-        group = p.add_container("grp-1", "Group A", None, "Group")
+        group = p.add_container("grp-1", Container(subtype="Group", name="Group A"))
         p.in_group(wall, group, 0)
 
         p.subelement(wall, host, 0)
@@ -168,7 +191,25 @@ def build(out: str, base: str) -> Ks:
         )
         p.add_camera_view(
             CameraView(
-                0, "Front", True, 0, 0, -10, 2, 0, 1, 0, 0, 0, 1, units="m", fov=45
+                view=0,
+                name="Front",
+                is_default=True,
+                ord=0,
+                pos_x=0,
+                pos_y=-10,
+                pos_z=2,
+                forward_x=0,
+                forward_y=1,
+                forward_z=0,
+                up_x=0,
+                up_y=0,
+                up_z=1,
+                target_x=None,
+                target_y=None,
+                target_z=None,
+                units="m",
+                is_ortho=False,
+                fov=45,
             )
         )
         p.add_model_placement(
@@ -181,10 +222,25 @@ def build(out: str, base: str) -> Ks:
         )
         p.add_model_property("projectInformation.name", "Fixture")
         p.add_property_set_definition(
-            "Pset_Wall", "pset-key", "Width", "bucket-w", "double", unit="mm"
+            PropertySetField(
+                set_name="Pset_Wall",
+                set_key="pset-key",
+                set_description=None,
+                field_name="Width",
+                field_bucket_id="bucket-w",
+                data_type="double",
+                unit="mm",
+            )
         )
         p.add_property_set_definition(
-            "Pset_Wall", "pset-key", "LoadBearing", "bucket-lb", "boolean"
+            PropertySetField(
+                set_name="Pset_Wall",
+                set_key="pset-key",
+                set_description=None,
+                field_name="LoadBearing",
+                field_bucket_id="bucket-lb",
+                data_type="boolean",
+            )
         )
 
     return Ks(
