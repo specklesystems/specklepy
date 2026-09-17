@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING, List
 
-from specklepy.api.credentials import Account
+from deprecated import deprecated
 
-# from specklepy.logging import metrics
+from specklepy.api.credentials import Account
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
@@ -17,6 +17,11 @@ if TYPE_CHECKING:
 BUNDLE_REFERENCE_PREFIX = "bundle."
 
 
+@deprecated(
+    reason="Transport based send is deprecated"
+    "and replaced with new bundles based send3",
+    version="2026.9.0",
+)
 def send(
     base: Base,
     transports: List[AbstractTransport] | None = None,
@@ -58,6 +63,11 @@ def send(
     return obj_hash
 
 
+@deprecated(
+    reason="Transport based receive is deprecated"
+    "and replaced with new bundles based receive3",
+    version="2026.9.0",
+)
 def receive(
     obj_id: str,
     remote_transport: AbstractTransport | None = None,
