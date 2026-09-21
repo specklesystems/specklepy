@@ -85,9 +85,7 @@ def test_single_material_resolves_by_name():
 
 
 def test_material_list_joins_names():
-    ml = FakeEntity(
-        "IfcMaterialList", Materials=[material("Steel"), material("Glass")]
-    )
+    ml = FakeEntity("IfcMaterialList", Materials=[material("Steel"), material("Glass")])
     element = element_with(associations=[rel_associates_material(ml)])
     assert extract_material_name(element) == "Steel; Glass"
 
