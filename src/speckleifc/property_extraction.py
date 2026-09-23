@@ -26,7 +26,8 @@ def extract_properties(element: entity_instance) -> dict[str, object]:
     if qtos:
         properties["Quantities"] = qtos
 
-    if (ifc_type := get_type(element)) is not None:
+    ifc_type = get_type(element)
+    if ifc_type is not None:
         properties["Element Type Property Sets"] = _get_ifc_element_type_properties(
             ifc_type,
         )
@@ -34,7 +35,181 @@ def extract_properties(element: entity_instance) -> dict[str, object]:
             ifc_type,
         )
 
+    # FEA-716: `IfcRelAssociatesMaterial`/`IfcRelAssociatesClassification` are data
+    # associations (IfcRelAssociates*), not property sets, so _get_ifc_object_properties
+    # (which only walks IfcRelDefinesByProperties) never sees them — hence Bram's "IFC
+    # Material"/"Classification Uniformat" going missing. Surfaced here as ordinary
+    # top-level properties, named and shaped to match what Revit's own IFC import
+    # already calls them and how it groups their fields ("IFC Material" > Name (Color
+    # when it has one); "Classification <system>" > Classification, Name, Reference) —
+    # the exact grouped layout from the customer's screenshot, each a sub-dict rather
+    # than one flattened string, consistent with how `Quantities` groups
+    # `Qto_*BaseQuantities` fields instead of flattening those too. So a model
+    # round-tripped through Revit and one round-tripped straight through this importer
+    # read the same on this data, and it doesn't need a bespoke bundle-spec
+    # relationship: the OBJECT_HAS_MATERIAL/NODE_HAS_MATERIAL edges other producers
+    # (AutoCAD/SketchUp via the managed pipeline) already use are placement-painting
+    # appearance with defined fill precedence over geometry — a different concept from
+    # this data-level assignment, and Revit's own producer doesn't use them for its
+    # data material either.
+    material_name = extract_material_name(element)
+    if material_name:
+        properties["IFC Material"] = {"Name": material_name}
+
+    for system_name, value in _get_classifications(element, ifc_type).items():
+        properties[f"Classification {system_name}"] = value
+
     return properties
+
+
+def extract_material_name(element: entity_instance) -> str | None:
+    """The element's IFC data-material assignment (``IfcRelAssociatesMaterial``),
+    as a single display name — FEA-716. This is distinct from render/visual
+    material (``IfcSurfaceStyle`` → ``MaterialManager``/``HAS_MATERIAL``): it's the
+    "IFC Material" parameter authoring tools show (e.g. Revit), sourced from the
+    material *data* relationship, not geometry styling. Occurrence-level
+    association wins; falls back to the element type's when the occurrence carries
+    none, matching how psets/qtos already prefer the occurrence.
+    """
+    name = _material_name_from_associations(element)
+    if name is not None:
+        return name
+    ifc_type = get_type(element)
+    if ifc_type is not None:
+        return _material_name_from_associations(ifc_type)
+    return None
+
+
+def _material_name_from_associations(element: entity_instance) -> str | None:
+    for rel in getattr(element, "HasAssociations", None) or []:
+        if not rel.is_a("IfcRelAssociatesMaterial"):
+            continue
+        name = _material_select_name(rel.RelatingMaterial)
+        if name:
+            return name
+    return None
+
+
+def _material_select_name(material: entity_instance | None) -> str | None:
+    """Resolve any ``IfcMaterialSelect`` variant to a single display name. Layered
+    and constituent materials (walls, slabs, ...) commonly carry more than one
+    constituent material; those are joined so nothing is silently dropped, mirroring
+    how Revit surfaces a compound structure's "IFC Material" as one delimited value.
+    """
+    if material is None:
+        return None
+
+    if material.is_a("IfcMaterial"):
+        return material.Name or None
+
+    if material.is_a("IfcMaterialList"):
+        names = [m.Name for m in material.Materials or [] if m.Name]
+        return _join_names(names)
+
+    if material.is_a("IfcMaterialConstituentSet"):
+        names = [
+            c.Material.Name
+            for c in material.MaterialConstituents or []
+            if c.Material is not None and c.Material.Name
+        ]
+        return _join_names(names)
+
+    if material.is_a("IfcMaterialLayerSetUsage"):
+        return _material_select_name(material.ForLayerSet)
+
+    if material.is_a("IfcMaterialLayerSet"):
+        names = [
+            layer.Material.Name
+            for layer in material.MaterialLayers or []
+            if layer.Material is not None and layer.Material.Name
+        ]
+        return _join_names(names)
+
+    if material.is_a("IfcMaterialProfileSetUsage"):
+        return _material_select_name(material.ForProfileSet)
+
+    if material.is_a("IfcMaterialProfileSet"):
+        names = [
+            profile.Material.Name
+            for profile in material.MaterialProfiles or []
+            if profile.Material is not None and profile.Material.Name
+        ]
+        return _join_names(names)
+
+    return None
+
+
+def _join_names(names: list[str]) -> str | None:
+    # de-dupe while preserving order — a uniform layer set otherwise repeats itself
+    seen: dict[str, None] = dict.fromkeys(names)
+    return "; ".join(seen) or None
+
+
+def _get_classifications(
+    element: entity_instance, ifc_type: entity_instance | None
+) -> dict[str, dict[str, str]]:
+    """``IfcRelAssociatesClassification`` → ``{system name: {Classification, Name,
+    Reference}}``, e.g. "Classification Uniformat" → ``{"Classification":
+    "Uniformat", "Name": "Roof Construction", "Reference": "B1020"}`` (FEA-716) — a
+    sub-dict per system, grouped and labelled the way Revit's own IFC import already
+    shows it, rather than one flattened string. Occurrence associations win over the
+    type's, per system, matching how psets/qtos already prefer the occurrence.
+
+    Kept as a property rather than a bundle relationship: the bundle spec's node/rel
+    catalogue has no CLASSIFICATION node kind today (only
+    MATERIAL/COLOR/LEVEL/CONTAINER), so there's no relationship primitive to model
+    this on — adding one is a spec-level change (ADR territory), out of scope here.
+    """
+    result: dict[str, dict[str, str]] = {}
+    if ifc_type is not None:
+        result.update(_classifications_from_associations(ifc_type))
+    result.update(_classifications_from_associations(element))
+    return result
+
+
+def _classifications_from_associations(
+    element: entity_instance,
+) -> dict[str, dict[str, str]]:
+    result: dict[str, dict[str, str]] = {}
+    for rel in getattr(element, "HasAssociations", None) or []:
+        if not rel.is_a("IfcRelAssociatesClassification"):
+            continue
+        entry = _classification_entry(rel.RelatingClassification)
+        if entry is not None:
+            system_name, value = entry
+            result[system_name] = value
+    return result
+
+
+def _classification_entry(
+    reference: entity_instance | None,
+) -> tuple[str, dict[str, str]] | None:
+    if reference is None:
+        return None
+
+    if reference.is_a("IfcClassificationReference"):
+        source = getattr(reference, "ReferencedSource", None)
+        system_name = str(
+            (getattr(source, "Name", None) if source else None)
+            or (reference.Name or "Classification")
+        )
+        identification = getattr(reference, "Identification", None) or getattr(
+            reference, "ItemReference", None
+        )
+        value: dict[str, str] = {"Classification": system_name}
+        if reference.Name:
+            value["Name"] = str(reference.Name)
+        if identification:
+            value["Reference"] = str(identification)
+        return (system_name, value) if len(value) > 1 else None
+
+    if reference.is_a("IfcClassification"):
+        if not reference.Name:
+            return None
+        name = str(reference.Name)
+        return (name, {"Classification": name})
+
+    return None
 
 
 def _get_attributes(element: entity_instance) -> dict[str, object]:
