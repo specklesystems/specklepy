@@ -23,6 +23,7 @@ from specklepy.bundle.spec import (
     RELATIONS,
     SCENE_VIEWS,
     SCHEMA_VERSION,
+    CameraView,
 )
 
 
@@ -75,40 +76,10 @@ class SceneView:
     keys: list[SceneViewKey]
 
 
-@dataclass(frozen=True)
-class CameraView:
-    """Named camera viewpoint; pos/target in ``units``, ``fov`` in vertical degrees."""
-
-    view: int
-    name: str | None
-    is_default: bool
-    ord: int | None
-    pos_x: float
-    pos_y: float
-    pos_z: float
-    forward_x: float
-    forward_y: float
-    forward_z: float
-    up_x: float
-    up_y: float
-    up_z: float
-    target_x: float | None = None
-    target_y: float | None = None
-    target_z: float | None = None
-    units: str | None = None
-    is_ortho: bool = False
-    fov: float | None = None
-    lens_mm: float | None = None
-    ortho_height: float | None = None
-    aspect: float | None = None
-    near: float | None = None
-    far: float | None = None
-
-
 _META_SCHEMA = pa.schema(
     [
         pa.field("schema_version", pa.string(), nullable=False),
-        pa.field("produced_by", pa.string()),
+        pa.field("produced_by", pa.string(), nullable=False),
         pa.field("producer_version", pa.string()),
         pa.field("sdk_name", pa.string()),
         pa.field("sdk_version", pa.string()),

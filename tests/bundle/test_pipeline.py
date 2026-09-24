@@ -97,7 +97,8 @@ def test_every_relation_kind_is_emitted(bundle):
     assert {(int(r), s, d, o) for r, s, d, o in expected} <= rels
     emitted = {r for r, *_ in rels}
     live = {int(r) for r in Rel}
-    assert emitted == live - {int(Rel.SOLID)}
+    # SOLID and CENTERLINE have no specklepy writer verb.
+    assert emitted == live - {int(Rel.SOLID), int(Rel.CENTERLINE)}
 
 
 def test_nodes(bundle):

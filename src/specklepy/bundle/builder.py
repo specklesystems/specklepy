@@ -15,13 +15,20 @@ from dataclasses import dataclass
 from typing import Any, TypeVar
 
 from specklepy.bundle.envelope_writer import (
-    CameraView,
     Producer,
     SceneView,
     SceneViewKey,
 )
-from specklepy.bundle.pipeline import ObjectsArtifactPipeline
-from specklepy.bundle.spec import Rel
+from specklepy.bundle.pipeline import ObjectsArtifactPipeline, normalize_material
+from specklepy.bundle.spec import (
+    CameraView,
+    Color,
+    Container,
+    Level,
+    Material,
+    PropertySetField,
+    Rel,
+)
 
 DEFAULT_BASE_NAME = "bundle"
 
@@ -124,21 +131,19 @@ class BundleBuilder:
         subtype: str,
         gh_topology: str | None = None,
     ) -> BundleContainer:
+        fields = Container(
+            subtype=subtype,
+            name=name,
+            def_ref=parent.k if parent else None,
+            gh_topology=gh_topology,
+        )
         existing = self._containers.get(key)
         if existing is not None:
-            _same(key, existing.name, name, "name")
-            _same(key, existing.subtype, subtype, "subtype")
-            _same(
-                key,
-                existing.parent.key if existing.parent else None,
-                parent.key if parent else None,
-                "parent",
-            )
+            _same(key, existing.fields, fields, "fields")
             return existing
-        k = self.pipeline.add_collection(
-            key, name, parent.k if parent else None, subtype, gh_topology=gh_topology
+        container = BundleContainer(
+            self, self.pipeline.add_collection(key, fields), key, fields, parent
         )
-        container = BundleContainer(self, k, key, name, subtype, parent)
         self._containers[key] = container
         return container
 
@@ -151,21 +156,16 @@ class BundleBuilder:
     ) -> BundleContainer:
         """Semantic container (MEP System / Network / Group …) — the ``cont:``
         namespace, distinct from the scene tree."""
+        fields = Container(
+            subtype=subtype, name=name, def_ref=parent.k if parent else None
+        )
         existing = self._semantic_containers.get(key)
         if existing is not None:
-            _same(key, existing.name, name, "name")
-            _same(key, existing.subtype, subtype, "subtype")
-            _same(
-                key,
-                existing.parent.key if existing.parent else None,
-                parent.key if parent else None,
-                "parent",
-            )
+            _same(key, existing.fields, fields, "fields")
             return existing
-        k = self.pipeline.add_container(
-            key, name, parent.k if parent else None, subtype
+        container = BundleContainer(
+            self, self.pipeline.add_container(key, fields), key, fields, parent
         )
-        container = BundleContainer(self, k, key, name, subtype, parent)
         self._semantic_containers[key] = container
         return container
 
@@ -214,54 +214,32 @@ class BundleBuilder:
 
     # ── value nodes ──────────────────────────────────────────────────────────
 
-    def get_or_add_material(
-        self,
-        key: str,
-        name: str | None,
-        argb: int,
-        opacity: float = 1.0,
-        metalness: float = 0.0,
-        roughness: float = 1.0,
-        emissive: int | None = None,
-        ior: float | None = None,
-    ) -> BundleMaterial:
+    def get_or_add_material(self, key: str, fields: Material) -> BundleMaterial:
+        fields = normalize_material(fields)
         existing = self._materials.get(key)
         if existing is not None:
-            _same(key, existing.name, name, "name")
-            _same(key, existing.argb, argb, "argb")
+            _same(key, existing.fields, fields, "fields")
             return existing
-        k = self.pipeline.add_material(
-            key,
-            argb,
-            opacity,
-            metalness,
-            roughness,
-            name=name,
-            emissive=emissive,
-            ior=ior,
+        material = BundleMaterial(
+            self, self.pipeline.add_material(key, fields), key, fields
         )
-        material = BundleMaterial(self, k, key, name, argb)
         self._materials[key] = material
         return material
 
     def get_or_add_color(self, argb: int) -> BundleColor:
         color = self._colors.get(argb)
         if color is None:
-            color = BundleColor(self, self.pipeline.add_color(argb), argb)
+            k = self.pipeline.add_color(argb)
+            color = BundleColor(self, k, Color(argb=argb))
             self._colors[argb] = color
         return color
 
-    def get_or_add_level(
-        self, key: str, name: str | None, elevation: float
-    ) -> BundleLevel:
+    def get_or_add_level(self, key: str, fields: Level) -> BundleLevel:
         existing = self._levels.get(key)
         if existing is not None:
-            _same(key, existing.name, name, "name")
-            _same(key, existing.elevation, elevation, "elevation")
+            _same(key, existing.fields, fields, "fields")
             return existing
-        level = BundleLevel(
-            self, self.pipeline.add_level(key, name, elevation), key, name, elevation
-        )
+        level = BundleLevel(self, self.pipeline.add_level(key, fields), key, fields)
         self._levels[key] = level
         return level
 
@@ -310,8 +288,8 @@ class BundleBuilder:
             options=options,
         )
 
-    def add_property_set_definition(self, *args: Any, **kwargs: Any) -> None:
-        self.pipeline.add_property_set_definition(*args, **kwargs)
+    def add_property_set_definition(self, fields: PropertySetField) -> None:
+        self.pipeline.add_property_set_definition(fields)
 
     def add_camera_view(self, view: CameraView) -> None:
         self.pipeline.add_camera_view(view)
@@ -384,49 +362,38 @@ class BundleContainer(_BundleNode):
         builder: BundleBuilder,
         k: int,
         key: str,
-        name: str | None,
-        subtype: str,
+        fields: Container,
         parent: BundleContainer | None,
     ) -> None:
         super().__init__(builder, k)
         self.key = key
-        self.name = name
-        self.subtype = subtype
+        self.fields = fields
         self.parent = parent
 
     def __repr__(self) -> str:
-        return f"{self.subtype} '{self.name}'"
+        return f"{self.fields.subtype} '{self.fields.name}'"
 
 
 class BundleLevel(_BundleNode):
-    def __init__(
-        self,
-        builder: BundleBuilder,
-        k: int,
-        key: str,
-        name: str | None,
-        elevation: float,
-    ) -> None:
+    def __init__(self, builder: BundleBuilder, k: int, key: str, fields: Level) -> None:
         super().__init__(builder, k)
         self.key = key
-        self.name = name
-        self.elevation = elevation
+        self.fields = fields
 
 
 class BundleMaterial(_BundleNode):
     def __init__(
-        self, builder: BundleBuilder, k: int, key: str, name: str | None, argb: int
+        self, builder: BundleBuilder, k: int, key: str, fields: Material
     ) -> None:
         super().__init__(builder, k)
         self.key = key
-        self.name = name
-        self.argb = argb
+        self.fields = fields
 
 
 class BundleColor(_BundleNode):
-    def __init__(self, builder: BundleBuilder, k: int, argb: int) -> None:
+    def __init__(self, builder: BundleBuilder, k: int, fields: Color) -> None:
         super().__init__(builder, k)
-        self.argb = argb
+        self.fields = fields
 
 
 class BundleInstance(_BundleNode):

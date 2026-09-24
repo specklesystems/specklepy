@@ -7,7 +7,7 @@ from specklepy.api.client import SpeckleClient
 from specklepy.api.inputs.model_inputs import CreateModelInput
 from specklepy.api.inputs.project_inputs import ProjectCreateInput
 from specklepy.api.models.current import Model, Project, ProjectVisibility
-from specklepy.bundle import BundleBuilder, Producer
+from specklepy.bundle import BundleBuilder, Level, Material, Producer
 from specklepy.objects.geometry.mesh import Mesh
 from tests.integration.conftest import is_public
 
@@ -35,9 +35,16 @@ class TestSend3:
         b = BundleBuilder(Producer("pytest", "0.0.0"), "m")
         walls = b.get_or_add_container_path(["Level 1", "Walls"], subtype="Category")
         concrete = b.get_or_add_material(
-            "concrete", "Concrete", -8355712, roughness=0.8
+            "concrete",
+            Material(
+                argb=-8355712,
+                opacity=1.0,
+                metalness=0.0,
+                roughness=0.8,
+                name="Concrete",
+            ),
         )
-        l1 = b.get_or_add_level("L1", "Level 1", 0.0)
+        l1 = b.get_or_add_level("L1", Level(elevation=0.0, name="Level 1"))
         wall = b.get_or_add_object("wall-1").set_properties(
             {"Constraints": {"Base Offset": 0.5}, "Identity Data": {"Mark": "W-01"}},
             name="Basic Wall",

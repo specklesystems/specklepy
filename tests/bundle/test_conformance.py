@@ -13,7 +13,7 @@ import subprocess
 
 import pytest
 
-from specklepy.bundle import BundleBuilder
+from specklepy.bundle import BundleBuilder, Material
 from tests.bundle import fixture_bundle
 
 BASE = "fixture"
@@ -64,7 +64,9 @@ def test_builder_bundle_passes_spec_validator(tmp_path):
     with BundleBuilder(PRODUCER, "m", out) as b:
         layer = b.get_or_add_container_path(["Blocks"], "Layer")
         wall = describe(b, "wall", layer, {"w": 1.0}, name="Wall")
-        wall.add_geometry(tri()).material = b.get_or_add_material("c", "C", -1)
+        wall.add_geometry(tri()).material = b.get_or_add_material(
+            "c", Material(argb=-1, opacity=1.0, metalness=0.0, roughness=1.0, name="C")
+        )
         wall.color = b.get_or_add_color(-65536)
         layer.color = wall.color
         bolt = b.get_or_add_definition("bolt", "Bolt")
