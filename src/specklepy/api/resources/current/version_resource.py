@@ -1,3 +1,4 @@
+from deprecated import deprecated
 from gql import gql
 
 from specklepy.api.inputs.model_inputs import ModelVersionsFilter
@@ -125,6 +126,12 @@ class VersionResource(ResourceBase):
             request,
         ).data.data.data
 
+    @deprecated(
+        reason="VersionResource.Create is deprecated."
+        "Publish Versions through ModelIngestionResource."
+        "See migration guide: https://docs.speckle.systems/developers/migration/publish-through-ingestions",
+        version="2026.9.0",
+    )
     def create(self, input: CreateVersionInput) -> Version:
         request = gql(
             """
