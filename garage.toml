@@ -1,0 +1,22 @@
+# Garage (S3-compatible object storage) for local dev and CI: one node, no
+# replication, throwaway secrets. Ports and region match what the Speckle server
+# is configured with by default (S3_ENDPOINT :9000, S3_REGION us-east-1), so
+# swapping the store did not need every consumer's config to move.
+
+metadata_dir = "/data/meta"
+data_dir = "/data/blocks"
+db_engine = "sqlite"
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "5a3e2c6d8f0b1e4a7c9d2f5b8e1a4c7d0f3b6e9a2c5d8f1b4e7a0c3d6f9b2e5a"
+
+[s3_api]
+s3_region = "us-east-1"
+api_bind_addr = "[::]:9000"
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "speckle-local-garage-admin-token"
