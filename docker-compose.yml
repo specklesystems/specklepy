@@ -31,25 +31,25 @@ services:
       timeout: 5s
       retries: 30
 
-  minio:
-    image: "pgsty/silo:RELEASE.2026-09-16T00-00-00Z@sha256:635197cb9f36d01bee221d34d1c7d7960f6a95c48b0b6c01d99cd13bdae51a46"
-    command: server /data --console-address ":9001"
+  garage:
+    image: "dxflrs/garage:v2.4.1@sha256:9c96caa2612d3411acc5b0e6701fb238dbfba33e533a6d7d3d811a4b12d0d020"
+    command: /garage server --single-node --default-access-key --default-bucket
     restart: always
+    environment:
+      GARAGE_DEFAULT_ACCESS_KEY: "minioadmin"
+      GARAGE_DEFAULT_SECRET_KEY: "minioadminminioadmin"
+      GARAGE_DEFAULT_BUCKET: "speckle-server"
     volumes:
-      - ./.volumes/minio-data:/data
+      - ./garage.toml:/etc/garage.toml:ro
+      - ./.volumes/garage-data:/data
     ports:
       - '127.0.0.1:9000:9000'
-      - '127.0.0.1:9001:9001'
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s -o /dev/null http://127.0.0.1:9000/minio/index.html",
-        ]
+      test: ["CMD", "/garage", "health"]
       interval: 5s
-      timeout: 30s
+      timeout: 10s
       retries: 30
-      start_period: 10s
+      start_period: 5s
 
   speckle-server:
     image: speckle/speckle-server:latest
@@ -71,7 +71,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio:
+      garage:
         condition: service_healthy
     environment:
       # TODO: Change this to the URL of the speckle server, as accessed from the network
@@ -82,10 +82,10 @@ services:
       # TODO: Change thvolumes:
       REDIS_URL: "redis://redis"
 
-      S3_ENDPOINT: "http://minio:9000"
+      S3_ENDPOINT: "http://garage:9000"
       S3_PUBLIC_ENDPOINT: "http://127.0.0.1:9000"
       S3_ACCESS_KEY: "minioadmin"
-      S3_SECRET_KEY: "minioadmin"
+      S3_SECRET_KEY: "minioadminminioadmin"
       S3_BUCKET: "speckle-server"
       S3_CREATE_BUCKET: "true"
 
@@ -115,4 +115,4 @@ networks:
 volumes:
   postgres-data:
   redis-data:
-  minio-data:
+  garage-data:
