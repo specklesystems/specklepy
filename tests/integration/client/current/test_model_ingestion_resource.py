@@ -28,7 +28,7 @@ from specklepy.api.models.current import (
 from specklepy.logging.exceptions import GraphQLException
 from specklepy.objects.base import Base
 from specklepy.transports.server.server import ServerTransport
-from tests.integration.conftest import is_public
+from tests.integration.conftest import is_public, wait_for_version
 
 
 @pytest.mark.run()
@@ -217,11 +217,12 @@ class TestIngestionResource:
         )
 
         version_id = client.model_ingestion.complete(input)
-        res = client.model_ingestion.get_ingestion(project.id, ingestion.id)
-
         assert isinstance(version_id, str)
-        version = client.version.get(version_id, project.id)
+
+        # complete only records the inputs; the worker births the version
+        version = wait_for_version(client, project.id, version_id)
         assert isinstance(version, Version)
+        res = client.model_ingestion.get_ingestion(project.id, ingestion.id)
         assert res.status_data.version_id == version_id
         # trying to complete for a second time should throw
         # with pytest.raises(GraphQLException):

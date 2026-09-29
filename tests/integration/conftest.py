@@ -1,5 +1,6 @@
 import os
 import random
+import time
 import uuid
 from typing import Dict
 from urllib.parse import parse_qs, urlparse
@@ -16,6 +17,7 @@ from specklepy.api.inputs.version_inputs import CreateVersionInput
 from specklepy.api.models import Version
 from specklepy.api.models.current import Project, ServerInfo
 from specklepy.logging import metrics
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.base import Base
 from specklepy.objects.geometry import Point
 from specklepy.transports.server.server import ServerTransport
@@ -75,6 +77,29 @@ def seed_user(host: str) -> Dict[str, str]:
     return user_dict
 
 
+def wait_for_version(
+    client: SpeckleClient,
+    project_id: str,
+    version_id: str,
+    timeout_seconds: float = 120,
+) -> Version:
+    """On 2026.9 servers a legacy send only reserves the version id: the version
+    is born when the bundle-migration worker completes the ingestion (the internal
+    compose file runs one). Pre-2026.9 servers create it inline, so the first poll
+    returns."""
+    deadline = time.monotonic() + timeout_seconds
+    last: Exception | None = None
+    while time.monotonic() < deadline:
+        try:
+            return client.version.get(version_id, project_id)
+        except SpeckleException as ex:
+            last = ex
+        time.sleep(1)
+    raise TimeoutError(
+        f"Version {version_id} was not born within {timeout_seconds}s"
+    ) from last
+
+
 def create_version(client: SpeckleClient, project_id: str, model_id: str) -> Version:
     remote = ServerTransport(project_id, client)
     objectId = operations.send(
@@ -83,7 +108,8 @@ def create_version(client: SpeckleClient, project_id: str, model_id: str) -> Ver
     input = CreateVersionInput(
         object_id=objectId, model_id=model_id, project_id=project_id
     )
-    return client.version.create(input)
+    reserved = client.version.create(input)
+    return wait_for_version(client, project_id, reserved.id)
 
 
 @pytest.fixture(scope="session")

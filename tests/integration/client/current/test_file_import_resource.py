@@ -19,10 +19,14 @@ from specklepy.api.models import Project
 from specklepy.api.models.current import FileUploadUrl
 from specklepy.core.helpers import crypto_random_string
 from specklepy.transports.server.server import ServerTransport
-from tests.integration.conftest import is_public
+from tests.integration.conftest import is_internal, is_public
 from tests.integration.fakemesh import FakeMesh
 
 
+# The v1 file-import rail is retired on 2026.9 servers: with the jobRunner on,
+# uploading the .ifc fixture launches a real conversion instead of leaving a job
+# for the test to finish.
+@pytest.mark.skipif(is_internal(), reason="Retired file-import rail; public image only")
 class TestFileImportResource:
     @pytest.fixture
     def file_path(self) -> Path:
