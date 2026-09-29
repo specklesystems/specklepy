@@ -22,13 +22,13 @@ from specklepy.logging.exceptions import GraphQLException
 from tests.integration.conftest import create_version
 
 
-@pytest.mark.run()
 def _preview_path(version: Version) -> str:
     """The server appends a `?v=<timestamp>` cache-buster once the preview exists, so a
     version fetched before and after the preview service ran differs in query only."""
     return urlsplit(version.preview_url or "").path
 
 
+@pytest.mark.run()
 class TestVersionResource:
     @pytest.fixture
     def test_project(self, client: SpeckleClient) -> Project:
