@@ -34,7 +34,7 @@ jobs:
       packages: read # to pull speckle-server docker images
 
     steps:
-      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1.0.0-beta
+      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # zizmor: ignore[ref-version-mismatch] Blacksmith mutates tags
         with:
           persist-credentials: false
 
@@ -108,7 +108,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1.0.0-beta
+      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # zizmor: ignore[ref-version-mismatch] Blacksmith mutates tags
         with:
           persist-credentials: false
 
@@ -151,7 +151,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1.0.0-beta
+      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # zizmor: ignore[ref-version-mismatch] Blacksmith mutates tags
         with:
           persist-credentials: false
           path: specklepy
@@ -160,7 +160,7 @@ jobs:
         id: pin
         run: echo "commit=$(jq -r .commit specklepy/src/specklepy/bundle/spec/BUNDLE_SPEC_PIN.json)" >> "$GITHUB_OUTPUT"
 
-      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1.0.0-beta
+      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # zizmor: ignore[ref-version-mismatch] Blacksmith mutates tags
         with:
           persist-credentials: false
           repository: specklesystems/speckle-bundle-spec
