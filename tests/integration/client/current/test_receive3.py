@@ -20,6 +20,7 @@ from specklepy.bundle.download import BundleReference
 from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.objects.models.collections.collection import Collection
 from specklepy.transports.server.server import ServerTransport
+from specklepy.logging.exceptions import SpeckleException
 from tests.bundle import fixture_bundle
 from tests.integration.conftest import is_public
 
@@ -77,9 +78,15 @@ class TestReceive3:
             project.id, ingestion.id, version_id, client.account, str(tmp_path)
         ) as upload:
             upload.upload_dir(version_id, "wall-1", 6)
-        deadline = time.time() + 60
+        # The bundle ships without its viewer .dat, so the server's datgen job builds
+        # it and completes the upload; the version does not exist until then.
+        deadline = time.time() + 120
         while time.time() < deadline:
-            version = client.version.get(version_id, project.id)
+            try:
+                version = client.version.get(version_id, project.id)
+            except SpeckleException:
+                time.sleep(1)
+                continue
             if BundleReference.is_reference(version.referenced_object):
                 return version_id
             time.sleep(1)
