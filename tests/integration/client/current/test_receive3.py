@@ -18,9 +18,9 @@ from specklepy.api.models.current import (
 )
 from specklepy.bundle.download import BundleReference
 from specklepy.bundle.upload import ArtifactPipeline
+from specklepy.logging.exceptions import SpeckleException
 from specklepy.objects.models.collections.collection import Collection
 from specklepy.transports.server.server import ServerTransport
-from specklepy.logging.exceptions import SpeckleException
 from tests.bundle import fixture_bundle
 from tests.integration.conftest import is_public
 
