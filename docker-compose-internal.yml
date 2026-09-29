@@ -27,7 +27,7 @@ services:
       - '127.0.0.1:6379:6379'
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 5s
+      interval: 2s
       timeout: 5s
       retries: 30
 
@@ -46,7 +46,7 @@ services:
       - '127.0.0.1:9000:9000'
     healthcheck:
       test: ["CMD", "/garage", "health"]
-      interval: 5s
+      interval: 2s
       timeout: 10s
       retries: 30
       start_period: 5s
@@ -60,9 +60,9 @@ services:
         - /nodejs/bin/node
         - -e
         - "try { require('node:http').request({headers: {'Content-Type': 'application/json'}, port:3000, hostname:'127.0.0.1', path:'/readiness', method: 'GET', timeout: 2000 }, (res) => { body = ''; res.on('data', (chunk) => {body += chunk;}); res.on('end', () => {process.exit(Number(res.statusCode != 200 || body.toLowerCase().includes('error')));}); }).end(); } catch { process.exit(1); }"
-      interval: 10s
+      interval: 2s
       timeout: 10s
-      retries: 3
+      retries: 15
       start_period: 90s
     ports:
       - "0.0.0.0:3000:3000"
@@ -137,9 +137,9 @@ services:
         - node
         - -e
         - "require('node:http').get({ port: 3031, hostname: '127.0.0.1', path: '/readiness', timeout: 2000 }, (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
-      interval: 10s
+      interval: 2s
       timeout: 10s
-      retries: 6
+      retries: 30
       start_period: 30s
     environment:
       HOST: "127.0.0.1"

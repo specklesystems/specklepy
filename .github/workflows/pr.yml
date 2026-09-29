@@ -19,7 +19,7 @@ concurrency:
 jobs:
   test-internal: # Run integration tests against the internal server image
     name: Test (internal)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     strategy:
       fail-fast: false
       matrix:
@@ -34,7 +34,7 @@ jobs:
       packages: read # to pull speckle-server docker images
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1.0.0-beta
         with:
           persist-credentials: false
 
@@ -92,7 +92,7 @@ jobs:
 
   test-public: # Run integration tests against the public server image
     name: Test (public)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       IS_PUBLIC: "true"
     strategy:
@@ -108,7 +108,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1.0.0-beta
         with:
           persist-credentials: false
 
@@ -146,12 +146,12 @@ jobs:
 
   bundle-spec-conformance: # verify the vendored spec pin + validate an emitted bundle (atlas ADR-0004)
     name: Bundle spec conformance
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1.0.0-beta
         with:
           persist-credentials: false
           path: specklepy
@@ -160,7 +160,7 @@ jobs:
         id: pin
         run: echo "commit=$(jq -r .commit specklepy/src/specklepy/bundle/spec/BUNDLE_SPEC_PIN.json)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: useblacksmith/checkout@41cdeedae8edb2e684ba22896a5fd2a3cb85db6b # v1.0.0-beta
         with:
           persist-credentials: false
           repository: specklesystems/speckle-bundle-spec
