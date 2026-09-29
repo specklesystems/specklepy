@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 import pytest
 
 from specklepy.api.client import SpeckleClient
@@ -18,6 +20,12 @@ from specklepy.api.models import (
 )
 from specklepy.logging.exceptions import GraphQLException
 from tests.integration.conftest import create_version
+
+
+def _preview_path(version: Version) -> str:
+    """The server appends a `?v=<timestamp>` cache-buster once the preview exists, so a
+    version fetched before and after the preview service ran differs in query only."""
+    return urlsplit(version.preview_url or "").path
 
 
 @pytest.mark.run()
@@ -156,7 +164,7 @@ class TestVersionResource:
         assert isinstance(updated_version, Version)
         assert updated_version.id == test_version.id
         assert updated_version.message == new_message
-        assert updated_version.preview_url == test_version.preview_url
+        assert _preview_path(updated_version) == _preview_path(test_version)
 
     def test_version_move_to_model(
         self,
@@ -179,7 +187,7 @@ class TestVersionResource:
         assert isinstance(moved_version, Version)
         assert moved_version.id == test_version.id
         assert moved_version.message == test_version.message
-        assert moved_version.preview_url == test_version.preview_url
+        assert _preview_path(moved_version) == _preview_path(test_version)
 
     def test_version_delete(
         self, client: SpeckleClient, test_version: Version, test_project: Project

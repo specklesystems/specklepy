@@ -45,6 +45,8 @@ from tests.integration.conftest import create_client, create_version, is_public
 # For CI runs on linux,m a much smaller wait time is acceptable
 SETUP_TIME_SECONDS = 1 if platform == "linux" else 4
 MAX_WAIT_TIME_SECONDS = 0.75 if platform == "linux" else 5
+# Creating a version in the test body also waits for the worker to birth it
+VERSION_BIRTH_WAIT_TIME_SECONDS = MAX_WAIT_TIME_SECONDS + 120
 
 
 @pytest.mark.run()
@@ -214,7 +216,9 @@ class TestSubscriptionResource:
 
         created = create_version(subscription_client, test_project.id, test_model.id)
 
-        message = await asyncio.wait_for(future, timeout=MAX_WAIT_TIME_SECONDS)
+        message = await asyncio.wait_for(
+            future, timeout=VERSION_BIRTH_WAIT_TIME_SECONDS
+        )
 
         assert isinstance(message, ProjectVersionsUpdatedMessage)
         assert message.id == created.id

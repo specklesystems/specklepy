@@ -22,6 +22,9 @@ services:
     restart: always
     volumes:
       - ./.volumes/redis-data:/data
+    # Published for the host-networked bundle-migration worker below.
+    ports:
+      - '127.0.0.1:6379:6379'
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 5s
@@ -63,6 +66,16 @@ services:
       start_period: 90s
     ports:
       - "0.0.0.0:3000:3000"
+    # Viewer-.dat generation is a one-shot Job in-cluster; off-cluster the server's
+    # CONVERSION_RUNNER_LOCAL_DEV stand-in runs CONVERTER_IMAGE through the Docker
+    # Engine API on this socket instead, on the host network (server
+    # modules/conversionRunner/README.md). It never pulls: the CI job pulls the image
+    # on the host first. The image runs as distroless uid 65532 and the socket is
+    # root:docker 0660, so the server also needs the host's docker group.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      - "${DOCKER_GID:-0}"
     depends_on:
       postgres:
         condition: service_started
@@ -96,6 +109,46 @@ services:
       POSTGRES_URL: 'postgres://speckle:speckle@postgres:5432/speckle'
       ENABLE_MP: "false"
 
+      LOG_PRETTY: "true"
+
+      FF_JOBRUNNER_ENABLED: 'true'
+      CONVERSION_RUNNER_LOCAL_DEV: 'true'
+      CONVERTER_IMAGE: ${SPECKLE_CONVERTER_IMAGE:-ghcr.io/specklesystems/speckle-converters:latest}
+
+      # The legacy-send switch (server ADR-0003): unset, versionMutations.create and the
+      # v1 uploads/process rail answer LEGACY_SEND_UNSUPPORTED. Any value works, the
+      # worker below never sees it (the server mints per-job tokens from it).
+      BUNDLE_MIGRATION_TOKEN_SECRET: "integration-tests-bundle-migration-token-secret"
+
+  # Since server ADR-0003 a legacy send only reserves a version; this worker packs the
+  # bundle (+ viewer .dat) and completes it, which is when the version is born. It runs
+  # on the host network because the server hands it its own CANONICAL_URL and presigned
+  # S3_PUBLIC_ENDPOINT urls, both 127.0.0.1 from the runner's point of view.
+  bundle-migration-service:
+    image: ${SPECKLE_BUNDLE_MIGRATION_IMAGE:-ghcr.io/specklesystems/speckle-bundle-migration-service:latest}
+    restart: always
+    network_mode: host
+    depends_on:
+      speckle-server:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('node:http').get({ port: 3031, hostname: '127.0.0.1', path: '/readiness', timeout: 2000 }, (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+    environment:
+      HOST: "127.0.0.1"
+      PORT: 3031
+      REDIS_URL: "redis://127.0.0.1:6379"
+      BUNDLE_MIGRATION_LANE: "standard"
+      # Fixed DuckDB memory limit for datgen: unset sizes from the cgroup, which is
+      # unbounded in a plain docker container.
+      DATGEN_MEM: "2GB"
       LOG_PRETTY: "true"
 
 networks:
