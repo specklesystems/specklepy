@@ -1,7 +1,7 @@
 """"""
 
 from enum import Enum
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -31,6 +31,7 @@ class AutomationRunData(BaseModel):
     """Values of the project / model that triggered the run of this function."""
 
     project_id: str
+    workspace_id: Optional[str] = None
     speckle_server_url: str
     automation_id: str
     automation_run_id: str
@@ -48,6 +49,7 @@ class TestAutomationRunData(BaseModel):
 
     automation_run_id: str
     function_run_id: str
+    workspace_id: Optional[str] = None
 
     triggers: list[VersionCreationTrigger]
 
