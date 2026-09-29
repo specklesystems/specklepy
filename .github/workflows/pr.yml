@@ -38,6 +38,23 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # pinned to v4.2.0
+        with:
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      # Started first and only awaited right before the tests: the stack's image pulls,
+      # migrations and health window overlap the converter pull and the project install.
+      - name: Start Speckle Server
+        run: DOCKER_GID=$(stat -c %g /var/run/docker.sock) docker compose --file docker-compose-internal.yml up --detach
+
+      # The datgen stand-in inside speckle-server launches this image over the mounted
+      # Docker socket but never pulls it, so the pull (and its credentials) stay here.
+      - name: Pull converter image
+        run: docker pull ghcr.io/specklesystems/speckle-converters:latest
+
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
@@ -48,19 +65,7 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # pinned to v4.2.0
-        with:
-          registry: "ghcr.io"
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      # The datgen stand-in inside speckle-server launches this image over the mounted
-      # Docker socket but never pulls it, so the pull (and its credentials) stay here.
-      - name: Pull converter image
-        run: docker pull ghcr.io/specklesystems/speckle-converters:latest
-
-      - name: Run Speckle Server
+      - name: Wait for Speckle Server
         run: DOCKER_GID=$(stat -c %g /var/run/docker.sock) docker compose --file docker-compose-internal.yml up --detach --wait
 
       - name: Run tests
@@ -107,6 +112,11 @@ jobs:
         with:
           persist-credentials: false
 
+      # Started first and only awaited right before the tests: the stack's image pulls,
+      # migrations and health window overlap the project install and pre-commit.
+      - name: Start Speckle Server
+        run: docker compose --file docker-compose.yml up --detach
+
       - name: Install uv and set the python version
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
@@ -125,7 +135,7 @@ jobs:
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
 
-      - name: Run Speckle Server
+      - name: Wait for Speckle Server
         run: docker compose --file docker-compose.yml up --detach --wait
 
       - name: Run tests
