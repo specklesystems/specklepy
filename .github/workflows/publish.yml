@@ -55,9 +55,16 @@ jobs:
         if: ${{ github.ref_type == 'branch' }}
         run: uv publish --index test
 
+      # Pinned to the version just built (hatch-vcs makes it dynamic, so read it off the
+      # wheel): unpinned, uv skips the pre-release and would verify an older PyPI
+      # release instead. `unsafe-best-match` lets the dependencies resolve from PyPI;
+      # with the default first-index strategy TestPyPI's stray copies of them win and
+      # the resolution fails.
       - name: "Verify TestPyPI package installation"
         if: ${{ github.ref_type == 'branch' }}
-        run: uv run --index test --with specklepy --no-project -- python -c "import specklepy"
+        run: |
+          version="$(ls dist/specklepy-*.whl | sed -E 's|.*/specklepy-([^-]+)-.*|\1|')"
+          uv run --index test --index-strategy unsafe-best-match --with "specklepy==${version}" --no-project -- python -c "import specklepy"
 
       # Logic for PyPI (on v3* tag creation)
       - name: "Publish to PyPI"
@@ -66,4 +73,6 @@ jobs:
 
       - name: "Verify PyPI package installation"
         if: ${{ github.ref_type == 'tag' }}
-        run: uv run --with specklepy --no-project -- python -c "import specklepy"
+        run: |
+          version="$(ls dist/specklepy-*.whl | sed -E 's|.*/specklepy-([^-]+)-.*|\1|')"
+          uv run --with "specklepy==${version}" --no-project -- python -c "import specklepy"
