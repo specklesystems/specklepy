@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c '[ -f \"${ATLAS_ROOT:-..}/atlas/scripts/check-fresh.sh\" ] && bash \"${ATLAS_ROOT:-..}/atlas/scripts/check-fresh.sh\" --sync . || true'",
+            "timeout": 30,
+            "statusMessage": "Syncing atlas agent config"
+          }
+        ]
+      }
+    ]
+  }
+}

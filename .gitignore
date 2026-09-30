@@ -117,3 +117,20 @@ scratch.py
 settings.json
 
 .DS_Store
+
+# >>> atlas agent config (ADR-0008) >>>
+# Synced outputs — regenerate with `mise run agents-sync` at the atlas root
+# (../atlas/scripts/sync-agents.py). The hook trio stays tracked.
+.agents/
+.claude/skills/
+.claude/worktrees/
+.claude/*.local.*
+!.claude/settings.json
+.mcp.json
+.codex/*
+!.codex/hooks.json
+.omp/*
+!.omp/extensions/
+.omp/extensions/*
+!.omp/extensions/atlas-sync.js
+# <<< atlas agent config <<<
