@@ -46,6 +46,7 @@ from specklepy.bundle.builder import (
 from specklepy.bundle.envelope_writer import Producer, SceneViewKey
 from specklepy.bundle.spec import Rel
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.telemetry import start_activity
 
 logger = logging.getLogger(__name__)
 
@@ -91,14 +92,30 @@ class ImportJob:
         return self._definitions.empty_meshes_skipped
 
     def run(self) -> BundleFiles:
-        start = time.time()
-        self._pre_process_geometry()
-        print(f"Geometry conversion complete after {(time.time() - start):.3f}s")
-        print(f"Created {self.geometries_count} geometries")
-        if self.empty_meshes_skipped:
-            logger.info("Skipped %d empty style meshes", self.empty_meshes_skipped)
-        self._convert_and_emit()
-        return self.builder.build()
+        with start_activity(
+            "ImportJob.Run", {"ifc.schema": self.ifc_file.schema}
+        ) as activity:
+            start = time.time()
+            with start_activity("ImportJob.PreProcessGeometry"):
+                self._pre_process_geometry()
+            print(f"Geometry conversion complete after {(time.time() - start):.3f}s")
+            print(f"Created {self.geometries_count} geometries")
+            if self.empty_meshes_skipped:
+                logger.info("Skipped %d empty style meshes", self.empty_meshes_skipped)
+            with start_activity("ImportJob.ConvertAndEmit"):
+                self._convert_and_emit()
+            with start_activity("BundleBuilder.Build"):
+                files = self.builder.build()
+            activity.set_attributes(
+                {
+                    "ifc.geometriesCount": self.geometries_count,
+                    "ifc.geometriesUsed": self.geometries_used,
+                    "ifc.elementsConverted": self.elements_converted,
+                    "ifc.emptyMeshesSkipped": self.empty_meshes_skipped,
+                    "speckle.objectCount": files.object_count,
+                }
+            )
+            return files
 
     def _convert_and_emit(self) -> None:
         start = time.time()

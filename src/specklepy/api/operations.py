@@ -4,6 +4,7 @@ from deprecated import deprecated
 
 from specklepy.api.credentials import Account
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.telemetry import start_activity
 from specklepy.objects.base import Base
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.abstract_transport import AbstractTransport
@@ -56,11 +57,13 @@ def send(
     if use_default_cache:
         transports.insert(0, SQLiteTransport())
 
-    serializer = BaseObjectSerializer(write_transports=transports)
+    with start_activity("Operations.Send") as activity:
+        serializer = BaseObjectSerializer(write_transports=transports)
 
-    obj_hash, _ = serializer.write_json(base=base)
+        obj_hash, _ = serializer.write_json(base=base)
+        activity.set_attribute("speckle.objectId", obj_hash)
 
-    return obj_hash
+        return obj_hash
 
 
 @deprecated(
@@ -87,30 +90,32 @@ def receive(
     if obj_id.startswith(BUNDLE_REFERENCE_PREFIX):
         return _receive_bundle_as_base(obj_id, remote_transport)
 
-    if not local_transport:
-        local_transport = SQLiteTransport()
+    with start_activity("Operations.Receive", {"speckle.objectId": obj_id}):
+        if not local_transport:
+            local_transport = SQLiteTransport()
 
-    serializer = BaseObjectSerializer(read_transport=local_transport)
+        serializer = BaseObjectSerializer(read_transport=local_transport)
 
-    # try local transport first. if the parent is there, we assume all the children
-    # are there and continue with deserialization using the local transport
-    obj_string = local_transport.get_object(obj_id)
-    if obj_string:
-        return serializer.read_json(obj_string=obj_string)
+        # try local transport first. if the parent is there, we assume all the
+        # children are there and continue with deserialization using the local
+        # transport
+        obj_string = local_transport.get_object(obj_id)
+        if obj_string:
+            return serializer.read_json(obj_string=obj_string)
 
-    if not remote_transport:
-        raise SpeckleException(
-            message=(
-                "Could not find the specified object using the local transport, and you"
-                " didn't provide a fallback remote from which to pull it."
+        if not remote_transport:
+            raise SpeckleException(
+                message=(
+                    "Could not find the specified object using the local transport,"
+                    " and you didn't provide a fallback remote from which to pull it."
+                )
             )
+
+        obj_string = remote_transport.copy_object_and_children(
+            id=obj_id, target_transport=local_transport
         )
 
-    obj_string = remote_transport.copy_object_and_children(
-        id=obj_id, target_transport=local_transport
-    )
-
-    return serializer.read_json(obj_string=obj_string)
+        return serializer.read_json(obj_string=obj_string)
 
 
 def receive3(
@@ -164,26 +169,29 @@ def _receive_bundle_as_base(
     from specklepy.bundle.download import BundleReference
     from specklepy.transports.server import ServerTransport
 
-    parsed = BundleReference.parse(reference)
-    account = getattr(remote_transport, "account", None)
-    if not isinstance(remote_transport, ServerTransport) or account is None:
-        raise SpeckleException(
-            f"'{reference}' is a bundle reference: this version is bundle-only and "
-            "needs an authenticated ServerTransport (or operations.receive3)."
-        )
-    if parsed.project_id != remote_transport.stream_id:
-        raise SpeckleException(
-            f"Bundle reference '{reference}' belongs to project "
-            f"'{parsed.project_id}', not '{remote_transport.stream_id}'."
-        )
-    with receive3(
-        account,
-        parsed.project_id,
-        parsed.model_id,
-        parsed.version_id,
-        mark_received=False,
-    ) as model:
-        return model.to_base()
+    with start_activity(
+        "Operations.Receive.Bundle", {"speckle.bundleReference": reference}
+    ):
+        parsed = BundleReference.parse(reference)
+        account = getattr(remote_transport, "account", None)
+        if not isinstance(remote_transport, ServerTransport) or account is None:
+            raise SpeckleException(
+                f"'{reference}' is a bundle reference: this version is bundle-only "
+                "and needs an authenticated ServerTransport (or operations.receive3)."
+            )
+        if parsed.project_id != remote_transport.stream_id:
+            raise SpeckleException(
+                f"Bundle reference '{reference}' belongs to project "
+                f"'{parsed.project_id}', not '{remote_transport.stream_id}'."
+            )
+        with receive3(
+            account,
+            parsed.project_id,
+            parsed.model_id,
+            parsed.version_id,
+            mark_received=False,
+        ) as model:
+            return model.to_base()
 
 
 def serialize(
