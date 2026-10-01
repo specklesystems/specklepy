@@ -12,6 +12,7 @@ from specklepy.bundle.builder import BundleBuilder
 from specklepy.bundle.download import BundleReference
 from specklepy.bundle.upload import ArtifactPipeline
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.telemetry import start_activity
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,28 @@ def send(
 ) -> SendResult:
     """Create the ingestion (the server pre-allocates the version id), build and re-key
     the bundle, upload it, and return. The builder is finished by this call."""
+    with start_activity(
+        "Operations.Send3",
+        {
+            "speckle.url": account.serverInfo.url,
+            "speckle.projectId": project_id,
+            "speckle.modelId": model_id,
+        },
+    ) as activity:
+        result = _send(account, project_id, model_id, builder, options)
+        activity.set_attribute("speckle.versionId", result.version_id)
+        activity.set_attribute("speckle.ingestionId", result.ingestion_id)
+        activity.set_attribute("speckle.objectCount", result.object_count)
+        return result
+
+
+def _send(
+    account: Account,
+    project_id: str,
+    model_id: str,
+    builder: BundleBuilder,
+    options: SendOptions | None,
+) -> SendResult:
     from specklepy.api.client import SpeckleClient
     from specklepy.api.inputs.model_ingestion_inputs import (
         ModelIngestionCreateInput,

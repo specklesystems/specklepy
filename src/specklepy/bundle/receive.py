@@ -11,6 +11,7 @@ from specklepy.bundle.bundle_reader import read_bundle
 from specklepy.bundle.download import download_bundle
 from specklepy.bundle.model import Model
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.logging.telemetry import start_activity
 
 SDK_SLUG = "specklepy"
 
@@ -23,6 +24,34 @@ def receive(
     *,
     include_geometry: bool = True,
     mark_received: bool = True,
+) -> Model:
+    with start_activity(
+        "Operations.Receive3",
+        {
+            "speckle.url": account.serverInfo.url,
+            "speckle.projectId": project_id,
+            "speckle.modelId": model_id,
+            "speckle.versionId": version_id,
+        },
+    ):
+        return _receive(
+            account,
+            project_id,
+            model_id,
+            version_id,
+            include_geometry=include_geometry,
+            mark_received=mark_received,
+        )
+
+
+def _receive(
+    account: Account,
+    project_id: str,
+    model_id: str,
+    version_id: str,
+    *,
+    include_geometry: bool,
+    mark_received: bool,
 ) -> Model:
     directory = tempfile.mkdtemp(prefix="speckle-bundle-")
     try:

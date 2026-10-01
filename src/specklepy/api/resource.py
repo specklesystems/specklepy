@@ -12,6 +12,7 @@ from specklepy.logging.exceptions import (
     SpeckleException,
     UnsupportedException,
 )
+from specklepy.logging.telemetry import start_activity
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -33,6 +34,23 @@ class ResourceBase:
         self.__lock = Lock()
 
     def make_request_and_parse_response(
+        self,
+        schema: Type[T],
+        request: GraphQLRequest,
+    ) -> T:
+        # request.variables stay off the span: they can carry emails and tokens.
+        with start_activity(
+            "GraphQL.Request",
+            {
+                "speckle.resource": self.name,
+                "request.operationName": request.operation_name,
+                "request.query": request.payload["query"],
+                "responseType": schema.__name__,
+            },
+        ):
+            return self._make_request_and_parse_response(schema, request)
+
+    def _make_request_and_parse_response(
         self,
         schema: Type[T],
         request: GraphQLRequest,
