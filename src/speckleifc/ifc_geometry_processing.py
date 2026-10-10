@@ -37,8 +37,17 @@ def _create_iterator_settings() -> settings:
 def open_ifc(file_path: str) -> file:
     try:
         ifc_file = open(file_path)
-    except SchemaError:
-        raise
+    except SchemaError as ex:
+        legacy_details = (
+            " IFC20_LONGFORM is the legacy IFC 2.0 schema."
+            if str(ex) == "Unsupported schema: IFC20_LONGFORM"
+            else ""
+        )
+        raise SchemaError(
+            f"{ex}.{legacy_details} Re-export the model as IFC2X3 or IFC4 from an "
+            "application that supports the original schema. Changing only the "
+            "FILE_SCHEMA header does not convert the model."
+        ) from ex
     except FileNotFoundError:
         raise
     except Exception as ex:
