@@ -33,7 +33,7 @@ END-ISO-10303-21;
 
 
 def _open_rejected_ifc(source: Path) -> dict:
-    # Failed IfcOpenShell wrappers can raise during GC inside pytest's warning hook.
+    # ENG-10539: failed IfcOpenShell wrappers can raise during GC in pytest's hook.
     # Exercise the real parser in a child process to isolate its native cleanup.
     result = subprocess.run(
         [
