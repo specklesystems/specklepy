@@ -1,8 +1,12 @@
 from typing import Dict, List
 
+from deprecated import deprecated
+
+from specklepy.serialization import JSON_DEPRECATION
 from specklepy.transports.abstract_transport import AbstractTransport
 
 
+@deprecated(**JSON_DEPRECATION)
 class MemoryTransport(AbstractTransport):
     def __init__(self, name="Memory") -> None:
         super().__init__()

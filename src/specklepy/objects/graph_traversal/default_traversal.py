@@ -1,5 +1,8 @@
+from deprecated import deprecated
+
 from specklepy.objects.base import Base
 from specklepy.objects.graph_traversal.traversal import GraphTraversal, TraversalRule
+from specklepy.serialization import JSON_DEPRECATION
 
 DISPLAY_VALUE_PROPERTY_ALIASES = {"displayValue", "@displayValue"}
 ELEMENTS_PROPERTY_ALIASES = {"elements", "@elements"}
@@ -9,6 +12,7 @@ def has_display_value(x: Base):
     return any(hasattr(x, alias) for alias in DISPLAY_VALUE_PROPERTY_ALIASES)
 
 
+@deprecated(**JSON_DEPRECATION)
 def create_default_traversal_function() -> GraphTraversal:
     """
     Traversal func for traversing the root object of a Speckle Model

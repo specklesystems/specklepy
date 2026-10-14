@@ -1,9 +1,11 @@
 from typing import Any, Callable, Collection, Iterable, Iterator, List, Optional, Set
 
 from attrs import define
+from deprecated import deprecated
 from typing_extensions import Protocol, final
 
 from specklepy.objects.base import Base
+from specklepy.serialization import JSON_DEPRECATION
 
 
 class ITraversalRule(Protocol):
@@ -123,6 +125,7 @@ class GraphTraversal:
                     yield o
 
 
+@deprecated(**JSON_DEPRECATION)
 @final
 @define(slots=True, frozen=True)
 class TraversalRule:

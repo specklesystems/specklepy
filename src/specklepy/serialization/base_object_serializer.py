@@ -7,10 +7,12 @@ from uuid import uuid4
 from warnings import warn
 
 import ujson
+from deprecated import deprecated
 
 # import for serialization
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
 from specklepy.objects.base import Base, DataChunk
+from specklepy.serialization import JSON_DEPRECATION
 from specklepy.transports.abstract_transport import AbstractTransport
 
 PRIMITIVES = (int, float, str, bool)
@@ -35,6 +37,7 @@ def safe_json_loads(obj: str, obj_id=None) -> Any:
         return json.loads(obj)
 
 
+@deprecated(**JSON_DEPRECATION)
 class BaseObjectSerializer:
     read_transport: AbstractTransport
     write_transports: List[AbstractTransport]

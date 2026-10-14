@@ -6,6 +6,7 @@ from specklepy.api.credentials import Account
 from specklepy.logging.exceptions import SpeckleException
 from specklepy.logging.telemetry import start_activity
 from specklepy.objects.base import Base
+from specklepy.serialization import JSON_DEPRECATION
 from specklepy.serialization.base_object_serializer import BaseObjectSerializer
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.transports.sqlite import SQLiteTransport
@@ -18,11 +19,7 @@ if TYPE_CHECKING:
 BUNDLE_REFERENCE_PREFIX = "bundle."
 
 
-@deprecated(
-    reason="Transport based send is deprecated"
-    "and replaced with new bundles based send3",
-    version="2026.9.0",
-)
+@deprecated(**JSON_DEPRECATION)
 def send(
     base: Base,
     transports: List[AbstractTransport] | None = None,
@@ -66,11 +63,7 @@ def send(
         return obj_hash
 
 
-@deprecated(
-    reason="Transport based receive is deprecated"
-    "and replaced with new bundles based receive3",
-    version="2026.9.0",
-)
+@deprecated(**JSON_DEPRECATION)
 def receive(
     obj_id: str,
     remote_transport: AbstractTransport | None = None,
@@ -194,6 +187,7 @@ def _receive_bundle_as_base(
             return model.to_base()
 
 
+@deprecated(**JSON_DEPRECATION)
 def serialize(
     base: Base, write_transports: List[AbstractTransport] | None = None
 ) -> str:
@@ -217,6 +211,7 @@ def serialize(
     return serializer.write_json(base)[1]
 
 
+@deprecated(**JSON_DEPRECATION)
 def deserialize(
     obj_string: str, read_transport: AbstractTransport | None = None
 ) -> Base:

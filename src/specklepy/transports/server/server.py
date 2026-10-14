@@ -7,17 +7,14 @@ from deprecated import deprecated
 from specklepy.api.client import SpeckleClient
 from specklepy.api.credentials import Account, get_account_from_token
 from specklepy.logging.exceptions import SpeckleException, SpeckleWarning
+from specklepy.serialization import JSON_DEPRECATION
 from specklepy.transports.abstract_transport import AbstractTransport
 from specklepy.transports.server.retry_policy import setup_session
 
 from .batch_sender import BatchSender
 
 
-@deprecated(
-    reason="JSON transports are now deprecated and replaced by bundle system,"
-    "see operations.send3 and operations.receive3",
-    version="2026.9.0",
-)
+@deprecated(**JSON_DEPRECATION)
 class ServerTransport(AbstractTransport):
     """
     The `ServerTransport` is the vehicle through which you transport objects to and
