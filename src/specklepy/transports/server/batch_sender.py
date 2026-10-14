@@ -5,13 +5,16 @@ import queue
 import threading
 
 import requests
+from deprecated import deprecated
 
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.serialization import JSON_DEPRECATION
 from specklepy.transports.server.retry_policy import setup_session
 
 LOG = logging.getLogger(__name__)
 
 
+@deprecated(**JSON_DEPRECATION)
 class BatchSender:
     def __init__(
         self,

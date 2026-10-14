@@ -31,8 +31,6 @@ def _minimal_automation_context() -> AutomationContext:
     return AutomationContext(
         automation_run_data=run_data,
         speckle_client=MagicMock(),
-        _server_transport=MagicMock(),
-        _speckle_token="",
     )
 
 

@@ -3,9 +3,10 @@
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 import httpx
+from deprecated import deprecated
 from gql import gql
 
 from speckle_automate.schema import (
@@ -30,6 +31,11 @@ from specklepy.objects.base import Base
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
 
+if TYPE_CHECKING:
+    from specklepy.bundle.builder import BundleBuilder
+    from specklepy.bundle.model import Model as BundleModel
+    from specklepy.bundle.send import SendOptions, SendResult
+
 
 @dataclass
 class AutomationContext:
@@ -43,11 +49,6 @@ class AutomationContext:
 
     automation_run_data: AutomationRunData
     speckle_client: SpeckleClient
-    _server_transport: ServerTransport
-    _speckle_token: str
-
-    #: keep a memory transponrt at hand, to speed up things if needed
-    _memory_transport: MemoryTransport = field(default_factory=MemoryTransport)
 
     #: added for performance measuring
     _init_time: float = field(default_factory=time.perf_counter)
@@ -82,10 +83,12 @@ class AutomationContext:
                 "with the provided token",
             )
             raise ValueError(msg)
-        server_transport = ServerTransport(
-            automation_run_data.project_id, speckle_client
-        )
-        return cls(automation_run_data, speckle_client, server_transport, speckle_token)
+        return cls(automation_run_data, speckle_client)
+
+    @property
+    @deprecated(reason="Use speckle_client.account.token instead", version="2026.9.0")
+    def _speckle_token(self) -> str:
+        return self.speckle_client.account.token
 
     @property
     def run_status(self) -> AutomationStatus:
@@ -101,6 +104,33 @@ class AutomationContext:
         """Return the elapsed time in seconds since the initialization time."""
         return time.perf_counter() - self._init_time
 
+    def receive_version_bundle(self, *, include_geometry: bool = True) -> "BundleModel":
+        """Receive the Speckle project version that triggered this automation run.
+
+        The returned bundle Model owns downloaded files; close it (or use it as a
+        context manager) when done.
+        """
+        project_id = self.automation_run_data.project_id
+        payload = self.automation_run_data.triggers[0].payload
+
+        model = operations.receive3(
+            self.speckle_client.account,
+            project_id,
+            payload.model_id,
+            payload.version_id,
+            include_geometry=include_geometry,
+        )
+        print(
+            f"It took {self.elapsed():.2f} seconds to receive",
+            f" the speckle version {payload.version_id}",
+        )
+        return model
+
+    @deprecated(
+        reason="Receiving Base object trees is deprecated,"
+        " use receive_version_bundle instead",
+        version="2026.9.0",
+    )
     def receive_version(self) -> Base:
         """Receive the Speckle project version that triggered this automation run."""
         # TODO: this is a quick hack to keep implementation consistency.
@@ -128,7 +158,9 @@ class AutomationContext:
             )
 
         base = operations.receive(
-            version.referenced_object, self._server_transport, self._memory_transport
+            version.referenced_object,
+            ServerTransport(project_id, self.speckle_client),
+            MemoryTransport(),
         )
         self.speckle_client.version.received(
             MarkReceivedVersionInput(
@@ -164,6 +196,38 @@ class AutomationContext:
             model_id, self.automation_run_data.project_id
         )
 
+    def create_new_version_in_project_bundle(
+        self,
+        builder: "BundleBuilder",
+        model_id: str,
+        options: "SendOptions | None" = None,
+    ) -> "SendResult":
+        """Publish a bundle builder as a new version on the project.
+
+        Args:
+            builder (BundleBuilder): The data for the new version.
+                It is finished by this call and cannot be reused.
+            model_id (str): Id of model to create the new version on.
+            options (SendOptions | None): Optional send options, e.g. the message.
+        """
+        self._guard_against_circular_trigger(model_id)
+
+        result = operations.send3(
+            self.speckle_client.account,
+            self.automation_run_data.project_id,
+            model_id,
+            builder,
+            options,
+        )
+
+        self._automation_result.result_versions.append(result.version_id)
+        return result
+
+    @deprecated(
+        reason="Base object trees are deprecated,"
+        " use create_new_version_in_project_bundle instead",
+        version="2026.9.0",
+    )
     def create_new_version_in_project(
         self, root_object: Base, model_id: str, version_message: str = ""
     ) -> Version:
@@ -174,22 +238,16 @@ class AutomationContext:
             model_id (str): Id of model to create the new version on.
             version_message (str): The message for the new version.
         """
-
-        matching_trigger = [
-            t
-            for t in self.automation_run_data.triggers
-            if t.payload.model_id == model_id
-        ]
-        if matching_trigger:
-            raise ValueError(
-                f"The target model: {model_id} cannot match the model"
-                f" that triggered this automation:"
-                f" {matching_trigger[0].payload.model_id}"
-            )
+        self._guard_against_circular_trigger(model_id)
 
         root_object_id = operations.send(
             root_object,
-            [self._server_transport, self._memory_transport],
+            [
+                ServerTransport(
+                    self.automation_run_data.project_id, self.speckle_client
+                ),
+                MemoryTransport(),
+            ],
             use_default_cache=False,
         )
 
@@ -204,6 +262,19 @@ class AutomationContext:
 
         self._automation_result.result_versions.append(version.id)
         return version
+
+    def _guard_against_circular_trigger(self, model_id: str) -> None:
+        matching_trigger = [
+            t
+            for t in self.automation_run_data.triggers
+            if t.payload.model_id == model_id
+        ]
+        if matching_trigger:
+            raise ValueError(
+                f"The target model: {model_id} cannot match the model"
+                f" that triggered this automation:"
+                f" {matching_trigger[0].payload.model_id}"
+            )
 
     @property
     def context_view(self) -> str | None:
@@ -309,7 +380,9 @@ class AutomationContext:
             httpx.post(
                 url,
                 files=files,
-                headers={"authorization": f"Bearer {self._speckle_token}"},
+                headers={
+                    "authorization": f"Bearer {self.speckle_client.account.token}"
+                },
             )
             .raise_for_status()
             .json()

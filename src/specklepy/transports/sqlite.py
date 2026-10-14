@@ -3,11 +3,15 @@ import sqlite3
 from contextlib import closing
 from typing import Dict, List, Tuple
 
+from deprecated import deprecated
+
 from specklepy.core.helpers import speckle_path_provider
 from specklepy.logging.exceptions import SpeckleException
+from specklepy.serialization import JSON_DEPRECATION
 from specklepy.transports.abstract_transport import AbstractTransport
 
 
+@deprecated(**JSON_DEPRECATION)
 class SQLiteTransport(AbstractTransport):
     def __init__(
         self,
