@@ -439,10 +439,14 @@ def test_meta_sdk_version_is_this_sdk(tmp_path):
     m = build_and_read(tmp_path, lambda b: describe(b, "o", None, {}))
     import duckdb
 
-    row = duckdb.sql(
-        f"SELECT sdk_name, sdk_version, produced_by FROM "
-        f"read_parquet('{tmp_path}/bundle.envelope.meta.parquet')"
-    ).fetchone()
+    (row,) = (
+        duckdb.sql(
+            f"SELECT sdk_name, sdk_version, produced_by FROM "
+            f"read_parquet('{tmp_path}/bundle.envelope.meta.parquet')"
+        )
+        .limit(1)
+        .fetchall()
+    )
     assert row == ("specklepy", Producer("x", "y").sdk_version, "test")
     assert "+" not in row[1] and m.units == "m"
 
