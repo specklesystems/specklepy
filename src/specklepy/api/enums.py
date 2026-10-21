@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ProjectVisibility(str, Enum):
+class ProjectVisibility(StrEnum):
     """Supported project visibility types"""
 
     PRIVATE = "PRIVATE"
@@ -11,36 +11,36 @@ class ProjectVisibility(str, Enum):
     WORKSPACE = "WORKSPACE"
 
 
-class UserProjectsUpdatedMessageType(str, Enum):
+class UserProjectsUpdatedMessageType(StrEnum):
     ADDED = "ADDED"
     REMOVED = "REMOVED"
 
 
-class ProjectModelsUpdatedMessageType(str, Enum):
+class ProjectModelsUpdatedMessageType(StrEnum):
     CREATED = "CREATED"
     DELETED = "DELETED"
     UPDATED = "UPDATED"
 
 
-class ProjectUpdatedMessageType(str, Enum):
+class ProjectUpdatedMessageType(StrEnum):
     DELETED = "DELETED"
     UPDATED = "UPDATED"
 
 
-class ProjectVersionsUpdatedMessageType(str, Enum):
+class ProjectVersionsUpdatedMessageType(StrEnum):
     CREATED = "CREATED"
     DELETED = "DELETED"
     UPDATED = "UPDATED"
 
 
-class ProjectModelIngestionUpdatedMessageType(str, Enum):
+class ProjectModelIngestionUpdatedMessageType(StrEnum):
     CANCELLATION_REQUESTED = "cancellationRequested"
     CREATED = "created"
     DELETED = "deleted"
     UPDATED = "updated"
 
 
-class ModelIngestionStatus(str, Enum):
+class ModelIngestionStatus(StrEnum):
     CANCELLED = "cancelled"
     FAILED = "failed"
     PROCESSING = "processing"

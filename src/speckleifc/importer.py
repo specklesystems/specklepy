@@ -93,7 +93,11 @@ class ImportJob:
 
     def run(self) -> BundleFiles:
         with start_activity(
-            "ImportJob.Run", {"ifc.schema": self.ifc_file.schema}
+            "ImportJob.Run",
+            {
+                "ifc.schema": self.ifc_file.schema,
+                "ifc.schema_identifier": self.ifc_file.schema_identifier,
+            },
         ) as activity:
             start = time.time()
             with start_activity("ImportJob.PreProcessGeometry"):

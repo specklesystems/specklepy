@@ -6,7 +6,7 @@ description = "The Python SDK for Speckle"
 readme = "README.md"
 authors = [{ name = "Speckle Systems", email = "devops@speckle.systems" }]
 license = { text = "Apache-2.0" }
-requires-python = ">=3.10.0, <4.0"
+requires-python = ">=3.11.0, <4.0"
 dependencies = [
     "attrs>=24.3.0",
     "deprecated>=1.2.15",
@@ -21,7 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 # Speckle 4.0 bundle producer (eav + envelope + geometries parquet).
 bundle = ["pyarrow>=17.0.0"]
-speckleifc = ["ifcopenshell>=0.8.5", "specklepy[bundle]"]
+speckleifc = ["ifcopenshell>=0.8.5,<0.9", "specklepy[bundle]"]
 
 [dependency-groups]
 

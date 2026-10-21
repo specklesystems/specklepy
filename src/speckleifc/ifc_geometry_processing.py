@@ -1,9 +1,12 @@
+import logging
 import multiprocessing
 
 from ifcopenshell import SchemaError, file, ifcopenshell_wrapper, open, sqlite
 from ifcopenshell.geom import iterator, settings
 
 from specklepy.logging.exceptions import SpeckleException
+
+logger = logging.getLogger(__name__)
 
 
 def _create_iterator_settings() -> settings:
@@ -45,6 +48,13 @@ def open_ifc(file_path: str) -> file:
         raise SpeckleException("File could not be opened as an IFC file") from ex
 
     if isinstance(ifc_file, file):
+        # schema_identifier, not schema: `schema` collapses IFC4X3, IFC4X3_TC1 and
+        # IFC4X3_ADD2 into one family, which ifcopenshell 0.9 no longer all supports.
+        logger.info(
+            "Opened IFC file with schema %s",
+            ifc_file.schema_identifier,
+            extra={"ifc.schema_identifier": ifc_file.schema_identifier},
+        )
         return ifc_file
     else:
         raise SpeckleException(f"file at {file_path} is not a compatible ifc file type")

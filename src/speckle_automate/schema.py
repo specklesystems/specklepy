@@ -1,6 +1,6 @@
 """"""
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -56,7 +56,7 @@ class TestAutomationRunData(BaseModel):
     )
 
 
-class AutomationStatus(str, Enum):
+class AutomationStatus(StrEnum):
     """Set the status of the automation."""
 
     INITIALIZING = "INITIALIZING"
@@ -66,7 +66,7 @@ class AutomationStatus(str, Enum):
     EXCEPTION = "EXCEPTION"
 
 
-class ObjectResultLevel(str, Enum):
+class ObjectResultLevel(StrEnum):
     """Possible status message levels for object reports."""
 
     SUCCESS = "SUCCESS"
