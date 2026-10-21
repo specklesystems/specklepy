@@ -21,7 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 # Speckle 4.0 bundle producer (eav + envelope + geometries parquet).
 bundle = ["pyarrow>=17.0.0"]
-speckleifc = ["ifcopenshell>=0.8.5", "specklepy[bundle]"]
+speckleifc = ["ifcopenshell>=0.8.5,<0.9", "specklepy[bundle]"]
 
 [dependency-groups]
 

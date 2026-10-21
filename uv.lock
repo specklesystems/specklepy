@@ -2527,7 +2527,7 @@ requires-dist = [
     { name = "deprecated", specifier = ">=1.2.15" },
     { name = "gql", extras = ["requests", "websockets"], specifier = ">=4.0.0,<5.0.0" },
     { name = "httpx", specifier = ">=0.28.1" },
-    { name = "ifcopenshell", marker = "extra == 'speckleifc'", specifier = ">=0.8.5" },
+    { name = "ifcopenshell", marker = "extra == 'speckleifc'", specifier = ">=0.8.5,<0.9" },
     { name = "opentelemetry-api", specifier = ">=1.30" },
     { name = "pyarrow", marker = "extra == 'bundle'", specifier = ">=17.0.0" },
     { name = "pyarrow", marker = "extra == 'speckleifc'", specifier = ">=17.0.0" },
