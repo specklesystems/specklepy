@@ -29,6 +29,7 @@ pytest.importorskip("ifcopenshell")  # requires the [speckleifc] extra
 
 from speckleifc.property_extraction import (  # noqa: E402
     _get_classifications,
+    _get_unit_info,
     extract_material_name,
     extract_properties,
 )
@@ -301,3 +302,42 @@ def test_extract_properties_surfaces_classification_by_system_name(monkeypatch):
         "Name": "Roof Construction",
         "Reference": "B1020",
     }
+
+
+# ── quantity units ──────────────────────────────────────────────────────────
+
+
+def si_unit(name: str, prefix: str | None = None) -> FakeEntity:
+    return FakeEntity("IfcSIUnit", Name=name, Prefix=prefix)
+
+
+@pytest.fixture
+def project_unit_metre(monkeypatch):
+    monkeypatch.setattr(
+        "speckleifc.property_extraction.get_project_unit",
+        lambda file, unit_type, use_cache=False: si_unit("METRE"),
+    )
+
+
+def test_quantity_unit_wins_over_project_unit(project_unit_metre):
+    quantity = FakeEntity("IfcQuantityLength", Unit=si_unit("METRE", "MILLI"))
+
+    assert _get_unit_info(element_with(), quantity) == {"units": "Millimetre"}
+
+
+def test_quantity_without_unit_uses_project_unit(project_unit_metre):
+    quantity = FakeEntity("IfcQuantityLength")
+
+    assert _get_unit_info(element_with(), quantity) == {"units": "Metre"}
+
+
+def test_quantity_with_unnamed_unit_falls_back_to_project_unit(project_unit_metre):
+    quantity = FakeEntity("IfcQuantityLength", Unit=FakeEntity("IfcDerivedUnit"))
+
+    assert _get_unit_info(element_with(), quantity) == {"units": "Metre"}
+
+
+def test_count_quantity_has_no_units(project_unit_metre):
+    quantity = FakeEntity("IfcQuantityCount", Unit=si_unit("METRE"))
+
+    assert _get_unit_info(element_with(), quantity) == {}

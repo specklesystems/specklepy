@@ -30,7 +30,7 @@ from speckleifc.converter.node import (
     MaterialManager,
     SystemManager,
 )
-from speckleifc.converter.object import Placement, convert_object
+from speckleifc.converter.object import Placement, convert_object, product_parent_of
 from speckleifc.ifc_geometry_processing import (
     contexts_for_3d_representations,
     create_geometry_iterator,
@@ -85,7 +85,8 @@ class ImportJob:
 
         self.geometries_count = 0
         self.geometries_used = 0
-        self.elements_converted = 0
+        self.num_elements_converted = 0
+        self.uncontained_converted = 0
 
     @property
     def empty_meshes_skipped(self) -> int:
@@ -114,7 +115,8 @@ class ImportJob:
                 {
                     "ifc.geometriesCount": self.geometries_count,
                     "ifc.geometriesUsed": self.geometries_used,
-                    "ifc.elementsConverted": self.elements_converted,
+                    "ifc.elementsConverted": self.num_elements_converted,
+                    "ifc.uncontainedElements": self.uncontained_converted,
                     "ifc.emptyMeshesSkipped": self.empty_meshes_skipped,
                     "speckle.objectCount": files.object_count,
                 }
@@ -126,6 +128,7 @@ class ImportJob:
         self._convert_project_tree()
         print(f"Element tree conversion complete after {(time.time() - start):.3f}s")
         print(f"Used {self.geometries_used} geometries")
+        self._convert_uncontained()
 
         self._systems.extract(self.ifc_file)
         self._groups.extract(self.ifc_file)
@@ -194,6 +197,31 @@ class ImportJob:
         self.progress.report("Converting elements", None)
         self._convert_element(projects[0], None, None, None)
 
+    def _convert_uncontained(self) -> None:
+        num_elements_converted_before = self.num_elements_converted
+        for step_id in list(self._placements):
+            if step_id not in self._placements:
+                continue
+            element = self.ifc_file.by_id(step_id)
+            if element.is_a("IfcFeatureElement") or not self._should_convert(element):
+                continue
+            root = element
+            while (parent := product_parent_of(root)) is not None:
+                existing = self.builder.try_get_object(cast(str, parent.GlobalId))
+                if existing is not None and existing.properties_written:
+                    break
+                root = parent
+            self._convert_element(root, None, None, None)
+
+        self.uncontained_converted = (
+            self.num_elements_converted - num_elements_converted_before
+        )
+        if self.uncontained_converted:
+            logger.warning(
+                "Converted %d elements not in the spatial structure",
+                self.uncontained_converted,
+            )
+
     def _convert_element(
         self,
         element: entity_instance,
@@ -247,10 +275,10 @@ class ImportJob:
         self._current_storey_name = previous_storey_name
         self._current_room = previous_room
 
-        self.elements_converted += 1
+        self.num_elements_converted += 1
         if self.progress.should_report_progress():
             self.progress.report(
-                f"Converted {self.elements_converted:,} elements", None
+                f"Converted {self.num_elements_converted:,} elements", None
             )
 
     def _convert_spatial(
@@ -296,7 +324,8 @@ class ImportJob:
                 self._convert_element(child, parent_container, obj, element)
 
     def _emit_object(self, element: entity_instance, name: str) -> BundleObject:
-        placement = self._placements.get(element.id())
+        # popped so the leftovers are the geometry no tree-walked element claimed
+        placement = self._placements.pop(element.id(), None)
         if placement is not None:
             self.geometries_used += 1
         return convert_object(
