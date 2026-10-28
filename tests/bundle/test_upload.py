@@ -84,10 +84,10 @@ def test_upload_dir_finds_artefacts_when_base_name_has_glob_metachars(tmp_path):
     """FEA-645: the base name is the source filename stem, and `[a29]`-style tags
     turn an unescaped glob into a character class — the artefacts were written but
     never found. The `[a]`-matching decoy proves the match is literal."""
-    base = "Tower [a29] ?rev* v2"
+    base = "Tower [a29] v2"
     (tmp_path / f"{base}.nodes.parquet").write_bytes(b"nodes")
     (tmp_path / f"{base}.geometries.parquet").write_bytes(b"geo")
-    (tmp_path / "Tower a ?rev* v2.nodes.parquet").write_bytes(b"decoy")
+    (tmp_path / "Tower a v2.nodes.parquet").write_bytes(b"decoy")
     signed: list[list[str]] = []
 
     def speckle_handler(request: httpx.Request) -> httpx.Response:

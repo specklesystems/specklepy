@@ -1,6 +1,6 @@
 [tools]
-python = "3.13.7"
-uv = "0.9.11"
+python = "3.13"
+uv = "0.12.5"
 
 [settings]
 experimental = true
