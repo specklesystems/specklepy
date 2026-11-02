@@ -347,8 +347,9 @@ def _get_unit_info(
     if quantity_type == "IfcQuantityCount":
         return {}
 
-    unit = getattr(element, "Unit", None)
-    if unit:
+    unit = getattr(quantity, "Unit", None)
+    # IfcDerivedUnit has no Name; fall back to the project unit for those
+    if unit and getattr(unit, "Name", None):
         # Quantity has its own unit
         unit_name = get_full_unit_name(unit)
         formatted_unit_name = unit_name.replace("_", " ").title() if unit_name else ""

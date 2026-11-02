@@ -30,7 +30,7 @@ def convert_object(
     properties = extract_properties(element)
     if storey_name and not element.is_a("IfcBuildingStorey"):
         properties["Building Storey"] = storey_name
-    parent = _product_parent_of(element)
+    parent = product_parent_of(element)
     if parent is not None:
         properties["parentApplicationId"] = parent.GlobalId
 
@@ -48,7 +48,7 @@ def convert_object(
     return obj
 
 
-def _product_parent_of(element: entity_instance) -> entity_instance | None:
+def product_parent_of(element: entity_instance) -> entity_instance | None:
     for rel in getattr(element, "Decomposes", None) or []:
         parent = rel.RelatingObject
         if (
