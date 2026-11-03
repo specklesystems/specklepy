@@ -127,8 +127,8 @@ class ImportJob:
         start = time.time()
         self._convert_project_tree()
         print(f"Element tree conversion complete after {(time.time() - start):.3f}s")
-        print(f"Used {self.geometries_used} geometries")
         self._convert_uncontained()
+        print(f"Used {self.geometries_used} geometries")
 
         self._systems.extract(self.ifc_file)
         self._groups.extract(self.ifc_file)

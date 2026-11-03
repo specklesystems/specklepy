@@ -124,5 +124,8 @@ def create_geometry_iterator(
         ifc_settings,
         ifc_file,
         multiprocessing.cpu_count(),
+        # An opening's void is cut from its host's geometry regardless of this filter;
+        # the opening's own solid is never something we want to display.
+        exclude=["IfcOpeningElement"],
         geometry_library=GEOMETRY_LIBRARY,  # type: ignore
     )
