@@ -33,6 +33,7 @@ from speckleifc.converter.node import (
 from speckleifc.converter.object import Placement, convert_object, product_parent_of
 from speckleifc.ifc_geometry_processing import (
     contexts_for_3d_representations,
+    create_curve_iterator,
     create_geometry_iterator,
 )
 from speckleifc.ifc_openshell_helpers import get_children
@@ -84,6 +85,7 @@ class ImportJob:
         self._current_room: BundleObject | None = None
 
         self.geometries_count = 0
+        self.curve_geometries_count = 0
         self.geometries_used = 0
         self.num_elements_converted = 0
         self.uncontained_converted = 0
@@ -105,6 +107,7 @@ class ImportJob:
                 self._pre_process_geometry()
             print(f"Geometry conversion complete after {(time.time() - start):.3f}s")
             print(f"Created {self.geometries_count} geometries")
+            print(f"Created {self.curve_geometries_count} curve geometries")
             if self.empty_meshes_skipped:
                 logger.info("Skipped %d empty style meshes", self.empty_meshes_skipped)
             with start_activity("ImportJob.ConvertAndEmit"):
@@ -114,6 +117,7 @@ class ImportJob:
             activity.set_attributes(
                 {
                     "ifc.geometriesCount": self.geometries_count,
+                    "ifc.curveGeometriesCount": self.curve_geometries_count,
                     "ifc.geometriesUsed": self.geometries_used,
                     "ifc.elementsConverted": self.num_elements_converted,
                     "ifc.uncontainedElements": self.uncontained_converted,
@@ -145,6 +149,7 @@ class ImportJob:
     # ── geometry pre-pass ────────────────────────────────────────────────────
 
     def _pre_process_geometry(self) -> None:
+        context_ids: list[int] | None = None
         iterator = create_geometry_iterator(self.ifc_file)
         if not iterator.initialize():
             # The default context-first selection came up empty. Before declaring the
@@ -164,10 +169,12 @@ class ImportJob:
 
         self.progress.report("Converting geometries", None)
 
+        with_body: set[int] = set()
         while True:
             shape = cast(TriangulationElement, iterator.get())
             self.geometries_count += 1
             step_id = cast(int, shape.id)
+            with_body.add(step_id)
             try:
                 definitions = self._definitions.definitions_for(
                     cast(Triangulation, shape.geometry)
@@ -184,6 +191,46 @@ class ImportJob:
                 self.progress.report(
                     f"Converted {self.geometries_count:,} geometries", None
                 )
+            if not iterator.next():
+                break
+
+        self._pre_process_curves(with_body, context_ids)
+
+    def _pre_process_curves(
+        self, with_body: set[int], context_ids: list[int] | None
+    ) -> None:
+        # ENG-11487: curves only for products with no 3D representation, as a product
+        # with a body would also yield its Axis/FootPrint here. Annotations are
+        # drafting content rather than model geometry.
+        products = [
+            product
+            for product in self.ifc_file.by_type("IfcProduct")
+            if product.Representation is not None
+            and product.id() not in with_body
+            and not product.is_a("IfcFeatureElement")
+            and not product.is_a("IfcAnnotation")
+        ]
+        if not products:
+            return
+        iterator = create_curve_iterator(self.ifc_file, products, context_ids)
+        if not iterator.initialize():
+            return
+
+        while True:
+            shape = cast(TriangulationElement, iterator.get())
+            self.curve_geometries_count += 1
+            step_id = cast(int, shape.id)
+            try:
+                definitions = self._definitions.curve_definitions_for(
+                    cast(Triangulation, shape.geometry)
+                )
+                if definitions:
+                    matrix = shape.transformation.matrix
+                    self._placements[step_id] = (transposed(matrix), definitions)
+            except Exception as ex:
+                raise SpeckleException(
+                    f"Failed to convert curve geometry with id: {step_id}"
+                ) from ex
             if not iterator.next():
                 break
 

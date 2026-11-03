@@ -1,5 +1,6 @@
 """Geometry conversion (the ``geometries`` namespace): split an ifcopenshell
-triangulation into per-style speckle meshes paired with their render material."""
+triangulation into per-style speckle meshes or polylines paired with their render
+material."""
 
 from __future__ import annotations
 
@@ -13,7 +14,7 @@ from ifcopenshell.ifcopenshell_wrapper import (
     style,
 )
 
-from specklepy.objects.geometry import Mesh
+from specklepy.objects.geometry import Mesh, Polyline
 from specklepy.objects.other import RenderMaterial
 
 
@@ -84,6 +85,38 @@ def geometry_to_speckle(geometry: Triangulation) -> list[tuple[Mesh, RenderMater
         (mesh, _material_to_speckle(materials[i]))
         for i, mesh in enumerate(mapped_meshes)
     ]
+
+
+def curves_to_speckle(
+    geometry: Triangulation,
+) -> list[tuple[Polyline, RenderMaterial]]:
+    """Join a curve triangulation's edges into polylines, one per connected run of
+    same-style edges, paired with their material.
+
+    Joining relies on shared vertex indices, so the iterator must weld vertices.
+    """
+    materials = cast(Sequence[style], geometry.materials)
+    edges = cast(Sequence[int], geometry.edges)
+    verts = cast(Sequence[float], geometry.verts)
+    material_ids = cast(Sequence[int], geometry.material_ids)
+    EDGE_COUNT = len(edges) // 2
+
+    runs: list[tuple[list[int], int]] = []
+    for i in range(EDGE_COUNT):
+        start, end = edges[2 * i], edges[2 * i + 1]
+        material_id = material_ids[i]
+        if runs and runs[-1][0][-1] == start and runs[-1][1] == material_id:
+            runs[-1][0].append(end)
+        else:
+            runs.append(([start, end], material_id))
+
+    app_id = cast(str, geometry.id)
+    result = []
+    for n, (indices, material_id) in enumerate(runs):
+        value = [verts[v * 3 + axis] for v in indices for axis in range(3)]
+        polyline = Polyline(value=value, units="m", applicationId=f"{app_id}_crv{n}")
+        result.append((polyline, _material_to_speckle(materials[material_id])))
+    return result
 
 
 def _material_to_speckle(material: style) -> RenderMaterial:
