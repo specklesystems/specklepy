@@ -397,7 +397,22 @@ class AutomationContext:
             [upload_result.blob_id for upload_result in upload_response.upload_results]
         )
 
-        return upload_response.upload_results[0].blob_id
+        result = upload_response.upload_results[0]
+        # The app's run details do not list attachments (ENG-11525); the log
+        # line is how users find the file.
+        url = self.file_result_url(result.blob_id)
+        print(f"Stored file result {result.file_name}: {url}")
+        return result.blob_id
+
+    def file_result_url(self, blob_id: str) -> str:
+        """Browser download link for a file stored with store_file_result.
+
+        Downloads for anyone signed in to the server with access to the project.
+        """
+        server = self.automation_run_data.speckle_server_url.rstrip("/")
+        return (
+            f"{server}/api/stream/{self.automation_run_data.project_id}/blob/{blob_id}"
+        )
 
     def mark_run_failed(
         self, status_message: str, version_result: dict[str, Any] | None = None
