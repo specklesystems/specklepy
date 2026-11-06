@@ -50,8 +50,7 @@ jobs:
       - name: "Build package artifacts"
         run: uv build
 
-      # uv publish uploads PEP 740 attestations but does not create them; without
-      # this, PyPI shows the release as trusted-published with no provenance.
+      # Without this PEP 740 attestation, PyPI shows the package as no provenance
       - name: "Generate publish attestations"
         uses: astral-sh/attest-action@39b6ce43875c196a579e31635b11aa2a2036384a # v0.0.7
 
