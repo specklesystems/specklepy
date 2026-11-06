@@ -11,7 +11,7 @@ from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.geom import file
 from ifcopenshell.ifcopenshell_wrapper import Triangulation
 
-from speckleifc.converter.geometry import geometry_to_speckle
+from speckleifc.converter.geometry import curves_to_speckle, geometry_to_speckle
 from specklepy.bundle.builder import (
     BundleBuilder,
     BundleDefinition,
@@ -64,27 +64,50 @@ class DefinitionManager:
         if cached is not None:
             return cached
 
-        definitions: list[BundleDefinition] = []
+        meshes = []
         for mesh, material in geometry_to_speckle(geometry):
             if not mesh.faces:
                 self.empty_meshes_skipped += 1
                 continue
-            mesh_id = mesh.applicationId
-            assert mesh_id is not None
-            handle = self._materials.get_or_add(material, mesh_id)
+            meshes.append((mesh, material))
+        definitions = self._add_definitions(meshes)
+        self._definitions_by_geometry[geometry_id] = definitions
+        return definitions
+
+    def curve_definitions_for(self, geometry: Triangulation) -> list[BundleDefinition]:
+        geometry_id = "crv:" + cast(str, geometry.id)
+        cached = self._definitions_by_geometry.get(geometry_id)
+        if cached is not None:
+            return cached
+
+        definitions = self._add_definitions(curves_to_speckle(geometry))
+        self._definitions_by_geometry[geometry_id] = definitions
+        return definitions
+
+    def _add_definitions(
+        self, geometries: list[tuple[Any, RenderMaterial]]
+    ) -> list[BundleDefinition]:
+        definitions: list[BundleDefinition] = []
+        for geometry, material in geometries:
+            geometry_key = geometry.applicationId
+            assert geometry_key is not None
+            handle = self._materials.get_or_add(material, geometry_key)
 
             def populate(
                 definition: BundleDefinition,
-                mesh: Any = mesh,
-                mesh_id: str = mesh_id,
+                geometry: Any = geometry,
+                geometry_key: str = geometry_key,
                 handle: Any = handle,
             ) -> None:
-                definition.add_geometry(mesh, geometry_key=mesh_id).material = handle
+                definition.add_geometry(
+                    geometry, geometry_key=geometry_key
+                ).material = handle
 
             definitions.append(
-                self._builder.get_or_add_definition(mesh_id, mesh_id, populate)
+                self._builder.get_or_add_definition(
+                    geometry_key, geometry_key, populate
+                )
             )
-        self._definitions_by_geometry[geometry_id] = definitions
         return definitions
 
 

@@ -2,11 +2,14 @@ import logging
 import multiprocessing
 
 from ifcopenshell import SchemaError, file, ifcopenshell_wrapper, open, sqlite
+from ifcopenshell.entity_instance import entity_instance
 from ifcopenshell.geom import iterator, settings
 
 from specklepy.logging.exceptions import SpeckleException
 
 logger = logging.getLogger(__name__)
+
+GEOMETRY_LIBRARY = "hybrid-opencascade-cgal"  # First OCC then fallback to CGAL
 
 
 def _create_iterator_settings() -> settings:
@@ -116,7 +119,6 @@ def contexts_for_3d_representations(ifc_file: file) -> list[int]:
 def create_geometry_iterator(
     ifc_file: file | sqlite, context_ids: list[int] | None = None
 ) -> iterator:
-    GEOMETRY_LIBRARY = "hybrid-opencascade-cgal"  # First OCC then fallback to CGAL
     ifc_settings = _create_iterator_settings()
     if context_ids:
         ifc_settings.set("context-ids", context_ids)
@@ -127,5 +129,22 @@ def create_geometry_iterator(
         # An opening's void is cut from its host's geometry regardless of this filter;
         # the opening's own solid is never something we want to display.
         exclude=["IfcOpeningElement"],
+        geometry_library=GEOMETRY_LIBRARY,  # type: ignore
+    )
+
+
+def create_curve_iterator(
+    ifc_file: file, products: list[entity_instance], context_ids: list[int] | None
+) -> iterator:
+    ifc_settings = _create_iterator_settings()
+    ifc_settings.set("dimensionality", ifcopenshell_wrapper.CURVES)
+    ifc_settings.set("weld-vertices", True)
+    if context_ids:
+        ifc_settings.set("context-ids", context_ids)
+    return iterator(
+        ifc_settings,
+        ifc_file,
+        multiprocessing.cpu_count(),
+        include=products,
         geometry_library=GEOMETRY_LIBRARY,  # type: ignore
     )
