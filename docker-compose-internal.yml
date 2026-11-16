@@ -42,8 +42,10 @@ services:
     volumes:
       - ./garage.toml:/etc/garage.toml:ro
       - ./.volumes/garage-data:/data
+    # 3000 is the server's: it shares this container's network namespace (see below).
     ports:
       - '127.0.0.1:9000:9000'
+      - "0.0.0.0:3000:3000"
     healthcheck:
       test: ["CMD", "/garage", "health"]
       interval: 2s
@@ -64,8 +66,9 @@ services:
       timeout: 10s
       retries: 15
       start_period: 90s
-    ports:
-      - "0.0.0.0:3000:3000"
+    # The server reads uploads back through the same presigned urls it hands to clients
+    # (ENG-11708), so 127.0.0.1:9000 has to be Garage from inside this container too.
+    network_mode: "service:garage"
     # Viewer-.dat generation is a one-shot Job in-cluster; off-cluster the server's
     # CONVERSION_RUNNER_LOCAL_DEV stand-in runs CONVERTER_IMAGE through the Docker
     # Engine API on this socket instead, on the host network (server
@@ -91,8 +94,7 @@ services:
       # TODO: Change thvolumes:
       REDIS_URL: "redis://redis"
 
-      S3_ENDPOINT: "http://garage:9000"
-      S3_PUBLIC_ENDPOINT: "http://127.0.0.1:9000"
+      S3_ENDPOINT: "http://127.0.0.1:9000"
       S3_ACCESS_KEY: "minioadmin"
       S3_SECRET_KEY: "minioadminminioadmin"
       S3_BUCKET: "speckle-server"
@@ -123,7 +125,7 @@ services:
   # Since server ADR-0003 a legacy send only reserves a version; this worker packs the
   # bundle (+ viewer .dat) and completes it, which is when the version is born. It runs
   # on the host network because the server hands it its own CANONICAL_URL and presigned
-  # S3_PUBLIC_ENDPOINT urls, both 127.0.0.1 from the runner's point of view.
+  # S3_ENDPOINT urls, both 127.0.0.1 from the runner's point of view.
   bundle-migration-service:
     image: ${SPECKLE_BUNDLE_MIGRATION_IMAGE:-ghcr.io/specklesystems/speckle-bundle-migration-service:latest}
     restart: always
