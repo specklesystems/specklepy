@@ -160,7 +160,7 @@ def test_parse_model():
         "https://app.speckle.systems/projects/8be1007be1/models/cc7578012d"
     )
 
-    assert wrap.branch_name == "speckle tower revit 2025"
+    assert wrap.branch_name == "revit/speckle tower revit 2025"
     assert wrap.type == "branch"
 
 

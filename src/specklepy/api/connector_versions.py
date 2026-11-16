@@ -23,6 +23,7 @@ class ConnectorFeedBaseModel(BaseModel):
 class ConnectorVersion(ConnectorFeedBaseModel):
     number: str
     url: HttpUrl
+    build_artifact: HttpUrl | None = None
     os: int  # this is an enum, it's properly defined in the old v2 SDK (used by Speckle.Manager.Feed)  # noqa: E501
     architecture: int  # These are enums, they are properly defined in the old v2 SDK (used by Speckle.Manager.Feed) # noqa: E501
     date: datetime
