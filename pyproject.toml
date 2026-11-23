@@ -16,6 +16,9 @@ dependencies = [
     "pydantic>=2.11.7",
     "pydantic-settings>=2.14.2",
     "ujson>=5.13.0",
+    # Floor: below 2.8.0, urllib3 decompresses and reads chunked server responses
+    # without bounds (GHSA-gm62-xv2j-4w53, GHSA-2xpw-w6gg-jr37, GHSA-vxq7-64xx-v4gw).
+    "urllib3>=2.8.0",
 ]
 
 [project.optional-dependencies]

@@ -2486,6 +2486,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "ujson" },
+    { name = "urllib3" },
 ]
 
 [package.optional-dependencies]
@@ -2536,6 +2537,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pydantic-settings", specifier = ">=2.14.2" },
     { name = "ujson", specifier = ">=5.13.0" },
+    { name = "urllib3", specifier = ">=2.8.0" },
 ]
 provides-extras = ["bundle", "speckleifc"]
 
