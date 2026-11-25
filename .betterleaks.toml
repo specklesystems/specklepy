@@ -14,17 +14,18 @@ let secret = finding["secret"];
 let line = finding["line"];
 let generic = rule in ["generic-api-key", "generic-credential-uri", "generic-password"];
 
-// Test code makes up its own credentials.
-(generic && matchesAny(path, [`(?:^|/)tests/`]))
+// A made-up password in the integration test setup.
+(rule == "generic-password" && secret == "$uper$3cr3tP@ss" && matchesAny(path, [`(?:^|/)tests/integration/conftest\.py$`]))
 
 // Credentials of the local dev server (docker-compose).
-|| (generic && secret == "speckle")
+|| (generic && secret == "speckle" && matchesAny(path, [`(?:^|/)docker-compose[^/]*\.yml$`]))
 
 // rpc_secret of the single-node Garage in the local dev stack.
 || (rule == "generic-api-key" && matchesAny(line, [`^rpc_secret = `]) && matchesAny(path, [`(?:^|/)garage\.toml$`]))
 
-// PostHog project keys (`phc_`) are sent by every client and are public by design.
-|| (rule == "posthog-project-api-key")
+// The PostHog project key (`phc_`) of the metrics client: every client sends it,
+// and it is public by design.
+|| (rule == "posthog-project-api-key" && matchesAny(path, [`(?:^|/)src/specklepy/logging/metrics\.py$`]))
 '''
 
 [extend]
