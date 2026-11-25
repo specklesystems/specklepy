@@ -1,0 +1,31 @@
+# Betterleaks secret scanner config, used by the `secret-scan` workflow. The built-in
+# rules apply (`[extend]` below); `filter` only discards findings, and a finding is
+# discarded when the expression is true.
+#
+# Setting `filter` replaces the built-in global filter instead of adding to it
+# (betterleaks 1.10.0). Its discards of placeholder values such as `$VAR` no longer
+# apply; each built-in rule's own filter still does.
+title = "specklepy betterleaks config"
+
+filter = '''
+let path = attributes["path"];
+let rule = finding["rule_id"];
+let secret = finding["secret"];
+let line = finding["line"];
+let generic = rule in ["generic-api-key", "generic-credential-uri", "generic-password"];
+
+// Test code makes up its own credentials.
+(generic && matchesAny(path, [`(?:^|/)tests/`]))
+
+// Credentials of the local dev server (docker-compose).
+|| (generic && secret == "speckle")
+
+// rpc_secret of the single-node Garage in the local dev stack.
+|| (rule == "generic-api-key" && matchesAny(line, [`^rpc_secret = `]) && matchesAny(path, [`(?:^|/)garage\.toml$`]))
+
+// PostHog project keys (`phc_`) are sent by every client and are public by design.
+|| (rule == "posthog-project-api-key")
+'''
+
+[extend]
+useDefault = true
