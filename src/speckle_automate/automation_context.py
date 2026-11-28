@@ -31,6 +31,9 @@ from specklepy.objects.base import Base
 from specklepy.transports.memory import MemoryTransport
 from specklepy.transports.server import ServerTransport
 
+# The server's BlobUploadStatus.Completed (@speckle/shared blobs).
+BLOB_UPLOAD_COMPLETED = 1
+
 if TYPE_CHECKING:
     from specklepy.bundle.builder import BundleBuilder
     from specklepy.bundle.model import Model as BundleModel
@@ -363,6 +366,7 @@ class AutomationContext:
             blob_id: str
             file_name: str
             upload_status: int
+            upload_error: str | None = None
 
         class BlobUploadResponse(AutomateBase):
             upload_results: list[UploadResult]
@@ -372,10 +376,7 @@ class AutomationContext:
 
         files = {path_obj.name: path_obj.open("rb")}
 
-        url = (
-            f"{self.automation_run_data.speckle_server_url}api/stream/"
-            f"{self.automation_run_data.project_id}/blob"
-        )
+        url = self._project_blob_url()
         data = (
             httpx.post(
                 url,
@@ -393,11 +394,32 @@ class AutomationContext:
         if len(upload_response.upload_results) != 1:
             raise ValueError("Expecting one upload result.")
 
-        self._automation_result.blobs.extend(
-            [upload_result.blob_id for upload_result in upload_response.upload_results]
-        )
+        result = upload_response.upload_results[0]
+        # The server answers 201 even when it rejected the file (e.g. over its
+        # size limit) and deleted the blob; only uploadStatus says so.
+        if result.upload_status != BLOB_UPLOAD_COMPLETED:
+            raise SpeckleException(
+                f"Storing {result.file_name} failed: "
+                f"{result.upload_error or f'upload status {result.upload_status}'}"
+            )
 
-        return upload_response.upload_results[0].blob_id
+        self._automation_result.blobs.append(result.blob_id)
+        print(
+            f"Stored file result {result.file_name}: "
+            f"{self.file_result_url(result.blob_id)}"
+        )
+        return result.blob_id
+
+    def file_result_url(self, blob_id: str) -> str:
+        """Browser download link for a file stored with store_file_result.
+
+        Downloads for anyone signed in to the server with access to the project.
+        """
+        return f"{self._project_blob_url()}/{blob_id}"
+
+    def _project_blob_url(self) -> str:
+        server = self.automation_run_data.speckle_server_url.rstrip("/")
+        return f"{server}/api/stream/{self.automation_run_data.project_id}/blob"
 
     def mark_run_failed(
         self, status_message: str, version_result: dict[str, Any] | None = None
